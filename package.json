@@ -19,7 +19,7 @@
     "@react-aria/overlays": "^3.18.1",
     "@react-aria/ssr": "^3.8.0",
     "@react-aria/utils": "^3.21.1",
-    "@react-stately/color": "^3.4.4",
+    "@react-stately/color": "^3.8.2",
     "@react-stately/utils": "^3.8.0",
     "@sentry/react": "^7.0.0",
     "@sentry/tracing": "^7.0.0",
