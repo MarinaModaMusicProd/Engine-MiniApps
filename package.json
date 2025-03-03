@@ -76,7 +76,7 @@
     "react-router-dom": "^6.26.1",
     "react-textarea-autosize": "^8.5.3",
     "react-use-clipboard": "^1.0.7",
-    "react-use-cookie": "^1.4.0",
+    "react-use-cookie": "^1.6.1",
     "slugify": "^1.6.5",
     "swagger-ui-react": "^4.15",
     "tus-js-client": "^3.0.1",
