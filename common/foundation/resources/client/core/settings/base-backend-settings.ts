@@ -90,6 +90,13 @@ export interface BaseBackendSettings {
     compact_buttons: boolean;
     requireAccount?: boolean;
   };
+  web3?: {
+    ton?: {
+      enable: boolean;
+    };
+    compact_buttons: boolean;
+    requireAccount?: boolean;
+  };
   auth?: {
     domain_blacklist?: string;
   };

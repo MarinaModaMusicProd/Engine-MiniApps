@@ -13,6 +13,9 @@ return [
     ['name' => 'social.facebook.enable', 'value' => false],
     ['name' => 'social.compact_buttons', 'value' => false],
 
+    // web3 login
+    ['name' => 'web3.ton.enable', 'value' => true],
+
     // real time
     ['name' => 'realtime.enable', 'value' => false],
 

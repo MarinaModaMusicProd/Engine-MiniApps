@@ -28,20 +28,26 @@ import {NotFoundPage} from '@common/ui/not-found-page/not-found-page';
 import {PageErrorMessage} from '@common/errors/page-error-message';
 import {userSuspendedRouter} from '@common/auth/ui/user-suspended-page/user-suspended-page';
 import WebApp from '@twa-dev/sdk';
+import {TonConnectUIProvider} from "@tonconnect/ui-react";
 
 const mergedConfig = deepMerge(BaseSiteConfig, SiteConfig);
 
 interface Props {
   router: Router;
 }
+
 export function CommonProvider({router}: Props) {
+  const {base_url} = useSettings();
+
   return (
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <LazyMotion features={domAnimation}>
           <SiteConfigContext.Provider value={mergedConfig}>
             <ThemeProvider>
-              <CommonRouter router={router} />
+              <TonConnectUIProvider manifestUrl={`${base_url}/tonconnect-manifest.json`}>
+                <CommonRouter router={router} />
+              </TonConnectUIProvider>
             </ThemeProvider>
           </SiteConfigContext.Provider>
         </LazyMotion>
