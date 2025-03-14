@@ -74,7 +74,7 @@ export function Navbar(props: NavbarProps) {
   color = color ?? lightThemeVars?.['--be-navbar-color'] ?? 'primary';
   darkModeColor =
     darkModeColor ?? darkThemeVars?.['--be-navbar-color'] ?? 'bg-alt';
-
+  console.log(useAuth());
   if (isDarkMode) {
     color = darkModeColor;
   }

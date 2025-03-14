@@ -1,6 +1,7 @@
 <?php
 
 use Common\Auth\Controllers\SocialAuthController;
+use Common\Auth\Controllers\TonConnectController;
 use Common\Auth\Controllers\TwoFactorQrCodeController;
 use Common\Billing\Invoices\InvoiceController;
 use Common\Core\Controllers\HomeController;
@@ -11,6 +12,7 @@ use Common\Domains\CustomDomainController;
 use Common\Files\Controllers\DownloadFileController;
 use Common\Settings\Mail\ConnectGmailAccountController;
 use Common\Workspaces\Controllers\WorkspaceMembersController;
+use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'web'], function () {
     // Download
@@ -102,6 +104,16 @@ Route::group(['middleware' => 'web'], function () {
     // Laravel Auth routes with names so route('login') and similar calls don't error out
     Route::get('login', [HomeController::class, 'show'])->name('login');
     Route::get('register', [HomeController::class, 'show'])->name('register');
+
+    // Web3 auth
+    Route::prefix('auth/web3')->group(function ()
+    {
+        Route::prefix('ton')->group(function ()
+        {
+            Route::get('generate-payload', [TonConnectController::class, 'generatePayload'])->withoutMiddleware('verifyApiAccess');
+            Route::post('check-ton-proof', [TonConnectController::class, 'checkTonProof'])->withoutMiddleware('verifyApiAccess');
+        });
+    });
 });
 
 if (!config('common.site.installed')) {

@@ -55,6 +55,11 @@ function Form({data}: FormProps) {
             enable: data.client.social?.twitter?.enable ?? false,
           },
         },
+        web3: {
+          ton: {
+            enable: data.client.web3?.ton?.enable ?? false,
+          },
+        },
         single_device_login: data.client.single_device_login ?? false,
         auth: {
           domain_blacklist: data.client.auth?.domain_blacklist ?? '',
@@ -104,19 +109,36 @@ function Form({data}: FormProps) {
       >
         <Trans message="Single device login" />
       </FormSwitch>
+
+      <SettingsSeparator />
+
       <FormSwitch
         name="client.social.compact_buttons"
         description={
           <Trans message="Use compact design for social login buttons." />
         }
       >
-        <Trans message="Compact buttons" />
+        <Trans message="Social compact buttons" />
       </FormSwitch>
       <EnvatoSection />
       <GoogleSection />
       <FacebookSection />
       <TwitterSection />
+
       <SettingsSeparator />
+
+      <FormSwitch
+        name="client.web3.compact_buttons"
+        description={
+          <Trans message="Use compact design for web3 login buttons." />
+        }
+      >
+        <Trans message="Web3 compact buttons" />
+      </FormSwitch>
+      <TonSection/>
+
+      <SettingsSeparator />
+
       <FormTextField
         inputElementType="textarea"
         rows={3}
@@ -184,7 +206,7 @@ function EnvatoSection() {
   if (!(settings as any).envato?.enable) return null;
 
   return (
-    <SettingsErrorGroup separatorBottom={false} name="envato_group">
+    <SettingsErrorGroup name="envato_group" separatorTop={false} separatorBottom={false}>
       {isInvalid => (
         <>
           <FormSwitch
@@ -232,12 +254,13 @@ function GoogleSection() {
   const googleLoginEnabled = watch('client.social.google.enable');
 
   return (
-    <SettingsErrorGroup name="google_group">
+    <SettingsErrorGroup name="google_group" separatorTop={false} separatorBottom={false}>
       {isInvalid => (
         <>
           <FormSwitch
             invalid={isInvalid}
             name="client.social.google.enable"
+            className="mt-24"
             description={
               <Trans message="Enable logging into the site via google." />
             }
@@ -272,12 +295,13 @@ function FacebookSection() {
   const facebookLoginEnabled = watch('client.social.facebook.enable');
 
   return (
-    <SettingsErrorGroup name="facebook_group" separatorTop={false}>
+    <SettingsErrorGroup name="facebook_group" separatorTop={false} separatorBottom={false}>
       {isInvalid => (
         <>
           <FormSwitch
             invalid={isInvalid}
             name="client.social.facebook.enable"
+            className="mt-24"
             description={
               <Trans message="Enable logging into the site via facebook." />
             }
@@ -313,16 +337,14 @@ function TwitterSection() {
   const twitterLoginEnabled = watch('client.social.twitter.enable');
 
   return (
-    <SettingsErrorGroup
-      name="twitter_group"
-      separatorTop={false}
-      separatorBottom={false}
+    <SettingsErrorGroup name="twitter_group" separatorTop={false} separatorBottom={false}
     >
       {isInvalid => (
         <>
           <FormSwitch
             invalid={isInvalid}
             name="client.social.twitter.enable"
+            className="mt-24"
             description={
               <Trans message="Enable logging into the site via twitter." />
             }
@@ -348,6 +370,25 @@ function TwitterSection() {
             </>
           )}
         </>
+      )}
+    </SettingsErrorGroup>
+  );
+}
+
+function TonSection() {
+  return (
+    <SettingsErrorGroup name="ton_group" separatorTop={false} separatorBottom={false}>
+      {isInvalid => (
+          <FormSwitch
+            invalid={isInvalid}
+            name="client.web3.ton.enable"
+            className="mt-24"
+            description={
+              <Trans message="Enable logging into the site via ton." />
+            }
+          >
+            <Trans message="TON login" />
+          </FormSwitch>
       )}
     </SettingsErrorGroup>
   );

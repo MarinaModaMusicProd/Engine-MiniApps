@@ -15,12 +15,13 @@ import {StaticPageTitle} from '../../seo/static-page-title';
 import {useSettings} from '@ui/settings/use-settings';
 import React, {useContext} from 'react';
 import {SiteConfigContext} from '@common/core/settings/site-config-context';
+import {Web3AuthSection} from "@common/auth/ui/web3-auth-section";
 
 interface Props {
   inviteType?: string;
 }
 export function RegisterPage({inviteType}: Props) {
-  const {branding, registration, social} = useSettings();
+  const {branding, registration, social, web3} = useSettings();
   const {auth} = useContext(SiteConfigContext);
   const {verify, isVerifying} = useRecaptcha('register');
 
@@ -117,16 +118,27 @@ export function RegisterPage({inviteType}: Props) {
         >
           <Trans message="Create account" />
         </Button>
-        <SocialAuthSection
-          dividerMessage={
-            social?.compact_buttons ? (
-              <Trans message="Or sign up with" />
-            ) : (
-              <Trans message="OR" />
-            )
-          }
-        />
       </Form>
+
+      <SocialAuthSection
+        dividerMessage={
+          social?.compact_buttons ? (
+            <Trans message="Or sign up with social" />
+          ) : (
+            <Trans message="OR" />
+          )
+        }
+      />
+
+      <Web3AuthSection
+        dividerMessage={
+          web3?.compact_buttons ? (
+            <Trans message="Or sign up with web3" />
+          ) : (
+            <Trans message="OR" />
+          )
+        }
+      />
     </AuthLayout>
   );
 }

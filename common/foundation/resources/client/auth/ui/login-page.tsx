@@ -10,12 +10,13 @@ import {SocialAuthSection} from './social-auth-section';
 import {AuthLayout} from './auth-layout/auth-layout';
 import {Trans} from '@ui/i18n/trans';
 import {StaticPageTitle} from '../../seo/static-page-title';
-import {useContext} from 'react';
+import React, {useContext} from 'react';
 import {
   SiteConfigContext,
   SiteConfigContextValue,
 } from '../../core/settings/site-config-context';
 import {useSettings} from '@ui/settings/use-settings';
+import {Web3AuthSection} from "@common/auth/ui/web3-auth-section";
 
 interface Props {
   onTwoFactorChallenge: () => void;
@@ -27,7 +28,7 @@ export function LoginPage({onTwoFactorChallenge}: Props) {
   const isWorkspaceLogin = pathname.includes('workspace');
   const searchParamsEmail = searchParams.get('email') || undefined;
 
-  const {branding, registration, site, social} = useSettings();
+  const {branding, registration, site, social, web3} = useSettings();
   const siteConfig = useContext(SiteConfigContext);
 
   const demoDefaults =
@@ -114,10 +115,21 @@ export function LoginPage({onTwoFactorChallenge}: Props) {
           <Trans message="Continue" />
         </Button>
       </Form>
+
       <SocialAuthSection
         dividerMessage={
           social?.compact_buttons ? (
-            <Trans message="Or sign in with" />
+            <Trans message="Or sign in with social" />
+          ) : (
+            <Trans message="OR" />
+          )
+        }
+      />
+
+      <Web3AuthSection
+        dividerMessage={
+          web3?.compact_buttons ? (
+            <Trans message="Or sign in with web3" />
           ) : (
             <Trans message="OR" />
           )

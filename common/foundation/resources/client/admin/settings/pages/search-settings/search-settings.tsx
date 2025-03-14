@@ -15,6 +15,7 @@ import {
   AdminSettingsLayout,
 } from '@common/admin/settings/form/admin-settings-form';
 import {AdminSettings} from '@common/admin/settings/admin-settings';
+import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 export function SearchSettings() {
   return (
@@ -206,7 +207,7 @@ function ImportRecordsPanel() {
             selectionMode="single"
             label={<Trans message="What to import?" />}
             selectedValue={selectedModel}
-            onSelectionChange={newValue => {
+            onSelectionChange={(newValue: PrimitiveValue) => {
               setSelectedModel(newValue as string);
             }}
           >

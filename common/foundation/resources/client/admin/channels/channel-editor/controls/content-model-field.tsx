@@ -4,6 +4,7 @@ import {Trans} from '@ui/i18n/trans';
 import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
 import React from 'react';
 import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
+import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 interface Props {
   config: ChannelContentConfig;
@@ -18,7 +19,7 @@ export function ContentModelField({config, className, exclude}: Props) {
       selectionMode="single"
       name="config.contentModel"
       label={<Trans message="Type of content" />}
-      onSelectionChange={newValue => {
+      onSelectionChange={(newValue: PrimitiveValue) => {
         const modelConfig = config.models[newValue];
         if (
           getValues('config.contentType') === 'autoUpdate' &&

@@ -14,6 +14,7 @@ dist-ssr
 *.local
 *.lock
 *.sql
+package-lock.json
 
 # Editor directories and files
 .vscode/*
@@ -35,6 +36,7 @@ public/favicon
 public/favicon.ico
 install_files
 /public/hot
+/public/build
 /storage/*.key
 Homestead.json
 Homestead.yaml
@@ -48,3 +50,5 @@ storageState.json
 resources/lang/*.json
 # manifest file will be created during installation
 public/manifest.json
+
+public/error_log
