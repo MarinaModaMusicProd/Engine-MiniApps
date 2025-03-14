@@ -11,6 +11,7 @@ import {prettyBytes} from '@ui/utils/files/pretty-bytes';
 import {Option, Select} from '@ui/forms/select/select';
 import {spaceUnits} from '@ui/utils/files/space-units';
 import {convertToBytes, SpaceUnit} from '@ui/utils/files/convert-to-bytes';
+import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 // 99TB
 const MaxValue = 108851651149824;
@@ -73,7 +74,7 @@ export const FormFileSizeField = React.forwardRef<
       selectedValue={unit}
       disabled={!byteValue}
       inputRadius="rounded-l-none rounded-r-input"
-      onSelectionChange={newUnit => {
+      onSelectionChange={(newUnit: PrimitiveValue) => {
         const newBytes = convertToBytes(
           (liveValue || 0) as number,
           newUnit as SpaceUnit,

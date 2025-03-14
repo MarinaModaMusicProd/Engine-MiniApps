@@ -48,6 +48,7 @@ import {Channel, ChannelContentItem} from '@common/channels/channel';
 import {Select} from '@ui/forms/select/select';
 import {Item} from '@ui/forms/listbox/item';
 import {UseQueryResult} from '@tanstack/react-query';
+import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 const columnConfig: ColumnConfig<NormalizedModel>[] = [
   {
@@ -228,7 +229,7 @@ function Pagination({
           size="xs"
           label={<Trans message="Per page" />}
           selectedValue={`${perPage}`}
-          onSelectionChange={value => onPageChange(value)}
+          onSelectionChange={(value: PrimitiveValue) => onPageChange(value)}
           className="ml-auto"
         >
           <Item value="50">50</Item>

@@ -14,6 +14,7 @@ import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
 import React from 'react';
 import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
 import clsx from 'clsx';
+import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 const defaultPerPage = 15;
 const perPageOptions = [{key: 10}, {key: 15}, {key: 20}, {key: 50}, {key: 100}];
@@ -46,7 +47,7 @@ export function DataTablePaginationFooter({
       size="xs"
       label={<Trans message="Items per page" />}
       selectedValue={pagination.per_page || defaultPerPage}
-      onSelectionChange={value => onPerPageChange(value as number)}
+      onSelectionChange={(value: PrimitiveValue) => onPerPageChange(value as number)}
     >
       {perPageOptions.map(option => (
         <Item key={option.key} value={option.key}>

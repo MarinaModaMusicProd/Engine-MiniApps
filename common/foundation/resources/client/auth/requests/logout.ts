@@ -6,6 +6,7 @@ import {showHttpErrorToast} from '../../http/show-http-error-toast';
 import {useAppearanceEditorMode} from '../../admin/appearance/commands/use-appearance-editor-mode';
 import {message} from '@ui/i18n/message';
 import {setBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {useTonConnectUI} from "@tonconnect/ui-react";
 
 interface Response extends BackendResponse {
   bootstrapData: string;
@@ -16,12 +17,15 @@ const appearanceMessage = "Can't logout while in appearance editor.";
 export function useLogout() {
   const navigate = useNavigate();
   const {isAppearanceEditorActive} = useAppearanceEditorMode();
+  const [tonConnectUI] = useTonConnectUI();
+
   return useMutation({
     mutationFn: () => (isAppearanceEditorActive ? noopLogout() : logout()),
     onSuccess: response => {
       // need to update bootstrap data in order for redirect to login page to work
       setBootstrapData(response.bootstrapData);
       queryClient.clear();
+      tonConnectUI.disconnect()
       navigate('/login');
 
       // need to clear query client and then set bootstrap data again immediately,

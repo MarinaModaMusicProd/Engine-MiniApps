@@ -11,6 +11,7 @@ import {BillingPeriodPresets} from '@common/admin/plans/crupdate-plan-page/billi
 import {Button} from '@ui/buttons/button';
 import {message} from '@ui/i18n/message';
 import {useTrans} from '@ui/i18n/use-trans';
+import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 interface PriceFormProps {
   index: number;
@@ -125,7 +126,7 @@ function BillingPeriodSelect({
       className="mb-20"
       selectionMode="single"
       selectedValue={value}
-      onSelectionChange={value => {
+      onSelectionChange={(value: PrimitiveValue) => {
         onValueChange(value as string);
         if (value === 'custom') {
         } else {

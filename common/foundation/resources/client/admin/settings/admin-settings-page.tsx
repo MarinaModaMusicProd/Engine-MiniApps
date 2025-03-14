@@ -6,6 +6,7 @@ import {Option, Select} from '@ui/forms/select/select';
 import {Trans} from '@ui/i18n/trans';
 import {StaticPageTitle} from '../../seo/static-page-title';
 import {useMemo} from 'react';
+import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 interface Props {
   className?: string;
@@ -58,7 +59,7 @@ function MobileNav({navConfig}: NavProps) {
       className="mb-24 w-full bg"
       selectionMode="single"
       selectedValue={value}
-      onSelectionChange={newPage => {
+      onSelectionChange={(newPage: PrimitiveValue) => {
         navigate(newPage as string, {state: {prevPath: pathname}});
       }}
     >

@@ -4,7 +4,7 @@ import htmlWorkerUrl from 'ace-builds/src-noconflict/worker-html?url';
 import phpWorkerUrl from 'ace-builds/src-noconflict/worker-php?url';
 import javascriptWorkerUrl from 'ace-builds/src-noconflict/worker-javascript?url';
 import React, {MutableRefObject, useEffect, useRef} from 'react';
-import AceEditorRender from 'react-ace';
+import AceEditorRender, {ICommand} from 'react-ace';
 import ReactAce from 'react-ace';
 import 'ace-builds/src-noconflict/mode-css';
 import 'ace-builds/src-noconflict/mode-html';
@@ -29,6 +29,14 @@ interface Props {
   beautify?: boolean;
   editorRef?: MutableRefObject<ReactAce | null>;
 }
+
+const beautifyCommands: ICommand[] = (Beautify.commands as any[]).map((cmd: any) => ({
+  ...cmd,
+  bindKey: typeof cmd.bindKey === 'string'
+    ? { win: cmd.bindKey, mac: cmd.bindKey }
+    : cmd.bindKey,
+}));
+
 export default function AceEditor({
   mode,
   onChange,
@@ -62,7 +70,7 @@ export default function AceEditor({
       defaultValue={defaultValue}
       onChange={onChange}
       editorProps={{$blockScrolling: true}}
-      commands={Beautify.commands}
+      commands={beautifyCommands}
       onValidate={annotations => {
         const isValid =
           annotations.filter(a => a.type === 'error').length === 0;

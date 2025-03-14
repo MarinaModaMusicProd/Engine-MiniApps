@@ -7,6 +7,7 @@ import {Item} from '@ui/forms/listbox/item';
 import {Trans} from '@ui/i18n/trans';
 import React from 'react';
 import {FontSelectorState} from '@common/ui/font-selector/font-selector-state';
+import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 export interface FontSelectorFilterValue {
   query: string;
@@ -38,7 +39,7 @@ export function FontSelectorFilters({
         className="flex-auto"
         selectionMode="single"
         selectedValue={filters.category}
-        onSelectionChange={value => {
+        onSelectionChange={(value: PrimitiveValue) => {
           setFilters({
             ...filters,
             category: value as string,

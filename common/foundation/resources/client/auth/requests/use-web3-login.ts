@@ -26,13 +26,17 @@ export interface LoginPayload {
   token_name: string;
 }
 
-export function useTonGeneratePayload() {
+export function useWeb3Login() {
+  const handleSuccess = useHandleLoginSuccess();
+
   return useMutation({
-    mutationFn: tonGeneratePayload,
-    onSuccess: response => {
-      console.log(response);
-      return response
-    },
+    mutationFn: ({ proof, account }: { proof: TonProofItemReplySuccess['proof']; account: Account }) =>
+      tonCheckProof(proof, account),
+      onSuccess: response => {
+        if (!response.two_factor) {
+          handleSuccess(response);
+        }
+      },
     onError: error => {
       console.error(error)
     },
@@ -57,6 +61,6 @@ export function tonGeneratePayload(): Promise<Response> {
   return apiClient.get('auth/web3/ton/generate-payload', ).then(response => response.data);
 }
 
-export function tonCheckProof(proof: TonProofItemReplySuccess['proof'], account: Account): Promise<Response> {
+export function tonCheckProof(proof: TonProofItemReplySuccess['proof'], account: Account): Promise<LoginResponse> {
   return apiClient.post('auth/web3/ton/check-ton-proof', {proof, account}).then(response => response.data);
 }

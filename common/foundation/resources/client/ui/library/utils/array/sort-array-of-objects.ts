@@ -55,7 +55,7 @@ export function sortArrayOfObjects<T extends object>(
  * matches the data's properties (e.g. column Xyz represents data['Xyz']).
  * May be set to a custom function for different behavior.
  */
-function sortingDataAccessor(data: object, key: string): string {
+function sortingDataAccessor(data: object, key: string): string | number {
   const value = dot.pick(key, data);
 
   if (isNumberValue(value)) {

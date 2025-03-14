@@ -25,12 +25,15 @@ export default defineConfig({
       host: 'dev-marina.tanya.city',
     },
     https: {
-      key: fs.readFileSync('/var/www/httpd-cert/dev-marina.tanya.city_2025-02-22-15-58_50.key'),
-      cert: fs.readFileSync('/var/www/httpd-cert/dev-marina.tanya.city_2025-02-22-15-58_50.crt'),
+      key: fs.readFileSync('/var/www/httpd-cert/dev-marina.tanya.city_2025-03-03-09-53_59.key'),
+      cert: fs.readFileSync('/var/www/httpd-cert/dev-marina.tanya.city_2025-03-03-09-53_59.crt'),
     },
     port: 5173,
     watch: {
       ignored: ['**/node_modules/**', '**/vendor/**'],
+    },
+    cors: {
+      origin: 'https://dev-marina.tanya.city',
     },
   },
   base: '',
