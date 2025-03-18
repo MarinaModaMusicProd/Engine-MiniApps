@@ -180,8 +180,8 @@ if (sentryDsn && import.meta.env.PROD) {
 }
 
 telegramAnalytics.init({
+  appName: 'marina_moda', // The analytics identifier you entered in @DataChief_bot
   token: 'eyJhcHBfbmFtZSI6Im1hcmluYV9tb2RhIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9tYXJpbmFfbW9kYV9ib3QiLCJhcHBfZG9tYWluIjoiaHR0cHM6Ly9tYXJpbmEucmVjaGFpbi5uZXR3b3JrLyJ9!mtMWM2A3vq0782qvhtJg3YV42jp8X6JC1ITJO7Q+Vyc=', // SDK Auth token received via @DataChief_bot
-  appName: 'eyJhcHBfbmFtZSI6Im1hcmluYV9tb2RhIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9tYXJpbmFfbW9kYV9ib3QiLCJhcHBfZG9tYWluIjoiaHR0cHM6Ly9tYXJpbmEucmVjaGFpbi5uZXR3b3JrLyJ9!+snpzgsRh3Gc6FxVBuE5tqHVdCbM2hWpW1HzUgzf4hk=', // The analytics identifier you entered in @DataChief_bot
 });
 
 createRoot(rootEl).render(<CommonProvider router={appRouter} />);
