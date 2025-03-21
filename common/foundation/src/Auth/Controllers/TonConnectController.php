@@ -87,6 +87,7 @@ class TonConnectController extends BaseController
             $user = $this->createUser->execute([
                 'email' => $addressUserFriendly,
                 'password' => Hash::make($proof["signature"]),
+                'email_verified_at' => now(),
             ]);
         }
 
