@@ -58,7 +58,7 @@
     "esbuild": "^0.24.0",
     "framer-motion": "^10.16.4",
     "fscreen": "^1.2.0",
-    "get-video-id": "^3.6.5",
+    "get-video-id": "^4.1.7",
     "highlight.js": "^11.9.0",
     "hls.js": "^1.4.12",
     "immer": "^10.0.3",
