@@ -76,7 +76,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.47.0",
     "react-merge-refs": "^2.1.1",
-    "react-router-dom": "^6.26.1",
+    "react-router-dom": "^7.6.0",
     "react-textarea-autosize": "^8.5.3",
     "react-use-clipboard": "^1.0.7",
     "react-use-cookie": "^1.4.0",
