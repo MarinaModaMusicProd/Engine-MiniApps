@@ -51,7 +51,7 @@
     "buffer": "^6.0.3",
     "chart.js": "^4.4.0",
     "clsx": "^2.0.0",
-    "dashjs": "^4.7.2",
+    "dashjs": "^5.0.3",
     "deep-object-diff": "^1.1.7",
     "deepmerge": "^4.2.2",
     "dot-object": "^2.1.4",
