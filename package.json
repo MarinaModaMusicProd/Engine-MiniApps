@@ -13,7 +13,7 @@
     "@floating-ui/react-dom": "^2.0.2",
     "@internationalized/date": "^3.5.0",
     "@internationalized/number": "^3.3.0",
-    "@paypal/paypal-js": "^7.0.3",
+    "@paypal/paypal-js": "^8.4.2",
     "@react-aria/focus": "^3.14.3",
     "@react-aria/interactions": "^3.19.1",
     "@react-aria/overlays": "^3.18.1",
