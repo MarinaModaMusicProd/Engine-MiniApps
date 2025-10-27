@@ -44,7 +44,7 @@
     "@tonconnect/ui-react": "^2.0.12",
     "@twa-dev/sdk": "^8.0.1",
     "@types/google.visualization": "^0.0.71",
-    "@vitejs/plugin-react-swc": "^3.4.0",
+    "@vitejs/plugin-react-swc": "^4.2.0",
     "ace-builds": "^1.31.0",
     "axios": "^1.7.7",
     "axios-retry": "^3.8.1",
