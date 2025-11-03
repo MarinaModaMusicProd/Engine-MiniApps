@@ -38,7 +38,7 @@
     "@tiptap/extension-superscript": "^3.3.0",
     "@tiptap/extension-text-align": "^2.1.12",
     "@tiptap/extension-text-style": "^2.1.12",
-    "@tiptap/extension-underline": "^2.1.12",
+    "@tiptap/extension-underline": "^3.10.1",
     "@tiptap/react": "^2.1.12",
     "@tiptap/starter-kit": "^2.1.12",
     "@tonconnect/ui-react": "^2.0.12",
