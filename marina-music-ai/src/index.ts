@@ -1,79 +1,177 @@
-import { MusicGenerator } from './core/musicGenerator';
-import { VoiceSynthesizer } from './core/voiceSynthesizer';
-import { QuantumStorage } from './storage/quantumStorage';
+import express from 'express';
+import { Server } from 'socket.io';
+import { QuantumComposer } from './core/QuantumComposer';
+import { VoiceSynthesizer } from './core/VoiceSynthesizer';
+import { FederatedLearner } from './core/FederatedLearner';
 
-export class MarinaAIMusic {
-  private musicGenerator: MusicGenerator;
-  private voiceSynthesizer: VoiceSynthesizer;
-  private storage: QuantumStorage;
+const app = express();
+const port = process.env.PORT || 3001;
 
-  constructor() {
-    this.musicGenerator = new MusicGenerator();
-    this.voiceSynthesizer = new VoiceSynthesizer();
-    this.storage = new QuantumStorage();
-  }
+// Initialize AI components
+const quantumComposer = new QuantumComposer();
+const voiceSynthesizer = new VoiceSynthesizer();
+const federatedLearner = new FederatedLearner();
 
-  /**
-   * Generate a new music track in Marina's style
-   */
-  async generateTrack(params: {
-    style: string;
-    bpm: number;
-    duration: number;
-    key?: string;
-  }): Promise<Buffer> {
-    // Generate musical elements
-    const melody = await this.musicGenerator.generateMelody(params);
-    const chords = await this.musicGenerator.generateChordProgression(melody);
-    
-    // Generate vocals if needed
-    const vocals = await this.voiceSynthesizer.synthesize({
-      text: '', // Add lyrics generation here
-      style: params.style
+app.use(express.json());
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Composition endpoint
+app.post('/api/music/compose', async (req, res) => {
+  try {
+    const { style, duration, complexity, emotionalTone, quantumDepth } = req.body;
+
+    const composition = await quantumComposer.composeQuantumTrack({
+      style: style || 'electronic',
+      duration: duration || 180, // 3 minutes
+      complexity: complexity || 0.7,
+      emotionalTone: emotionalTone || 'mysterious',
+      quantumDepth: quantumDepth || 0.5
     });
 
-    // Mix and master
-    const mixedTrack = await this.musicGenerator.mixAndMaster({
-      melody,
-      chords,
-      vocals,
-      bpm: params.bpm,
-      key: params.key || 'C'
+    res.json({
+      success: true,
+      composition: composition,
+      metadata: {
+        style,
+        duration,
+        complexity,
+        emotionalTone,
+        quantumDepth,
+        generatedAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Composition error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate composition'
+    });
+  }
+});
+
+// Voice synthesis endpoint
+app.post('/api/voice/synthesize', async (req, res) => {
+  try {
+    const { text, style, language, emotionalState, pitch, speed } = req.body;
+
+    const audioBuffer = await voiceSynthesizer.synthesize({
+      text: text || 'Hello, this is Marina Moda AI',
+      style: style || 'marina-signature',
+      language: language || 'en',
+      emotionalState: emotionalState || 'passionate',
+      pitch: pitch || 1.0,
+      speed: speed || 1.0
     });
 
-    // Store in quantum storage
-    const cid = await this.storage.store(mixedTrack);
-    
-    // Return the final audio buffer
-    return mixedTrack;
+    res.json({
+      success: true,
+      audio: audioBuffer.toString('base64'), // Base64 encoded audio
+      metadata: {
+        text,
+        style,
+        language,
+        emotionalState,
+        pitch,
+        speed,
+        synthesizedAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Voice synthesis error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to synthesize voice'
+    });
   }
+});
 
-  /**
-   * Fine-tune the AI model with new training data
-   */
-  async trainModel(trainingData: any[]): Promise<void> {
-    // Implementation for training the AI model
-    // This would connect to the federated learning system
+// Federated learning endpoint
+app.post('/api/train/federated', async (req, res) => {
+  try {
+    const { modelType, privacyLevel, participantCount, aggregationMethod } = req.body;
+
+    const update = await federatedLearner.trainFederated({
+      modelType: modelType || 'composition',
+      privacyLevel: privacyLevel || 'high',
+      participantCount: participantCount || 10,
+      aggregationMethod: aggregationMethod || 'fedavg'
+    });
+
+    res.json({
+      success: true,
+      update: update,
+      metadata: {
+        modelType,
+        privacyLevel,
+        participantCount,
+        aggregationMethod,
+        trainedAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Federated training error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to perform federated training'
+    });
   }
-}
+});
 
-// Example usage
-async function main() {
-  const marinaAI = new MarinaAIMusic();
-  
-  // Generate a new track
-  const track = await marinaAI.generateTrack({
-    style: 'electronic-pop',
-    bpm: 128,
-    duration: 180, // 3 minutes
-    key: 'F#'
+const server = app.listen(port, () => {
+  console.log(`🚀 MarinaModa Music AI Server running on port ${port}`);
+  console.log(`🌐 Health check: http://localhost:${port}/health`);
+});
+
+// WebSocket server for real-time generation
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+
+  socket.on('start-composition', async (params) => {
+    try {
+      const composition = await quantumComposer.composeQuantumTrack(params);
+      socket.emit('composition-complete', {
+        success: true,
+        composition,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      socket.emit('composition-error', {
+        success: false,
+        error: error.message
+      });
+    }
   });
-  
-  console.log('🎵 New track generated successfully!');
-  // Save or process the track further...
-}
 
-// Run the example if this file is executed directly
-if (require.main === module) {
-  main().catch(console.error);
-}
+  socket.on('start-voice-synthesis', async (params) => {
+    try {
+      const audioBuffer = await voiceSynthesizer.synthesize(params);
+      socket.emit('voice-synthesis-complete', {
+        success: true,
+        audio: audioBuffer.toString('base64'),
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      socket.emit('voice-synthesis-error', {
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
+export default app;
