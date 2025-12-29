@@ -34,7 +34,7 @@
     "@tiptap/extension-color": "^2.1.12",
     "@tiptap/extension-image": "^2.1.12",
     "@tiptap/extension-link": "^3.13.0",
-    "@tiptap/extension-subscript": "^2.1.12",
+    "@tiptap/extension-subscript": "^3.14.0",
     "@tiptap/extension-superscript": "^3.3.0",
     "@tiptap/extension-text-align": "^2.1.12",
     "@tiptap/extension-text-style": "^3.11.0",
