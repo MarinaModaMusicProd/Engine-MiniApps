@@ -1,27 +1,27 @@
-import {Trans} from '@ui/i18n/trans';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {GradientIcon} from '@ui/icons/material/Gradient';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {useCallback, useState} from 'react';
-import clsx from 'clsx';
-import {ColorPickerDialog} from '@ui/color-picker/color-picker-dialog';
-import {IconButton} from '@ui/buttons/icon-button';
-import {ArrowDownwardIcon} from '@ui/icons/material/ArrowDownward';
-import {ArrowForwardIcon} from '@ui/icons/material/ArrowForward';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {ArrowUpwardIcon} from '@ui/icons/material/ArrowUpward';
+import {BackgroundSelectorButton} from '@common/background-selector/background-selector-button';
+import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {BgSelectorTabProps} from '@common/background-selector/bg-selector-tab-props';
 import {
   BaseGradientBg,
   GradientBackgrounds,
 } from '@common/background-selector/gradient-backgrounds';
-import {BackgroundSelectorButton} from '@common/background-selector/background-selector-button';
-import {BgSelectorTabProps} from '@common/background-selector/bg-selector-tab-props';
-import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {ColorPickerDialog} from '@ui/color-picker/color-picker-dialog';
+import {Trans} from '@ui/i18n/trans';
+import {ArrowDownwardIcon} from '@ui/icons/material/ArrowDownward';
+import {ArrowForwardIcon} from '@ui/icons/material/ArrowForward';
+import {ArrowUpwardIcon} from '@ui/icons/material/ArrowUpward';
+import {GradientIcon} from '@ui/icons/material/Gradient';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import clsx from 'clsx';
+import {useCallback, useState} from 'react';
 
 export function GradientBackgroundTab({
   value,

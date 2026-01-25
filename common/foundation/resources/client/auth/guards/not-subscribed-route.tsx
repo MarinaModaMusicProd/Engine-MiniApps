@@ -1,7 +1,6 @@
-import {auth, useAuth} from '../use-auth';
 import {ReactElement} from 'react';
-import {Navigate, Outlet} from 'react-router-dom';
-import {replace} from '@remix-run/router/utils';
+import {Navigate, Outlet, redirect} from 'react-router';
+import {auth, useAuth} from '../use-auth';
 
 interface GuestRouteProps {
   children: ReactElement;
@@ -22,11 +21,11 @@ export function NotSubscribedRoute({children}: GuestRouteProps) {
 
 export function notSubscribedGuard() {
   if (!auth.isLoggedIn) {
-    return replace('/register');
+    return redirect('/register');
   }
 
   if (auth.isLoggedIn && auth.isSubscribed) {
-    return replace('/billing');
+    return redirect('/billing');
   }
 
   return null;

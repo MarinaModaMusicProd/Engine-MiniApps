@@ -1,3 +1,53 @@
+<h2>2026 January 14 - Version 3.1.5</h2>
+<ul>
+  <li>fix: seo tags changed on previous versions causing issues</li>
+  <li>fix: try pro button sometimes not showing</li>
+  <li>fix: album upload sometimes not working</li>
+  <li>fix: tracks uploaded on previous versions not being downloadable</li>
+  <li>fix: issue with local+spotify search method</li>
+  <li>fix: similar artists query not working on some hosting providers</li>
+  <li>fix: show close button on lyrics page</li>
+  <li>fix: some languages for wikipedia bio setting not being selectable</li>
+  <li>fix: show minimum two grid items in channels, regardless of screen size.</li>
+  <li>fix: hide plans/subscriptions menu items in admin area, if subscriptions are disabled.</li>
+  <li>fix: selected channel not reflected in general settings</li>
+  <li>fix: html language not being properly set</li>
+  <li>fix: badge not showing in feature grid on landing page editor</li>
+  <li>fix: issues with mysql fulltext search</li>
+</ul>
+
+<h2>2026 January 08 - Version 3.1.4</h2>
+<ul>
+  <li>new: updated design for desktop and mobile player</li>
+  <li>new: offline support for songs, albums and playlists</li>
+  <li>new: improved PWA functionality for better offline support</li>
+  <li>new: compact grid layout for channels</li>
+  <li>new: support for trials in subscriptions</li>
+  <li>new: it's now possible to schedule album to release on a future date</li>
+  <li>new: it's now possible to disable specific artists without deleting them</li>
+  <li>new: updated landing page design</li>
+  <li>
+    new: auto update functionality in admin area. You will now be notified of new updates to MarinaModa
+    in admin area and can update directly from "admin > settings > system > update" page.
+  </li>
+  <li>
+    new: upgraded "admin > settings > uploading" page.
+    <ul>
+      <li>
+        You can now have multiple "backends" (eg. s3, ftp, local disk) at the same time for storing
+        files.
+      </li>
+      <li>If multiple backends are selected for upload type, random one will be used.</li>
+      <li>Separate configuration for each upload type.</li>
+    </ul>
+  </li>
+  <li>new: updated design for admin area</li>
+  <li>new: new landing page editor in admin area with support for sections.</li>
+  <li>new: merged appearance editor and settings pages in admin area.</li>
+  <li>new: Purchase code can now be activated from "admin > settings > system > licenses" page.</li>
+  <li>fix: 40+ bugs and other minor issues.</li>
+</ul>
+
 <h2>2024 September 09 - Version 3.1.3</h2>
 <ul>
   <li>new: improved genre layout when showing in channels</li>
@@ -71,7 +121,9 @@
   <li>fix: sitemap indexing having link to non-existing sitemap sometimes</li>
   <li>fix: layout issue on dark mode in account settings page</li>
   <li>fix: cookie notice layout on mobile</li>
-  <li>fix: mark all notification as unread, instead of just visible ones via mark as unread button</li>
+  <li>
+    fix: mark all notification as unread, instead of just visible ones via mark as unread button
+  </li>
 </ul>
 
 <h2>2024 January 01 - Version 3.0.9</h2>
@@ -438,20 +490,6 @@
   <li>
     Added a fully featured, token based API. It can be used to integrate MarinaModa into other
     projects, native apps and more.
-  </li>
-  <li>
-    Added <strong>Manage API Access Tokens</strong> section in
-    <a href="https://MarinaModa.1.MarinaModa.com/account/settings" target="_blank" rel="noopener"
-      >account settings</a
-    >
-    page for creating or revoking API access tokens.
-  </li>
-  <li>
-    Added functional API docs. They can be accessed at
-    <a href="https://MarinaModa.1.MarinaModa.com/api-docs" target="_blank" rel="noopener"
-      >your-site.com/api-docs</a
-    >
-    url, there's also a link in account settings page.
   </li>
   <li>
     All specific genre pages are now channels and can be edited from admin. This allows showing

@@ -1,35 +1,35 @@
-import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
-import {ArtistLinks} from '@app/web-player/artists/artist-links';
-import {Track} from '@app/web-player/tracks/track';
-import {useSettings} from '@ui/settings/use-settings';
-import {TrackSeekbar} from '@app/web-player/player-controls/seekbar/track-seekbar';
-import {trackIsLocallyUploaded} from '@app/web-player/tracks/utils/track-is-locally-uploaded';
-import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
-import {CommentBarContextProvider} from '@app/web-player/tracks/waveform/comment-bar-context';
-import React, {Fragment, memo} from 'react';
-import {Chip} from '@ui/forms/input-field/chip-field/chip';
-import {GenreLink} from '@app/web-player/genres/genre-link';
-import {Album} from '@app/web-player/albums/album';
-import {RepeatIcon} from '@ui/icons/material/Repeat';
-import clsx from 'clsx';
-import {User} from '@ui/types/user';
-import {UserProfileLink} from '@app/web-player/users/user-profile-link';
-import {useAlbumPermissions} from '@app/web-player/albums/use-album-permissions';
+import {FullAlbum} from '@app/web-player/albums/album';
 import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
 import {AlbumLink} from '@app/web-player/albums/album-link';
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {FormattedNumber} from '@ui/i18n/formatted-number';
-import {PlayArrowFilledIcon} from '@app/web-player/tracks/play-arrow-filled';
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {useAlbumPermissions} from '@app/web-player/albums/use-album-permissions';
+import {ArtistLinks} from '@app/web-player/artists/artist-links';
+import {GenreLink} from '@app/web-player/genres/genre-link';
+import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
+import {TrackSeekbar} from '@app/web-player/player-controls/seekbar/track-seekbar';
 import {queueGroupId} from '@app/web-player/queue-group-id';
-import {usePlayerActions} from '@common/player/hooks/use-player-actions';
-import {tracksToMediaItems} from '@app/web-player/tracks/utils/track-to-media-item';
-import {WaveformWithComments} from '@app/web-player/tracks/track-list/track-list-item';
+import {PlayArrowFilledIcon} from '@app/web-player/tracks/play-arrow-filled';
+import {Track} from '@app/web-player/tracks/track';
 import {TrackActionsBar} from '@app/web-player/tracks/track-actions-bar';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {WaveformWithComments} from '@app/web-player/tracks/track-list/track-list-item';
+import {trackIsLocallyUploaded} from '@app/web-player/tracks/utils/track-is-locally-uploaded';
+import {tracksToMediaItems} from '@app/web-player/tracks/utils/track-to-media-item';
+import {CommentBarContextProvider} from '@app/web-player/tracks/waveform/comment-bar-context';
+import {PartialUserProfile} from '@app/web-player/users/user-profile';
+import {UserProfileLink} from '@app/web-player/users/user-profile-link';
+import {usePlayerActions} from '@common/player/hooks/use-player-actions';
+import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {Chip} from '@ui/forms/input-field/chip-field/chip';
+import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
+import {RepeatIcon} from '@ui/icons/material/Repeat';
+import {useSettings} from '@ui/settings/use-settings';
+import clsx from 'clsx';
+import {Fragment, memo} from 'react';
 
 interface Props {
-  album: Album;
-  reposter?: User;
+  album: FullAlbum;
+  reposter?: PartialUserProfile;
   className?: string;
   hideArtwork?: boolean;
   hideActions?: boolean;
@@ -174,7 +174,7 @@ export const AlbumListItem = memo(
 
 interface TrackItemProps {
   track: Track;
-  album: Album;
+  album: FullAlbum;
   index: number;
   isLast: boolean;
   isActive: boolean;
@@ -189,10 +189,10 @@ function TrackItem({track, index, isLast, isActive, album}: TrackItemProps) {
         !isLast && 'border-b',
         isActive && 'text-primary',
       )}
-      onClick={() => {
+      onClick={async () => {
         if (album.tracks?.length) {
           playerActions.overrideQueueAndPlay(
-            tracksToMediaItems(album.tracks),
+            await tracksToMediaItems(album.tracks),
             index,
           );
         }

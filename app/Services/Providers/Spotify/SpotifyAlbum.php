@@ -1,33 +1,25 @@
 <?php namespace App\Services\Providers\Spotify;
 
-use App;
 use App\Models\Album;
 use Illuminate\Support\Arr;
 
 class SpotifyAlbum
 {
-    private SpotifyHttpClient $httpClient;
-
-    private SpotifyNormalizer $normalizer;
-
-    public function __construct(SpotifyNormalizer $normalizer)
-    {
-        $this->httpClient = App::make(SpotifyHttpClient::class);
-        $this->normalizer = $normalizer;
-    }
-
     public function getContent(Album $album): ?array
     {
         if (!$album->spotify_id) {
             return null;
         }
 
-        $spotifyAlbum = $this->httpClient->get("albums/{$album->spotify_id}");
+        $spotifyAlbum = (new SpotifyHttpClient())->get(
+            "albums/{$album->spotify_id}",
+        );
+
         if (!$spotifyAlbum || !Arr::get($spotifyAlbum, 'id')) {
             return null;
         }
 
-        $normalizedAlbum = $this->normalizer->album($spotifyAlbum);
+        $normalizedAlbum = (new SpotifyNormalizer())->album($spotifyAlbum);
 
         // get full info objects for all tracks
         $normalizedAlbum = $this->getTracks($normalizedAlbum);
@@ -43,7 +35,7 @@ class SpotifyAlbum
             ->slice(0, 50)
             ->implode(',');
 
-        $response = $this->httpClient->get("tracks?ids=$trackIds");
+        $response = (new SpotifyHttpClient())->get("tracks?ids=$trackIds");
 
         if (!isset($response['tracks'])) {
             return $normalizedAlbum;
@@ -52,7 +44,7 @@ class SpotifyAlbum
         $fullTracks = collect($response['tracks'])->map(function (
             $spotifyTrack,
         ) {
-            return $this->normalizer->track($spotifyTrack);
+            return (new SpotifyNormalizer())->track($spotifyTrack);
         });
 
         $normalizedAlbum['tracks'] = $normalizedAlbum['tracks']->map(function (

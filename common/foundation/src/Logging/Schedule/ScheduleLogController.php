@@ -48,6 +48,8 @@ class ScheduleLogController extends BaseController
 
     public function rerun(int $id): mixed
     {
+        $this->blockOnDemoSite();
+
         $logItem = ScheduleLogItem::findOrFail($id);
 
         Artisan::call($logItem->command);

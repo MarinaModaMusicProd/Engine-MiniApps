@@ -1,7 +1,7 @@
-import {AppSettingsNavConfig} from '@app/admin/settings/app-settings-nav-config';
+import {AppSettingsNavConfig} from '@app/admin/admin-config';
+import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 import {message} from '@ui/i18n/message';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
-import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 
 export interface SettingsNavItem {
   label: MessageDescriptor;
@@ -9,43 +9,50 @@ export interface SettingsNavItem {
   position?: number;
 }
 
-const filteredSettingsNavConfig: (SettingsNavItem | false)[] = [
+const commonNavConfig: (SettingsNavItem | false)[] = [
   {label: message('General'), to: 'general', position: 1},
-  ...AppSettingsNavConfig,
+  {
+    label: message('Themes'),
+    to: 'themes',
+    position: 3,
+  },
+  {
+    label: message('Menus'),
+    to: 'menus',
+    position: 4,
+  },
   getBootstrapData().settings.billing.integrated && {
     label: message('Subscriptions'),
     to: 'subscriptions',
-    position: 2,
+    position: 5,
   },
-  {label: message('Localization'), to: 'localization', position: 3},
+  {label: message('Localization'), to: 'localization', position: 6},
   {
     label: message('Authentication'),
     to: 'authentication',
-    position: 4,
+    position: 7,
   },
-  {label: message('Uploading'), to: 'uploading', position: 5},
-  {label: message('Outgoing email'), to: 'outgoing-email', position: 6},
-  {label: message('Cache'), to: 'cache', position: 7},
-  {label: message('Analytics'), to: 'analytics', position: 8},
-  {label: message('Logging'), to: 'logging', position: 9},
-  {label: message('Queue'), to: 'queue', position: 10},
-  {label: message('Recaptcha'), to: 'recaptcha', position: 11},
+  {label: message('Uploading'), to: 'uploading', position: 8},
+  {label: message('Email'), to: 'email', position: 9},
+  {label: message('System'), to: 'system', position: 9},
+  {label: message('Analytics'), to: 'analytics', position: 10},
+  {label: message('Custom code'), to: 'custom-code', position: 11},
+  {label: message('Captcha'), to: 'captcha', position: 11},
   {label: message('GDPR'), to: 'gdpr', position: 12},
   {
-    label: message('Menus'),
-    to: '/admin/appearance/menus',
+    label: message('SEO'),
+    to: 'seo',
     position: 13,
   },
-  {
-    label: message('Seo'),
-    to: '/admin/appearance/seo-settings',
-    position: 14,
-  },
-  {
-    label: message('Themes'),
-    to: '/admin/appearance/themes',
-    position: 15,
-  },
-].filter(Boolean);
+];
 
-export const SettingsNavConfig = filteredSettingsNavConfig as SettingsNavItem[];
+const mergedNavConfig: SettingsNavItem[] = [...AppSettingsNavConfig];
+
+for (const item of commonNavConfig) {
+  // allow overriding nav item completely from app
+  if (item && !mergedNavConfig.find(i => i.to === item.to)) {
+    mergedNavConfig.push(item);
+  }
+}
+
+export const SettingsNavConfig = mergedNavConfig;

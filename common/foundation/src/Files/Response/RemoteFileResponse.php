@@ -4,25 +4,28 @@ namespace Common\Files\Response;
 
 use Carbon\Carbon;
 use Common\Files\FileEntry;
-use Common\Files\Response\FileResponse;
 
 class RemoteFileResponse implements FileResponse
 {
-    /**
-     * @param FileEntry $entry
-     * @param array $options
-     * @return mixed
-     */
-    public function make(FileEntry $entry, $options): mixed
+    public function make(FileEntry $entry, array $options)
     {
+        $useTemporaryUrl = config('filesystems.use_presigned_s3_urls');
+
         if ($options['disposition'] === 'attachment') {
-            $fileName = rawurlencode($entry->name);
-            return $this->getTemporaryUrl($entry, $options, [
-                'ResponseContentType' => 'application/octet-stream',
-                'ResponseContentDisposition' => "attachment;filename={$fileName}",
-            ]);
+            $fileName = rawurlencode($entry->getNameWithExtension());
+            if ($useTemporaryUrl) {
+                return $this->getTemporaryUrl($entry, $options, [
+                    'ResponseContentType' => 'application/octet-stream',
+                    'ResponseContentDisposition' => "attachment;filename={$fileName}",
+                ]);
+            } else {
+                return redirect($entry->url, 302, [
+                    'Content-Type' => 'application/octet-stream',
+                    'Content-Disposition' => "attachment;filename={$fileName}",
+                ]);
+            }
         } else {
-            if (config('common.site.use_presigned_s3_urls')) {
+            if ($useTemporaryUrl) {
                 return $this->getTemporaryUrl($entry, $options, [
                     'ResponseContentType' => $entry->mime,
                 ]);

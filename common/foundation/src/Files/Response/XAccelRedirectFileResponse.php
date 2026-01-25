@@ -7,18 +7,21 @@ use Common\Files\Response\FileResponse;
 
 class XAccelRedirectFileResponse implements FileResponse
 {
-    /**
-     * @param FileEntry $entry
-     * @param array $options
-     * @return mixed
-     */
-    public function make(FileEntry $entry, $options)
+    public function make(FileEntry $entry, array $options)
     {
         $disposition = $options['disposition'];
-        header('X-Media-Root: ' . storage_path('app/uploads'));
-        header("X-Accel-Redirect: /uploads/{$entry->getStoragePath($options['useThumbnail'])}");
+        header('X-Media-Root: ' . rtrim($entry->getDisk()->path(''), '/'));
+        header(
+            "X-Accel-Redirect: /uploads/{$entry->getStoragePath(
+                $options['useThumbnail'],
+            )}",
+        );
         header("Content-Type: {$entry->mime}");
-        header("Content-Disposition: $disposition; filename=\"".$entry->getNameWithExtension().'"');
-        exit;
+        header(
+            "Content-Disposition: $disposition; filename=\"" .
+                $entry->getNameWithExtension() .
+                '"',
+        );
+        exit();
     }
 }

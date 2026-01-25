@@ -1,7 +1,7 @@
-import {m} from 'framer-motion';
-import clsx from 'clsx';
-import {ComponentPropsWithoutRef} from 'react';
 import {opacityAnimation} from '@ui/animation/opacity-animation';
+import clsx from 'clsx';
+import {m} from 'framer-motion';
+import {ComponentPropsWithoutRef} from 'react';
 
 interface UnderlayProps
   extends Omit<
@@ -27,7 +27,7 @@ export function Underlay({
       {...domProps}
       className={clsx(
         className,
-        !isTransparent && 'bg-background/80',
+        !isTransparent && 'bg-bg/80',
         'inset-0 z-10 h-full w-full',
         position,
         isBlurred && 'backdrop-blur-sm',

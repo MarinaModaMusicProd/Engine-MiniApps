@@ -10,8 +10,10 @@ class ModifyTracks extends BaseFormRequest
     {
         return [
             'artists.required' => [
-                __('Could not automatically determine track artists. Select artists manually.'),
-            ]
+                __(
+                    'Could not automatically determine track artists. Select artists manually.',
+                ),
+            ],
         ];
     }
 
@@ -22,19 +24,20 @@ class ModifyTracks extends BaseFormRequest
         $name = ['required', 'string', 'min:1', 'max:255'];
 
         if ($this->request->get('album_id')) {
-            $name[] = Rule::unique('tracks')->where(function(Builder $query) {
-                $query->where('album_id', $this->request->get('album_id'));
-            })->ignore($trackId);
+            $name[] = Rule::unique('tracks')
+                ->where(function (Builder $query) {
+                    $query->where('album_id', $this->request->get('album_id'));
+                })
+                ->ignore($trackId);
         }
 
         return [
             'name' => $name,
-            'number'             => 'int',
-            'duration'           => 'required|integer|min:1',
-            'spotify_popularity' => 'min:1|max:100|nullable',
-            'album_id'           => 'nullable|integer|min:1|exists:albums,id',
-            'artists'            => 'required|array|min:1',
-            'artists.*'          => ['required', 'regex:/[0-9]+|CURRENT_USER/i'],
+            'number' => 'int',
+            'duration' => 'required|integer|min:1',
+            'album_id' => 'nullable|integer|min:1|exists:albums,id',
+            'artists' => 'required|array|min:1',
+            'artists.*' => ['required', 'regex:/[0-9]+|CURRENT_USER/i'],
         ];
     }
 }

@@ -1,10 +1,8 @@
-import React, {ComponentType, Fragment} from 'react';
-import * as Icons from '@ui/icons/material/all-icons';
 import {ButtonBase} from '@ui/buttons/button-base';
-import {iconGridStyle} from './icon-grid-style';
-import clsx from 'clsx';
 import {Trans} from '@ui/i18n/trans';
-import {YoutubeIcon} from '@ui/icons/social/youtube';
+import {useFilter} from '@ui/i18n/use-filter';
+import {elementToTree, IconTree} from '@ui/icons/create-svg-icon';
+import * as Icons from '@ui/icons/material/all-icons';
 import {AmazonIcon} from '@ui/icons/social/amazon';
 import {AppleIcon} from '@ui/icons/social/apple';
 import {BandcampIcon} from '@ui/icons/social/bandcamp';
@@ -22,9 +20,11 @@ import {TiktokIcon} from '@ui/icons/social/tiktok';
 import {TwitchIcon} from '@ui/icons/social/twitch';
 import {TwitterIcon} from '@ui/icons/social/twitter';
 import {WhatsappIcon} from '@ui/icons/social/whatsapp';
-import {useFilter} from '@ui/i18n/use-filter';
+import {YoutubeIcon} from '@ui/icons/social/youtube';
 import {SvgIconProps} from '@ui/icons/svg-icon';
-import {elementToTree, IconTree} from '@ui/icons/create-svg-icon';
+import clsx from 'clsx';
+import {ComponentType, Fragment} from 'react';
+import {iconGridStyle} from './icon-grid-style';
 
 const socialIcons: [string, ComponentType<SvgIconProps>][] = [
   ['amazon', AmazonIcon],

@@ -2,27 +2,32 @@ import {
   LocationDatasetItem,
   ReportMetric,
 } from '@common/admin/analytics/report-metric';
-import React, {useMemo, useRef} from 'react';
-import {useGoogleGeoChart} from './use-google-geo-chart';
-import {ChartLayout, ChartLayoutProps} from '@common/charts/chart-layout';
-import {ChartLoadingIndicator} from '@common/charts/chart-loading-indicator';
-import {Button} from '@ui/buttons/button';
-import {ArrowBackIcon} from '@ui/icons/material/ArrowBack';
+import { ChartLayout, ChartLayoutProps } from '@common/charts/chart-layout';
+import { ChartLoadingIndicator } from '@common/charts/chart-loading-indicator';
+import { Button } from '@ui/buttons/button';
+import { FormattedCountryName } from '@ui/i18n/formatted-country-name';
+import { Trans } from '@ui/i18n/trans';
+import { ArrowBackIcon } from '@ui/icons/material/ArrowBack';
+import { InfoDialogTrigger } from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger';
 import clsx from 'clsx';
-import {InfoDialogTrigger} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger';
-import {Trans} from '@ui/i18n/trans';
-import {FormattedCountryName} from '@ui/i18n/formatted-country-name';
+import { useMemo, useRef } from 'react';
+import { useGoogleGeoChart } from './use-google-geo-chart';
 
 interface GeoChartData extends Partial<ChartLayoutProps> {
   data?: ReportMetric<LocationDatasetItem>;
   onCountrySelected?: (countryCode: string | undefined) => void;
   country?: string;
+  colSpan?: string;
+  rowSpan?: string;
 }
 export function GeoChart({
   data: metricData,
   isLoading,
   onCountrySelected,
   country,
+  className,
+  colSpan = 'col-span-7',
+  rowSpan = 'row-span-11',
   ...layoutProps
 }: GeoChartData) {
   const placeholderRef = useRef<HTMLDivElement>(null);
@@ -38,7 +43,12 @@ export function GeoChart({
   return (
     <ChartLayout
       {...layoutProps}
-      className="min-w-500"
+      className={clsx(
+        className,
+        colSpan,
+        rowSpan,
+        'compact-scrollbar overflow-x-auto overflow-y-hidden',
+      )}
       title={
         <div className="flex items-center">
           <Trans message="Top Locations" />

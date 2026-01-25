@@ -1,11 +1,11 @@
-import {useMutation} from '@tanstack/react-query';
-import {apiClient, queryClient} from '@common/http/query-client';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {toast} from '@ui/toast/toast';
-import {useTrans} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
+import {apiClient, queryClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
 
 const endpoint = (id: number) => `billing/products/${id}`;
 
@@ -22,7 +22,7 @@ export function useDeleteProduct() {
     onSuccess: () => {
       toast(trans(message('Plan deleted')));
       queryClient.invalidateQueries({
-        queryKey: DatatableDataQueryKey('billing/products'),
+        queryKey: commonAdminQueries.products.invalidateKey,
       });
     },
     onError: err => showHttpErrorToast(err),

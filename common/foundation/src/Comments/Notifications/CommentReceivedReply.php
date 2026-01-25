@@ -2,8 +2,8 @@
 
 namespace Common\Comments\Notifications;
 
-use App\Models\User;
 use App\Services\UrlGenerator;
+use App\Models\User;
 use Common\Comments\Comment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Database\Eloquent\Model;

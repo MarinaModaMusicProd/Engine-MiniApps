@@ -25,8 +25,7 @@ class YoutubeAudioSearch
         }
 
         if (settings('youtube.store_id') && count($results)) {
-            app(Track::class)
-                ->where('id', $trackId)
+            Track::where('id', $trackId)
                 ->whereNull('src')
                 ->update(['src' => $results[0]['id']]);
         }
@@ -169,8 +168,10 @@ class YoutubeAudioSearch
             //$append = 'video';
         }
 
+        $artist = mb_strtolower($artist);
+        $track = mb_strtolower($track);
         $artist = $encode ? urlencode($artist) : $artist;
         $track = $encode ? urlencode($track) : $track;
-        return trim("$artist+$track+$append");
+        return trim("$artist+$track" . ($append ? "+$append" : ''));
     }
 }

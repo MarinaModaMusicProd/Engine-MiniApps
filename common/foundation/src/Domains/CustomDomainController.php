@@ -2,8 +2,8 @@
 
 namespace Common\Domains;
 
-use Arr;
-use Auth;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Common\Core\AppUrl;
 use Common\Core\BaseController;
 use Common\Database\Datasource\Datasource;
@@ -24,8 +24,7 @@ class CustomDomainController extends BaseController
     public function __construct(
         protected CustomDomain $customDomain,
         protected Request $request,
-    ) {
-    }
+    ) {}
 
     public function index()
     {
@@ -48,6 +47,7 @@ class CustomDomainController extends BaseController
     public function store()
     {
         $this->authorize('store', get_class($this->customDomain));
+        $this->blockOnDemoSite();
 
         $this->validate($this->request, [
             'host' => [
@@ -72,6 +72,7 @@ class CustomDomainController extends BaseController
     public function update(CustomDomain $customDomain)
     {
         $this->authorize('store', $customDomain);
+        $this->blockOnDemoSite();
 
         $this->validate($this->request, [
             'host' => [
@@ -100,6 +101,7 @@ class CustomDomainController extends BaseController
             get_class($this->customDomain),
             $domainIds,
         ]);
+        $this->blockOnDemoSite();
 
         app(DeleteCustomDomains::class)->execute($domainIds);
 

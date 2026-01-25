@@ -1,8 +1,7 @@
-import {useQuery} from '@tanstack/react-query';
-import {apiClient} from '@common/http/query-client';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
 import {useAuth} from '@common/auth/use-auth';
-import {User} from '@ui/types/user';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient} from '@common/http/query-client';
+import {useQuery} from '@tanstack/react-query';
 
 interface Response extends BackendResponse {
   ids: number[];
@@ -10,23 +9,18 @@ interface Response extends BackendResponse {
 
 export function useFollowedUsers() {
   const {user} = useAuth();
-  return useQuery({
+  return useQuery<Response>({
     queryKey: ['users', 'followed', 'ids'],
-    queryFn: () => fetchIds(),
+    queryFn: () =>
+      apiClient.get(`users/me/followed-users/ids`).then(r => r.data),
     enabled: !!user,
   });
 }
 
-export function useIsUserFollowing(user: User) {
+export function useIsUserFollowing(userId: number) {
   const {data, isLoading} = useFollowedUsers();
   return {
     isLoading,
-    isFollowing: !!data?.ids.includes(user.id),
+    isFollowing: !!data?.ids.includes(userId),
   };
-}
-
-function fetchIds() {
-  return apiClient
-    .get<Response>(`users/me/followed-users/ids`)
-    .then(response => response.data);
 }

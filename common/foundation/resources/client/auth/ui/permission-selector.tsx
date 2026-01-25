@@ -1,41 +1,37 @@
-import {useControlledState} from '@react-stately/utils';
-import React, {Fragment, useState} from 'react';
-import {useController} from 'react-hook-form';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
 import {mergeProps} from '@react-aria/utils';
+import {useControlledState} from '@react-stately/utils';
+import {useQuery} from '@tanstack/react-query';
+import {Accordion, AccordionItem} from '@ui/accordion/accordion';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {Switch} from '@ui/forms/toggle/switch';
+import {Trans} from '@ui/i18n/trans';
+import {DoneAllIcon} from '@ui/icons/material/DoneAll';
+import {List, ListItem} from '@ui/list/list';
+import {ucFirst} from '@ui/utils/string/uc-first';
 import clsx from 'clsx';
 import {produce} from 'immer';
+import React, {Fragment} from 'react';
+import {useController} from 'react-hook-form';
 import {Permission, PermissionRestriction} from '../permission';
-import {useValueLists} from '../../http/value-lists';
-import {Accordion, AccordionItem} from '@ui/accordion/accordion';
-import {List, ListItem} from '@ui/list/list';
-import {Switch} from '@ui/forms/toggle/switch';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {DoneAllIcon} from '@ui/icons/material/DoneAll';
-import {Trans} from '@ui/i18n/trans';
-import {ucFirst} from '@ui/utils/string/uc-first';
 
 interface PermissionSelectorProps {
   value?: Permission[];
   onChange?: (value: Permission[]) => void;
-  valueListKey?: 'permissions' | 'workspacePermissions';
+  type?: string;
 }
 export const PermissionSelector = React.forwardRef<
   HTMLDivElement,
   PermissionSelectorProps
->(({valueListKey = 'permissions', ...props}, ref) => {
-  const {data} = useValueLists([valueListKey]);
-  const permissions = data?.permissions || data?.workspacePermissions;
+>(({type, ...props}, ref) => {
+  const query = useQuery(commonAdminQueries.permissions.index());
+  const permissions = query.data?.permissions;
 
   const [value, setValue] = useControlledState(props.value, [], props.onChange);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   if (!permissions) return null;
 
-  const groupedPermissions = buildPermissionList(
-    permissions,
-    value,
-    showAdvanced,
-  );
+  const groupedPermissions = buildPermissionList(permissions, value, type);
 
   const onRestrictionChange = (newPermission: Permission) => {
     const newValue = [...value];
@@ -81,9 +77,7 @@ export const PermissionSelector = React.forwardRef<
                       }
                       description={<Trans message={permission.description} />}
                     >
-                      <Trans
-                        message={permission.display_name || permission.name}
-                      />
+                      <Trans message={permission.display_name} />
                     </ListItem>
                     {isChecked && (
                       <Restrictions
@@ -98,15 +92,6 @@ export const PermissionSelector = React.forwardRef<
           </AccordionItem>
         ))}
       </Accordion>
-      <Switch
-        className="mt-30"
-        checked={showAdvanced}
-        onChange={e => {
-          setShowAdvanced(e.target.checked);
-        }}
-      >
-        <Trans message="Show advanced permissions" />
-      </Switch>
     </Fragment>
   );
 });
@@ -136,7 +121,15 @@ function Restrictions({permission, onChange}: RestrictionsProps) {
       {permission.restrictions.map((restriction, index) => {
         const isLast = index === permission.restrictions.length - 1;
 
-        const name = <Trans message={prettyName(restriction.name)} />;
+        const name = (
+          <Trans
+            message={
+              restriction.display_name
+                ? restriction.display_name
+                : prettyName(restriction.name)
+            }
+          />
+        );
         const description = restriction.description ? (
           <Trans message={restriction.description} />
         ) : undefined;
@@ -212,22 +205,21 @@ interface PermissionGroup {
 export function buildPermissionList(
   allPermissions: Permission[],
   selectedPermissions: Permission[],
-  showAdvanced: boolean,
+  type: string = 'users',
 ) {
   const groupedPermissions: PermissionGroup[] = [];
 
   allPermissions.forEach(permission => {
-    const index = selectedPermissions.findIndex(p => p.id === permission.id);
-    if (!showAdvanced && permission.advanced) return;
+    const permissionType = permission.type || 'users';
+    if (permissionType !== type) return;
 
-    let group: PermissionGroup | undefined = groupedPermissions.find(
-      g => g.groupName === permission.group,
-    );
+    let group = groupedPermissions.find(g => g.groupName === permission.group);
     if (!group) {
       group = {groupName: permission.group, anyChecked: false, items: []};
       groupedPermissions.push(group);
     }
 
+    const index = selectedPermissions.findIndex(p => p.id === permission.id);
     if (index > -1) {
       const mergedPermission = {
         ...permission,
@@ -251,7 +243,7 @@ function mergeRestrictions(
   selectedRestrictions: PermissionRestriction[],
 ): PermissionRestriction[] {
   return allRestrictions?.map(restriction => {
-    const selected = selectedRestrictions.find(
+    const selected = selectedRestrictions?.find(
       r => r.name === restriction.name,
     );
     if (selected) {

@@ -1,19 +1,19 @@
-import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
-import {findYoutubeVideosForTrack} from '@app/web-player/tracks/requests/find-youtube-videos-for-track';
-import {MediaItem, YoutubeMediaItem} from '@common/player/media-item';
-import {apiClient} from '@common/http/query-client';
-import {Track} from '@app/web-player/tracks/track';
-import {playerOverlayState} from '@app/web-player/state/player-overlay-store';
 import {loadMediaItemTracks} from '@app/web-player/requests/load-media-item-tracks';
+import {playerOverlayState} from '@app/web-player/state/player-overlay-store';
+import {findYoutubeVideosForTrack} from '@app/web-player/tracks/requests/find-youtube-videos-for-track';
+import {Track} from '@app/web-player/tracks/track';
 import {tracksToMediaItems} from '@app/web-player/tracks/utils/track-to-media-item';
-import {PlayerStoreOptions} from '@common/player/state/player-store-options';
+import {apiClient} from '@common/http/query-client';
+import {MediaItem, YoutubeMediaItem} from '@common/player/media-item';
 import {
   YouTubePlayerState,
   YoutubeProviderError,
   YoutubeProviderInternalApi,
 } from '@common/player/providers/youtube/youtube-types';
-import {toast} from '@ui/toast/toast';
+import {PlayerStoreOptions} from '@common/player/state/player-store-options';
+import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
 
 // used to track play history for logging plays on backend (prevents logging play twice, unless track is fully played)
 const trackPlays = new Set<number>();
@@ -26,7 +26,7 @@ const failedVideoId = ' ';
 const failedVideoIds = new Set<string>();
 let tracksSkippedDueToError = 0;
 
-async function resolveSrc(
+async function resolveYoutubeSrc(
   media: YoutubeMediaItem<Track>,
 ): Promise<YoutubeMediaItem> {
   const results = await findYoutubeVideosForTrack(media.meta!);
@@ -65,7 +65,7 @@ export const playerStoreOptions: Partial<PlayerStoreOptions> = {
   defaultVolume: getBootstrapData().settings.player?.default_volume,
   setMediaSessionMetadata,
   youtube: {
-    srcResolver: resolveSrc,
+    srcResolver: resolveYoutubeSrc,
     onStateChange: state => {
       if (state === YouTubePlayerState.Playing) {
         tracksSkippedDueToError = 0;
@@ -92,7 +92,7 @@ export const playerStoreOptions: Partial<PlayerStoreOptions> = {
         media.groupId as string,
         media.meta,
       );
-      return tracksToMediaItems(tracks);
+      return await tracksToMediaItems(tracks);
     }
   },
   listeners: {
@@ -149,7 +149,7 @@ export const playerStoreOptions: Partial<PlayerStoreOptions> = {
         }
 
         const media = cuedMedia
-          ? await resolveSrc(cuedMedia as YoutubeMediaItem)
+          ? await resolveYoutubeSrc(cuedMedia as YoutubeMediaItem)
           : null;
 
         // try to play alternative videos we fetched

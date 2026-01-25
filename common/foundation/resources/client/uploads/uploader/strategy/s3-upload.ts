@@ -1,9 +1,12 @@
-import {UploadStrategy, UploadStrategyConfig} from './upload-strategy';
+import {getAxiosErrorMessage} from '@common/http/get-axios-error-message';
+import {apiClient} from '@common/http/query-client';
 import {UploadedFile} from '@ui/utils/files/uploaded-file';
 import axios, {AxiosProgressEvent} from 'axios';
 import {FileEntry} from '../../file-entry';
-import {getAxiosErrorMessage} from '@common/http/get-axios-error-message';
-import {apiClient} from '@common/http/query-client';
+import {
+  UploadStrategy,
+  UploadStrategyConfigWithBackend,
+} from './upload-strategy';
 
 interface PresignedRequest {
   url: string;
@@ -17,7 +20,7 @@ export class S3Upload implements UploadStrategy {
 
   constructor(
     private file: UploadedFile,
-    private config: UploadStrategyConfig,
+    private config: UploadStrategyConfigWithBackend,
   ) {
     this.abortController = new AbortController();
   }
@@ -47,11 +50,12 @@ export class S3Upload implements UploadStrategy {
       .post(
         's3/simple/presign',
         {
-          filename: this.file.name,
-          mime: this.file.mime,
-          disk: this.config.metadata?.disk,
-          size: this.file.size,
-          extension: this.file.extension,
+          clientName: this.file.name,
+          clientMime: this.file.mime,
+          clientSize: this.file.size,
+          clientExtension: this.file.extension,
+          uploadType: this.config.uploadType,
+          backendId: this.config.backendId,
           ...this.config.metadata,
         },
         {signal: this.abortController.signal},
@@ -97,9 +101,11 @@ export class S3Upload implements UploadStrategy {
         ...this.config.metadata,
         clientMime: this.file.mime,
         clientName: this.file.name,
-        filename: this.presignedRequest!.key.split('/').pop(),
-        size: this.file.size,
+        clientSize: this.file.size,
         clientExtension: this.file.extension,
+        filename: this.presignedRequest!.key.split('/').pop(),
+        uploadType: this.config.uploadType,
+        backendId: this.config.backendId,
       })
       .then(r => {
         return r.data as {fileEntry: FileEntry};
@@ -113,7 +119,7 @@ export class S3Upload implements UploadStrategy {
 
   static async create(
     file: UploadedFile,
-    config: UploadStrategyConfig,
+    config: UploadStrategyConfigWithBackend,
   ): Promise<S3Upload> {
     return new S3Upload(file, config);
   }

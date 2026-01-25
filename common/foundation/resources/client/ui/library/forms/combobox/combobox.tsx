@@ -1,16 +1,16 @@
-import React, {ReactElement, Ref} from 'react';
-import {BaseFieldPropsWithDom} from '@ui/forms/input-field/base-field-props';
-import {Item} from '@ui/forms/listbox/item';
-import {useListbox} from '@ui/forms/listbox/use-listbox';
 import {IconButton} from '@ui/buttons/icon-button';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {Listbox} from '@ui/forms/listbox/listbox';
-import {SvgIconProps} from '@ui/icons/svg-icon';
-import {useListboxKeyboardNavigation} from '@ui/forms/listbox/use-listbox-keyboard-navigation';
-import {createEventHandler} from '@ui/utils/dom/create-event-handler';
-import {ListBoxChildren, ListboxProps} from '@ui/forms/listbox/types';
 import {ComboboxEndAdornment} from '@ui/forms/combobox/combobox-end-adornment';
+import {BaseFieldPropsWithDom} from '@ui/forms/input-field/base-field-props';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {Item} from '@ui/forms/listbox/item';
+import {Listbox} from '@ui/forms/listbox/listbox';
+import {ListBoxChildren, ListboxProps} from '@ui/forms/listbox/types';
+import {useListbox} from '@ui/forms/listbox/use-listbox';
+import {useListboxKeyboardNavigation} from '@ui/forms/listbox/use-listbox-keyboard-navigation';
+import {SvgIconProps} from '@ui/icons/svg-icon';
 import {Popover} from '@ui/overlays/popover';
+import {createEventHandler} from '@ui/utils/dom/create-event-handler';
+import React, {ReactElement, Ref} from 'react';
 
 export {Item as Option};
 
@@ -23,6 +23,7 @@ export type ComboboxProps<T extends object> = Omit<
     selectionMode?: 'single' | 'none';
     isAsync?: boolean;
     isLoading?: boolean;
+    isFetching?: boolean;
     openMenuOnFocus?: boolean;
     endAdornmentIcon?: ReactElement<SvgIconProps>;
     useOptionLabelAsInputValue?: boolean;
@@ -30,6 +31,8 @@ export type ComboboxProps<T extends object> = Omit<
     onEndAdornmentClick?: () => void;
     prependListbox?: boolean;
     listboxClassName?: string;
+    contentClassName?: string;
+    searchFieldClassName?: string;
   };
 
 function ComboBox<T extends object>(
@@ -41,6 +44,8 @@ function ComboBox<T extends object>(
     items,
     isAsync,
     isLoading,
+    isPending,
+    isFetching,
     openMenuOnFocus = true,
     endAdornmentIcon,
     onItemSelected,
@@ -58,10 +63,13 @@ function ComboBox<T extends object>(
     floatingMaxHeight,
     hideEndAdornment = false,
     blurReferenceOnItemSelection,
+    clearSelectionOnInputClear,
     isOpen: propsIsOpen,
     onOpenChange: propsOnOpenChange,
     prependListbox,
     listboxClassName,
+    contentClassName,
+    searchFieldClassName,
     onEndAdornmentClick,
     autoFocusFirstItem = true,
     focusLoopingMode,
@@ -117,9 +125,11 @@ function ComboBox<T extends object>(
     <Listbox
       prepend={prependListbox}
       className={listboxClassName}
+      contentClassName={contentClassName}
       listbox={listbox}
       mobileOverlay={Popover}
       isLoading={isLoading}
+      isPending={isPending}
       onPointerDown={e => {
         // prevent focus from leaving input when scrolling listbox via mouse
         e.preventDefault();
@@ -127,6 +137,7 @@ function ComboBox<T extends object>(
     >
       <TextField
         inputRef={reference}
+        className={searchFieldClassName}
         {...textFieldProps}
         endAdornment={
           !hideEndAdornment ? (
@@ -147,7 +158,7 @@ function ComboBox<T extends object>(
               }}
             >
               <ComboboxEndAdornment
-                isLoading={isLoading}
+                isLoading={isLoading || isFetching}
                 icon={endAdornmentIcon}
               />
             </IconButton>

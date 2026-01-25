@@ -2,9 +2,11 @@
 
 use App\Models\Album;
 use App\Models\User;
-use App\Models\UserProfile;
+use App\Models\ProfileDetails;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class MigrateUserArtistTypeAlbums extends Migration
 {
@@ -15,31 +17,43 @@ class MigrateUserArtistTypeAlbums extends Migration
      */
     public function up()
     {
-        if ( ! Schema::hasColumn('albums', 'artist_type')) return;
+        if (!Schema::hasColumn('albums', 'artist_type')) {
+            return;
+        }
 
-        Album::where('artist_type', User::class)
-            ->chunkById(100, function(Collection $albums) {
-                $groupedAlbums = $albums->groupBy('artist_id');
-                $userIds = $albums->pluck('artist_id')->unique()->values();
-                $users = User::whereIn('id', $userIds)->get();
+        Album::where('artist_type', User::class)->chunkById(100, function (
+            Collection $albums,
+        ) {
+            $groupedAlbums = $albums->groupBy('artist_id');
+            $userIds = $albums->pluck('artist_id')->unique()->values();
+            $users = User::whereIn('id', $userIds)->get();
 
-                $groupedAlbums->each(function(Collection $albums, int $userId) use($users) {
-                    $user = $users->get($userId);
-                    if ( ! $user) return;
+            $groupedAlbums->each(function (
+                Collection $albums,
+                int $userId,
+            ) use ($users) {
+                $user = $users->get($userId);
+                if (!$user) {
+                    return;
+                }
 
-                    $userArtist = $user->getOrCreateArtist();
-                    UserProfile::where('user_id', $user->id)->update(['artist_id' => $userArtist->id]);
+                $userArtist = $user->getOrCreateArtist();
+                ProfileDetails::where('user_id', $user->id)->update([
+                    'artist_id' => $userArtist->id,
+                ]);
 
-                    $records = $albums->map(function(Album $album) use ($userArtist) {
-                        return [
-                            'artist_id' => $userArtist->id,
-                            'album_id' => $album->id,
-                            'primary' => true,
-                        ];
-                    });
-                    DB::table('artist_album')->insert($records->toArray());
+                $records = $albums->map(function (Album $album) use (
+                    $userArtist,
+                ) {
+                    return [
+                        'artist_id' => $userArtist->id,
+                        'album_id' => $album->id,
+                        'primary' => true,
+                    ];
                 });
+                DB::table('artist_album')->insert($records->toArray());
             });
+        });
     }
 
     /**

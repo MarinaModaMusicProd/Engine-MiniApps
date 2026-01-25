@@ -29,7 +29,7 @@ export function FilterList({
   return (
     <div
       className={clsx(
-        'flex items-center gap-6',
+        'flex flex-shrink-0 items-center gap-6',
         className,
         wrap ? 'flex-wrap' : 'overflow-x-auto',
       )}
@@ -51,7 +51,7 @@ export function FilterList({
         };
 
         return (
-          <div key={field.key}>
+          <div key={field.key} className="flex items-center">
             {!field.isInactive && (
               <IconButton
                 variant="outline"

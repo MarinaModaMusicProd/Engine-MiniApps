@@ -1,9 +1,8 @@
-import React from 'react';
-import {useOutletContext} from 'react-router-dom';
 import {AdminReportOutletContext} from '@app/admin/reports/MarinaModa-admin-report-page';
 import {InsightsReportCharts} from '@app/admin/reports/insights-report-charts';
+import {useOutletContext} from 'react-router';
 
-export function AdminInsightsReport() {
+export function Component() {
   const {dateRange} = useOutletContext<AdminReportOutletContext>();
   return (
     <InsightsReportCharts

@@ -1,34 +1,34 @@
-import {Artist} from '@app/web-player/artists/artist';
-import {Album} from '@app/web-player/albums/album';
-import {Track} from '@app/web-player/tracks/track';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {Trans} from '@ui/i18n/trans';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {Tabs} from '@ui/tabs/tabs';
-import {TabList} from '@ui/tabs/tab-list';
-import {Tab} from '@ui/tabs/tab';
-import {TabPanel, TabPanels} from '@ui/tabs/tab-panels';
-import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
+import {PartialAlbum} from '@app/web-player/albums/album';
 import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {getArtistLink} from '@app/web-player/artists/artist-link';
 import {getAlbumLink} from '@app/web-player/albums/album-link';
-import {getTrackLink} from '@app/web-player/tracks/track-link';
-import {Button} from '@ui/buttons/button';
-import {useRef} from 'react';
-import useCopyClipboard from 'react-use-clipboard';
-import {ShareMediaButtons} from '@app/web-player/sharing/share-media-buttons';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {Playlist} from '@app/web-player/playlists/playlist';
+import {PartialArtist} from '@app/web-player/artists/artist';
+import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
+import {getArtistLink} from '@app/web-player/artists/artist-link';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
 import {PlaylistImage} from '@app/web-player/playlists/playlist-image';
 import {getPlaylistLink} from '@app/web-player/playlists/playlist-link';
+import {ShareMediaButtons} from '@app/web-player/sharing/share-media-buttons';
+import {Track} from '@app/web-player/tracks/track';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {getTrackLink} from '@app/web-player/tracks/track-link';
+import {Button} from '@ui/buttons/button';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {Trans} from '@ui/i18n/trans';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {Tab} from '@ui/tabs/tab';
+import {TabList} from '@ui/tabs/tab-list';
+import {TabPanel, TabPanels} from '@ui/tabs/tab-panels';
+import {Tabs} from '@ui/tabs/tabs';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import useClipboard from '@ui/utils/hooks/use-clipboard';
+import {useRef} from 'react';
 
 interface Props {
-  item: Artist | Album | Track | Playlist;
+  item: PartialArtist | PartialAlbum | Track | PartialPlaylist;
 }
 export function ShareMediaDialog({item}: Props) {
   const {close} = useDialogContext();
@@ -106,7 +106,7 @@ function EmbedPanel({item}: Props) {
 function SharePanel({item}: Props) {
   const link = getLink(item);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [copied, copyLink] = useCopyClipboard(link, {successDuration: 600});
+  const [copied, copyLink] = useClipboard(link, {successDuration: 600});
   return (
     <div className="flex items-center gap-14">
       <MediaImage

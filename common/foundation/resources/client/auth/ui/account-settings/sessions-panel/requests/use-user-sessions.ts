@@ -1,23 +1,23 @@
-import {useQuery} from '@tanstack/react-query';
-import {apiClient} from '@common/http/query-client';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient} from '@common/http/query-client';
+import {useQuery} from '@tanstack/react-query';
 
-export interface ActiveSession {
+export interface UserSession {
   id: string;
   platform?: string;
-  device_type?: 'mobile' | 'tablet' | 'desktop';
+  device?: 'mobile' | 'tablet' | 'desktop';
   browser?: string;
   country?: string;
   city?: string;
   ip_address?: string;
   token?: string;
   is_current_device: boolean;
-  last_active: string;
+  updated_at: string;
   created_at: string;
 }
 
 interface Response extends BackendResponse {
-  sessions: ActiveSession[];
+  sessions: UserSession[];
 }
 
 export function useUserSessions() {

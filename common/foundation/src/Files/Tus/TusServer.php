@@ -3,16 +3,18 @@
 namespace Common\Files\Tus;
 
 use Carbon\Carbon;
-use Common\Files\Actions\ValidateFileUpload;
+use Common\Files\Actions\FileUploadValidator;
+use Common\Files\Tus\Exceptions\ConnectionException;
+use Common\Files\Tus\Exceptions\FileException;
+use Common\Files\Tus\Exceptions\OutOfRangeException;
 use Common\Files\Tus\TusCache;
 use Common\Files\Tus\TusFile;
+use Common\Files\Uploads\Uploads;
 use Common\Settings\Settings;
+use Illuminate\Support\Arr;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use TusPhp\Exception\ConnectionException;
-use TusPhp\Exception\FileException;
-use TusPhp\Exception\OutOfRangeException;
 
 class TusServer
 {
@@ -91,9 +93,12 @@ class TusServer
             'Tus-Checksum-Algorithm' => implode(',', $algorithms),
         ];
 
-        $maxUploadSize = app(Settings::class)->get('uploads.max_size');
-        if ($maxUploadSize > 0) {
-            $headers['Tus-Max-Size'] = $maxUploadSize;
+        $meta = $this->extractMeta();
+        if (isset($meta['uploadType'])) {
+            $maxUploadSize = Uploads::type($meta['uploadType'])->maxFileSize();
+            if ($maxUploadSize > 0) {
+                $headers['Tus-Max-Size'] = $maxUploadSize;
+            }
         }
 
         return $this->response(null, Response::HTTP_OK, $headers);
@@ -125,10 +130,12 @@ class TusServer
     protected function handlePost(): Response
     {
         $meta = $this->extractMeta();
-        $errors = app(ValidateFileUpload::class)->execute([
-            'size' => $meta['clientSize'],
-            'extension' => $meta['clientExtension'],
-        ]);
+        $errors = FileUploadValidator::validateForUploadType(
+            uploadType: Uploads::type(Arr::get($meta, 'uploadType')),
+            fileSize: Arr::get($meta, 'clientSize'),
+            extension: Arr::get($meta, 'clientExtension'),
+            mime: Arr::get($meta, 'clientMime'),
+        );
 
         if ($errors) {
             return $this->response(
@@ -308,19 +315,13 @@ class TusServer
 
     protected function getOrCreateUploadKey(): string
     {
-        if (!empty($this->uploadKey)) {
-            return $this->uploadKey;
-        }
-
         $key = request()->header('Upload-Key') ?? Uuid::uuid4()->toString();
 
         if (empty($key)) {
             abort(Response::HTTP_BAD_REQUEST);
         }
 
-        $this->uploadKey = $key;
-
-        return $this->uploadKey;
+        return $key;
     }
 
     protected function extractMeta(): array
@@ -352,7 +353,7 @@ class TusServer
     }
 
     protected function response(
-        string $content = null,
+        ?string $content = null,
         int $status = 200,
         array $headers = [],
     ): Response {

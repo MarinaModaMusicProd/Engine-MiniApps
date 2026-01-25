@@ -1,25 +1,33 @@
+import {PlaylistOfflinedIndicator} from '@app/offline/entitiy-offline-indicator-icon';
+import {ContentGridItemLayout} from '@app/web-player/channels/content-grid-item-layout';
 import {PlayableGridItem} from '@app/web-player/playable-item/playable-grid-item';
-import {Playlist} from '@app/web-player/playlists/playlist';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
+import {PlaylistContextDialog} from '@app/web-player/playlists/playlist-context-dialog';
 import {PlaylistImage} from '@app/web-player/playlists/playlist-image';
 import {
   getPlaylistLink,
   PlaylistLink,
 } from '@app/web-player/playlists/playlist-link';
-import {PlaylistContextDialog} from '@app/web-player/playlists/playlist-context-dialog';
-import {Trans} from '@ui/i18n/trans';
-import {UserProfileLink} from '@app/web-player/users/user-profile-link';
-import React from 'react';
 import {FollowPlaylistButton} from '@app/web-player/playlists/playlist-page/follow-playlist-button';
+import {UserProfileLink} from '@app/web-player/users/user-profile-link';
+import {Trans} from '@ui/i18n/trans';
 
 interface PlaylistGridItemProps {
-  playlist: Playlist;
+  playlist: PartialPlaylist;
+  layout?: ContentGridItemLayout;
 }
-export function PlaylistGridItem({playlist}: PlaylistGridItemProps) {
+export function PlaylistGridItem({playlist, layout}: PlaylistGridItemProps) {
   return (
     <PlayableGridItem
+      layout={layout}
       image={<PlaylistImage playlist={playlist} />}
       title={<PlaylistLink playlist={playlist} />}
-      subtitle={<PlaylistOwnerName playlist={playlist} />}
+      subtitle={
+        <div className="flex items-center gap-4">
+          <PlaylistOfflinedIndicator playlistId={playlist.id} />
+          <PlaylistOwnerName playlist={playlist} />
+        </div>
+      }
       link={getPlaylistLink(playlist)}
       likeButton={
         <FollowPlaylistButton buttonType="icon" size="md" playlist={playlist} />
@@ -30,8 +38,8 @@ export function PlaylistGridItem({playlist}: PlaylistGridItemProps) {
   );
 }
 
-export function PlaylistOwnerName({playlist}: PlaylistGridItemProps) {
-  const owner = playlist.owner || playlist.editors?.[0];
+export function PlaylistOwnerName({playlist}: {playlist: PartialPlaylist}) {
+  const owner = playlist.editors[0];
   if (!owner) {
     return null;
   }

@@ -1,6 +1,6 @@
 <?php
 
-use Common\Settings\Setting;
+use Common\Settings\Models\Setting;
 use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration {
@@ -11,8 +11,8 @@ return new class extends Migration {
     {
         $menus = Setting::where('name', 'menus')->first()->value ?? [];
 
-        if ( ! count($menus)) {
-          return;
+        if (!count($menus)) {
+            return;
         }
 
         foreach ($menus as $key => $menu) {

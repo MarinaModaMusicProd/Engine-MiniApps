@@ -14,8 +14,7 @@ class AddColumnsToRolesTable extends Migration
     public function up()
     {
         Schema::table('roles', function (Blueprint $table) {
-            $table->string('description')->nullable();
-            $table->string('type', 20)->default('sitewide');
+            $table->string('type', 20)->default('users');
         });
     }
 

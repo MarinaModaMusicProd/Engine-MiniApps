@@ -1,33 +1,52 @@
-import {ColumnConfig} from '@common/datatable/column-config';
-import {DataTableEmptyStateMessage} from '@common/datatable/page/data-table-emty-state-message';
-import {DataTablePage} from '@common/datatable/page/data-table-page';
-import {DeleteSelectedItemsAction} from '@common/datatable/page/delete-selected-items-action';
-import React, {Fragment} from 'react';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {IconButton} from '@ui/buttons/icon-button';
-import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
-import {Trans} from '@ui/i18n/trans';
-import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
-import {EditIcon} from '@ui/icons/material/Edit';
-import {Playlist} from '@app/web-player/playlists/playlist';
+import playlistImage from '@app/admin/channels/playlist.svg';
+import {ImportPlaylistDialog} from '@app/admin/playlist-datatable-page/import-playlist-dialog';
+import {PlaylistDatatablePageFilters} from '@app/admin/playlist-datatable-page/playlist-datatable-page-filters';
+import {appQueries} from '@app/app-queries';
+import {CreatePlaylistDialog} from '@app/web-player/playlists/crupdate-dialog/create-playlist-dialog';
+import {UpdatePlaylistDialog} from '@app/web-player/playlists/crupdate-dialog/update-playlist-dialog';
+import {FullPlaylist} from '@app/web-player/playlists/playlist';
 import {PlaylistLink} from '@app/web-player/playlists/playlist-link';
 import {UserProfileLink} from '@app/web-player/users/user-profile-link';
-import playlistImage from '@app/admin/channels/playlist.svg';
-import {CheckIcon} from '@ui/icons/material/Check';
-import {CloseIcon} from '@ui/icons/material/Close';
+import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
+import {ColumnConfig} from '@common/datatable/column-config';
+import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
+import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
+import {DataTableHeader} from '@common/datatable/data-table-header';
+import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
+import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
+import {validateDatatableSearch} from '@common/datatable/filters/utils/validate-datatable-search';
+import {DataTableEmptyStateMessage} from '@common/datatable/page/data-table-emty-state-message';
+import {DatatableFilters} from '@common/datatable/page/datatable-filters';
+import {
+  DatatablePageHeaderBar,
+  DatatablePageScrollContainer,
+  DatatablePageWithHeaderBody,
+  DatatablePageWithHeaderLayout,
+} from '@common/datatable/page/datatable-page-with-header-layout';
+import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {StaticPageTitle} from '@common/seo/static-page-title';
+import {Table} from '@common/ui/tables/table';
+import {useMutation} from '@tanstack/react-query';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {FormattedDate} from '@ui/i18n/formatted-date';
 import {FormattedNumber} from '@ui/i18n/formatted-number';
-import {UpdatePlaylistDialog} from '@app/web-player/playlists/crupdate-dialog/update-playlist-dialog';
-import {queryClient} from '@common/http/query-client';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
-import {CreatePlaylistDialog} from '@app/web-player/playlists/crupdate-dialog/create-playlist-dialog';
-import {PlaylistDatatablePageFilters} from '@app/admin/playlist-datatable-page/playlist-datatable-page-filters';
-import {useSettings} from '@ui/settings/use-settings';
-import {ImportPlaylistDialog} from '@app/admin/playlist-datatable-page/import-playlist-dialog';
-import {Tooltip} from '@ui/tooltip/tooltip';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {CheckIcon} from '@ui/icons/material/Check';
+import {EditIcon} from '@ui/icons/material/Edit';
 import {PublishIcon} from '@ui/icons/material/Publish';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useSettings} from '@ui/settings/use-settings';
+import {toast} from '@ui/toast/toast';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import {Fragment, useState} from 'react';
 
-const columnConfig: ColumnConfig<Playlist>[] = [
+const columnConfig: ColumnConfig<FullPlaylist>[] = [
   {
     key: 'name',
     allowsSorting: true,
@@ -59,31 +78,22 @@ const columnConfig: ColumnConfig<Playlist>[] = [
     allowsSorting: true,
     maxWidth: 'max-w-100',
     header: () => <Trans message="Public" />,
-    body: entry =>
-      entry.public ? (
-        <CheckIcon className="text-positive icon-md" />
-      ) : (
-        <CloseIcon className="text-danger icon-md" />
-      ),
+    body: entry => entry.public && <CheckIcon className="text-muted" />,
   },
   {
     key: 'collaborative',
     allowsSorting: true,
     maxWidth: 'max-w-100',
     header: () => <Trans message="Collaborative" />,
-    body: entry =>
-      entry.collaborative ? (
-        <CheckIcon className="text-positive icon-md" />
-      ) : (
-        <CloseIcon className="text-danger icon-md" />
-      ),
+    body: entry => entry.collaborative && <CheckIcon className="text-muted" />,
   },
   {
     key: 'views',
     maxWidth: 'max-w-100',
     allowsSorting: true,
     header: () => <Trans message="Views" />,
-    body: playlist => <FormattedNumber value={playlist.views} />,
+    body: playlist =>
+      playlist.views ? <FormattedNumber value={playlist.views} /> : null,
   },
   {
     key: 'updated_at',
@@ -119,26 +129,81 @@ const columnConfig: ColumnConfig<Playlist>[] = [
   },
 ];
 
-export function PlaylistDatatablePage() {
+export function Component() {
+  const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
+  const {
+    searchParams,
+    sortDescriptor,
+    mergeIntoSearchParams,
+    setSearchQuery,
+    isFiltering,
+  } = useDatatableSearchParams(validateDatatableSearch);
+
+  const query = useDatatableQuery(
+    appQueries.playlists.index({
+      ...searchParams,
+      with: 'owner',
+    }),
+  );
+
+  const selectedActions = (
+    <DialogTrigger type="modal">
+      <Button variant="flat" color="danger">
+        <Trans message="Delete" />
+      </Button>
+      <DeletePlaylistsDialog
+        selectedIds={selectedIds}
+        onDelete={() => setSelectedIds([])}
+      />
+    </DialogTrigger>
+  );
+
   return (
-    <DataTablePage
-      endpoint="playlists"
-      title={<Trans message="Playlists" />}
-      columns={columnConfig}
-      filters={PlaylistDatatablePageFilters}
-      queryParams={{
-        with: 'owner',
-      }}
-      actions={<Actions />}
-      selectedActions={<DeleteSelectedItemsAction />}
-      emptyStateMessage={
-        <DataTableEmptyStateMessage
-          image={playlistImage}
-          title={<Trans message="No playlists have been created yet" />}
-          filteringTitle={<Trans message="No matching playlists" />}
+    <DatatablePageWithHeaderLayout>
+      <GlobalLoadingProgress query={query} />
+      <StaticPageTitle>
+        <Trans message="Playlists" />
+      </StaticPageTitle>
+      <DatatablePageHeaderBar
+        title={<Trans message="Playlists" />}
+        showSidebarToggleButton
+      />
+      <DatatablePageWithHeaderBody>
+        <DataTableHeader
+          searchValue={searchParams.query}
+          onSearchChange={setSearchQuery}
+          actions={<Actions />}
+          selectedItems={selectedIds}
+          selectedActions={selectedActions}
+          filters={PlaylistDatatablePageFilters}
         />
-      }
-    />
+        <DatatableFilters filters={PlaylistDatatablePageFilters} />
+        <DatatablePageScrollContainer>
+          <Table
+            columns={columnConfig}
+            data={query.items}
+            sortDescriptor={sortDescriptor}
+            onSortChange={mergeIntoSearchParams}
+            enableSelection
+            selectedRows={selectedIds}
+            onSelectionChange={setSelectedIds}
+          />
+          {query.isEmpty && (
+            <DataTableEmptyStateMessage
+              isFiltering={isFiltering}
+              image={playlistImage}
+              title={<Trans message="No playlists have been created yet" />}
+              filteringTitle={<Trans message="No matching playlists" />}
+            />
+          )}
+          <DataTablePaginationFooter
+            query={query}
+            onPageChange={page => mergeIntoSearchParams({page})}
+            onPerPageChange={perPage => mergeIntoSearchParams({perPage})}
+          />
+        </DatatablePageScrollContainer>
+      </DatatablePageWithHeaderBody>
+    </DatatablePageWithHeaderLayout>
   );
 }
 
@@ -185,6 +250,44 @@ function Actions() {
   );
 }
 
+interface DeletePlaylistsDialogProps {
+  selectedIds: (number | string)[];
+  onDelete: () => void;
+}
+function DeletePlaylistsDialog({
+  selectedIds,
+  onDelete,
+}: DeletePlaylistsDialogProps) {
+  const {close} = useDialogContext();
+  const deleteSelectedPlaylists = useMutation({
+    mutationFn: () => apiClient.delete(`playlists/${selectedIds.join(',')}`),
+    onSuccess: async () => {
+      await invalidateQuery();
+      toast(message('Playlists deleted'));
+      onDelete();
+      close();
+    },
+    onError: err => showHttpErrorToast(err),
+  });
+  return (
+    <ConfirmationDialog
+      isDanger
+      isLoading={deleteSelectedPlaylists.isPending}
+      title={<Trans message="Delete playlists" />}
+      body={
+        <Trans
+          message="Are you sure you want to delete selected playlists?"
+          values={{count: selectedIds.length}}
+        />
+      }
+      confirm={<Trans message="Delete" />}
+      onConfirm={() => deleteSelectedPlaylists.mutate()}
+    />
+  );
+}
+
 function invalidateQuery() {
-  queryClient.invalidateQueries({queryKey: DatatableDataQueryKey('playlists')});
+  return queryClient.invalidateQueries({
+    queryKey: appQueries.playlists.invalidateKey,
+  });
 }

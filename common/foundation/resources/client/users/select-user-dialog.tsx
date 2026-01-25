@@ -1,22 +1,22 @@
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {Trans} from '@ui/i18n/trans';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {SearchIcon} from '@ui/icons/material/Search';
-import {useState} from 'react';
-import {useTrans} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
 import {Avatar} from '@ui/avatar/avatar';
-import {NormalizedModel} from '@ui/types/normalized-model';
+import {Button} from '@ui/buttons/button';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {SearchIcon} from '@ui/icons/material/Search';
 import {IllustratedMessage} from '@ui/images/illustrated-message';
 import {SvgImage} from '@ui/images/svg-image';
-import teamSvg from '../admin/roles/team.svg';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {useNormalizedModels} from '../ui/normalized-model/use-normalized-models';
 import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {NormalizedModel} from '@ui/types/normalized-model';
 import clsx from 'clsx';
+import {useState} from 'react';
+import teamSvg from '../admin/roles/team.svg';
+import {useNormalizedModels} from '../ui/normalized-model/use-normalized-models';
 
 interface SingleProps<T extends NormalizedModel> {
   multiple?: false;
@@ -51,7 +51,7 @@ export function SelectUserDialog<T extends NormalizedModel>({
   );
 
   return (
-    <Dialog>
+    <Dialog size="lg">
       <DialogHeader>
         {multiple ? (
           <Trans message="Select users" />
@@ -124,7 +124,7 @@ function UserListItem({user, onSelected, isSelected}: UserListItemProps) {
     <div
       key={user.id}
       className={clsx(
-        'flex items-center gap-10 rounded border-1 p-10 outline-none ring-offset-4 focus-visible:ring',
+        'flex items-center gap-10 rounded-panel border-1 p-10 outline-none ring-offset-4 focus-visible:ring',
         isSelected
           ? 'border-primary bg-primary/5 hover:bg-primary/10'
           : 'border-transparent hover:bg-hover',
@@ -141,9 +141,11 @@ function UserListItem({user, onSelected, isSelected}: UserListItemProps) {
         }
       }}
     >
-      <Avatar src={user.image} label={user.name} circle />
+      <Avatar src={user.image} label={user.name ?? 'Visitor'} circle />
       <div className="overflow-hidden">
-        <div className="overflow-hidden text-ellipsis">{user.name}</div>
+        <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+          {user.name ?? <Trans message="Visitor" />}
+        </div>
         <div className="overflow-hidden text-ellipsis text-muted">
           {user.description}
         </div>

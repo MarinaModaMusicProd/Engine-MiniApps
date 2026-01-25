@@ -2,6 +2,7 @@
 
 namespace Common\AI;
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use OpenAI;
 
@@ -12,7 +13,7 @@ class ModifyTextWithAI
     public function execute(): array
     {
         $data = $this->validate(request(), [
-            'text' => 'required|string|min:20|max:3000',
+            'text' => 'required|string|min:20|max:1000',
             'instruction' =>
                 'required|string|in:simplify,shorten,lengthen,fixSpelling,changeTone,translate',
             'tone' => 'required_if:instruction,changeTone|string',
@@ -67,21 +68,30 @@ class ModifyTextWithAI
 
         $prompt = "{$instruction}. $additionalInstruction:  {$data['text']}";
 
-        $apiResponse = $client->chat()->create([
-            'model' => 'gpt-3.5-turbo',
-            'temperature' => 1,
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' =>
-                        'You are a bot helping user refine their reply to customer. You will not reply in conversational language, you will only provide the refined text or original text if you are not able to refine it. You will not provide any additional information, context, apologies introductions or add any prefixes or explanations to the text. You will only refine the text and return it.',
+        try {
+            $apiResponse = $client->chat()->create([
+                'model' => 'gpt-4o-mini',
+                'temperature' => 0.7,
+                'max_tokens' => 2000,
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' =>
+                            'You are a bot helping user refine their reply to customer. You will not reply in conversational language, you will only provide the refined text or original text if you are not able to refine it. You will not provide any additional information, context, apologies introductions or add any prefixes or explanations to the text. You will only refine the text and return it.',
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => $prompt,
+                    ],
                 ],
-                [
-                    'role' => 'user',
-                    'content' => $prompt,
-                ],
-            ],
-        ]);
+            ]);
+        } catch (OpenAI\Exceptions\ErrorException $e) {
+            if ($e->getErrorType() === 'insufficient_quota') {
+                throw new AuthorizationException(
+                    __('policies.ai_quota_exceeded'),
+                );
+            }
+        }
 
         return [
             'tokens' => $apiResponse->usage->totalTokens,

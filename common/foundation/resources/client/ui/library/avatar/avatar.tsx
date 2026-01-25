@@ -1,13 +1,9 @@
-import clsx from 'clsx';
-import React, {
-  ComponentProps,
-  ComponentPropsWithoutRef,
-  forwardRef,
-} from 'react';
-import {Link} from 'react-router-dom';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {AvatarPlaceholderIcon} from '@ui/avatar/avatar-placeholder-icon';
 import {AvatarInitialsFallback} from '@ui/avatar/avatar-initials-fallback';
+import {AvatarPlaceholderIcon} from '@ui/avatar/avatar-placeholder-icon';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import clsx from 'clsx';
+import {ComponentProps, ComponentPropsWithoutRef, forwardRef} from 'react';
+import {Link} from 'react-router';
 
 type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | string;
 
@@ -26,7 +22,7 @@ export interface AvatarProps extends ComponentPropsWithoutRef<any> {
 export const Avatar = forwardRef<HTMLImageElement, AvatarProps>(function (
   {
     className,
-    circle,
+    circle = true,
     size = 'md',
     src,
     link,

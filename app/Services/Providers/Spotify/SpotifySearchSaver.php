@@ -3,7 +3,7 @@
 use App\Models\Album;
 use App\Models\Artist;
 use App\Models\Track;
-use App\Services\Providers\SaveOrUpdate;
+use App\Services\Providers\UpsertsDataIntoDB;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class SpotifySearchSaver
 {
-    use SaveOrUpdate;
+    use UpsertsDataIntoDB;
 
     public function save(array $spotifyResults): array
     {
@@ -104,7 +104,7 @@ class SpotifySearchSaver
             return $normalizedTrack;
         });
 
-        $this->saveOrUpdate($normalizedTracks, 'tracks');
+        $this->upsert($normalizedTracks, 'tracks');
 
         $savedTracks = Track::with('album', 'artists')
             ->whereIn('spotify_id', $normalizedTracks->pluck('spotify_id'))
@@ -139,8 +139,8 @@ class SpotifySearchSaver
             ->flatten(1)
             ->filter();
 
-        $this->saveOrUpdate($pivots, 'artist_track');
-        $savedTracks->load('artists');
+        $this->upsert($pivots, 'artist_track');
+        $savedTracks->load('artists', 'album.artists');
         return $savedTracks;
     }
 
@@ -149,7 +149,7 @@ class SpotifySearchSaver
         Collection $savedArtists,
     ): Collection {
         $normalizedAlbums = $normalizedAlbums->unique('spotify_id')->filter();
-        $this->saveOrUpdate($normalizedAlbums, 'albums');
+        $this->upsert($normalizedAlbums, 'albums');
 
         $savedAlbums = Album::whereIn(
             'spotify_id',
@@ -186,7 +186,7 @@ class SpotifySearchSaver
             ->flatten(1)
             ->filter();
 
-        $this->saveOrUpdate($pivots, 'artist_album');
+        $this->upsert($pivots, 'artist_album');
         $savedAlbums->load('artists');
 
         return $savedAlbums;
@@ -206,7 +206,7 @@ class SpotifySearchSaver
             ],
         );
 
-        $this->saveOrUpdate($uniqueArtists, 'artists');
+        $this->upsert($uniqueArtists, 'artists');
         $loadedArtists = Artist::whereIn(
             'spotify_id',
             $uniqueArtists->pluck('spotify_id'),

@@ -1,17 +1,17 @@
-import {useBillingUser} from '../use-billing-user';
-import {BillingPlanPanel} from '../billing-plan-panel';
+import {billingQueries} from '@common/billing/billing-queries';
+import {useSuspenseQuery} from '@tanstack/react-query';
 import {Trans} from '@ui/i18n/trans';
-import {Link} from 'react-router-dom';
 import {EditIcon} from '@ui/icons/material/Edit';
-import {Fragment} from 'react';
-import paypalSvg from './paypal.svg';
 import {SvgImage} from '@ui/images/svg-image';
+import {Fragment} from 'react';
+import {Link} from 'react-router';
+import {BillingPlanPanel} from '../billing-plan-panel';
+import paypalSvg from './paypal.svg';
 
 export function PaymentMethodPanel() {
-  const {user, subscription} = useBillingUser();
-  if (!user || !subscription) return null;
+  const query = useSuspenseQuery(billingQueries.user());
 
-  const isPaypal = subscription.gateway_name === 'paypal';
+  const isPaypal = query.data.subscription.gateway_name === 'paypal';
   const PaymentMethod = isPaypal ? PaypalPaymentMethod : CardPaymentMethod;
 
   return (
@@ -32,12 +32,12 @@ function CardPaymentMethod({
   methodClassName,
   linkClassName,
 }: PaymentMethodProps) {
-  const {user} = useBillingUser();
-  if (!user) return null;
+  const query = useSuspenseQuery(billingQueries.user());
+  const user = query.data.user;
   return (
     <Fragment>
       <div className={methodClassName}>
-        <span className="capitalize">{user.card_brand}</span> ••••
+        <span className="capitalize">{query.data.user.card_brand}</span> ••••
         {user.card_last_four}
         {user.card_expires && (
           <div className="ml-auto">
@@ -57,7 +57,7 @@ function PaypalPaymentMethod({
   methodClassName,
   linkClassName,
 }: PaymentMethodProps) {
-  const {subscription} = useBillingUser();
+  const query = useSuspenseQuery(billingQueries.user());
   return (
     <Fragment>
       <div className={methodClassName}>
@@ -65,7 +65,7 @@ function PaypalPaymentMethod({
       </div>
       <a
         className={linkClassName}
-        href={`https://www.sandbox.paypal.com/myaccount/autopay/connect/${subscription?.gateway_id}/funding`}
+        href={`https://www.sandbox.paypal.com/myaccount/autopay/connect/${query.data.subscription.gateway_id}/funding`}
         target="_blank"
         rel="noreferrer"
       >

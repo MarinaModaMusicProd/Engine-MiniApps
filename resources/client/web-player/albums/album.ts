@@ -1,29 +1,30 @@
-import {Genre} from '../genres/genre';
-import {Artist} from '../artists/artist';
-import {Tag} from '@common/tags/tag';
 import {Track} from '@app/web-player/tracks/track';
+import {PartialArtist} from '../artists/artist';
 
 export const ALBUM_MODEL = 'album';
 
-export interface Album {
-  id: number;
-  name: string;
-  model_type: typeof ALBUM_MODEL;
-  release_date?: string;
-  spotify_id?: string;
-  image?: string;
-  artists?: Omit<Artist, 'albums'>[];
+export type FullAlbum = PartialAlbum & {
+  spotify_id?: string | null;
+  description: string | null;
+  tracks?: Track[];
+  tags?: {id: number; name: string; display_name: string | null}[];
+  genres?: {id: number; name: string; display_name: string | null}[];
+  tracks_count: number | null;
   reposts_count?: number;
   likes_count?: number;
-  plays?: number;
-  views: number;
-  description?: string;
-  tracks?: Track[];
-  tags?: Tag[];
-  genres?: Genre[];
-  created_at?: string;
-  owner_id?: number;
   comments_count?: number;
-  tracks_count?: number;
-  updated_at: string;
-}
+  updated_at: string | null;
+};
+
+export type PartialAlbum = {
+  id: number;
+  name: string;
+  image: string | null;
+  artists: PartialArtist[];
+  model_type: typeof ALBUM_MODEL;
+  release_date: string | null;
+  plays: number;
+  views: number;
+  owner_id: number | null;
+  created_at: string | null;
+};

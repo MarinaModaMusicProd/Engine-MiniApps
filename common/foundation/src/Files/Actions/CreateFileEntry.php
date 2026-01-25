@@ -19,18 +19,19 @@ class CreateFileEntry
             'mime' => $payload->clientMime,
             'file_size' => $payload->size,
             'parent_id' => $payload->parentId,
-            'disk_prefix' => $payload->diskPrefix,
             'type' => $payload->type,
             'extension' => $payload->clientExtension,
-            'public' => $payload->public,
+            'public' => $payload->uploadType->public,
             'workspace_id' => $payload->workspaceId,
+            'upload_type' => $payload->uploadType->name,
+            'backend_id' => $payload->backend->id,
             'owner_id' => $payload->ownerId,
         ];
 
         $entries = new Collection();
 
         // uploading a folder
-        if ($payload->relativePath && !$payload->public) {
+        if ($payload->uploadType->supportsFolders && $payload->relativePath) {
             $path = $this->createPath($payload);
             $parent = $path['allParents']->last();
             if ($path['allParents']->isNotEmpty()) {
@@ -41,7 +42,7 @@ class CreateFileEntry
 
         $fileEntry = FileEntry::create($data);
 
-        if (!$payload->public) {
+        if ($payload->uploadType->supportsFolders) {
             $fileEntry->generatePath();
         }
 
@@ -60,9 +61,7 @@ class CreateFileEntry
         }
 
         if (isset($path['newlyCreated'])) {
-            $path['newlyCreated']->each(function (FileEntry $entry) use (
-                $payload,
-            ) {
+            $path['newlyCreated']->each(function (FileEntry $entry) {
                 // make sure new folder gets attached to all
                 // users who have access to the parent folder
                 event(new FileEntryCreated($entry));

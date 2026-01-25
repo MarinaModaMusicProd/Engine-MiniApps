@@ -2,20 +2,22 @@
 
 namespace Common\Auth\Traits;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
 trait HasDisplayNameAttribute
 {
-    public function getNameAttribute(): string
+    protected function name(): Attribute
     {
-        if ($this->username) {
-            return $this->username;
-        } elseif ($this->first_name && $this->last_name) {
-            return $this->first_name . ' ' . $this->last_name;
-        } elseif ($this->first_name) {
-            return $this->first_name;
-        } elseif ($this->last_name) {
-            return $this->last_name;
-        } else {
-            return explode('@', $this->email)[0];
-        }
+        return Attribute::make(
+            get: function (string|null $value, array $attributes) {
+                if (isset($attributes['username']) && $attributes['username']) {
+                    return $attributes['username'];
+                } elseif ($value) {
+                    return $value;
+                } elseif ($this->email) {
+                    return explode('@', $this->email)[0];
+                }
+            },
+        );
     }
 }

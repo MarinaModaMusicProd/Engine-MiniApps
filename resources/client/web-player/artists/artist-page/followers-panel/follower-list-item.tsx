@@ -1,12 +1,11 @@
-import {User} from '@ui/types/user';
 import {UserImage} from '@app/web-player/users/user-image';
+import {PartialUserProfile} from '@app/web-player/users/user-profile';
 import {UserProfileLink} from '@app/web-player/users/user-profile-link';
-import {Trans} from '@ui/i18n/trans';
-import React from 'react';
 import {FollowButton} from '@common/users/follow-button';
+import {Trans} from '@ui/i18n/trans';
 
 interface Props {
-  follower: User;
+  follower: PartialUserProfile;
 }
 export function FollowerListItem({follower}: Props) {
   return (

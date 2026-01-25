@@ -1,0 +1,1 @@
+import{z as o,G as a,H as r,I as i,J as e,b as c}from"./main-BEfQELxr.js";function l(){const{trans:t}=o();return a({mutationFn:s=>u(s),onSuccess:(s,n)=>{i(n.delete?t(e("Subscription deleted.")):t(e("Subscription cancelled.")))},onError:s=>r(s)})}function u({subscriptionId:t,...s}){return c.post(`billing/subscriptions/${t}/cancel`,s).then(n=>n.data)}export{l as u};

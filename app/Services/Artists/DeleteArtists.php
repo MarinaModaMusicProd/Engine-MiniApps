@@ -3,10 +3,9 @@
 namespace App\Services\Artists;
 
 use App\Models\Artist;
-use App\Models\ArtistBio;
 use App\Models\BackstageRequest;
 use App\Models\ProfileImage;
-use App\Models\UserProfile;
+use App\Models\ProfileDetails;
 use App\Services\Albums\DeleteAlbums;
 use App\Services\Tracks\DeleteTracks;
 use Common\Files\Actions\Deletion\DeleteEntries;
@@ -20,13 +19,17 @@ class DeleteArtists
         $artistIds = $artists->pluck('id');
 
         // remove locally uploaded images
-        $imagePaths = $artists->pluck('image_small')->filter();
-        app(DeleteEntries::class)->execute([
-            'paths' => $imagePaths->toArray(),
-        ]);
+        $artists->load(['uploadedImage', 'uploadedProfileImages']);
+        $uploadedImageEntries = $artists
+            ->pluck('uploadedImage')
+            ->flatten(1)
+            ->merge($artists->pluck('uploadedProfileImages')->flatten(1));
 
-        // remove artist bios
-        ArtistBio::whereIn('artist_id', $artistIds)->delete();
+        if ($uploadedImageEntries->isNotEmpty()) {
+            (new DeleteEntries())->execute([
+                'entryIds' => $uploadedImageEntries->pluck('id')->toArray(),
+            ]);
+        }
 
         // detach similar artists
         DB::table('similar_artists')
@@ -35,10 +38,8 @@ class DeleteArtists
             ->delete();
 
         // detach users
-        DB::table('user_artist')
-            ->whereIn('artist_id', $artistIds)
-            ->delete();
-        UserProfile::whereIn('artist_id', $artistIds)->delete();
+        DB::table('user_artist')->whereIn('artist_id', $artistIds)->delete();
+        ProfileDetails::whereIn('artist_id', $artistIds)->delete();
 
         // detach likes
         DB::table('likes')

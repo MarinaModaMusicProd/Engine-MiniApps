@@ -11,8 +11,7 @@ class Genre extends Tag
 
     const MODEL_TYPE = 'genre';
     protected $table = 'genres';
-    protected $guarded = ['id'];
-    protected $hidden = ['pivot'];
+    protected $guarded = [];
     protected $appends = ['model_type'];
 
     public function artists(): MorphToMany
@@ -39,7 +38,8 @@ class Genre extends Tag
         return parent::insertOrRetrieve($tags, null);
     }
 
-    public function toNormalizedArray(): array {
+    public function toNormalizedArray(): array
+    {
         return [
             'id' => $this->id,
             'name' => $this->display_name ?: $this->name,

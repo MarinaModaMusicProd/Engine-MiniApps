@@ -1,12 +1,12 @@
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
+import {Localization} from '@ui/i18n/localization';
+import {message} from '@ui/i18n/message';
 import {toast} from '@ui/toast/toast';
+import {UseFormReturn} from 'react-hook-form';
+import {onFormQueryError} from '../../errors/on-form-query-error';
 import {BackendResponse} from '../../http/backend-response/backend-response';
 import {apiClient} from '../../http/query-client';
-import {message} from '@ui/i18n/message';
-import {DatatableDataQueryKey} from '../../datatable/requests/paginated-resources';
-import {onFormQueryError} from '../../errors/on-form-query-error';
-import {Localization} from '@ui/i18n/localization';
 
 interface Response extends BackendResponse {
   localization: Localization;
@@ -32,7 +32,7 @@ export function useCreateLocalization(
     onSuccess: () => {
       toast(message('Localization created'));
       queryClient.invalidateQueries({
-        queryKey: DatatableDataQueryKey('localizations'),
+        queryKey: commonAdminQueries.localizations.invalidateKey,
       });
     },
     onError: r => onFormQueryError(r, form),

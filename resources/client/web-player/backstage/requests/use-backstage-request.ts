@@ -1,7 +1,7 @@
 import {useQuery} from '@tanstack/react-query';
 import {apiClient} from '@common/http/query-client';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {useParams} from 'react-router-dom';
+import {useParams} from 'react-router';
 import {BackstageRequest} from '@app/web-player/backstage/backstage-request';
 
 interface Response extends BackendResponse {

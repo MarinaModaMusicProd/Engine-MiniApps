@@ -1,4 +1,4 @@
-import {useSearchParams} from 'react-router-dom';
+import {useSearchParams} from 'react-router';
 
 export function useNumberSearchParam(name: string): number | null {
   const [searchParams] = useSearchParams();

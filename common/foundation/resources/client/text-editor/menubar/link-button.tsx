@@ -1,22 +1,22 @@
-import {useForm} from 'react-hook-form';
-import React from 'react';
-import clsx from 'clsx';
-import {Form} from '@ui/forms/form';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {insertLinkIntoTextEditor} from '@common/text-editor/insert-link-into-text-editor';
 import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
-import {LinkIcon} from '@ui/icons/material/Link';
-import {MenubarButtonProps} from './menubar-button-props';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Form} from '@ui/forms/form';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {FormSelect, Option} from '@ui/forms/select/select';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
 import {Trans} from '@ui/i18n/trans';
+import {LinkIcon} from '@ui/icons/material/Link';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {Tooltip} from '@ui/tooltip/tooltip';
-import {insertLinkIntoTextEditor} from '@common/text-editor/insert-link-into-text-editor';
+import clsx from 'clsx';
+import {useForm} from 'react-hook-form';
+import {useCurrentTextEditor} from '../tiptap-editor-context';
+import {MenubarButtonProps} from './menubar-button-props';
 
 interface FormValue {
   href: string;
@@ -24,24 +24,30 @@ interface FormValue {
   text?: string;
 }
 
-export function LinkButton({editor, size}: MenubarButtonProps) {
+export function LinkButton({size}: MenubarButtonProps) {
+  const editor = useCurrentTextEditor();
   return (
     <DialogTrigger type="modal">
       <Tooltip label={<Trans message="Insert link" />}>
-        <IconButton size={size} className={clsx('flex-shrink-0')}>
+        <IconButton
+          disabled={!editor}
+          size={size}
+          className={clsx('flex-shrink-0')}
+        >
           <LinkIcon />
         </IconButton>
       </Tooltip>
-      <LinkDialog editor={editor} />
+      <LinkDialog />
     </DialogTrigger>
   );
 }
 
-function LinkDialog({editor}: MenubarButtonProps) {
-  const previousUrl = editor.getAttributes('link').href;
-  const previousText = editor.state.doc.textBetween(
-    editor.state.selection.from,
-    editor.state.selection.to,
+function LinkDialog() {
+  const editor = useCurrentTextEditor();
+  const previousUrl = editor?.getAttributes('link').href;
+  const previousText = editor?.state.doc.textBetween(
+    editor?.state.selection.from,
+    editor?.state.selection.to,
     '',
   );
 
@@ -59,18 +65,19 @@ function LinkDialog({editor}: MenubarButtonProps) {
           form={form}
           id={formId}
           onSubmit={value => {
-            insertLinkIntoTextEditor(editor, value);
+            insertLinkIntoTextEditor(editor!, value);
             close();
           }}
         >
           <FormTextField
+            required
             name="href"
             label={<Trans message="URL" />}
             autoFocus
-            type="url"
             className="mb-20"
           />
           <FormTextField
+            required
             name="text"
             label={<Trans message="Text to display" />}
             className="mb-20"

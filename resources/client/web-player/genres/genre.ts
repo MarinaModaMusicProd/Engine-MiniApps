@@ -5,5 +5,5 @@ export interface Genre {
   name: string;
   display_name: string;
   model_type: 'genre';
-  image: string;
+  image: string | null;
 }

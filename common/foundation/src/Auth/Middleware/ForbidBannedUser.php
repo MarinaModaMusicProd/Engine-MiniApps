@@ -8,14 +8,10 @@ use Illuminate\Http\Request;
 
 class ForbidBannedUser
 {
-    public function __construct(protected StatefulGuard $guard)
-    {
-    }
-
     public function handle(Request $request, Closure $next)
     {
         if (
-            $request->user()?->isBanned() &&
+            $request->user('sanctum')?->isBanned() &&
             $request->path() !== '/' &&
             $request->path() !== 'auth/logout'
         ) {

@@ -1,22 +1,21 @@
-import {ColumnConfig} from '@common/datatable/column-config';
-import {Trans} from '@ui/i18n/trans';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {Link} from 'react-router-dom';
-import {IconButton} from '@ui/buttons/icon-button';
-import {EditIcon} from '@ui/icons/material/Edit';
-import React from 'react';
+import {CreateLyricDialog} from '@app/admin/lyrics-datatable-page/create-lyric-dialog';
+import {UpdateLyricDialog} from '@app/admin/lyrics-datatable-page/update-lyric-dialog';
+import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
+import {ArtistLink} from '@app/web-player/artists/artist-link';
 import {Track} from '@app/web-player/tracks/track';
 import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
+import {TrackLink} from '@app/web-player/tracks/track-link';
+import {ColumnConfig} from '@common/datatable/column-config';
+import {IconButton} from '@ui/buttons/icon-button';
+import {FormattedDate} from '@ui/i18n/formatted-date';
 import {FormattedDuration} from '@ui/i18n/formatted-duration';
 import {FormattedNumber} from '@ui/i18n/formatted-number';
-import {TrackLink} from '@app/web-player/tracks/track-link';
-import {ArtistLink} from '@app/web-player/artists/artist-link';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {UpdateLyricDialog} from '@app/admin/lyrics-datatable-page/update-lyric-dialog';
-import {CreateLyricDialog} from '@app/admin/lyrics-datatable-page/create-lyric-dialog';
-import {ClosedCaptionIcon} from '@ui/icons/material/ClosedCaption';
+import {Trans} from '@ui/i18n/trans';
 import {BarChartIcon} from '@ui/icons/material/BarChart';
+import {ClosedCaptionIcon} from '@ui/icons/material/ClosedCaption';
+import {EditIcon} from '@ui/icons/material/Edit';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Link} from 'react-router';
 
 export const TracksDatatableColumns: ColumnConfig<Track>[] = [
   {

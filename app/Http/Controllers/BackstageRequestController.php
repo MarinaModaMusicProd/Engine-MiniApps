@@ -18,8 +18,7 @@ class BackstageRequestController extends BaseController
     public function __construct(
         protected BackstageRequest $backstageRequest,
         protected Request $request,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {
@@ -87,6 +86,8 @@ class BackstageRequestController extends BaseController
             $backstageRequestIds,
         ]);
 
+        $this->blockOnDemoSite();
+
         $this->backstageRequest->whereIn('id', $backstageRequestIds)->delete();
 
         return $this->success();
@@ -94,7 +95,9 @@ class BackstageRequestController extends BaseController
 
     public function approve(BackstageRequest $backstageRequest): Response
     {
-        $this->authorize('handle', BackstageRequest::class);
+        $this->authorize('approve', $backstageRequest);
+
+        $this->blockOnDemoSite();
 
         $backstageRequest = App(ApproveBackstageRequest::class)->execute(
             $backstageRequest,
@@ -106,7 +109,9 @@ class BackstageRequestController extends BaseController
 
     public function deny(BackstageRequest $backstageRequest): Response
     {
-        $this->authorize('handle', BackstageRequest::class);
+        $this->authorize('approve', $backstageRequest);
+
+        $this->blockOnDemoSite();
 
         $backstageRequest->fill(['status' => 'denied'])->save();
 

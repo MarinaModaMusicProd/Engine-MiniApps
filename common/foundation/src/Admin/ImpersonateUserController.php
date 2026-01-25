@@ -18,6 +18,8 @@ class ImpersonateUserController extends BaseController
 
     public function impersonate(int $userId)
     {
+        $this->blockOnDemoSite();
+
         $impersonated = User::findOrFail($userId);
 
         if ($impersonated->id === $this->guard->id()) {
@@ -29,9 +31,7 @@ class ImpersonateUserController extends BaseController
         $this->logout();
 
         $this->guard->login($impersonated, true);
-        request()
-            ->session()
-            ->regenerate();
+        request()->session()->regenerate();
         $this->limiter->clear(request());
 
         session()->put('impersonator_id', $impersonatorId);
@@ -43,6 +43,8 @@ class ImpersonateUserController extends BaseController
 
     public function stopImpersonating()
     {
+        $this->blockOnDemoSite();
+
         $this->logout();
         session()->forget('impersonator_id');
 
@@ -53,12 +55,8 @@ class ImpersonateUserController extends BaseController
     {
         $this->guard->logout();
         if (request()->hasSession()) {
-            request()
-                ->session()
-                ->invalidate();
-            request()
-                ->session()
-                ->regenerateToken();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
         }
     }
 }

@@ -14,9 +14,7 @@ use Stripe\Subscription as StripeSubscription;
 
 class StripeSubscriptions
 {
-    public function __construct(public StripeClient $client)
-    {
-    }
+    public function __construct(public StripeClient $client) {}
 
     public function isIncomplete(Subscription $subscription): bool
     {
@@ -73,30 +71,45 @@ class StripeSubscriptions
             $subscription->ends_at = null;
         }
 
+        // if we created a subscription with trial, but user has not entered payment details yet, mark it as incomplete locally, otherwise subscription will be interpreted as fully active
+        $status =
+            $stripeSubscription->status ===
+                StripeSubscription::STATUS_TRIALING &&
+            $stripeSubscription->pending_setup_intent !== null
+                ? StripeSubscription::STATUS_INCOMPLETE
+                : $stripeSubscription->status;
+
         $subscription
             ->fill([
                 'price_id' => $price->id,
                 'product_id' => $price->product_id,
                 'gateway_name' => 'stripe',
                 'gateway_id' => $stripeSubscription->id,
-                'gateway_status' => $stripeSubscription->status,
+                'gateway_status' => $status,
                 'renews_at' =>
                     $subscription->ends_at ||
-                    $stripeSubscription->status ===
-                        StripeSubscription::STATUS_INCOMPLETE
+                    $status === StripeSubscription::STATUS_INCOMPLETE
                         ? null
                         : Carbon::createFromTimestamp(
                             $stripeSubscription->current_period_end,
                         ),
+                'trial_ends_at' =>
+                    $status === StripeSubscription::STATUS_TRIALING
+                        ? Carbon::createFromTimestamp(
+                            $stripeSubscription->trial_end,
+                        )
+                        : null,
             ])
             ->save();
 
-        if ($stripeSubscription->latest_invoice) {
+        if (
+            $stripeSubscription->latest_invoice &&
+            $stripeSubscription->status !==
+                StripeSubscription::STATUS_INCOMPLETE
+        ) {
             $this->createOrUpdateInvoice(
                 $subscription,
-                $stripeSubscription->latest_invoice->id,
-                $stripeSubscription->latest_invoice->status ===
-                    StripeInvoice::STATUS_PAID,
+                $stripeSubscription->latest_invoice->toArray(),
             );
         }
     }
@@ -105,7 +118,7 @@ class StripeSubscriptions
         Product $product,
         User $user,
         ?int $priceId = null,
-    ): string {
+    ): array {
         $price = $priceId
             ? $product->prices()->findOrFail($priceId)
             : $product->prices->firstOrFail();
@@ -113,14 +126,30 @@ class StripeSubscriptions
         $user = $this->syncStripeCustomer($user);
 
         // find incomplete subscriptions for this customer and price
-        $stripeSubscription = $this->client->subscriptions
-            ->all([
-                'customer' => $user->stripe_id,
-                'price' => $price->stripe_id,
-                'status' => 'incomplete',
-                'expand' => ['data.latest_invoice.payment_intent'],
-            ])
-            ->first();
+        $stripeSubscriptions = $this->client->subscriptions->all([
+            'customer' => $user->stripe_id,
+            'price' => $price->stripe_id,
+            'expand' => [
+                'data.latest_invoice.payment_intent',
+                'data.pending_setup_intent',
+            ],
+        ]);
+
+        $stripeSubscription = null;
+        foreach ($stripeSubscriptions as $subscription) {
+            $isIncompleteTrial =
+                $subscription->status === StripeSubscription::STATUS_TRIALING &&
+                $subscription->pending_setup_intent !== null;
+            $isIncomplete =
+                $subscription->status === StripeSubscription::STATUS_INCOMPLETE;
+            if (
+                ($product->trial_period_days && $isIncompleteTrial) ||
+                $isIncomplete
+            ) {
+                $stripeSubscription = $subscription;
+                break;
+            }
+        }
 
         // if matching subscription was not created yet, do it now
         if (!$stripeSubscription) {
@@ -131,24 +160,38 @@ class StripeSubscriptions
                         'price' => $price->stripe_id,
                     ],
                 ],
+                'trial_period_days' => $product->trial_period_days ?? 0,
                 'payment_behavior' => 'default_incomplete',
                 'payment_settings' => [
                     'save_default_payment_method' => 'on_subscription',
                 ],
-                'expand' => ['latest_invoice.payment_intent'],
+                'trial_settings' => [
+                    'end_behavior' => ['missing_payment_method' => 'cancel'],
+                ],
+                'expand' => [
+                    'latest_invoice.payment_intent',
+                    // needed if using trial period, because payment_intent on latest_invoice will not exist
+                    'pending_setup_intent',
+                ],
             ]);
         }
 
         // return client secret, needed in frontend to complete subscription
-        return $stripeSubscription->latest_invoice->payment_intent
-            ->client_secret;
+        $clientSecret =
+            $stripeSubscription->latest_invoice->payment_intent
+                ->client_secret ??
+            $stripeSubscription->pending_setup_intent->client_secret;
+        return [
+            'clientSecret' => $clientSecret,
+            'subscriptionId' => $stripeSubscription->id,
+        ];
     }
 
     public function cancel(
         Subscription $subscription,
         bool $atPeriodEnd = true,
     ): bool {
-        if (!$subscription->user->stripe_id) {
+        if (!$subscription->user?->stripe_id) {
             return true;
         }
 
@@ -242,24 +285,33 @@ class StripeSubscriptions
 
     public function createOrUpdateInvoice(
         Subscription $subscription,
-        string $stripeInvoiceId,
-        bool $isPaid,
+        array $stripeInvoice,
     ): void {
-        $invoice = Invoice::where('uuid', $stripeInvoiceId)->first();
+        $invoice = Invoice::where('uuid', $stripeInvoice['id'])->first();
         if ($invoice) {
-            // paid invoices should never be set to unpaid
-            if (!$invoice->paid) {
-                $invoice->update(['paid' => $isPaid]);
+            // paid invoices should never be set to unpaid,
+            // this could happen if webhooks arrive out of order
+            if ($invoice->status !== Invoice::STATUS_PAID) {
+                $invoice->update(['status' => $stripeInvoice['status']]);
+            }
+
+            if ($stripeInvoice['amount_paid'] > $invoice->amount_paid) {
+                $invoice->update([
+                    'amount_paid' => $stripeInvoice['amount_paid'],
+                    'currency' => $stripeInvoice['currency'],
+                ]);
             }
         } else {
             $invoice = Invoice::create([
                 'subscription_id' => $subscription->id,
-                'uuid' => $stripeInvoiceId,
-                'paid' => $isPaid,
+                'uuid' => $stripeInvoice['id'],
+                'status' => $stripeInvoice['status'],
+                'amount_paid' => $stripeInvoice['amount_paid'] ?? 0,
+                'currency' => $stripeInvoice['currency'] ?? 'usd',
             ]);
         }
 
-        if ($invoice->paid && !$invoice->notified) {
+        if ($invoice->status === Invoice::STATUS_PAID && !$invoice->notified) {
             $subscription->user->notify(new NewInvoiceAvailable($invoice));
             $invoice->update(['notified' => true]);
         }

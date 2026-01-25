@@ -3,33 +3,32 @@
 namespace Common\Core\Policies;
 
 use App\Models\User;
-use Common\Core\Policies\BasePolicy;
 use Illuminate\Auth\Access\Response;
 
 class ProductPolicy extends BasePolicy
 {
     public function index(?User $user): bool|Response
     {
-        return settings('billing.enable') || $user->hasPermission('plans.view');
+        return true;
     }
 
     public function show(?User $user): bool|Response
     {
-        return settings('billing.enable') || $user->hasPermission('plans.view');
+        return true;
     }
 
     public function store(User $user): bool|Response
     {
-        return $user->hasPermission('plans.create');
+        return $this->hasPermission($user, 'subscriptions.update');
     }
 
     public function update(User $user): bool|Response
     {
-        return $user->hasPermission('plans.update');
+        return $this->hasPermission($user, 'subscriptions.update');
     }
 
     public function destroy(User $user): bool|Response
     {
-        return $user->hasPermission('plans.delete');
+        return $this->hasPermission($user, 'subscriptions.update');
     }
 }

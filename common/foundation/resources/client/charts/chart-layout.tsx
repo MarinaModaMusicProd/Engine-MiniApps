@@ -1,5 +1,5 @@
-import {ReactNode, Ref} from 'react';
 import clsx from 'clsx';
+import {ReactNode, Ref} from 'react';
 
 export interface ChartLayoutProps {
   title: ReactNode;
@@ -8,7 +8,6 @@ export interface ChartLayoutProps {
   children: ReactNode;
   contentIsFlex?: boolean;
   contentClassName?: string;
-  minHeight?: string;
   contentRef?: Ref<HTMLDivElement>;
   isLoading?: boolean;
 }
@@ -21,25 +20,23 @@ export function ChartLayout(props: ChartLayoutProps) {
     contentIsFlex = true,
     contentClassName,
     contentRef,
-    minHeight = 'min-h-440',
   } = props;
 
   return (
     <div
       className={clsx(
-        'flex h-full flex-auto flex-col rounded-panel border bg dark:bg-alt',
-        minHeight,
+        'flex flex-auto flex-col rounded-panel border bg-elevated p-20',
         className,
       )}
     >
-      <div className="flex flex-shrink-0 items-center justify-between p-14 text-xs">
+      <div className="flex flex-shrink-0 items-center justify-between pb-10 text-xs">
         <div className="text-sm font-semibold">{title}</div>
         {description && <div className="text-muted">{description}</div>}
       </div>
       <div
         ref={contentRef}
         className={clsx(
-          'relative p-14',
+          'relative',
           contentIsFlex && 'flex flex-auto items-center justify-center',
           contentClassName,
         )}

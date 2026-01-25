@@ -6,12 +6,15 @@ import {useSettings} from '@ui/settings/use-settings';
 import {useLogout} from '@common/auth/requests/logout';
 import {useTrans} from '@ui/i18n/use-trans';
 import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
-import {createBrowserRouter} from 'react-router-dom';
+import {createBrowserRouter} from 'react-router';
+import {FullPageLoader} from '@ui/progress/full-page-loader';
+import React from 'react';
 
 export const userSuspendedRouter = createBrowserRouter([
   {
     path: '*',
     element: <UserSuspendedPage />,
+    hydrateFallbackElement: <FullPageLoader screen />,
   },
 ]);
 

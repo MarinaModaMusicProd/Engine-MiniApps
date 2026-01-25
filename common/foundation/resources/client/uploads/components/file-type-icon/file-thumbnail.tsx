@@ -1,7 +1,7 @@
-import clsx from 'clsx';
-import {FileTypeIcon} from './file-type-icon';
-import {useFileEntryUrls} from '../../file-entry-urls';
 import {useTrans} from '@ui/i18n/use-trans';
+import clsx from 'clsx';
+import {useFileEntryUrls} from '../../file-entry-urls';
+import {FileTypeIcon} from './file-type-icon';
 
 const TwoMB = 2 * 1024 * 1024;
 

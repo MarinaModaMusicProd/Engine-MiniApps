@@ -7,14 +7,12 @@ use Common\Settings\Settings;
 
 class BuildManifestFile
 {
-    public function __construct(protected Settings $settings)
-    {
-    }
+    public function __construct(protected Settings $settings) {}
 
     public function execute(): void
     {
-        $primaryColor = config('common.themes.light.--be-primary');
-        $bgColor = config('common.themes.light.--be-background');
+        $primaryColor = config('themes.light.--be-primary');
+        $bgColor = config('themes.light.--be-bg');
         $replacements = [
             'DUMMY_NAME' => config('app.name'),
             'DUMMY_SHORT_NAME' => config('app.name'),

@@ -1,10 +1,10 @@
-import {Fragment, ReactElement, useEffect} from 'react';
-import {Navbar} from '../../ui/navigation/navbar/navbar';
-import {CustomMenu} from '../../menus/custom-menu';
 import {LocaleSwitcher} from '@common/locale-switcher/locale-switcher';
-import {removeFromLocalStorage} from '@ui/utils/hooks/local-storage';
-import {StaticPageTitle} from '../../seo/static-page-title';
 import {Trans} from '@ui/i18n/trans';
+import {removeFromLocalStorage} from '@ui/utils/hooks/local-storage';
+import {Fragment, ReactElement, useEffect} from 'react';
+import {CustomMenu} from '../../menus/custom-menu';
+import {StaticPageTitle} from '../../seo/static-page-title';
+import {Navbar} from '../../ui/navigation/navbar/navbar';
 
 interface CheckoutLayoutProps {
   children: [ReactElement, ReactElement];
@@ -22,7 +22,6 @@ export function CheckoutLayout({children}: CheckoutLayoutProps) {
         <Trans message="Checkout" />
       </StaticPageTitle>
       <Navbar
-        size="sm"
         color="transparent"
         className="z-10 mb-20 md:mb-0"
         textColor="text-main"

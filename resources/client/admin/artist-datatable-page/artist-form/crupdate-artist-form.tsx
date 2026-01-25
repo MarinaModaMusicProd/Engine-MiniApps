@@ -1,29 +1,30 @@
-import React, {Fragment} from 'react';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {Trans} from '@ui/i18n/trans';
+import {ArtistAlbumsTable} from '@app/admin/artist-datatable-page/artist-form/artist-albums-table';
+import {ProfileLinksForm} from '@app/admin/artist-datatable-page/artist-form/profile-links-form';
+import {CreateArtistPayload} from '@app/admin/artist-datatable-page/requests/use-create-artist';
+import {UploadType} from '@app/site-config';
+import {FullAlbum} from '@app/web-player/albums/album';
+import {GENRE_MODEL} from '@app/web-player/genres/genre';
+import {FormNormalizedModelChipField} from '@common/tags/form-normalized-model-chip-field';
 import {FormImageSelector} from '@common/uploads/components/image-selector';
 import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {FormNormalizedModelChipField} from '@common/tags/form-normalized-model-chip-field';
-import {useTrans} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
-import {GENRE_MODEL} from '@app/web-player/genres/genre';
-import {useSettings} from '@ui/settings/use-settings';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {Button} from '@ui/buttons/button';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {FormSwitch} from '@ui/forms/toggle/switch';
-import {ArtistAlbumsTable} from '@app/admin/artist-datatable-page/artist-form/artist-albums-table';
-import {Album} from '@app/web-player/albums/album';
-import {TabList} from '@ui/tabs/tab-list';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {AddIcon} from '@ui/icons/material/Add';
+import {useSettings} from '@ui/settings/use-settings';
 import {Tab} from '@ui/tabs/tab';
+import {TabList} from '@ui/tabs/tab-list';
 import {TabPanel, TabPanels} from '@ui/tabs/tab-panels';
 import {Tabs} from '@ui/tabs/tabs';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {Fragment} from 'react';
 import {useFieldArray} from 'react-hook-form';
-import {Button} from '@ui/buttons/button';
-import {AddIcon} from '@ui/icons/material/Add';
-import {CreateArtistPayload} from '@app/admin/artist-datatable-page/requests/use-create-artist';
-import {ProfileLinksForm} from '@app/admin/artist-datatable-page/artist-form/profile-links-form';
 
 interface Props {
-  albums?: Album[];
+  albums?: FullAlbum[];
   showExternalFields?: boolean;
 }
 export function CrupdateArtistForm({albums, showExternalFields}: Props) {
@@ -34,16 +35,21 @@ export function CrupdateArtistForm({albums, showExternalFields}: Props) {
         <div className="flex-shrink-0">
           <FormImageSelector
             name="image_small"
-            diskPrefix="artist_images"
+            uploadType={UploadType.artwork}
             label={isMobile ? <Trans message="Image" /> : null}
             variant={isMobile ? 'input' : 'square'}
             previewSize={isMobile ? undefined : 'w-full md:w-224 aspect-square'}
             stretchPreview
           />
           {showExternalFields && (
-            <FormSwitch name="verified" className="mt-14">
-              <Trans message="Verified" />
-            </FormSwitch>
+            <>
+              <FormSwitch name="verified" className="mt-14">
+                <Trans message="Verified" />
+              </FormSwitch>
+              <FormSwitch name="disabled" className="mt-14">
+                <Trans message="Hidden" />
+              </FormSwitch>
+            </>
           )}
         </div>
         <div className="mt-24 flex-auto md:mt-0">
@@ -149,7 +155,7 @@ function ImagesPanel() {
             <FormImageSelector
               key={field.id}
               name={`profile_images.${index}.url`}
-              diskPrefix="artist_images"
+              uploadType={UploadType.artwork}
               variant="square"
               previewSize="w-160 h-160"
               stretchPreview

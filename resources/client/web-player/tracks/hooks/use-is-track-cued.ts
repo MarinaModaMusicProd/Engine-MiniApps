@@ -2,10 +2,10 @@ import {usePlayerStore} from '@common/player/hooks/use-player-store';
 
 export function useIsTrackCued(
   trackId: number,
-  groupId?: string | number
+  groupId?: string | number,
 ): boolean {
   return usePlayerStore(s => {
-    if (!s.cuedMedia?.meta.id || s.cuedMedia.meta.id !== trackId) {
+    if (!s.cuedMedia?.meta?.id || s.cuedMedia.meta?.id !== trackId) {
       return false;
     }
 

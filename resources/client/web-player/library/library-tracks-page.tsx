@@ -1,43 +1,53 @@
-import {StaticPageTitle} from '@common/seo/static-page-title';
-import {Trans} from '@ui/i18n/trans';
+import {appQueries} from '@app/app-queries';
+import {MediaPageNoResultsMessage} from '@app/web-player/layout/media-page-no-results-message';
+import {PlayerPageSuspense} from '@app/web-player/layout/player-page-suspsense';
+import {usePlayerPagePaginationParams} from '@app/web-player/layout/use-player-page-pagination-params';
+import {defaultLibrarySortDescriptor} from '@app/web-player/library/library-search-params';
 import {useLibraryStore} from '@app/web-player/library/state/likes-store';
-import React from 'react';
-import {TrackTable} from '@app/web-player/tracks/track-table/track-table';
+import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
 import {VirtualTableBody} from '@app/web-player/playlists/virtual-table-body';
 import {queueGroupId} from '@app/web-player/queue-group-id';
-import {useAuth} from '@common/auth/use-auth';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {SearchIcon} from '@ui/icons/material/Search';
-import {message} from '@ui/i18n/message';
-import {useTrans} from '@ui/i18n/use-trans';
-import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
-import {PageErrorMessage} from '@common/errors/page-error-message';
-import {TableDataItem} from '@common/ui/tables/types/table-data-item';
-import {MediaPageNoResultsMessage} from '@app/web-player/layout/media-page-no-results-message';
-import {useUserLikedTracks} from '@app/web-player/library/requests/use-user-liked-tracks';
+import {TrackTable} from '@app/web-player/tracks/track-table/track-table';
 import {AdHost} from '@common/admin/ads/ad-host';
+import {useAuth} from '@common/auth/use-auth';
+import {StaticPageTitle} from '@common/seo/static-page-title';
+import {useFlatInfiniteQueryItems} from '@common/ui/infinite-scroll/use-flat-infinite-query-items';
+import {useSuspenseInfiniteQuery} from '@tanstack/react-query';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {SearchIcon} from '@ui/icons/material/Search';
+import {ProgressCircle} from '@ui/progress/progress-circle';
 
-export function LibraryTracksPage() {
-  const trackCount = useLibraryStore(s => Object.keys(s.track).length);
+export function Component() {
+  return (
+    <PlayerPageSuspense>
+      <LibraryTracksPage />
+    </PlayerPageSuspense>
+  );
+}
 
-  const query = useUserLikedTracks('me', {willSortOrFilter: true});
-  const {
-    isInitialLoading,
-    sortDescriptor,
-    setSortDescriptor,
-    searchQuery,
-    setSearchQuery,
-    items,
-    isError,
-  } = query;
-
+function LibraryTracksPage() {
   const {user} = useAuth();
   const {trans} = useTrans();
-  const queueId = queueGroupId(user!, 'libraryTracks', sortDescriptor);
 
-  if (isError) {
-    return <PageErrorMessage />;
-  }
+  const {
+    searchQuery,
+    setSearchQuery,
+    sortDescriptor,
+    setSortDescriptor,
+    isDefferedLoading,
+    queryParams,
+  } = usePlayerPagePaginationParams(defaultLibrarySortDescriptor);
+
+  const query = useSuspenseInfiniteQuery(
+    appQueries.tracks.liked('me', queryParams),
+  );
+  const tracks = useFlatInfiniteQueryItems(query);
+
+  const queueId = queueGroupId(user!, 'libraryTracks', sortDescriptor);
+  const trackCount = useLibraryStore(s => Object.keys(s.track).length);
 
   return (
     <div>
@@ -62,23 +72,27 @@ export function LibraryTracksPage() {
           className="min-w-128 flex-shrink-0"
         />
         <TextField
-          value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           className="max-w-512 flex-auto"
           size="sm"
           startAdornment={<SearchIcon />}
           placeholder={trans(message('Search within tracks'))}
+          endAdornment={
+            isDefferedLoading ? (
+              <ProgressCircle size="xs" isIndeterminate />
+            ) : null
+          }
         />
       </div>
       <TrackTable
         queueGroupId={queueId}
-        tracks={isInitialLoading ? getPlaceholderItems(trackCount) : items}
+        tracks={tracks}
         sortDescriptor={sortDescriptor}
         onSortChange={setSortDescriptor}
         hideAddedAtColumn={false}
         tableBody={<VirtualTableBody query={query} totalItems={trackCount} />}
       />
-      {!items.length && !isInitialLoading && (
+      {!tracks.length ? (
         <MediaPageNoResultsMessage
           className="mt-34"
           searchQuery={searchQuery}
@@ -86,18 +100,8 @@ export function LibraryTracksPage() {
             <Trans message="You have not added any songs to your library yet." />
           }
         />
-      )}
+      ) : null}
       <AdHost slot="general_bottom" className="mt-34" />
     </div>
   );
-}
-
-function getPlaceholderItems(totalTracks: number): TableDataItem[] {
-  // 30 tracks per page by default
-  return [...new Array(Math.min(totalTracks, 30)).keys()].map((key, index) => {
-    return {
-      isPlaceholder: true,
-      id: `placeholder-${key}`,
-    };
-  });
 }

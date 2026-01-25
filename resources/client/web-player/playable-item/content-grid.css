@@ -1,53 +1,97 @@
 .content-grid {
-  --nVisibleItems: 1;
-}
+  display: grid;
+  column-gap: var(--grid-col-gap);
+  row-gap: var(--grid-row-gap);
+  grid-auto-columns: calc(
+    (100% - (var(--grid-cols) - 1) * var(--grid-col-gap)) / var(--grid-cols)
+  );
+  grid-template-rows: repeat(var(--grid-rows), max-content);
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
 
-@media (min-width: 280px) {
-  .content-grid {
-    --nVisibleItems: 2;
+  &.carousel-grid {
+    grid-auto-flow: column;
+    grid-template-columns: unset;
   }
 }
 
-@media (min-width: 786px) {
-  .content-grid {
-    --nVisibleItems: 3;
+.carousel-grid {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scroll-snap-stop: always;
+  scrollbar-width: none;
+}
+
+.compact-grid {
+  grid-auto-flow: column;
+
+  --grid-col-gap: 18px;
+  --grid-cols: 1;
+  --grid-rows: 4;
+
+  @container (min-width: 600px) {
+    --grid-cols: 2;
+  }
+
+  @container (min-width: 900px) {
+    --grid-cols: 3;
+  }
+
+  @container (min-width: 1224px) {
+    --grid-cols: 4;
   }
 }
 
-@media (min-width: 1024px) {
-  .content-grid {
-    --nVisibleItems: 4;
+.compact-genre-grid {
+  grid-auto-flow: column;
+}
+
+.default-genre-grid {
+  --grid-row-gap: 18px;
+}
+
+.compact-genre-grid,
+.default-genre-grid {
+  --grid-col-gap: 18px;
+  --grid-cols: 2;
+  --grid-rows: 4;
+
+  @container (min-width: 700px) {
+    --grid-cols: 3;
+  }
+
+  @container (min-width: 1000px) {
+    --grid-cols: 4;
+  }
+
+  @container (min-width: 1324px) {
+    --grid-cols: 5;
   }
 }
 
-@media (min-width: 1280px) {
-  .content-grid {
-    --nVisibleItems: 5;
+.default-grid {
+  --grid-cols: 2;
+  --grid-col-gap: 18px;
+  --grid-row-gap: 18px;
+
+  &.carousel-grid {
+    --grid-rows: 1;
+  }
+
+  @container (min-width: 500px) {
+    --grid-cols: 3;
+  }
+
+  @container (min-width: 700px) {
+    --grid-cols: 4;
+  }
+
+  @container (min-width: 1000px) {
+    --grid-cols: 5;
+  }
+
+  @container (min-width: 1224px) {
+    --grid-cols: 6;
   }
 }
-
-@container (min-width: 300px) {
-  .content-grid {
-    --nVisibleItems: 2;
-  }
-}
-
-@container (min-width: 600px) {
-  .content-grid {
-    --nVisibleItems: 3;
-  }
-}
-
-
-@container (min-width: 900px) {
-  .content-grid {
-    --nVisibleItems: 4;
-  }
-}
-
-@container (min-width: 1200px) {
-  .content-grid {
-    --nVisibleItems: 5;
-  }
-}
-

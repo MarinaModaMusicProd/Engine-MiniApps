@@ -9,12 +9,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StreamedFileResponse implements FileResponse
 {
-    /**
-     * @param FileEntry $entry
-     * @param array $options
-     * @return mixed
-     */
-    public function make(FileEntry $entry, $options)
+    public function make(FileEntry $entry, array $options)
     {
         $downloadName = str_replace(
             ['%', '/'],
@@ -22,7 +17,8 @@ class StreamedFileResponse implements FileResponse
             $entry->getNameWithExtension(),
         );
 
-        $path = $entry->getStoragePath($options['useThumbnail']);
+        $thumbnail = $options['useThumbnail'];
+        $path = $entry->getStoragePath($thumbnail);
         $response = new StreamedResponse();
         $disposition = $response->headers->makeDisposition(
             $options['disposition'],
@@ -30,13 +26,11 @@ class StreamedFileResponse implements FileResponse
             Str::ascii($downloadName),
         );
 
-        $fileSize = $options['useThumbnail']
-            ? $entry->getDisk()->size($path)
-            : $entry->file_size;
-
         $response->headers->replace([
             'Content-Type' => $entry->mime,
-            'Content-Length' => $fileSize,
+            'Content-Length' => $thumbnail
+                ? $entry->getDisk()->size($path)
+                : $entry->file_size,
             'Content-Disposition' => $disposition,
             'Cache-Control' => 'private, max-age=31536000, no-transform',
             //'X-Accel-Buffering' => 'no',

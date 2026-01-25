@@ -1,4 +1,4 @@
-import React, {RefObject} from 'react';
+import {createContext, RefObject} from 'react';
 
 export interface TabsContext {
   selectedTab: number;
@@ -9,4 +9,4 @@ export interface TabsContext {
   id: string;
 }
 
-export const TabContext = React.createContext<TabsContext>(null!);
+export const TabContext = createContext<TabsContext>(null!);

@@ -2,6 +2,7 @@
 
 namespace Common\Channels;
 
+use App\Models\Channel;
 use App\Models\User;
 use Carbon\Carbon;
 use Common\Core\BaseModel;
@@ -114,6 +115,11 @@ abstract class BaseChannel extends BaseModel
         ];
     }
 
+    public function getNestedChannelPerPage(array $params, $parent): int
+    {
+        return 15;
+    }
+
     public function toSearchableArray(): array
     {
         return [
@@ -157,31 +163,22 @@ abstract class BaseChannel extends BaseModel
         return $restriction;
     }
 
-    public function loadContent(array $params = [], self $parent = null): static
-    {
+    public function loadContent(
+        array $params = [],
+        self|null $parent = null,
+    ): static {
         $channelContent = (new LoadChannelContent())->execute(
-            $this,
-            $params,
-            $parent,
+            channel: $this,
+            params: $params,
+            parent: $parent,
         );
-
-        if (Arr::get($params, 'normalizeContent') && $channelContent) {
-            $channelContent->transform(function ($item) {
-                $normalized = $item->toNormalizedArray();
-                // needed in order to preserve "created_at" date when updating items
-                if (isset($item->pivot)) {
-                    $normalized['created_at'] = $item->pivot->created_at;
-                }
-                return $normalized;
-            });
-        }
 
         $this->setRelation('content', $channelContent);
         return $this;
     }
 
     public function updateContentFromExternal(
-        string $autoUpdateMethod = null,
+        string|null $autoUpdateMethod = null,
     ): void {
         $method =
             $autoUpdateMethod ?? Arr::get($this->config, 'autoUpdateMethod');
@@ -219,6 +216,82 @@ abstract class BaseChannel extends BaseModel
 
         // clear channel cache, it's based on updated_at timestamp
         $this->touch();
+    }
+
+    public function toApiResource(
+        $isNested = false,
+        $normalizeContent = false,
+    ): array {
+        $resource = [
+            'id' => $this->id,
+            'slug' => $this->slug,
+            'name' => $this->name,
+            'description' => $this->description,
+            'updated_at' => $this->updated_at?->toJSON(),
+            'restriction' => $this->restriction?->toNormalizedArray(),
+            'type' => $this->type,
+            'model_type' => static::MODEL_TYPE,
+            'config' => [
+                'contentModel' => $this->config['contentModel'],
+                'hideTitle' => $this->config['hideTitle'] ?? false,
+                'layout' => $this->config['layout'] ?? null,
+                'nestedLayout' => $this->config['nestedLayout'] ?? null,
+            ],
+        ];
+
+        if ($this->content) {
+            $resource['content'] = [
+                'data' => array_map(function ($item) use ($normalizeContent) {
+                    if ($normalizeContent) {
+                        $normalized = $item->toNormalizedArray();
+                        // needed in order to preserve "created_at" date when updating items
+                        if (isset($item->pivot)) {
+                            $normalized['created_at'] =
+                                $item->pivot->created_at;
+                        }
+                    }
+                    return $this->contentItemToApiResource($item);
+                }, $this->content->items()),
+                'current_page' => $this->content->currentPage(),
+                'from' => $this->content->firstItem(),
+                'next_page' => $this->content->hasMorePages()
+                    ? $this->content->currentPage() + 1
+                    : null,
+                'per_page' => $this->content->perPage(),
+                'prev_page' =>
+                    $this->content->currentPage() > 1
+                        ? $this->content->currentPage() - 1
+                        : null,
+                'to' => $this->content->lastItem(),
+            ];
+
+            if (method_exists($this->content, 'lastPage')) {
+                $resource['content']['last_page'] = $this->content->lastPage();
+                $resource['content']['total'] = $this->content->total();
+            }
+        }
+
+        if (!$isNested) {
+            $resource['config']['selectedLayout'] =
+                $this->config['selectedLayout'] ?? null;
+            $resource['config']['seoTitle'] = $this->config['seoTitle'] ?? null;
+            $resource['config']['seoDescription'] =
+                $this->config['seoDescription'] ?? null;
+        }
+
+        return $resource;
+    }
+
+    /**
+     * Overriden by child classes to convert content items to API resources.
+     */
+    public function contentItemToApiResource($item): array
+    {
+        if ($item instanceof Channel) {
+            return $item->toApiResource(isNested: true);
+        }
+
+        return $item->toArray();
     }
 
     public function shouldRestrictContent()

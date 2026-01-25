@@ -2,13 +2,13 @@
 
 namespace Common\Auth\Permissions;
 
-use Arr;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Arr;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 
 class Permission extends Model
 {
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     protected $casts = [
         'id' => 'integer',
@@ -17,6 +17,8 @@ class Permission extends Model
 
     protected $hidden = ['pivot', 'permissionable_type'];
 
+    protected $appends = ['restrictions'];
+
     const MODEL_TYPE = 'permission';
 
     public static function getModelTypeAttribute(): string
@@ -24,29 +26,34 @@ class Permission extends Model
         return self::MODEL_TYPE;
     }
 
-    /**
-     * @param string|array $value
-     * @return Collection
-     */
-    public function getRestrictionsAttribute($value)
+    protected function restrictions(): Attribute
     {
-        // if loading permissions via parent (user, role, plan) return restrictions
-        // stored on pivot table, otherwise return restrictions stored on permission itself
-        $value = $this->pivot ? $this->pivot->restrictions : $value;
-        if ( ! $value) $value = [];
-        return collect(is_string($value) ? json_decode($value, true) : $value)->values();
+        return Attribute::make(
+            get: function ($value) {
+                // restrictions might be on the model itself is loading via JOIN manually,
+                // or on pivot if loading via laravel relationship.
+                if (!$value && $this->pivot) {
+                    $value = $this->pivot->restrictions;
+                }
+                $value = $value ?? [];
+                return collect(
+                    is_string($value) ? json_decode($value, true) : $value,
+                )->values();
+            },
+            set: function ($value) {
+                if ($value && is_array($value)) {
+                    return json_encode(array_values($value));
+                }
+                return $value;
+            },
+        );
     }
 
-    public function setRestrictionsAttribute($value)
+    public function getRestrictionValue(string $name): int|bool|null
     {
-        if ($value && is_array($value)) {
-            $this->attributes['restrictions'] = json_encode(array_values($value));
-        }
-    }
-
-    public function getRestrictionValue(string $name): int | bool | null
-    {
-        $restriction = $this->restrictions->first(function($restriction) use($name) {
+        $restriction = $this->restrictions->first(function ($restriction) use (
+            $name,
+        ) {
             return $restriction['name'] === $name;
         });
 
@@ -56,14 +63,16 @@ class Permission extends Model
     /**
      * Merge restrictions from specified permission into this permission.
      */
-    public function mergeRestrictions(Permission $permission = null): self
+    public function mergeRestrictions(?Permission $permission = null): self
     {
         if ($permission) {
-            $permission->restrictions->each(function($restriction) {
-                $exists = $this->restrictions->first(function($r) use($restriction) {
+            $permission->restrictions->each(function ($restriction) {
+                $exists = $this->restrictions->first(function ($r) use (
+                    $restriction,
+                ) {
                     return $r['name'] === $restriction['name'];
                 });
-                if ( ! $exists) {
+                if (!$exists) {
                     $this->restrictions->push($restriction);
                 }
             });

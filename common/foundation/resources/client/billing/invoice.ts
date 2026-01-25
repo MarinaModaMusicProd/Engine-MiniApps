@@ -6,6 +6,8 @@ export interface Invoice {
   subscription_id: number;
   subscription: Subscription;
   uuid: string;
-  paid: boolean;
+  status: 'paid' | 'draft';
+  amount_paid?: number; // in cents
+  currency?: string;
   created_at: string;
 }

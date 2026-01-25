@@ -1,11 +1,11 @@
 import {useMutation} from '@tanstack/react-query';
-import {apiClient} from '../http/query-client';
-import {useTrans} from '@ui/i18n/use-trans';
-import {BackendResponse} from '../http/backend-response/backend-response';
-import {toast} from '@ui/toast/toast';
 import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
 import {UseFormReturn} from 'react-hook-form';
 import {onFormQueryError} from '../errors/on-form-query-error';
+import {BackendResponse} from '../http/backend-response/backend-response';
+import {apiClient} from '../http/query-client';
 import {useNavigate} from '../ui/navigation/use-navigate';
 
 interface Response extends BackendResponse {}
@@ -14,6 +14,7 @@ export interface ContactPagePayload {
   name: string;
   email: string;
   message: string;
+  captcha_token: string | null;
 }
 
 export function useSubmitContactForm(form: UseFormReturn<ContactPagePayload>) {

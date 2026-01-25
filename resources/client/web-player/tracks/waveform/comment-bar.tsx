@@ -1,16 +1,15 @@
-import {getUserImage} from '@app/web-player/users/user-image';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Track} from '@app/web-player/tracks/track';
+import {CommentBarContext} from '@app/web-player/tracks/waveform/comment-bar-context';
+import {useAuth} from '@common/auth/use-auth';
+import {Comment} from '@common/comments/comment';
+import {useInteractOutside} from '@react-aria/interactions';
+import {Avatar} from '@ui/avatar/avatar';
+import {useSlider} from '@ui/forms/slider/use-slider';
 import {Dialog} from '@ui/overlays/dialog/dialog';
 import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {useSlider} from '@ui/forms/slider/use-slider';
-import {useAuth} from '@common/auth/use-auth';
-import {useContext} from 'react';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import clsx from 'clsx';
-import {useInteractOutside} from '@react-aria/interactions';
-import {CommentBarContext} from '@app/web-player/tracks/waveform/comment-bar-context';
-import {Comment} from '@common/comments/comment';
-import {Track} from '@app/web-player/tracks/track';
-import {Avatar} from '@ui/avatar/avatar';
+import {useContext} from 'react';
 
 interface CommentBarProps {
   comments: Comment[];
@@ -63,7 +62,12 @@ export function CommentBar({comments, track}: CommentBarProps) {
           className="absolute left-0 top-0 z-20 h-26 w-26 -translate-x-1/2 cursor-move overflow-hidden shadow-md"
           style={{left: `${getThumbPercent(0) * 100}%`}}
         >
-          <Avatar src={user?.image} size="w-full h-full" />
+          <Avatar
+            src={user?.image}
+            label={user?.name}
+            circle={false}
+            size="w-full h-full"
+          />
         </div>
       ) : null}
       {comments.map(comment => {
@@ -78,9 +82,17 @@ export function CommentBar({comments, track}: CommentBarProps) {
               )}
             >
               <div
-                className="h-16 w-16 rounded bg-chip bg-cover shadow"
-                style={{backgroundImage: `url(${getUserImage(comment.user)})`}}
-              />
+                className="flex h-16 w-16 items-center justify-center rounded bg-fg-base/60 bg-cover shadow"
+                style={{backgroundImage: `url(${comment.user.image})`}}
+              >
+                {!comment.user.image ? (
+                  <Avatar
+                    label={comment.user.name}
+                    circle={false}
+                    size="w-full h-full"
+                  />
+                ) : null}
+              </div>
             </div>
             <CommentDialog comment={comment} />
           </DialogTrigger>

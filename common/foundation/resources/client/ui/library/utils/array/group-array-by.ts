@@ -4,7 +4,7 @@ interface Options<T> {
 
 export function groupArrayBy<T>(
   arr: T[],
-  cb: (item: any) => string,
+  cb: (item: T) => string,
   options?: Options<T>,
 ): Record<string, T[]> {
   const result: {[key: string]: T[]} = {};

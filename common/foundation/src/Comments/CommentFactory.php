@@ -3,11 +3,10 @@
 namespace Common\Comments;
 
 use App\Models\User;
-use Arr;
 use Common\Auth\Roles\Role;
 use Common\Billing\Models\Product;
-use Common\Comments\Comment;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Arr;
 
 class CommentFactory extends Factory
 {

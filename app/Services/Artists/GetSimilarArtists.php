@@ -25,17 +25,20 @@ class GetSimilarArtists
         $artistId,
         $params,
     ): Collection {
-        $prefix = DB::getTablePrefix();
-        return Artist::select(
-            DB::raw("{$prefix}artists.*, COUNT(*) AS tag_count"),
-        )
-            ->join('genreables', 'genreable_id', '=', 'artists.id')
-            ->whereIn('genreables.genre_id', $genreIds)
-            ->where('genreables.genreable_type', Artist::MODEL_TYPE)
-            ->where('artists.id', '!=', $artistId)
-            ->groupBy('artists.id')
+        $subquery = DB::table('genreables')
+            ->select('genreable_id', DB::raw('count(*) as tag_count'))
+            ->whereIn('genre_id', $genreIds)
+            ->where('genreable_type', 'artist')
+            ->where('genreable_id', '!=', $artistId)
+            ->groupBy('genreable_id')
             ->orderBy('tag_count', 'desc')
-            ->limit(Arr::get($params, 'limit', 10))
+            ->limit(Arr::get($params, 'limit', 10));
+
+        return Artist::joinSub($subquery, 'top_artists', function ($join) {
+            $join->on('artists.id', '=', 'top_artists.genreable_id');
+        })
+            ->orderBy('top_artists.tag_count', 'desc')
+            ->select('artists.*', 'top_artists.tag_count')
             ->get();
     }
 }

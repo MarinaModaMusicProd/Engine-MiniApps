@@ -1,16 +1,16 @@
 import {
+  DateRangePreset,
+  DateRangePresets,
+} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-presets';
+import {dateRangeToAbsoluteRange} from '@ui/forms/input-field/date/date-range-picker/form-date-range-picker';
+import {message} from '@ui/i18n/message';
+import {PartialWithRequired} from '@ui/utils/ts/partial-with-required';
+import {
   BackendFilter,
   DatePickerFilterControl,
   FilterControlType,
   FilterOperator,
 } from './backend-filter';
-import {
-  DateRangePreset,
-  DateRangePresets,
-} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-presets';
-import {message} from '@ui/i18n/message';
-import {dateRangeToAbsoluteRange} from '@ui/forms/input-field/date/date-range-picker/form-date-range-picker';
-import {PartialWithRequired} from '@ui/utils/ts/partial-with-required';
 
 export function timestampFilter(
   options: PartialWithRequired<
@@ -33,7 +33,7 @@ export function timestampFilter(
 }
 
 export function createdAtFilter(
-  options: Partial<BackendFilter<DatePickerFilterControl>>,
+  options?: Partial<BackendFilter<DatePickerFilterControl>>,
 ): BackendFilter<DatePickerFilterControl> {
   return timestampFilter({
     key: 'created_at',
@@ -43,7 +43,7 @@ export function createdAtFilter(
 }
 
 export function updatedAtFilter(
-  options: Partial<BackendFilter<DatePickerFilterControl>>,
+  options?: Partial<BackendFilter<DatePickerFilterControl>>,
 ): BackendFilter<DatePickerFilterControl> {
   return timestampFilter({
     key: 'updated_at',

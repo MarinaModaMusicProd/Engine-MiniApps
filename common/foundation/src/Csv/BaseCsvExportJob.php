@@ -4,14 +4,12 @@ namespace Common\Csv;
 
 use App\Models\User;
 use Carbon\Carbon;
-use Common\Csv\CsvExport;
-use Common\Csv\CsvExportReadyNotif;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Str;
+use Illuminate\Support\Str;
 
 abstract class BaseCsvExportJob implements ShouldQueue
 {

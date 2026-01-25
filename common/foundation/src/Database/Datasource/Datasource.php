@@ -2,11 +2,13 @@
 
 namespace Common\Database\Datasource;
 
+use Closure;
 use Common\Database\Datasource\Filters\AlgoliaFilterer;
 use Common\Database\Datasource\Filters\ElasticFilterer;
 use Common\Database\Datasource\Filters\MeilisearchFilterer;
 use Common\Database\Datasource\Filters\MysqlFilterer;
 use Common\Database\Datasource\Filters\TntFilterer;
+use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -23,7 +25,7 @@ use const App\Providers\WORKSPACED_RESOURCES;
 
 class Datasource
 {
-    protected EloquentBuilder|Relation $builder;
+    public EloquentBuilder|Relation $builder;
     protected Model $model;
     protected array $params;
     protected bool $queryBuilt = false;
@@ -33,12 +35,13 @@ class Datasource
     // is not guaranteed to be unique, to avoid duplicated items in pagination
     public string|null $secondaryOrderCol = null;
     protected ?ScoutBuilder $scoutBuilder;
+    protected ?Closure $queryCallback = null;
 
     public function __construct(
         $model,
-        array $params,
+        array $params = [],
         DatasourceFilters $filters = null,
-        protected string $filtererName = 'mysql',
+        protected string|null $filtererName = 'mysql',
         protected bool $qualifySortColumns = true,
     ) {
         $this->model = $model->getModel();
@@ -53,17 +56,22 @@ class Datasource
         $this->buildQuery();
         $perPage = $this->limit();
         $page = (int) $this->param('page', 1);
+        $isLengthAware = $this->resolvePaginationMethod() === 'lengthAware';
         $columns = empty($this->builder->getQuery()->columns)
             ? ['*']
             : $this->builder->getQuery()->columns;
 
-        if ($this->resolvePaginationMethod() === 'lengthAware') {
-            return $this->scoutBuilder instanceof ScoutBuilder
+        if ($this->scoutBuilder instanceof ScoutBuilder) {
+            $this->scoutBuilder->query($this->queryCallback);
+            return $isLengthAware
                 ? $this->scoutBuilder->paginate($perPage, 'page', $page)
-                : $this->builder->paginate($perPage, $columns, 'page', $page);
+                : $this->scoutBuilder->simplePaginate($perPage, 'page', $page);
         } else {
-            return $this->scoutBuilder instanceof ScoutBuilder
-                ? $this->scoutBuilder->simplePaginate($perPage, 'page', $page)
+            if ($this->queryCallback) {
+                ($this->queryCallback)($this->builder);
+            }
+            return $isLengthAware
+                ? $this->builder->paginate($perPage, $columns, 'page', $page)
                 : $this->builder->simplePaginate(
                     $perPage,
                     $columns,
@@ -148,22 +156,34 @@ class Datasource
         return $this;
     }
 
-    private function resolveFilterer(string $searchTerm = null): string
+    /**
+     * Set the callback that will have a chance to modify the final eloquent query that will retrieve results.
+     */
+    public function setQueryCallback(callable $callback): self
     {
-        $filtererName = $this->filtererName;
-        if (
-            !$searchTerm ||
+        $this->queryCallback = $callback;
+        return $this;
+    }
+
+    public function filtererIsMysql(): bool
+    {
+        return !Arr::get($this->params, 'query') ||
             !in_array(Searchable::class, class_uses_recursive($this->model)) ||
-            $filtererName === 'mysql'
-        ) {
+            !$this->filtererName ||
+            $this->filtererName === 'mysql';
+    }
+
+    private function resolveFilterer(): string
+    {
+        if ($this->filtererIsMysql()) {
             return MysqlFilterer::class;
-        } elseif ($filtererName === 'meilisearch') {
+        } elseif ($this->filtererName === 'meilisearch') {
             return MeilisearchFilterer::class;
-        } elseif ($filtererName === 'tntsearch') {
+        } elseif ($this->filtererName === 'tntsearch') {
             return TntFilterer::class;
-        } elseif ($filtererName === 'algolia') {
+        } elseif ($this->filtererName === 'algolia') {
             return AlgoliaFilterer::class;
-        } elseif ($filtererName === ElasticSearchEngine::class) {
+        } elseif ($this->filtererName === ElasticSearchEngine::class) {
             return ElasticFilterer::class;
         }
 
@@ -173,7 +193,7 @@ class Datasource
     private function applyWorkspaceFilter(): void
     {
         if (
-            !config('common.site.workspaces_integrated') ||
+            !config('app.workspaces_integrated') ||
             !in_array(get_class($this->model), WORKSPACED_RESOURCES)
         ) {
             return;
@@ -239,10 +259,12 @@ class Datasource
 
     private function hasRelevanceColumn(): bool
     {
-        return !!Arr::first($this->getQueryBuilder() ?? [], function ($col) {
-            return $col instanceof Expression &&
-                Str::endsWith($col->getValue(), 'AS relevance');
-        });
+        return !!Arr::first(
+            $this->getQueryBuilder()->getColumns() ?? [],
+            function ($col) {
+                return Str::endsWith($col, 'AS relevance');
+            },
+        );
     }
 
     private function limit(): int

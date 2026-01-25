@@ -1,8 +1,8 @@
-import {cloneElement, Fragment, isValidElement, memo} from 'react';
-import {shallowEqual} from '@ui/utils/shallow-equal';
-import {useSelectedLocale} from '@ui/i18n/selected-locale';
 import {handlePluralMessage} from '@ui/i18n/handle-plural-message';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {useSelectedLocale} from '@ui/i18n/selected-locale';
+import {shallowEqual} from '@ui/utils/shallow-equal';
+import {cloneElement, Fragment, isValidElement, memo} from 'react';
 
 function hasOwn(obj: any, key: string): boolean {
   if (obj == null) {

@@ -1,15 +1,20 @@
-import {AnimatePresence, m, Target, TargetAndTransition} from 'framer-motion';
-import React from 'react';
-import clsx from 'clsx';
-import {IconButton} from '@ui/buttons/icon-button';
-import {CloseIcon} from '@ui/icons/material/Close';
-import {MixedText} from '@ui/i18n/mixed-text';
 import {Button} from '@ui/buttons/button';
-import {toastState, useToastStore} from './toast-store';
-import {Link} from 'react-router-dom';
-import {ErrorOutlineIcon} from '@ui/icons/material/ErrorOutline';
+import {IconButton} from '@ui/buttons/icon-button';
+import {MixedText} from '@ui/i18n/mixed-text';
 import {CheckCircleIcon} from '@ui/icons/material/CheckCircle';
+import {CloseIcon} from '@ui/icons/material/Close';
+import {ErrorOutlineIcon} from '@ui/icons/material/ErrorOutline';
 import {ProgressCircle} from '@ui/progress/progress-circle';
+import clsx from 'clsx';
+import {AnimatePresence, m, Target, TargetAndTransition} from 'framer-motion';
+import {Link} from 'react-router';
+import {
+  Toast,
+  ToastAction,
+  ToastPlacement,
+  toastState,
+  useToastStore,
+} from './toast-store';
 
 const initial: Target = {opacity: 0, y: 50, scale: 0.3};
 const animate: TargetAndTransition = {opacity: 1, y: 0, scale: 1};
@@ -18,9 +23,15 @@ const exit: TargetAndTransition = {
   scale: 0.5,
 };
 
-export function ToastContainer() {
+interface Props {
+  toastPosition?: 'absolute' | 'fixed';
+  toastPlacement?: ToastPlacement;
+}
+export function ToastContainer({
+  toastPosition = 'fixed',
+  toastPlacement,
+}: Props) {
   const toasts = useToastStore(s => s.toasts);
-
   return (
     <div className="pointer-events-none relative">
       <AnimatePresence initial={false}>
@@ -28,10 +39,9 @@ export function ToastContainer() {
           <div
             key={toast.id}
             className={clsx(
-              'fixed z-toast mx-auto p-20',
-              toast.position === 'bottom-center'
-                ? 'bottom-0 left-0 right-0'
-                : 'bottom-0 right-0',
+              'z-toast mx-auto p-20',
+              toastPosition,
+              getPlacementStyle(toastPlacement || toast.placement),
             )}
           >
             <m.div
@@ -39,7 +49,7 @@ export function ToastContainer() {
               animate={toast.disableEnterAnimation ? undefined : animate}
               exit={toast.disableExitAnimation ? undefined : exit}
               className={clsx(
-                'pointer-events-auto mx-auto flex max-h-100 min-h-50 w-min min-w-288 max-w-500 items-center gap-10 rounded-lg border bg py-6 pl-16 pr-6 text-sm text-main shadow-lg',
+                'pointer-events-auto mx-auto flex w-max min-w-[min(288px,90%)] max-w-[min(500px,100%)] items-center gap-10 rounded-lg border bg py-6 pl-16 pr-6 text-sm text-main shadow-lg',
               )}
               onPointerEnter={() => toast.timer?.pause()}
               onPointerLeave={() => toast.timer?.resume()}
@@ -66,27 +76,12 @@ export function ToastContainer() {
                 />
               )}
 
-              <div
-                className="mr-auto w-max overflow-hidden overflow-ellipsis"
-                data-testid="toast-message"
-              >
+              <div className="mr-auto line-clamp-2 w-max">
                 <MixedText value={toast.message} />
               </div>
 
               {toast.action && (
-                <Button
-                  variant="text"
-                  color="primary"
-                  size="sm"
-                  className="flex-shrink-0"
-                  onFocus={() => toast.timer?.pause()}
-                  onBlur={() => toast.timer?.resume()}
-                  onClick={() => toastState().remove(toast.id)}
-                  elementType={Link}
-                  to={toast.action.action}
-                >
-                  <MixedText value={toast.action.label} />
-                </Button>
+                <ToastActionButton toast={toast as ToastWithAction} />
               )}
               {toast.type !== 'loading' && (
                 <IconButton
@@ -108,4 +103,43 @@ export function ToastContainer() {
       </AnimatePresence>
     </div>
   );
+}
+
+type ToastWithAction = Toast & {action: ToastAction};
+
+type ToastActionButtonProps = {
+  toast: ToastWithAction;
+};
+function ToastActionButton({toast}: ToastActionButtonProps) {
+  const link = toast.action.link || toast.action.action;
+  return (
+    <Button
+      variant="text"
+      color="primary"
+      size="sm"
+      onFocus={() => toast.timer?.pause()}
+      onBlur={() => toast.timer?.resume()}
+      onClick={() => {
+        toast.action.onExecute?.();
+        toastState().remove(toast.id);
+      }}
+      elementType={link ? Link : undefined}
+      to={link ? link : undefined}
+    >
+      <MixedText value={toast.action.label} />
+    </Button>
+  );
+}
+
+function getPlacementStyle(placement: ToastPlacement) {
+  switch (placement) {
+    case 'bottom-center':
+      return 'bottom-0 left-0 right-0';
+    case 'bottom-right':
+      return 'bottom-0 right-0';
+    case 'top-center':
+      return 'top-0 left-0 right-0';
+    default:
+      return 'bottom-0 left-0 right-0';
+  }
 }

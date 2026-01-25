@@ -1,17 +1,17 @@
-import {ComponentPropsWithoutRef, useState} from 'react';
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import {usePlayerActions} from '@common/player/hooks/use-player-actions';
-import {IconButton} from '@ui/buttons/icon-button';
 import {loadMediaItemTracks} from '@app/web-player/requests/load-media-item-tracks';
-import {trackToMediaItem} from '@app/web-player/tracks/utils/track-to-media-item';
-import {PauseIcon} from '@ui/icons/material/Pause';
 import {EqualizerImage} from '@app/web-player/tracks/equalizer-image/equalizer-image';
 import {PlayArrowFilledIcon} from '@app/web-player/tracks/play-arrow-filled';
-import {ButtonColor, ButtonVariant} from '@ui/buttons/get-shared-button-style';
-import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
 import {Track} from '@app/web-player/tracks/track';
+import {tracksToMediaItems} from '@app/web-player/tracks/utils/track-to-media-item';
+import {usePlayerActions} from '@common/player/hooks/use-player-actions';
+import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {Button} from '@ui/buttons/button';
 import {ButtonSize} from '@ui/buttons/button-size';
+import {ButtonColor, ButtonVariant} from '@ui/buttons/get-shared-button-style';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
+import {PauseIcon} from '@ui/icons/material/Pause';
+import {ComponentPropsWithoutRef, useState} from 'react';
 
 interface PlaybackToggleButtonProps {
   queueId?: string;
@@ -88,12 +88,13 @@ export function PlaybackToggleButton({
           newIndex = track ? tracks.findIndex(t => t.id === track.id) : 0;
         } else if (track) {
           newQueue = [track];
-        } else {
-          newQueue = await loadMediaItemTracks(queueId!);
+        } else if (queueId) {
+          newQueue = await loadMediaItemTracks(queueId);
         }
+
         if (newQueue.length) {
           await player.overrideQueueAndPlay(
-            newQueue.map(t => trackToMediaItem(t, queueId)),
+            await tracksToMediaItems(newQueue, queueId),
             newIndex,
           );
         }

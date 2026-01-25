@@ -2,17 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Artist;
+use App\Models\Channel;
+use Common\Billing\Models\Product;
 use Common\Core\BaseController;
 
 class LandingPageController extends BaseController
 {
-    public function artists()
+    public function __invoke()
     {
-        $artists = Artist::orderBy('views', 'desc')
-            ->take(8)
-            ->get();
+        return $this->renderClientOrApi([
+            'pageName' => 'landing-page',
+            'data' => self::getData(),
+        ]);
+    }
 
-        return $this->success(['artists' => $artists]);
+    public static function getData()
+    {
+        $channels = collect(settings('landingPage.sections'))
+            ->filter(fn($s) => isset($s['channelId']))
+            ->map(function ($s) {
+                $channel = Channel::find($s['channelId']);
+                if ($channel) {
+                    $channel->loadContent(['perPage' => 10]);
+                }
+                return $channel;
+            })
+            ->filter()
+            ->values();
+
+        return [
+            'loader' => 'landingPage',
+            'products' => Product::with(['permissions', 'prices'])
+                ->limit(15)
+                ->orderBy('position', 'asc')
+                ->get(),
+            'sections' => settings('landingPage.sections'),
+            'channels' => $channels,
+        ];
     }
 }

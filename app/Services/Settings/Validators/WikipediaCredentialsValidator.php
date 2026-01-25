@@ -16,7 +16,9 @@ class WikipediaCredentialsValidator implements SettingsValidator
         $lang = Arr::get($values, 'wikipedia_language', 'en');
 
         try {
-            $response = Http::get(
+            $response = Http::withUserAgent(
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
+            )->get(
                 "https://$lang.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=foo-bar&redirects=1&exlimit=4",
             );
             if ($response->status() !== 200) {

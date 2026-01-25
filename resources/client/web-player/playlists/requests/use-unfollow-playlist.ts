@@ -1,23 +1,26 @@
+import {appQueries} from '@app/app-queries';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {useMutation} from '@tanstack/react-query';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
 import {apiClient, queryClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
 
 interface Response extends BackendResponse {
-  playlist: Playlist;
+  playlist: PartialPlaylist;
 }
 
-export function useUnfollowPlaylist(playlist: Playlist) {
+export function useUnfollowPlaylist(playlist: PartialPlaylist) {
   return useMutation({
     mutationFn: () => unfollowPlaylist(playlist.id),
     onSuccess: () => {
       toast(
         message('Stopped following :name', {values: {name: playlist.name}}),
       );
-      queryClient.invalidateQueries({queryKey: ['playlists']});
+      queryClient.invalidateQueries({
+        queryKey: appQueries.playlists.invalidateKey,
+      });
     },
     onError: r => showHttpErrorToast(r),
   });

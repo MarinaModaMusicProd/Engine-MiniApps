@@ -5,18 +5,17 @@ namespace Common\Admin\Sitemap;
 use Carbon\Carbon;
 use Common\Core\Contracts\AppUrlGenerator;
 use Common\Pages\CustomPage;
-use File;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class BaseSitemapGenerator
 {
-
     protected int $queryChunkSize = 1000;
     protected string $currentDateTimeString;
     protected int $currentResourceSitemapCount = 0;
-    protected string | null $currentXml = null;
+    protected string|null $currentXml = null;
     protected int $currentLineCount = 0;
 
     public function __construct()
@@ -41,9 +40,7 @@ class BaseSitemapGenerator
         $index = [];
 
         $queries = array_merge(
-            [
-                app(CustomPage::class)->select(['id', 'title', 'slug']),
-            ],
+            [app(CustomPage::class)->select(['id', 'title', 'slug'])],
             $this->getAppQueries(),
         );
 
@@ -65,7 +62,7 @@ class BaseSitemapGenerator
 
     protected function createSitemapForResource(
         Builder $model,
-        string $name
+        string $name,
     ): int {
         $model
             ->orderBy('id')

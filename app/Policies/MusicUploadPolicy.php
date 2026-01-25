@@ -7,9 +7,13 @@ use Common\Core\Policies\FileEntryPolicy;
 
 class MusicUploadPolicy extends FileEntryPolicy
 {
-    public function store(User $user, int $parentId = null): bool
+    public function store(User $user, int|null $parentId = null): bool
     {
-        if (request('diskPrefix') === 'track_media' && $user->hasPermission('music.create')) {
+        if (
+            request('uploadType') === 'media' &&
+            ($this->hasPermission($user, 'music.create') ||
+                $this->hasPermission($user, 'music.update'))
+        ) {
             return true;
         } else {
             return parent::store($user, $parentId);

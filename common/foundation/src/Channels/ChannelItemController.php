@@ -11,6 +11,7 @@ class ChannelItemController extends BaseController
     public function add(Channel $channel)
     {
         $this->authorize('update', $channel);
+        $this->blockOnDemoSite();
 
         $data = $this->validate(request(), [
             'itemId' => 'required|integer',
@@ -36,6 +37,7 @@ class ChannelItemController extends BaseController
     public function remove(Channel $channel)
     {
         $this->authorize('update', $channel);
+        $this->blockOnDemoSite();
 
         $data = $this->validate(request(), [
             'itemId' => 'required|integer',

@@ -11,9 +11,7 @@ abstract class BaseTrackQuery
 {
     const ORDER_DIR = 'desc';
 
-    public function __construct(protected array $params)
-    {
-    }
+    public function __construct(protected array $params) {}
 
     abstract public function get(int $modelId): Builder;
 
@@ -21,22 +19,29 @@ abstract class BaseTrackQuery
     {
         $order = $this->getOrder();
 
-        return app(Track::class)
-            ->with([
-                'artists',
-                'album' => function (BelongsTo $q) {
-                    return $q->select('id', 'name', 'image');
-                },
-            ])
+        return Track::query()
+            ->with(['artists', 'uploadedSrc', 'album.artists'])
             ->orderBy($order['col'], $order['dir'])
-            ->orderBy('tracks.id', 'desc');
+            ->when(
+                $order['col'] !== 'latest_plays.id',
+                fn(Builder $query) => $query->orderBy('tracks.id', 'desc'),
+            );
     }
 
     public function getOrder(): array
     {
-        return [
+        $order = [
             'col' => Arr::get($this->params, 'orderBy') ?: static::ORDER_COL,
             'dir' => Arr::get($this->params, 'orderDir') ?: static::ORDER_DIR,
         ];
+
+        if ($order['col'] === 'popularity') {
+            $order['col'] =
+                settings('player.sort_method', 'external') === 'external'
+                    ? 'spotify_popularity'
+                    : 'plays';
+        }
+
+        return $order;
     }
 }

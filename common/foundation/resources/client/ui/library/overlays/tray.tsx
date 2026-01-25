@@ -1,10 +1,10 @@
-import {m} from 'framer-motion';
-import {forwardRef} from 'react';
 import {FocusScope} from '@react-aria/focus';
 import {useObjectRef} from '@react-aria/utils';
 import {OverlayProps} from '@ui/overlays/overlay-props';
-import {useOverlayViewport} from '@ui/overlays/use-overlay-viewport';
 import {Underlay} from '@ui/overlays/underlay';
+import {useOverlayViewport} from '@ui/overlays/use-overlay-viewport';
+import {m} from 'framer-motion';
+import {forwardRef} from 'react';
 
 export const Tray = forwardRef<HTMLDivElement, OverlayProps>(
   (
@@ -33,7 +33,7 @@ export const Tray = forwardRef<HTMLDivElement, OverlayProps>(
         />
         <m.div
           ref={objRef}
-          className="absolute bottom-0 left-0 right-0 z-20 mx-auto max-h-tray w-full max-w-375 overflow-hidden rounded-t pb-safe-area"
+          className="absolute bottom-0 left-0 right-0 z-20 mx-auto max-h-tray w-full max-w-400 overflow-hidden rounded-t-panel pb-safe-area"
           role="presentation"
           initial={{opacity: 0, y: '100%'}}
           animate={{opacity: 1, y: 0}}

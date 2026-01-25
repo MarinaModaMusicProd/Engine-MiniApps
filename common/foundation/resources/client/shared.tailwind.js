@@ -34,6 +34,7 @@ module.exports = {
       52: '3.25rem',
       54: '3.375rem',
       56: '3.5rem',
+      58: '3.625rem',
       60: '3.75rem',
       64: '4rem',
       66: '4.125rem',
@@ -106,16 +107,15 @@ module.exports = {
       black: 'rgb(0 0 0)',
       toast: 'rgb(50, 50, 50)',
       'slider-disabled': 'rgb(189, 189, 189)',
-      hover: `rgb(var(--be-foreground-base) / ${theme('opacity.hover')})`,
-      selected: `rgb(var(--be-foreground-base) / ${theme('opacity.selected')})`,
-      focus: `rgb(var(--be-foreground-base) / ${theme('opacity.focus')})`,
+      hover: `rgb(var(--be-fg-base) / ${theme('opacity.hover')})`,
+      selected: `rgb(var(--be-fg-base) / ${theme('opacity.selected')})`,
+      focus: `rgb(var(--be-fg-base) / ${theme('opacity.focus')})`,
       link: 'rgb(var(--be-link-color, var(--be-primary)) / <alpha-value>)',
-      divider: `rgb(var(--be-foreground-base) / var(--be-divider-opacity))`,
-      'divider-lighter': 'rgb(var(--be-foreground-base) / 0.06)',
-      'disabled-bg':
-        'rgb(var(--be-foreground-base) / var(--be-disabled-bg-opacity))',
-      'disabled-fg':
-        'rgb(var(--be-foreground-base) / var(--be-disabled-fg-opacity))',
+      divider: `rgb(var(--be-fg-base) / var(--be-divider-opacity))`,
+      'divider-lighter': 'rgb(var(--be-fg-base) / 0.06)',
+      'divider-darker': 'rgb(var(--be-fg-base) / 0.16)',
+      'disabled-bg': 'rgb(var(--be-fg-base) / var(--be-disabled-bg-opacity))',
+      'disabled-fg': 'rgb(var(--be-fg-base) / var(--be-disabled-fg-opacity))',
       'primary-light': 'rgb(var(--be-primary-light) / <alpha-value>)',
       primary: 'rgb(var(--be-primary) / <alpha-value>)',
       'primary-dark': 'rgb(var(--be-primary-dark) / <alpha-value>)',
@@ -133,15 +133,14 @@ module.exports = {
       twitter: '#000000',
       envato: '#6ca12b',
       tumblr: '#2b5a9f',
-      background: 'rgb(var(--be-background) / <alpha-value>)',
-      'background-alt': 'rgb(var(--be-background-alt) / <alpha-value>)',
-      chip: 'rgb(var(--be-background-chip) / <alpha-value>)',
+      bg: 'rgb(var(--be-bg) / <alpha-value>)',
+      'bg-alt': 'rgb(var(--be-bg-alt) / <alpha-value>)',
+      'bg-elevated': 'rgb(var(--be-bg-elevated) / <alpha-value>)',
+      chip: 'rgb(var(--be-bg-chip) / <alpha-value>)',
       paper: 'rgb(var(--be-paper) / <alpha-value>)',
-      'fg-base': 'rgb(var(--be-foreground-base) / <alpha-value>)',
-      'text-muted':
-        'rgb(var(--be-foreground-base) / var(--be-text-muted-opacity))',
-      'text-main':
-        'rgb(var(--be-foreground-base) / var(--be-text-main-opacity))',
+      'fg-base': 'rgb(var(--be-fg-base) / <alpha-value>)',
+      'text-muted': 'rgb(var(--be-fg-base) / var(--be-text-muted-opacity))',
+      'text-main': 'rgb(var(--be-fg-base) / var(--be-text-main-opacity))',
     }),
     borderColor: theme => ({
       ...theme('colors'),
@@ -177,8 +176,9 @@ module.exports = {
     backgroundColor: theme => ({
       ...theme('colors'),
       disabled: theme('colors.disabled-bg'),
-      DEFAULT: 'rgb(var(--be-background) / <alpha-value>)',
-      alt: 'rgb(var(--be-background-alt) / <alpha-value>)',
+      DEFAULT: 'rgb(var(--be-bg) / <alpha-value>)',
+      alt: 'rgb(var(--be-bg-alt) / <alpha-value>)',
+      elevated: 'rgb(var(--be-bg-elevated) / <alpha-value>)',
     }),
   },
   sharedExtend: {
@@ -230,8 +230,10 @@ module.exports = {
       popover: 130,
       tray: 120,
       modal: 110,
+      drawer: 100,
     },
     opacity: {
+      1: '1%',
       2: '2%',
       4: '4%',
       6: '6%',
@@ -275,6 +277,12 @@ module.exports = {
       require('@tailwindcss/container-queries'),
       plugin(({addUtilities, addComponents}) => {
         addUtilities({
+          '.justify-center-safe': {
+            'justify-content': 'safe center',
+          },
+          '.scheme-dark': {
+            'color-scheme': 'dark',
+          },
           // ICONS
           '.icon-2xs': {
             'font-size': '0.75rem',
@@ -306,8 +314,7 @@ module.exports = {
         });
         addComponents({
           '.svg-icon': {
-            '@apply select-none inline-block fill-current flex-shrink-0 transition-icon':
-              {},
+            '@apply select-none inline-block flex-shrink-0 transition-icon': {},
           },
         });
       }),

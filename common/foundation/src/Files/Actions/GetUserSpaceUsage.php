@@ -2,6 +2,8 @@
 
 use App\Models\User;
 use Common\Billing\Models\Product;
+use Common\Files\Uploads\Uploads;
+use Common\Files\Uploads\UploadType;
 use Common\Settings\Settings;
 use Illuminate\Support\Facades\Auth;
 
@@ -9,51 +11,68 @@ class GetUserSpaceUsage
 {
     protected User $user;
 
-    public function __construct(protected Settings $settings)
-    {
-        $this->user = Auth::user();
+    public function __construct(
+        ?User $user = null,
+        protected ?string $uploadType = null,
+    ) {
+        $this->user = $user ?? Auth::user();
     }
 
-    public function execute(User $user = null): array
+    public function execute(): array
     {
-        $this->user = $user ?? Auth::user();
         return [
             'used' => $this->getSpaceUsed(),
             'available' => $this->getAvailableSpace(),
         ];
     }
 
-    private function getSpaceUsed(): int|float
+    public function getSpaceUsed(): int|float
     {
         return (int) $this->user
             ->entries(['owner' => true])
             ->where('type', '!=', 'folder')
+            ->when(
+                $this->uploadType,
+                fn($query) => $query->where(function ($query) {
+                    $query
+                        ->where('upload_type', $this->uploadType)
+                        ->orWhereNull('upload_type');
+                }),
+            )
             ->withTrashed()
             ->sum('file_size');
     }
 
     public function getAvailableSpace(): int|float|null
     {
-        $space = null;
+        if (
+            !$this->uploadType ||
+            !($uploadType = Uploads::type($this->uploadType))
+        ) {
+            return null;
+        }
 
-        if (!is_null($this->user->available_space)) {
-            $space = $this->user->available_space;
-        } elseif (app(Settings::class)->get('billing.enable')) {
-            if ($this->user->subscribed()) {
-                $space = $this->user->subscriptions->first()->product
-                    ->available_space;
-            } elseif ($freePlan = Product::where('free', true)->first()) {
-                $space = $freePlan->available_space;
+        $maxSpaceUsage = $uploadType->defaultMaxSpaceUsage();
+
+        if (!$this->user) {
+            $guestRoleMax = app('guestRole')->getRestrictionValue(
+                'files.create',
+                'max_space_usage',
+            );
+            if ($guestRoleMax !== null) {
+                $maxSpaceUsage = $guestRoleMax;
             }
         }
 
-        // space is not set at all on user or billing plans
-        if (is_null($space)) {
-            $defaultSpace = $this->settings->get('uploads.available_space');
-            return is_numeric($defaultSpace) ? abs($defaultSpace) : null;
-        } else {
-            return abs($space);
+        $userMax = $this->user->getRestrictionValue(
+            'files.create',
+            'max_space_usage',
+        );
+        if ($userMax !== null) {
+            $maxSpaceUsage = $userMax;
         }
+
+        return $maxSpaceUsage;
     }
 
     public function hasEnoughSpaceToUpload(int $bytes): bool

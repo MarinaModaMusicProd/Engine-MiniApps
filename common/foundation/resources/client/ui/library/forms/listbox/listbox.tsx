@@ -1,5 +1,13 @@
+import {Trans} from '@ui/i18n/trans';
+import {OverlayProps} from '@ui/overlays/overlay-props';
+import {Popover} from '@ui/overlays/popover';
+import {Tray} from '@ui/overlays/tray';
+import {ProgressCircle} from '@ui/progress/progress-circle';
+import {rootEl} from '@ui/root-el';
+import {useIsMobileDevice} from '@ui/utils/hooks/is-mobile-device';
+import clsx from 'clsx';
 import {AnimatePresence} from 'framer-motion';
-import React, {
+import {
   cloneElement,
   ComponentPropsWithoutRef,
   JSXElementConstructor,
@@ -10,16 +18,9 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import clsx from 'clsx';
-import {ListBoxContext, useListboxContext} from './listbox-context';
-import {useIsMobileDevice} from '@ui/utils/hooks/is-mobile-device';
-import {Popover} from '@ui/overlays/popover';
-import {Tray} from '@ui/overlays/tray';
-import {Trans} from '@ui/i18n/trans';
 import {createPortal} from 'react-dom';
+import {ListBoxContext, useListboxContext} from './listbox-context';
 import {UseListboxReturn} from './types';
-import {OverlayProps} from '@ui/overlays/overlay-props';
-import {rootEl} from '@ui/root-el';
 
 interface Props extends ComponentPropsWithoutRef<'div'> {
   listbox: UseListboxReturn;
@@ -27,18 +28,22 @@ interface Props extends ComponentPropsWithoutRef<'div'> {
   children?: ReactElement;
   searchField?: ReactNode;
   isLoading?: boolean;
+  isPending?: boolean;
   onClose?: () => void;
   prepend?: boolean;
+  contentClassName?: string;
 }
 export function Listbox({
   listbox,
   children: trigger,
   isLoading,
+  isPending,
   mobileOverlay = Tray,
   searchField,
   onClose,
   prepend,
   className: listboxClassName,
+  contentClassName,
   ...domProps
 }: Props) {
   const isMobile = useIsMobileDevice();
@@ -56,8 +61,8 @@ export function Listbox({
   const Overlay = !prepend && isMobile ? mobileOverlay : Popover;
 
   const className = clsx(
-    'text-base sm:text-sm outline-none bg max-h-inherit flex flex-col',
-    !prepend && 'shadow-xl border py-4',
+    'text-base sm:text-sm outline-none bg-elevated flex flex-col',
+    !prepend && 'shadow-xl border py-4 max-h-inherit',
     listboxClassName,
 
     // tray will apply its own rounding and max width
@@ -92,12 +97,20 @@ export function Listbox({
     }, []);
   }, [collection]);
 
-  const showContent = children.length > 0 || (showEmptyMessage && !isLoading);
+  const showContent =
+    (prepend && !isPending) ||
+    children.length > 0 ||
+    (showEmptyMessage && !isLoading && !isPending);
 
   const innerContent = showContent ? (
     <div className={className} role="presentation">
       {searchField}
-      <FocusContainer isLoading={isLoading} {...domProps}>
+      <FocusContainer
+        isLoading={isLoading}
+        isPending={isPending}
+        className={contentClassName}
+        {...domProps}
+      >
         {children}
       </FocusContainer>
     </div>
@@ -136,12 +149,15 @@ export function Listbox({
 
 interface WrapperProps extends ComponentPropsWithoutRef<'div'> {
   isLoading?: boolean;
+  isPending?: boolean;
   children: ReactElement[];
+  className?: string;
 }
 function FocusContainer({
   className,
   children,
   isLoading,
+  isPending,
   ...domProps
 }: WrapperProps) {
   const {
@@ -184,11 +200,22 @@ function FocusContainer({
       tabIndex={virtualFocus ? undefined : -1}
       role={role}
       id={listboxId}
-      className="flex-auto overflow-y-auto overscroll-contain outline-none"
+      className={clsx(
+        'flex-auto overflow-y-auto overscroll-contain outline-none',
+        className,
+      )}
       ref={domRef}
       {...domProps}
     >
-      {children.length ? children : <EmptyMessage />}
+      {children.length ? (
+        children
+      ) : isLoading ? (
+        <div className="flex h-full w-full items-center justify-center">
+          <ProgressCircle isIndeterminate size="sm" />
+        </div>
+      ) : (
+        !isPending && <EmptyMessage />
+      )}
     </div>
   );
 }

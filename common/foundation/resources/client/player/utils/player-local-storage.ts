@@ -1,6 +1,7 @@
-import {getFromLocalStorage} from '@ui/utils/hooks/local-storage';
-import {PlayerStoreOptions} from '@common/player/state/player-store-options';
+import {MediaItem} from '@common/player/media-item';
 import {PlayerState} from '@common/player/state/player-state';
+import {PlayerStoreOptions} from '@common/player/state/player-store-options';
+import {getFromLocalStorage} from '@ui/utils/hooks/local-storage';
 
 export interface PersistablePlayerState {
   muted?: PlayerState['muted'];
@@ -10,14 +11,14 @@ export interface PersistablePlayerState {
 }
 
 export interface PlayerInitialData {
-  state?: PersistablePlayerState;
-  queue?: PlayerState['originalQueue'];
-  cuedMediaId?: string | number;
+  state?: PersistablePlayerState | null;
+  queue?: PlayerState['originalQueue'] | null;
+  cuedMediaId?: string | number | null;
 }
 
 export function getPlayerStateFromLocalStorage(
   id: string | number,
-  options?: PlayerStoreOptions
+  options?: PlayerStoreOptions,
 ): PlayerInitialData {
   const defaultVolume = options?.defaultVolume || 30;
   return {
@@ -27,7 +28,7 @@ export function getPlayerStateFromLocalStorage(
       shuffling: getFromLocalStorage(`player.${id}.shuffling`) ?? false,
       volume: getFromLocalStorage(`player.${id}.volume`) ?? defaultVolume,
     },
-    queue: getFromLocalStorage(`player.${id}.queue`, []),
-    cuedMediaId: getFromLocalStorage(`player.${id}.cuedMediaId`),
+    queue: getFromLocalStorage<MediaItem[]>(`player.${id}.queue`, []),
+    cuedMediaId: getFromLocalStorage<string>(`player.${id}.cuedMediaId`),
   };
 }

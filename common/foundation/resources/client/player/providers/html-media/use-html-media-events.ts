@@ -1,3 +1,5 @@
+import {PlayerStoreContext} from '@common/player/player-context';
+import {HtmlMediaInternalStateReturn} from '@common/player/providers/html-media/use-html-media-internal-state';
 import {
   HTMLAttributes,
   useCallback,
@@ -5,8 +7,6 @@ import {
   useEffect,
   useMemo,
 } from 'react';
-import {PlayerStoreContext} from '@common/player/player-context';
-import {HtmlMediaInternalStateReturn} from '@common/player/providers/html-media/use-html-media-internal-state';
 
 const defaultPlaybackRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 

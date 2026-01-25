@@ -1,5 +1,5 @@
-import React, {ComponentProps, forwardRef, ReactNode} from 'react';
 import clsx from 'clsx';
+import {ComponentProps, forwardRef, ReactNode} from 'react';
 import {DialogSize} from './dialog';
 
 interface DialogBodyProps extends ComponentProps<'div'> {
@@ -18,13 +18,13 @@ export const DialogBody = forwardRef<HTMLDivElement, DialogBodyProps>(
         className={clsx(
           className,
           getPadding(props),
-          'overflow-y-auto overflow-x-hidden overscroll-contain text-sm flex-auto'
+          'flex-auto overflow-y-auto overflow-x-hidden overscroll-contain text-sm',
         )}
       >
         {children}
       </div>
     );
-  }
+  },
 );
 
 function getPadding({size, padding}: DialogBodyProps) {
@@ -37,6 +37,6 @@ function getPadding({size, padding}: DialogBodyProps) {
     case 'sm':
       return 'p-18';
     default:
-      return 'px-24 py-20';
+      return 'p-24';
   }
 }

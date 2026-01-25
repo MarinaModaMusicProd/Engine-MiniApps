@@ -13,28 +13,21 @@ class SpotifyHttpClient
 
     public function get(string $uri): array
     {
-        if (!$this->token) {
-            $this->getToken();
-        }
-
         try {
+            $token = $this->authorize();
+
+            if (!$token) {
+                return [];
+            }
+
             return Http::throw()
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->token])
-                ->timeout(10)
+                ->withHeaders(['Authorization' => 'Bearer ' . $token])
+                ->timeout(5)
                 ->get("https://api.spotify.com/v1/$uri")
                 ->json();
         } catch (RequestException $e) {
             Log::error('Spotify API error: ' . $e->response->body());
             return [];
-        }
-    }
-
-    public function getToken(): void
-    {
-        try {
-            $this->authorize();
-        } catch (RequestException $e) {
-            Log::error($e->response->body());
         }
     }
 }

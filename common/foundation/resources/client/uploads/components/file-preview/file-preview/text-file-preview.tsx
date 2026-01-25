@@ -1,12 +1,12 @@
-import {useEffect, useState} from 'react';
-import clsx from 'clsx';
-import {FilePreviewProps} from './file-preview-props';
-import {DefaultFilePreview} from './default-file-preview';
-import {ProgressCircle} from '@ui/progress/progress-circle';
-import {useFileEntryUrls} from '@common/uploads/file-entry-urls';
-import {useTrans} from '@ui/i18n/use-trans';
-import {Trans} from '@ui/i18n/trans';
 import {apiClient} from '@common/http/query-client';
+import {useFileEntryUrls} from '@common/uploads/file-entry-urls';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {ProgressCircle} from '@ui/progress/progress-circle';
+import clsx from 'clsx';
+import {useEffect, useState} from 'react';
+import {DefaultFilePreview} from './default-file-preview';
+import {FilePreviewProps} from './file-preview-props';
 
 const FIVE_MB = 5242880;
 
@@ -70,7 +70,7 @@ export function TextFilePreview(props: FilePreviewProps) {
   return (
     <pre
       className={clsx(
-        'h-full w-full overflow-y-auto whitespace-pre-wrap break-words rounded bg-paper p-20 text-sm',
+        'h-full w-full overflow-y-auto whitespace-pre-wrap break-words rounded-panel bg-elevated p-20 text-sm',
         className,
       )}
     >

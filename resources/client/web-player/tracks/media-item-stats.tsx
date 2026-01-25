@@ -1,17 +1,16 @@
-import React from 'react';
-import clsx from 'clsx';
-import {Track} from '@app/web-player/tracks/track';
+import {FullAlbum} from '@app/web-player/albums/album';
+import {FullArtist} from '@app/web-player/artists/artist';
 import {PlayArrowFilledIcon} from '@app/web-player/tracks/play-arrow-filled';
+import {Track} from '@app/web-player/tracks/track';
 import {FormattedNumber} from '@ui/i18n/formatted-number';
-import {Tooltip} from '@ui/tooltip/tooltip';
 import {Trans} from '@ui/i18n/trans';
 import {FavoriteIcon} from '@ui/icons/material/Favorite';
 import {RepeatIcon} from '@ui/icons/material/Repeat';
-import {Album} from '@app/web-player/albums/album';
-import {Artist} from '@app/web-player/artists/artist';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import clsx from 'clsx';
 
 interface Props {
-  item: Track | Album | Artist;
+  item: Track | FullAlbum | FullArtist;
   className?: string;
   showPlays?: boolean;
 }
@@ -28,7 +27,7 @@ export function MediaItemStats({item, className, showPlays = true}: Props) {
 }
 
 interface PlayCountProps {
-  item: Track | Album | Artist;
+  item: Track | FullAlbum | FullArtist;
 }
 function PlayCount({item}: PlayCountProps) {
   if (!item.plays) return null;
@@ -52,7 +51,7 @@ function PlayCount({item}: PlayCountProps) {
 }
 
 interface LikesCountProps {
-  item: Track | Album | Artist;
+  item: Track | FullAlbum | FullArtist;
 }
 function LikesCount({item}: LikesCountProps) {
   if (!item.likes_count) return null;
@@ -70,7 +69,7 @@ function LikesCount({item}: LikesCountProps) {
 }
 
 interface RepostsCountProps {
-  item: Track | Album;
+  item: Track | FullAlbum;
 }
 function RepostsCount({item}: RepostsCountProps) {
   if (!item.reposts_count) return null;
@@ -79,7 +78,7 @@ function RepostsCount({item}: RepostsCountProps) {
 
   return (
     <Tooltip label={<Trans message=":count reposts" values={{count}} />}>
-      <div className="hidden @[566px]:block">
+      <div>
         <RepeatIcon size="xs" className="mr-4" />
         {count}
       </div>

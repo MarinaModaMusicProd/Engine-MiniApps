@@ -1,11 +1,12 @@
+import {Likeable} from '@app/web-player/library/likeable';
 import {useAddItemsToLibrary} from '@app/web-player/library/requests/use-add-items-to-library';
 import {useRemoveItemsFromLibrary} from '@app/web-player/library/requests/use-remove-items-from-library';
 import {useLibraryStore} from '@app/web-player/library/state/likes-store';
-import {Likeable} from '@app/web-player/library/likeable';
+import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
+import {useIsOffline} from '@app/web-player/use-is-offline';
 import {IconButton, IconButtonProps} from '@ui/buttons/icon-button';
 import {FavoriteIcon} from '@ui/icons/material/Favorite';
 import {FavoriteBorderIcon} from '@ui/icons/material/FavoriteBorder';
-import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
 
 interface LikeIconButtonProps
   extends Omit<IconButtonProps, 'children' | 'disabled' | 'onClick'> {
@@ -21,6 +22,8 @@ export function LikeIconButton({
   const removeFromLibrary = useRemoveItemsFromLibrary();
   const isLiked = useLibraryStore(s => s.has(likeable));
   const isLoading = addToLibrary.isPending || removeFromLibrary.isPending;
+  const isOffline = useIsOffline();
+  const isDisabled = isLoading || isOffline;
 
   if (isLiked) {
     return (
@@ -28,7 +31,7 @@ export function LikeIconButton({
         {...buttonProps}
         size={size}
         color="primary"
-        disabled={isLoading}
+        disabled={isDisabled}
         onClickCapture={authHandler}
         onClick={e => {
           e.stopPropagation();
@@ -43,7 +46,7 @@ export function LikeIconButton({
     <IconButton
       {...buttonProps}
       size={size}
-      disabled={isLoading}
+      disabled={isDisabled}
       onClickCapture={authHandler}
       onClick={e => {
         e.stopPropagation();

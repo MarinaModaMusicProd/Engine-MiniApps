@@ -1,11 +1,12 @@
+import {Comment} from '@common/comments/comment';
+import {commentQueries} from '@common/comments/comment-queries';
+import {Commentable} from '@common/comments/commentable';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
 import {apiClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
-import {Commentable} from '@common/comments/commentable';
-import {Comment} from '@common/comments/comment';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
 
 interface Response extends BackendResponse {
   //
@@ -23,10 +24,7 @@ export function useCreateComment() {
     mutationFn: (props: CreateCommentPayload) => createComment(props),
     onSuccess: async (response, props) => {
       await queryClient.invalidateQueries({
-        queryKey: [
-          'comment',
-          `${props.commentable.id}-${props.commentable.model_type}`,
-        ],
+        queryKey: commentQueries.commentable(props.commentable).invalidateKey,
       });
       toast(message('Comment posted'));
     },

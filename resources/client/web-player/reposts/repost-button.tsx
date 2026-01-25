@@ -1,18 +1,18 @@
-import {Track} from '@app/web-player/tracks/track';
-import {Album} from '@app/web-player/albums/album';
-import {useSettings} from '@ui/settings/use-settings';
-import {useToggleRepost} from '@app/web-player/reposts/use-toggle-repost';
+import {PartialAlbum} from '@app/web-player/albums/album';
 import {useRepostsStore} from '@app/web-player/library/state/reposts-store';
-import {Button} from '@ui/buttons/button';
-import {RepeatIcon} from '@ui/icons/material/Repeat';
-import clsx from 'clsx';
-import {Trans} from '@ui/i18n/trans';
-import React from 'react';
-import {ButtonSize} from '@ui/buttons/button-size';
+import {useToggleRepost} from '@app/web-player/reposts/use-toggle-repost';
+import {Track} from '@app/web-player/tracks/track';
 import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
+import {useIsOffline} from '@app/web-player/use-is-offline';
+import {Button} from '@ui/buttons/button';
+import {ButtonSize} from '@ui/buttons/button-size';
+import {Trans} from '@ui/i18n/trans';
+import {RepeatIcon} from '@ui/icons/material/Repeat';
+import {useSettings} from '@ui/settings/use-settings';
+import clsx from 'clsx';
 
 interface RepostButtonProps {
-  item: Track | Album;
+  item: Track | PartialAlbum;
   className?: string;
   size?: ButtonSize;
   radius?: string;
@@ -29,6 +29,8 @@ export function RepostButton({
   const {player} = useSettings();
   const toggleRepost = useToggleRepost();
   const isReposted = useRepostsStore(s => s.has(item));
+  const isOffline = useIsOffline();
+  const buttonIsDisabled = disabled || toggleRepost.isPending || isOffline;
   if (!player?.enable_repost) return null;
 
   return (
@@ -38,7 +40,7 @@ export function RepostButton({
       size={size}
       radius={radius}
       startIcon={<RepeatIcon className={clsx(isReposted && 'text-primary')} />}
-      disabled={disabled || toggleRepost.isPending}
+      disabled={buttonIsDisabled}
       onClickCapture={authHandler}
       onClick={() => toggleRepost.mutate({repostable: item})}
     >

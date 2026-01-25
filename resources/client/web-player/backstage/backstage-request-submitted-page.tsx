@@ -1,12 +1,12 @@
-import {CheckIcon} from '@ui/icons/material/Check';
-import {Trans} from '@ui/i18n/trans';
-import {Link} from 'react-router-dom';
-import {Button} from '@ui/buttons/button';
-import {useBackstageRequest} from '@app/web-player/backstage/requests/use-backstage-request';
-import {FullPageLoader} from '@ui/progress/full-page-loader';
 import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
+import {useBackstageRequest} from '@app/web-player/backstage/requests/use-backstage-request';
+import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
+import {CheckIcon} from '@ui/icons/material/Check';
+import {FullPageLoader} from '@ui/progress/full-page-loader';
+import {Link} from 'react-router';
 
-export function BackstageRequestSubmittedPage() {
+export function Component() {
   const {isLoading} = useBackstageRequest();
 
   return (

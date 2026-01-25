@@ -74,7 +74,11 @@ class LazyLoader {
     return this.loadedAssets[url] != null;
   }
 
-  private loadStyleAsset(options: LoadAssetOptions) {
+  removeLoadedAsset(url: string) {
+    delete this.loadedAssets[url];
+  }
+
+  private loadStyleAsset(options: LoadAssetOptions): string {
     const doc = options.document || document;
     const parentEl = options.parentEl || doc.head;
     const style = doc.createElement('link');
@@ -96,9 +100,11 @@ class LazyLoader {
     };
 
     parentEl.appendChild(style);
+
+    return prefixedId;
   }
 
-  private loadScriptAsset(options: LoadAssetOptions) {
+  private loadScriptAsset(options: LoadAssetOptions): string {
     const doc = options.document || document;
     const parentEl = options.parentEl || doc.body;
     const script: HTMLScriptElement = doc.createElement('script');
@@ -120,6 +126,8 @@ class LazyLoader {
     };
 
     (parentEl || parentEl).appendChild(script);
+
+    return prefixedId;
   }
 }
 

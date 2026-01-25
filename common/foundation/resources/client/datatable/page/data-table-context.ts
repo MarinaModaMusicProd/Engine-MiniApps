@@ -10,6 +10,7 @@ export interface DataTableContextValue<T = unknown, A = unknown> {
   params: GetDatatableDataParams;
   setParams: (value: GetDatatableDataParams) => void;
   query: UseQueryResult<PaginatedBackendResponse<T> & A, unknown>;
+  baseQueryKey?: string[];
 }
 
 export const DataTableContext = React.createContext<DataTableContextValue>(

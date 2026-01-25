@@ -59,7 +59,9 @@ class MobileBootstrapData extends BaseBootstrapData
             }
         }
 
-        $this->logActiveSession();
+        if ($this->data['user']) {
+            $this->data['user']->createOrTouchSession();
+        }
 
         return $this;
     }
@@ -76,7 +78,7 @@ class MobileBootstrapData extends BaseBootstrapData
 
     public function getCurrentUser(): ?User
     {
-        if ($user = $this->request->user()) {
+        if ($user = request()->user()) {
             return $this->loadFcmToken($user);
         }
         return null;
@@ -106,7 +108,7 @@ class MobileBootstrapData extends BaseBootstrapData
             '--be-panel-radius',
         ];
 
-        $valuesToSkip = ['--be-navbar-color'];
+        $valuesToSkip = [];
 
         return collect($colors)
             ->map(function ($value, $name) use ($valuesToSkip, $radiusValues) {

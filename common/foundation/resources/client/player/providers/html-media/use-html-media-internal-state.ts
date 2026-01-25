@@ -1,21 +1,20 @@
+import { usePlayerStore } from '@common/player/hooks/use-player-store';
+import { PlayerStoreContext } from '@common/player/player-context';
+import { createRafLoop } from '@ui/utils/dom/create-ref-loop';
 import {
-  MutableRefObject,
   RefObject,
   useCallback,
   useContext,
   useEffect,
   useRef,
 } from 'react';
-import {createRafLoop} from '@ui/utils/dom/create-ref-loop';
-import {PlayerStoreContext} from '@common/player/player-context';
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
 
 export interface HtmlMediaInternalStateReturn {
-  ref: RefObject<HTMLMediaElement>;
+  ref: RefObject<HTMLMediaElement | null>;
   updateCurrentTime: () => void;
   updateBuffered: () => void;
   toggleTextTrackModes: (newTrackId: number, isVisible: boolean) => void;
-  internalState: MutableRefObject<{
+  internalState: RefObject<{
     currentTime: number;
     playbackReady: boolean;
     timeRafLoop: ReturnType<typeof createRafLoop>;
@@ -23,7 +22,7 @@ export interface HtmlMediaInternalStateReturn {
 }
 
 export function useHtmlMediaInternalState(
-  ref: RefObject<HTMLMediaElement>,
+  ref: RefObject<HTMLMediaElement | null>,
 ): HtmlMediaInternalStateReturn {
   const store = useContext(PlayerStoreContext);
   const cuedMedia = usePlayerStore(s => s.cuedMedia);

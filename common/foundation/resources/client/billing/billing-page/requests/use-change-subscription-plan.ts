@@ -1,13 +1,13 @@
-import {useMutation} from '@tanstack/react-query';
-import {apiClient} from '@common/http/query-client';
-import {useTrans} from '@ui/i18n/use-trans';
+import {billingQueries} from '@common/billing/billing-queries';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {User} from '@ui/types/user';
-import {invalidateBillingUserQuery} from '../use-billing-user';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {apiClient, queryClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
+import {User} from '@ui/types/user';
 
 interface Response extends BackendResponse {
   user: User;
@@ -26,7 +26,7 @@ export function useChangeSubscriptionPlan() {
     mutationFn: (props: Payload) => changePlan(props),
     onSuccess: () => {
       toast(trans(message('Plan changed.')));
-      invalidateBillingUserQuery();
+      queryClient.invalidateQueries({queryKey: billingQueries.user().queryKey});
       navigate('/billing');
     },
     onError: err => showHttpErrorToast(err),

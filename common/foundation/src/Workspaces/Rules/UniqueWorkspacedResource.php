@@ -2,7 +2,7 @@
 
 namespace Common\Workspaces\Rules;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Workspaces\ActiveWorkspace;
 use Illuminate\Validation\Rules\Unique;
 

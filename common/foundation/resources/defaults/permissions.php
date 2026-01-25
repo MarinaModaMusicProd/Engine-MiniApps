@@ -6,6 +6,7 @@ return [
             'default' => true,
             'name' => 'users',
             'internal' => true,
+            'type' => 'users',
             'permissions' => [
                 'users.view',
                 'localizations.view',
@@ -19,6 +20,7 @@ return [
             'guests' => true,
             'name' => 'guests',
             'internal' => true,
+            'type' => 'users',
             'permissions' => [
                 'users.view',
                 'custom_pages.view',
@@ -31,12 +33,19 @@ return [
     'all' => [
         'admin' => [
             [
+                'name' => 'admin',
+                'display_name' => 'Admin',
+                'description' => 'Gives full permissions.',
+            ],
+            [
                 'name' => 'admin.access',
+                'display_name' => 'Access admin area',
                 'description' =>
                     'Required in order to access any admin area page.',
             ],
             [
                 'name' => 'appearance.update',
+                'display_name' => 'Appearance editor',
                 'description' => 'Allows access to appearance editor.',
             ],
         ],
@@ -44,6 +53,8 @@ return [
         'api' => [
             [
                 'name' => 'api.access',
+                'display_name' => 'REST API',
+                'user_types' => ['user', 'admin'],
                 'description' =>
                     'Allow users to use the API and access API section in their account settings page.',
             ],
@@ -51,33 +62,21 @@ return [
 
         'roles' => [
             [
-                'name' => 'roles.view',
-                'advanced' => true,
-            ],
-            [
-                'name' => 'roles.create',
-                'advanced' => true,
-            ],
-            [
                 'name' => 'roles.update',
-                'advanced' => true,
-            ],
-            [
-                'name' => 'roles.delete',
+                'display_name' => 'Role management',
+                'description' => 'Allow role management from admin area.',
                 'advanced' => true,
             ],
         ],
 
         'custom_pages' => [
-            [
-                'name' => 'custom_pages.view',
-                'description' =>
-                    'Allow viewing of all pages on the site, regardless of who created them. User can view their own pages without this permission.',
-                'advanced' => true,
-            ],
+            // todo: move to belink
             [
                 'name' => 'custom_pages.create',
                 'advanced' => true,
+                'user_types' => ['user'],
+                'display_name' => 'Create link pages',
+                'description' => 'Allow creating custom link pages.',
                 'restrictions' => [
                     [
                         'name' => 'count',
@@ -90,27 +89,19 @@ return [
             ],
             [
                 'name' => 'custom_pages.update',
-                'description' =>
-                    'Allow editing of all pages on the site, regardless of who created them. User can edit their own pages without this permission.',
                 'advanced' => true,
-            ],
-            [
-                'name' => 'custom_pages.delete',
+                'display_name' => 'Manage custom pages',
                 'description' =>
-                    'Allow deleting of all pages on the site, regardless of who created them. User can delete their own pages without this permission.',
-                'advanced' => true,
+                    'Allow custom page management from admin area.',
             ],
         ],
 
+        // todo: move to architect/belink
         'custom_domains' => [
             [
-                'name' => 'custom_domains.view',
-                'advanced' => true,
-                'description' =>
-                    'Allow viewing all domains on the site, regardless of who created them. User can view their own domains without this permission.',
-            ],
-            [
                 'name' => 'custom_domains.create',
+                'user_types' => ['user'],
+                'display_name' => 'Connect custom domains',
                 'description' =>
                     'Allow user to connect their own custom domains.',
                 'restrictions' => [
@@ -126,47 +117,18 @@ return [
             [
                 'name' => 'custom_domains.update',
                 'advanced' => true,
+                'display_name' => 'Manage custom domains',
                 'description' =>
-                    'Allow editing all domains on the site, regardless of who created them. User can edit their own domains without this permission.',
-            ],
-            [
-                'name' => 'custom_domains.delete',
-                'advanced' => true,
-                'description' =>
-                    'Allow deleting all domains on the site, regardless of who created them. User can delete their own domains without this permission.',
+                    'All custom domain management from admin area.',
             ],
         ],
 
         'files' => [
             [
-                'name' => 'files.view',
-                'advanced' => true,
-                'description' =>
-                    'Allow viewing all uploaded files on the site. Users can view their own uploads without this permission.',
-            ],
-            [
-                'name' => 'files.create',
-                'advanced' => true,
-                'description' =>
-                    'Allow uploading files on the site. This permission is used by any page where it is possible for user to upload files.',
-            ],
-            [
                 'name' => 'files.update',
                 'advanced' => true,
-                'description' =>
-                    'Allow editing all uploaded files on the site. Users can edit their own uploads without this permission.',
-            ],
-            [
-                'name' => 'files.delete',
-                'advanced' => true,
-                'description' =>
-                    'Allow deleting all uploaded files on the site. Users can delete their own uploads (where applicable) without this permission.',
-            ],
-            [
-                'name' => 'files.download',
-                'advanced' => true,
-                'description' =>
-                    'Allow downloading all uploaded files on the site. Users can download their own uploads (where applicable) without this permission.',
+                'display_name' => 'Manage files',
+                'description' => 'Allow file management from admin area.',
             ],
         ],
 
@@ -174,108 +136,62 @@ return [
             [
                 'name' => 'users.view',
                 'advanced' => false,
+                'user_types' => ['user'],
+                'display_name' => 'View users',
                 'description' =>
-                    'Allow viewing user profile pages on the site. User can view their own profile without this permission.',
-            ],
-            [
-                'name' => 'users.create',
-                'advanced' => true,
-                'description' =>
-                    'Allow creating users from admin area. Users can register for new accounts without this permission. Registration can be disabled from settings page.',
+                    'Allow viewing public profiles of other users.',
             ],
             [
                 'name' => 'users.update',
                 'advanced' => true,
-                'description' =>
-                    'Allow editing details of any user on the site. User can edit their own details without this permission.',
-            ],
-            [
-                'name' => 'users.delete',
-                'advanced' => true,
-                'description' =>
-                    'Allow deleting any user on the site. User can request deletion of their own account without this permission.',
+                'display_name' => 'Manage users',
+                'description' => 'Allow user management from admin area.',
             ],
         ],
 
         'localizations' => [
             [
-                'name' => 'localizations.view',
-                'advanced' => true,
-            ],
-            [
-                'name' => 'localizations.create',
-                'advanced' => true,
-            ],
-            [
                 'name' => 'localizations.update',
                 'advanced' => true,
-            ],
-            [
-                'name' => 'localizations.delete',
-                'advanced' => true,
+                'display_name' => 'Manage localizations',
+                'description' =>
+                    'Allow localization management from admin area.',
             ],
         ],
 
         'settings' => [
             [
-                'name' => 'settings.view',
-                'advanced' => true,
-            ],
-            [
                 'name' => 'settings.update',
                 'advanced' => true,
+                'display_name' => 'Manage settings',
+                'description' => 'Allow settings management from admin area.',
             ],
         ],
 
         'plans' => [
             [
-                'name' => 'plans.view',
-                'advanced' => true,
-            ],
-            [
-                'name' => 'plans.create',
-                'advanced' => true,
-            ],
-            [
                 'name' => 'plans.update',
                 'advanced' => true,
-            ],
-            [
-                'name' => 'plans.delete',
-                'advanced' => true,
-            ],
-        ],
-
-        'invoices' => [
-            [
-                'name' => 'invoices.view',
-                'advanced' => true,
+                'display_name' => 'Manage plans',
+                'description' =>
+                    'Allow subscription plan management from admin area.',
             ],
         ],
 
         'tags' => [
             [
-                'name' => 'tags.view',
-                'advanced' => true,
-            ],
-            [
-                'name' => 'tags.create',
-                'advanced' => true,
-            ],
-            [
                 'name' => 'tags.update',
                 'advanced' => true,
-            ],
-            [
-                'name' => 'tags.delete',
-                'advanced' => true,
+                'display_name' => 'Manage tags',
+                'description' => 'Allow tag management from admin area.',
             ],
         ],
 
         'workspaces' => [
-            'workspaces.view',
             [
                 'name' => 'workspaces.create',
+                'display_name' => 'Create workspaces',
+                'description' => 'Allow workspace creation.',
                 'restrictions' => [
                     [
                         'name' => 'count',
@@ -292,8 +208,12 @@ return [
                     ],
                 ],
             ],
-            'workspaces.update',
-            'workspaces.delete',
+            [
+                'name' => 'workspaces.update',
+                'advanced' => true,
+                'display_name' => 'Manage workspaces',
+                'description' => 'Allow workspace management from admin area.',
+            ],
         ],
         'workspace_members' => [
             [

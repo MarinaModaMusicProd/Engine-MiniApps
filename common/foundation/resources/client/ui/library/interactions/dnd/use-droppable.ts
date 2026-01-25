@@ -1,16 +1,16 @@
+import {asyncIterableToArray} from '@ui/utils/array/async-iterable-to-array';
+import {UploadedFile} from '@ui/utils/files/uploaded-file';
 import React, {RefObject, useLayoutEffect, useRef} from 'react';
+import {InteractableRect} from '../interactable-event';
 import {draggables, dragSession, droppables} from './drag-state';
 import {readFilesFromDataTransfer} from './read-files-from-data-transfer';
-import {asyncIterableToArray} from '@ui/utils/array/async-iterable-to-array';
-import {InteractableRect} from '../interactable-event';
 import {DraggableId, MixedDraggable} from './use-draggable';
-import {UploadedFile} from '@ui/utils/files/uploaded-file';
 
 export interface ConnectedDroppable {
   id: DraggableId;
   rect?: InteractableRect;
   disabled?: boolean;
-  ref: RefObject<HTMLElement>;
+  ref: RefObject<HTMLElement | null>;
 }
 
 // File dragged in from desktop
@@ -25,7 +25,7 @@ interface UseDroppableProps<T extends HTMLElement> {
   id: DraggableId;
   disabled?: boolean;
   types: ('nativeFile' | string)[];
-  ref: RefObject<T>;
+  ref: RefObject<T | null>;
   // this will fire dragEnter/dragLeave/dragOver events when same element is both draggable and drop target and dragging target over itself. Used for showing line previews before/after element during sort.
   allowDragEventsFromItself?: boolean;
   onDragEnter?: (target: MixedDraggable) => void;

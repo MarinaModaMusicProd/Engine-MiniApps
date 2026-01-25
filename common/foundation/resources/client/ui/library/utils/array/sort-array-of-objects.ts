@@ -5,7 +5,7 @@ const MAX_SAFE_INTEGER = 9007199254740991;
 export function sortArrayOfObjects<T extends object>(
   data: T[],
   orderBy: string,
-  orderDir: 'asc' | 'desc' = 'desc'
+  orderDir: 'asc' | 'desc' = 'desc',
 ): T[] {
   return data.sort((a, b) => {
     let valueA = sortingDataAccessor(a, orderBy);
@@ -55,7 +55,7 @@ export function sortArrayOfObjects<T extends object>(
  * matches the data's properties (e.g. column Xyz represents data['Xyz']).
  * May be set to a custom function for different behavior.
  */
-function sortingDataAccessor(data: object, key: string): string | number {
+function sortingDataAccessor(data: object, key: string): string {
   const value = dot.pick(key, data);
 
   if (isNumberValue(value)) {
@@ -63,7 +63,7 @@ function sortingDataAccessor(data: object, key: string): string | number {
 
     // Numbers beyond `MAX_SAFE_INTEGER` can't be compared reliably, so we
     // leave them as strings. For more info: https://goo.gl/y5vbSg
-    return numberValue < MAX_SAFE_INTEGER ? numberValue : value;
+    return numberValue < MAX_SAFE_INTEGER ? `${numberValue}` : value;
   }
 
   return value;

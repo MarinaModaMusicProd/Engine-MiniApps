@@ -1,9 +1,9 @@
-import {useAuth} from '../auth/use-auth';
+import {MenuConfig, MenuItemConfig} from '@common/menus/menu-config';
 import {useSettings} from '@ui/settings/use-settings';
+import {User} from '@ui/types/user';
 import dot from 'dot-object';
 import {useMemo} from 'react';
-import {User} from '@ui/types/user';
-import {MenuConfig, MenuItemConfig} from '@common/menus/menu-config';
+import {useAuth} from '../auth/use-auth';
 
 export function useCustomMenu(menuOrPosition?: string | MenuConfig) {
   const settings = useSettings();
@@ -23,8 +23,8 @@ export function useCustomMenu(menuOrPosition?: string | MenuConfig) {
 
     if (menu) {
       for (const item of menu.items) {
-        const hasRoles = (item.roles || []).every(
-          a => user?.roles.find(b => b.id === a),
+        const hasRoles = (item.roles || []).every(a =>
+          user?.roles?.find(b => b.id === a),
         );
         const hasPermissions = (item.permissions || []).every(a =>
           hasPermission(a),

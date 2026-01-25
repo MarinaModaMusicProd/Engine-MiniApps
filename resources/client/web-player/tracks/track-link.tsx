@@ -1,12 +1,11 @@
-import {Link, LinkProps} from 'react-router-dom';
-import clsx from 'clsx';
-import React, {useMemo} from 'react';
-import {slugifyString} from '@ui/utils/string/slugify-string';
-import {Track} from '@app/web-player/tracks/track';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {slugifyString} from '@ui/utils/string/slugify-string';
+import clsx from 'clsx';
+import {useMemo} from 'react';
+import {Link, LinkProps} from 'react-router';
 
 interface TrackLinkProps extends Omit<LinkProps, 'to'> {
-  track: Track;
+  track: {id: number; name: string};
   className?: string;
 }
 export function TrackLink({track, className, ...linkProps}: TrackLinkProps) {
@@ -29,7 +28,7 @@ export function TrackLink({track, className, ...linkProps}: TrackLinkProps) {
 }
 
 export function getTrackLink(
-  track: Track,
+  track: {id: number; name: string},
   {absolute}: {absolute?: boolean} = {},
 ): string {
   let link = `/track/${track.id}/${slugifyString(track.name)}`;

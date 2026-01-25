@@ -6,14 +6,13 @@ use Common\Billing\Subscription;
 use Common\Core\BaseController;
 use Common\Database\Datasource\Datasource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class SubscriptionsController extends BaseController
 {
-    public function __construct(
-        protected Request $request,
-        protected Subscription $subscription
-    ) {
+    public function __construct()
+    {
         $this->middleware('auth');
     }
 
@@ -22,11 +21,18 @@ class SubscriptionsController extends BaseController
         $this->authorize('index', Subscription::class);
 
         $dataSource = new Datasource(
-            $this->subscription->with(['user']),
-            $this->request->all(),
+            Subscription::with(['user']),
+            request()->all(),
         );
 
-        $pagination = $dataSource->paginate();
+        $pagination = $dataSource->paginate()->toArray();
+
+        if (config('app.demo')) {
+            $pagination['data'] = $this->redactEmails(
+                $pagination['data'],
+                'user.email',
+            );
+        }
 
         return $this->success(['pagination' => $pagination]);
     }
@@ -34,8 +40,9 @@ class SubscriptionsController extends BaseController
     public function store()
     {
         $this->authorize('update', Subscription::class);
+        $this->blockOnDemoSite();
 
-        $data = $this->validate($this->request, [
+        $data = $this->validate(request(), [
             'user_id' => 'required|exists:users,id|unique:subscriptions',
             'renews_at' => 'required_without:ends_at|date|nullable',
             'ends_at' => 'required_without:renews_at|date|nullable',
@@ -44,16 +51,19 @@ class SubscriptionsController extends BaseController
             'description' => 'string|nullable',
         ]);
 
-        $subscription = $this->subscription->create($data);
+        $subscription = Subscription::create($data);
 
         return $this->success(['subscription' => $subscription]);
     }
 
-    public function update(Subscription $subscription)
+    public function update(int $id)
     {
-        $this->authorize('update', Subscription::class);
+        $subscription = Subscription::findOrFail($id);
 
-        $data = $this->validate($this->request, [
+        $this->authorize('show', $subscription);
+        $this->blockOnDemoSite();
+
+        $data = $this->validate(request(), [
             'user_id' => [
                 'required',
                 'exists:users,id',
@@ -71,9 +81,16 @@ class SubscriptionsController extends BaseController
         return $this->success(['subscription' => $subscription]);
     }
 
-    public function changePlan(Subscription $subscription)
+    public function changePlan(int $id)
     {
-        $data = $this->validate($this->request, [
+        $subscription = Subscription::findOrFail($id);
+        $this->authorize('show', $subscription);
+
+        if ($subscription->user_id !== Auth::id()) {
+            $this->blockOnDemoSite();
+        }
+
+        $data = $this->validate(request(), [
             'newProductId' => 'required|integer|exists:products,id',
             'newPriceId' => 'required|integer|exists:prices,id',
         ]);
@@ -87,13 +104,20 @@ class SubscriptionsController extends BaseController
         return $this->success(['user' => $user->load('subscriptions.product')]);
     }
 
-    public function cancel(Subscription $subscription)
+    public function cancel(int $id)
     {
-        $this->validate($this->request, [
+        $subscription = Subscription::findOrFail($id);
+        $this->authorize('show', $subscription);
+
+        if ($subscription->user_id !== Auth::id()) {
+            $this->blockOnDemoSite();
+        }
+
+        $this->validate(request(), [
             'delete' => 'boolean',
         ]);
 
-        if ($this->request->get('delete')) {
+        if (request()->get('delete')) {
             $subscription->cancelAndDelete();
         } else {
             $subscription->cancel();
@@ -102,9 +126,17 @@ class SubscriptionsController extends BaseController
         return $this->success();
     }
 
-    public function resume(Subscription $subscription)
+    public function resume(int $id)
     {
+        $subscription = Subscription::findOrFail($id);
+        $this->authorize('show', $subscription);
+
+        if ($subscription->user_id !== Auth::id()) {
+            $this->blockOnDemoSite();
+        }
+
         $subscription->resume();
+
         return $this->success(['subscription' => $subscription]);
     }
 }

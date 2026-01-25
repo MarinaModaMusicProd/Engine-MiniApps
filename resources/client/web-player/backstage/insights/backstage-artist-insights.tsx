@@ -1,20 +1,21 @@
-import {useParams} from 'react-router-dom';
-import {BackstageInsightsLayout} from '@app/web-player/backstage/insights/backstage-insights-layout';
 import {InsightsReportCharts} from '@app/admin/reports/insights-report-charts';
-import React from 'react';
-import {useArtist} from '@app/web-player/artists/requests/use-artist';
-import {BackstageInsightsTitle} from '@app/web-player/backstage/insights/backstage-insights-title';
+import {appQueries} from '@app/app-queries';
 import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
 import {ArtistLink} from '@app/web-player/artists/artist-link';
+import {BackstageInsightsLayout} from '@app/web-player/backstage/insights/backstage-insights-layout';
+import {BackstageInsightsTitle} from '@app/web-player/backstage/insights/backstage-insights-title';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
+import {useQuery} from '@tanstack/react-query';
 
 interface Props {
   isNested?: boolean;
 }
 export function BackstageArtistInsights({isNested}: Props) {
-  const {artistId} = useParams();
-  const {data} = useArtist({loader: 'artist'});
+  const {artistId} = useRequiredParams(['artistId']);
+  const {data} = useQuery(appQueries.artists.show(artistId).artist('artist'));
   return (
     <BackstageInsightsLayout
+      isNested={isNested}
       reportModel={`artist=${artistId}`}
       title={
         data?.artist && (
@@ -24,7 +25,6 @@ export function BackstageArtistInsights({isNested}: Props) {
           />
         )
       }
-      isNested={isNested}
     >
       <InsightsReportCharts showTracks />
     </BackstageInsightsLayout>

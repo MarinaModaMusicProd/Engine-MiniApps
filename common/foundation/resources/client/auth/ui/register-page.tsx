@@ -1,29 +1,31 @@
-import {Link, Navigate, useLocation, useSearchParams} from 'react-router-dom';
-import {useForm} from 'react-hook-form';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {GuestRoute} from '@common/auth/guards/guest-route';
+import {CaptchaContainer} from '@common/captcha/captcha-container';
 import {Button} from '@ui/buttons/button';
-import {Form} from '@ui/forms/form';
 import {LinkStyle} from '@ui/buttons/external-link';
-import {RegisterPayload, useRegister} from '../requests/use-register';
-import {SocialAuthSection} from './social-auth-section';
-import {AuthLayout} from './auth-layout/auth-layout';
-import {Trans} from '@ui/i18n/trans';
+import {Form} from '@ui/forms/form';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {FormCheckbox} from '@ui/forms/toggle/checkbox';
-import {CustomMenuItem} from '../../menus/custom-menu';
-import {useRecaptcha} from '../../recaptcha/use-recaptcha';
-import {StaticPageTitle} from '../../seo/static-page-title';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
 import {useSettings} from '@ui/settings/use-settings';
-import React, {useContext} from 'react';
-import {SiteConfigContext} from '@common/core/settings/site-config-context';
-import {Web3AuthSection} from "@common/auth/ui/web3-auth-section";
+import {toast} from '@ui/toast/toast';
+import {ReactNode} from 'react';
+import {useForm} from 'react-hook-form';
+import {Link, Navigate, useLocation, useSearchParams} from 'react-router';
+import {useCaptcha} from '../../captcha/use-captcha';
+import {CustomMenuItem} from '../../menus/custom-menu';
+import {StaticPageTitle} from '../../seo/static-page-title';
+import {RegisterPayload, useRegister} from '../requests/use-register';
+import {AuthLayout} from './auth-layout/auth-layout';
+import {SocialAuthSection} from './social-auth-section';
 
 interface Props {
   inviteType?: string;
+  fields?: ReactNode;
 }
-export function RegisterPage({inviteType}: Props) {
-  const {branding, registration, social, web3} = useSettings();
-  const {auth} = useContext(SiteConfigContext);
-  const {verify, isVerifying} = useRecaptcha('register');
+export function RegisterPage({inviteType, fields}: Props) {
+  const {branding, registration, social} = useSettings();
+  const {captchaToken, captchaEnabled, resetCaptcha} = useCaptcha('register');
 
   const {pathname} = useLocation();
   const [searchParams] = useSearchParams();
@@ -54,7 +56,7 @@ export function RegisterPage({inviteType}: Props) {
     heading = <Trans message="First, let's create your account" />;
   }
 
-  const message = (
+  const footerMessage = (
     <Trans
       values={{
         a: parts => (
@@ -68,78 +70,76 @@ export function RegisterPage({inviteType}: Props) {
   );
 
   return (
-    <AuthLayout heading={heading} message={message}>
-      <StaticPageTitle>
-        <Trans message="Register" />
-      </StaticPageTitle>
-      <Form
-        form={form}
-        onSubmit={async payload => {
-          const isValid = await verify();
-          if (isValid) {
-            register.mutate({
-              ...payload,
-              invite_type: inviteType,
-            });
-          }
-        }}
-      >
-        <FormTextField
-          className="mb-32"
-          name="email"
-          type="email"
-          disabled={!!searchParamsEmail}
-          label={<Trans message="Email" />}
-          required
-        />
-        <FormTextField
-          className="mb-32"
-          name="password"
-          type="password"
-          label={<Trans message="Password" />}
-          required
-        />
-        <FormTextField
-          className="mb-32"
-          name="password_confirmation"
-          type="password"
-          label={<Trans message="Confirm password" />}
-          required
-        />
-        {auth?.registerFields ? <auth.registerFields /> : null}
-        <PolicyCheckboxes />
-        <Button
-          className="block w-full"
-          type="submit"
-          variant="flat"
-          color="primary"
-          size="md"
-          disabled={register.isPending || isVerifying}
+    <GuestRoute>
+      <AuthLayout heading={heading} message={footerMessage}>
+        <StaticPageTitle>
+          <Trans message="Register" />
+        </StaticPageTitle>
+        <Form
+          form={form}
+          onSubmit={async payload => {
+            if (captchaEnabled && !captchaToken) {
+              toast.danger(message('Please solve the captcha challenge.'));
+              return;
+            }
+            register.mutate(
+              {
+                ...payload,
+                captcha_token: captchaToken,
+                invite_type: inviteType,
+              },
+              {onError: () => resetCaptcha()},
+            );
+          }}
         >
-          <Trans message="Create account" />
-        </Button>
-      </Form>
-
-      <SocialAuthSection
-        dividerMessage={
-          social?.compact_buttons ? (
-            <Trans message="Or sign up with social" />
-          ) : (
-            <Trans message="OR" />
-          )
-        }
-      />
-
-      <Web3AuthSection
-        dividerMessage={
-          web3?.compact_buttons ? (
-            <Trans message="Or sign up with web3" />
-          ) : (
-            <Trans message="OR" />
-          )
-        }
-      />
-    </AuthLayout>
+          <FormTextField
+            className="mb-32"
+            name="email"
+            type="email"
+            disabled={!!searchParamsEmail}
+            label={<Trans message="Email" />}
+            required
+          />
+          <FormTextField
+            className="mb-32"
+            name="password"
+            type="password"
+            label={<Trans message="Password" />}
+            required
+          />
+          <FormTextField
+            className="mb-32"
+            name="password_confirmation"
+            type="password"
+            label={<Trans message="Confirm password" />}
+            required
+          />
+          {fields}
+          {captchaEnabled && <CaptchaContainer className="mb-32" />}
+          <PolicyCheckboxes />
+          <Button
+            className="block w-full"
+            type="submit"
+            variant="flat"
+            color="primary"
+            size="md"
+            disabled={register.isPending}
+          >
+            <Trans message="Create account" />
+          </Button>
+          <SocialAuthSection
+            isUsingInvite={isRegisteringUsingInvite}
+            dividerMessage={
+              social?.compact_buttons ? (
+                <Trans message="Or sign up with" />
+              ) : (
+                <Trans message="OR" />
+              )
+            }
+          />
+        </Form>
+      </AuthLayout>
+    </GuestRoute>
   );
 }
 

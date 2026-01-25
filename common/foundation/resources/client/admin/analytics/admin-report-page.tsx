@@ -1,12 +1,13 @@
-import React, {useState} from 'react';
-import {useAdminReport} from './use-admin-report';
-import {Trans} from '@ui/i18n/trans';
-import {StaticPageTitle} from '../../seo/static-page-title';
-import {AdminHeaderReport} from '@common/admin/analytics/admin-header-report';
+import {AdminReportCardRow} from '@common/admin/analytics/admin-report-card-row';
+import {ReportDateSelector} from '@common/admin/analytics/report-date-selector';
 import {VisitorsReportCharts} from '@common/admin/analytics/visitors-report-charts';
+import {DatatablePageHeaderBar} from '@common/datatable/page/datatable-page-with-header-layout';
 import {DateRangeValue} from '@ui/forms/input-field/date/date-range-picker/date-range-value';
 import {DateRangePresets} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-presets';
-import {ReportDateSelector} from '@common/admin/analytics/report-date-selector';
+import {Trans} from '@ui/i18n/trans';
+import {useState} from 'react';
+import {StaticPageTitle} from '../../seo/static-page-title';
+import {useAdminReport} from './use-admin-report';
 
 export function Component() {
   const [dateRange, setDateRange] = useState<DateRangeValue>(() => {
@@ -17,17 +18,22 @@ export function Component() {
   const title = <Trans message="Visitors report" />;
 
   return (
-    <div className="min-h-full gap-12 overflow-x-hidden p-12 md:gap-18 md:p-18">
-      <div className="mb-24 items-center justify-between gap-24 md:flex">
-        <StaticPageTitle>{title}</StaticPageTitle>
-        <h1 className="mb-24 text-3xl font-light md:mb-0">{title}</h1>
-        <ReportDateSelector value={dateRange} onChange={setDateRange} />
-      </div>
-      <AdminHeaderReport report={data?.headerReport} />
-      <VisitorsReportCharts
-        report={data?.visitorsReport}
-        isLoading={isLoading}
+    <div className="flex h-full flex-col">
+      <StaticPageTitle>{title}</StaticPageTitle>
+      <DatatablePageHeaderBar
+        showSidebarToggleButton
+        title={title}
+        rightContent={
+          <ReportDateSelector value={dateRange} onChange={setDateRange} />
+        }
       />
+      <div className="chart-grid flex-auto overflow-auto p-12 md:p-24">
+        <AdminReportCardRow report={data?.headerReport} />
+        <VisitorsReportCharts
+          report={data?.visitorsReport}
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 }

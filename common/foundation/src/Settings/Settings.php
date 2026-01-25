@@ -1,5 +1,7 @@
 <?php namespace Common\Settings;
 
+use Common\Settings\Models\Setting;
+use Common\Settings\Models\TransformsSettingsTableRowValue;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -18,23 +20,23 @@ class Settings
     protected array $configKeys = [
         'billing.stripe_public_key' => 'services.stripe.key',
         'billing.paypal.public_key' => 'services.paypal.client_id',
-        'site.demo' => 'common.site.demo',
+        'site.demo' => 'app.demo',
         'logging.sentry_public' => 'sentry.dsn',
         'i18n.default_localization' => 'app.locale',
-        'billing.integrated' => 'common.site.billing_integrated',
-        'workspaces.integrated' => 'common.site.workspaces_integrated',
-        'notifications.integrated' => 'common.site.notifications_integrated',
-        'notif.subs.integrated' => 'common.site.notif_subs_integrated',
-        'api.integrated' => 'common.site.api_integrated',
+        'billing.integrated' => 'app.billing_integrated',
+        'websockets.integrated' => 'app.websockets_integrated',
+        'incoming_email.integrated' => 'app.incoming_email_integrated',
+        'workspaces.integrated' => 'app.workspaces_integrated',
+        'notifications.integrated' => 'app.notifications_integrated',
+        'notif.subs.integrated' => 'app.notif_subs_integrated',
+        'api.integrated' => 'app.api_integrated',
         'branding.site_name' => 'app.name',
         'realtime.pusher_cluster' =>
             'broadcasting.connections.pusher.options.cluster',
         'realtime.pusher_key' => 'broadcasting.connections.pusher.key',
-        'site.hide_docs_buttons' => 'common.site.hide_docs_buttons',
-        'site.has_mobile_app' => 'common.site.has_mobile_app',
-        'uploads.public_driver' => 'common.site.public_disk_driver',
-        'uploads.uploads_driver' => 'common.site.uploads_disk_driver',
-        'uploads.disable_tus' => 'common.site.uploads_disable_tus',
+        'site.hide_docs_buttons' => 'app.hide_docs_buttons',
+        'site.has_mobile_app' => 'app.has_mobile_app',
+        'uploading.disable_tus' => 'filesystems.uploads_disable_tus',
     ];
 
     /**
@@ -42,15 +44,16 @@ class Settings
      */
     public static array $jsonKeys = [
         'menus',
-        'homepage.appearance',
-        'uploads.allowed_extensions',
-        'uploads.blocked_extensions',
+        'landingPage',
+        'uploading',
         'cookie_notice.button',
         'registration.policies',
         'artistPage.tabs',
         'landing',
         'hcLanding',
         'chatWidget',
+        'chatPage',
+        'aiAgent',
         'hc.newTicket.appearance',
         'incoming_email',
         'title_page.sections',
@@ -60,9 +63,11 @@ class Settings
     ];
 
     public static array $secretKeys = [
-        'recaptcha.secret_key',
+        'captcha.g_secret_key',
+        'captcha.t_secret_key',
         'google_safe_browsing_key',
         'incoming_email',
+        'uploading',
     ];
 
     public function __construct()
@@ -150,6 +155,8 @@ class Settings
             }
         }
 
+        (new SyncSettingsWithFileEntries())->execute();
+
         Cache::forget('settings.public');
     }
 
@@ -158,7 +165,7 @@ class Settings
      */
     public function getUnflattened(
         bool $includeSecret = false,
-        array $settings = null,
+        array|null $settings = null,
     ): array {
         if (!$settings) {
             $settings = $this->all($includeSecret);
@@ -210,10 +217,16 @@ class Settings
         return Arr::get($this->all, $key);
     }
 
-    protected function loadSettings(): void
+    public function loadSettings(): void
     {
-        $value = Cache::get('settings.public');
         $this->all = collect();
+
+        // prevent using cache during package discover, if "settings" helper is used in route files
+        if (!config('app.installed')) {
+            return;
+        }
+
+        $value = Cache::get('settings.public');
 
         if ($value && count($value) > 0) {
             $this->all = $value;

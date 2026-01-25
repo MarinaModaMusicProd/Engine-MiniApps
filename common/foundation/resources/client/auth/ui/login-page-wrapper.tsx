@@ -1,12 +1,22 @@
-import {useState} from 'react';
-import {TwoFactorChallengePage} from '@common/auth/ui/two-factor/two-factor-challenge-page';
+import {GuestRoute} from '@common/auth/guards/guest-route';
 import {LoginPage} from '@common/auth/ui/login-page';
+import {TwoFactorChallengePage} from '@common/auth/ui/two-factor/two-factor-challenge-page';
+import {ReactNode, useState} from 'react';
 
-export function LoginPageWrapper() {
+interface Props {
+  bottomMessages?: ReactNode;
+}
+export function LoginPageWrapper({bottomMessages}: Props) {
   const [isTwoFactor, setIsTwoFactor] = useState(false);
-  if (isTwoFactor) {
-    return <TwoFactorChallengePage />;
-  } else {
-    return <LoginPage onTwoFactorChallenge={() => setIsTwoFactor(true)} />;
-  }
+
+  const component = isTwoFactor ? (
+    <TwoFactorChallengePage />
+  ) : (
+    <LoginPage
+      onTwoFactorChallenge={() => setIsTwoFactor(true)}
+      bottomMessages={bottomMessages}
+    />
+  );
+
+  return <GuestRoute>{component}</GuestRoute>;
 }

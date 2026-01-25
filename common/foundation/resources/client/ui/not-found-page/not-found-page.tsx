@@ -1,12 +1,12 @@
-import {Trans} from '@ui/i18n/trans';
 import {Button} from '@ui/buttons/button';
-import {Link} from 'react-router-dom';
+import {Trans} from '@ui/i18n/trans';
+import {Link} from 'react-router';
 import imgUrl1 from './404-1.png';
 import imgUrl2 from './404-2.png';
 
 export function NotFoundPage() {
   return (
-    <div className="flex flex-col-reverse items-center justify-center gap-64 px-16 py-96 md:gap-112 md:px-176 md:py-80 lg:flex-row lg:px-96 lg:py-96">
+    <div className="isolate flex flex-col-reverse items-center justify-center gap-64 px-16 py-96 md:gap-112 md:px-176 md:py-80 lg:flex-row lg:px-96 lg:py-96">
       <div className="relative w-full pb-48 lg:pb-0 xl:w-1/2 xl:pt-96">
         <div className="relative">
           <div className="absolute">

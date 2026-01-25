@@ -1,6 +1,6 @@
 [
   {
-    "name": "{{channel.restriction.display_name}} Artists",
+    "name": "{{channel.restriction.display_name}} artists",
     "slug": "genre",
     "internal": true,
     "presetDescription": "Lists all artists from database for a specific genre",
@@ -19,7 +19,7 @@
     }
   },
   {
-    "name": "New Releases",
+    "name": "New releases",
     "slug": "new-releases",
     "presetDescription": "Periodically imports new releases from Spotify API",
     "config": {
@@ -36,7 +36,24 @@
     }
   },
   {
-    "name": "Popular Tracks",
+    "name": "Popular albums",
+    "slug": "popular-albums",
+    "presetDescription": "Periodically imports popular albums from Spotify API",
+    "config": {
+      "contentType": "autoUpdate",
+      "autoUpdateMethod": "topAlbums",
+      "autoUpdateProvider": "spotify",
+      "contentModel": "album",
+      "contentOrder": "popularity:desc",
+      "layout": "grid",
+      "nestedLayout": "carousel",
+      "seoTitle": "Popular Albums",
+      "seoDescription": "Most popular albums from hottest artists today.",
+      "presetId": "streamingPopularAlbums"
+    }
+  },
+  {
+    "name": "Popular tracks",
     "slug": "popular-tracks",
     "presetDescription": "Periodically imports popular tracks from Spotify API",
     "config": {
@@ -46,10 +63,27 @@
       "contentModel": "track",
       "contentOrder": "popularity:desc",
       "layout": "trackTable",
-      "nestedLayout": "trackTable",
+      "nestedLayout": "compactGrid",
       "seoTitle": "Popular Tracks",
       "seoDescription": "Global Top 50 chart of most popular songs.",
       "presetId": "streamingPopularTracks"
+    }
+  },
+  {
+    "name": "Popular artists",
+    "slug": "popular-artists",
+    "presetDescription": "Periodically imports popular artists from Spotify API",
+    "config": {
+      "contentType": "autoUpdate",
+      "autoUpdateMethod": "topArtists",
+      "autoUpdateProvider": "spotify",
+      "contentModel": "artist",
+      "contentOrder": "popularity:desc",
+      "layout": "grid",
+      "nestedLayout": "carousel",
+      "seoTitle": "Popular Artists",
+      "seoDescription": "Hottest artists this week.",
+      "presetId": "streamingPopularArtists"
     }
   }
 ]

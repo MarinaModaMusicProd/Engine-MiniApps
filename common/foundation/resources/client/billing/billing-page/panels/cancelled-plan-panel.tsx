@@ -1,20 +1,20 @@
-import {useBillingUser} from '../use-billing-user';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {BillingPlanPanel} from '../billing-plan-panel';
-import {Trans} from '@ui/i18n/trans';
-import {Chip} from '@ui/forms/input-field/chip-field/chip';
+import {billingQueries} from '@common/billing/billing-queries';
 import {FormattedPrice} from '@common/billing/formatted-price';
-import {CalendarTodayIcon} from '@ui/icons/material/CalendarToday';
+import {useSuspenseQuery} from '@tanstack/react-query';
 import {Button} from '@ui/buttons/button';
-import {Link} from 'react-router-dom';
+import {Chip} from '@ui/forms/input-field/chip-field/chip';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {Trans} from '@ui/i18n/trans';
+import {CalendarTodayIcon} from '@ui/icons/material/CalendarToday';
+import {Link} from 'react-router';
+import {BillingPlanPanel} from '../billing-plan-panel';
 
 export function CancelledPlanPanel() {
-  const {subscription} = useBillingUser();
-  if (!subscription?.price || !subscription?.product) return null;
+  const query = useSuspenseQuery(billingQueries.user());
 
   const endingDate = (
     <span className="whitespace-nowrap">
-      <FormattedDate preset="long" date={subscription.ends_at} />
+      <FormattedDate preset="long" date={query.data.subscription.ends_at} />
     </span>
   );
 
@@ -31,16 +31,26 @@ export function CancelledPlanPanel() {
             <Trans message="Canceled" />
           </Chip>
           <div className="mb-2 text-xl font-bold">
-            {subscription.product.name}
+            {query.data.subscription.product.name}
           </div>
-          <FormattedPrice className="mb-8 text-xl" price={subscription.price} />
+          <FormattedPrice
+            className="mb-8 text-xl"
+            price={query.data.subscription.price}
+          />
           <div className="flex items-center gap-8 text-base">
             <CalendarTodayIcon size="sm" className="text-muted" />
             <div className="flex-auto">
-              <Trans
-                message="Your plan will be canceled on :date"
-                values={{date: endingDate}}
-              />
+              {query.data.subscription.on_trial ? (
+                <Trans
+                  message="Trial will end on :date and you will not be charged."
+                  values={{date: endingDate}}
+                />
+              ) : (
+                <Trans
+                  message="Your plan will be canceled on :date"
+                  values={{date: endingDate}}
+                />
+              )}
             </div>
           </div>
         </div>

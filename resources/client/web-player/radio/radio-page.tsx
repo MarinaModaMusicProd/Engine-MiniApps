@@ -1,35 +1,52 @@
-import React, {useMemo} from 'react';
-import {PageMetaTags} from '@common/http/page-meta-tags';
-import {PageStatus} from '@common/http/page-status';
-import {
-  RadioSeed,
-  useRadioRecommendations,
-} from '@app/web-player/radio/requests/use-radio-recommendations';
-import {useSortableTableData} from '@common/ui/tables/use-sortable-table-data';
-import {TrackTable} from '@app/web-player/tracks/track-table/track-table';
+import {appQueries} from '@app/app-queries';
+import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
+import {GenreImage} from '@app/web-player/genres/genre-image';
+import {BulletSeparatedItems} from '@app/web-player/layout/bullet-separated-items';
 import {
   actionButtonClassName,
   MediaPageHeaderLayout,
 } from '@app/web-player/layout/media-page-header-layout';
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {Trans} from '@ui/i18n/trans';
-import {BulletSeparatedItems} from '@app/web-player/layout/bullet-separated-items';
-import {FormattedDuration} from '@ui/i18n/formatted-duration';
+import {PlayerPageSuspense} from '@app/web-player/layout/player-page-suspsense';
 import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
 import {queueGroupId} from '@app/web-player/queue-group-id';
-import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
-import {GenreImage} from '@app/web-player/genres/genre-image';
-import {useParams} from 'react-router-dom';
-import {NotFoundPage} from '@common/ui/not-found-page/not-found-page';
+import {RadioSeed} from '@app/web-player/radio/radio-recommendations-response';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {TrackTable} from '@app/web-player/tracks/track-table/track-table';
 import {AdHost} from '@common/admin/ads/ad-host';
+import {PageMetaTags} from '@common/http/page-meta-tags';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
+import {NotFoundPage} from '@common/ui/not-found-page/not-found-page';
+import {useSortableTableData} from '@common/ui/tables/use-sortable-table-data';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {FormattedDuration} from '@ui/i18n/formatted-duration';
+import {Trans} from '@ui/i18n/trans';
+import {MusicNoteIcon} from '@ui/icons/material/MusicNote';
+import {IllustratedMessage} from '@ui/images/illustrated-message';
+import {ReactNode, useMemo} from 'react';
 
-const validSeeds: RadioSeed['model_type'][] = ['artist', 'track', 'genre'];
+const validSeeds = ['artist', 'track', 'genre'];
 
-export function RadioPage() {
-  const {seedType} = useParams();
-  const query = useRadioRecommendations();
+export function Component() {
+  const {seedType} = useRequiredParams(['seedType']);
+
+  if (!validSeeds.includes(seedType)) {
+    return <NotFoundPage />;
+  }
+
+  return (
+    <PlayerPageSuspense>
+      <RadioPage />
+    </PlayerPageSuspense>
+  );
+}
+
+function RadioPage() {
+  const {seedId, seedType} = useRequiredParams(['seedId', 'seedType']);
+  const query = useSuspenseQuery(
+    appQueries.radio.recommendations(seedType, seedId),
+  );
   const {data, onSortChange, sortDescriptor} = useSortableTableData(
-    query.data?.recommendations,
+    query.data.recommendations,
   );
 
   const totalDuration = useMemo(() => {
@@ -38,70 +55,61 @@ export function RadioPage() {
     }, 0);
   }, [data]);
 
-  if (!validSeeds.includes(seedType as any)) {
-    return <NotFoundPage />;
-  }
+  const seed = query.data.seed;
+  const queueId = queueGroupId(seed, 'radio');
 
-  if (query.data) {
-    const seed = query.data.seed;
-    const queueId = queueGroupId(seed, 'radio');
-    return (
-      <div>
-        <PageMetaTags query={query} />
-        <AdHost slot="general_top" className="mb-44" />
-        <MediaPageHeaderLayout
-          image={<Image seed={seed} />}
-          title={
-            <Trans
-              message=":name radio"
-              values={{
-                name:
-                  'display_name' in seed && seed.display_name
-                    ? seed.display_name
-                    : seed.name,
-              }}
-            />
-          }
-          subtitle={
-            <BulletSeparatedItems className="justify-center text-sm text-muted md:justify-start">
-              <RadioType seed={seed} />
-              <Trans
-                message="[one 1 song|other :count songs]"
-                values={{count: data.length}}
-              />
-              <FormattedDuration ms={totalDuration} verbose />
-            </BulletSeparatedItems>
-          }
-          actionButtons={
-            <div className="text-center md:text-start">
-              <PlaybackToggleButton
-                tracks={data}
-                disabled={!data.length}
-                buttonType="text"
-                queueId={queueId}
-                className={actionButtonClassName({isFirst: true})}
-              />
-            </div>
-          }
-        />
-        <TrackTable
-          className="mt-34"
-          tracks={data}
-          queueGroupId={queueId}
-          onSortChange={onSortChange}
-          sortDescriptor={sortDescriptor}
-        />
-        <AdHost slot="general_bottom" className="mt-44" />
-      </div>
-    );
+  if (!data.length) {
+    return <NoResultsMessage seedType={seedType} />;
   }
 
   return (
-    <PageStatus
-      query={query}
-      loaderIsScreen={false}
-      loaderClassName="absolute inset-0 m-auto"
-    />
+    <div>
+      <PageMetaTags query={query} />
+      <AdHost slot="general_top" className="mb-44" />
+      <MediaPageHeaderLayout
+        image={<Image seed={seed} />}
+        title={
+          <Trans
+            message=":name radio"
+            values={{
+              name:
+                'display_name' in seed && seed.display_name
+                  ? seed.display_name
+                  : seed.name,
+            }}
+          />
+        }
+        subtitle={
+          <BulletSeparatedItems className="justify-center text-sm text-muted md:justify-start">
+            <RadioType seed={seed} />
+            <Trans
+              message="[one 1 song|other :count songs]"
+              values={{count: data.length}}
+            />
+            <FormattedDuration ms={totalDuration} verbose />
+          </BulletSeparatedItems>
+        }
+        actionsBar={
+          <div className="text-center md:text-start">
+            <PlaybackToggleButton
+              tracks={data}
+              disabled={!data.length}
+              buttonType="text"
+              queueId={queueId}
+              className={actionButtonClassName({isFirst: true})}
+            />
+          </div>
+        }
+      />
+      <TrackTable
+        className="mt-34"
+        tracks={data}
+        queueGroupId={queueId}
+        onSortChange={onSortChange}
+        sortDescriptor={sortDescriptor}
+      />
+      <AdHost slot="general_bottom" className="mt-44" />
+    </div>
   );
 }
 
@@ -147,4 +155,27 @@ function RadioType({seed}: SeedImageProps) {
     default:
       return <Trans message="Track radio" />;
   }
+}
+
+type NoResultsMessageProps = {
+  seedType: string;
+};
+function NoResultsMessage({seedType}: NoResultsMessageProps) {
+  let description: ReactNode = null;
+  if (seedType === 'artist') {
+    description = <Trans message="Try a different artist" />;
+  } else if (seedType === 'genre') {
+    description = <Trans message="Try a different genre" />;
+  } else {
+    description = <Trans message="Try a different track" />;
+  }
+
+  return (
+    <IllustratedMessage
+      image={<MusicNoteIcon size="xl" />}
+      imageHeight="h-auto"
+      title={<Trans message="No song recommendations found" />}
+      description={description}
+    />
+  );
 }

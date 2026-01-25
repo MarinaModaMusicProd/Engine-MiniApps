@@ -1,108 +1,100 @@
-import {useEffect, useState} from 'react';
-import {produce} from 'immer';
-import {useNotificationSubscriptions} from './requests/notification-subscriptions';
-import {Navbar} from '../../ui/navigation/navbar/navbar';
-import {ProgressCircle} from '@ui/progress/progress-circle';
-import {Checkbox} from '@ui/forms/toggle/checkbox';
-import {useUpdateNotificationSettings} from './requests/update-notification-settings';
+import {useSuspenseQuery} from '@tanstack/react-query';
 import {Button} from '@ui/buttons/button';
-import {NotificationSubscriptionGroup} from './notification-subscription';
-import {toast} from '@ui/toast/toast';
-import {Trans} from '@ui/i18n/trans';
+import {Checkbox} from '@ui/forms/toggle/checkbox';
 import {message} from '@ui/i18n/message';
-import {useSettings} from '@ui/settings/use-settings';
-import {Navigate} from 'react-router-dom';
+import {Trans} from '@ui/i18n/trans';
+import {toast} from '@ui/toast/toast';
+import {produce} from 'immer';
+import {Fragment, useState} from 'react';
+import {Navbar} from '../../ui/navigation/navbar/navbar';
+import {NotificationSubscriptionGroup} from './notification-subscription';
+import {notificationSubscriptionsQueryOptions} from './requests/notification-subscriptions';
+import {useUpdateNotificationSettings} from './requests/update-notification-settings';
 
 type Selection = Record<string, ChannelSelection>;
 
 // {email: true, mobile: true, browser: false}
 type ChannelSelection = Record<string, boolean>;
 
-export function NotificationSettingsPage() {
-  const {notif} = useSettings();
+export function Component() {
+  return (
+    <div className="min-h-screen bg">
+      <Navbar
+        color="bg"
+        darkModeColor="bg-elevated"
+        menuPosition="notifications-page"
+      />
+      <div className="container mx-auto my-20 px-10 md:my-40 md:px-20">
+        <div className="rounded-panel border bg-elevated px-20 pb-30 pt-20 shadow-sm">
+          <NotificationSettings />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function NotificationSettings() {
   const updateSettings = useUpdateNotificationSettings();
-  const {data, isFetched} = useNotificationSubscriptions();
-  const [selection, setSelection] = useState<Selection>();
+  const {data} = useSuspenseQuery(notificationSubscriptionsQueryOptions);
+  const [selection, setSelection] = useState<Selection>(() => {
+    const initialSelection: Selection = {};
+    const initialValue: ChannelSelection = {};
+    data.available_channels.forEach(channel => {
+      initialValue[channel] = false;
+    });
 
-  useEffect(() => {
-    if (data && !selection) {
-      const initialSelection: Selection = {};
-      const initialValue: ChannelSelection = {};
-      data.available_channels.forEach(channel => {
-        initialValue[channel] = false;
+    data.subscriptions.forEach(group => {
+      group.subscriptions.forEach(subscription => {
+        const backendValue = data.user_selections.find(
+          s => s.notif_id === subscription.notif_id,
+        );
+        initialSelection[subscription.notif_id] = backendValue?.channels || {
+          ...initialValue,
+        };
       });
+    });
 
-      data.subscriptions.forEach(group => {
-        group.subscriptions.forEach(subscription => {
-          const backendValue = data.user_selections.find(
-            s => s.notif_id === subscription.notif_id,
-          );
-          initialSelection[subscription.notif_id] = backendValue?.channels || {
-            ...initialValue,
-          };
-        });
-      });
-      setSelection(initialSelection);
-    }
-  }, [data, selection]);
-
-  if (!notif.subs.integrated || (data && data.subscriptions.length === 0)) {
-    return <Navigate to="/" replace />;
-  }
+    return initialSelection;
+  });
 
   return (
-    <div className="min-h-screen bg-alt">
-      <Navbar menuPosition="notifications-page" />
-      {!isFetched || !data || !selection ? (
-        <div className="container mx-auto my-100 flex justify-center">
-          <ProgressCircle
-            size="md"
-            isIndeterminate
-            aria-label="Loading subscriptions..."
+    <Fragment>
+      {data.subscriptions.map(group => (
+        <div key={group.group_name} className="mb-10 text-sm">
+          <GroupRow
+            key={group.group_name}
+            group={group}
+            allChannels={data?.available_channels}
+            selection={selection}
+            setSelection={setSelection}
           />
+          {group.subscriptions.map(subscription => (
+            <SubscriptionRow
+              key={subscription.notif_id}
+              subscription={subscription}
+              selection={selection}
+              setSelection={setSelection}
+              allChannels={data?.available_channels}
+            />
+          ))}
         </div>
-      ) : (
-        <div className="container mx-auto my-20 px-10 md:my-40 md:px-20">
-          <div className="rounded border bg-paper px-20 pb-30 pt-20">
-            {data.subscriptions.map(group => (
-              <div key={group.group_name} className="mb-10 text-sm">
-                <GroupRow
-                  key={group.group_name}
-                  group={group}
-                  allChannels={data?.available_channels}
-                  selection={selection}
-                  setSelection={setSelection}
-                />
-                {group.subscriptions.map(subscription => (
-                  <SubscriptionRow
-                    key={subscription.notif_id}
-                    subscription={subscription}
-                    selection={selection}
-                    setSelection={setSelection}
-                    allChannels={data?.available_channels}
-                  />
-                ))}
-              </div>
-            ))}
-            <Button
-              className="ml-10 mt-20"
-              variant="flat"
-              color="primary"
-              disabled={updateSettings.isPending}
-              onClick={() => {
-                updateSettings.mutate(
-                  Object.entries(selection).map(([notifId, channels]) => {
-                    return {notif_id: notifId, channels};
-                  }),
-                );
-              }}
-            >
-              <Trans message="Update preferences" />
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+      ))}
+      <Button
+        className="ml-10 mt-20"
+        variant="flat"
+        color="primary"
+        disabled={updateSettings.isPending}
+        onClick={() => {
+          updateSettings.mutate(
+            Object.entries(selection).map(([notifId, channels]) => {
+              return {notif_id: notifId, channels};
+            }),
+          );
+        }}
+      >
+        <Trans message="Update preferences" />
+      </Button>
+    </Fragment>
   );
 }
 
@@ -157,7 +149,7 @@ function GroupRow({
 
   return (
     <div className="flex items-center border-b p-10">
-      <div className="font-medium">
+      <div className="font-semibold">
         <Trans message={group.group_name} />
       </div>
       {checkboxes}

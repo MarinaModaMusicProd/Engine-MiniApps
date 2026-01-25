@@ -1,21 +1,18 @@
 <?php namespace Common\Core\Bootstrap;
 
 use App\Models\User;
-use Common\Admin\Appearance\Themes\CssTheme;
-use Common\Auth\Jobs\LogActiveSessionJob;
-use Common\Auth\Roles\Role;
 use Common\Billing\Gateways\Stripe\FormatsMoney;
 use Common\Core\AppUrl;
-use Common\Localizations\LocalizationsRepository;
-use Common\Settings\Settings;
+use Common\Files\Uploads\Uploads;
+use Common\Localizations\Localization;
+use Common\Settings\Themes\CssTheme;
 use Common\Websockets\GetWebsocketCredentialsForClient;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Jenssegers\Agent\Agent;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class BaseBootstrapData implements BootstrapData
 {
@@ -23,14 +20,6 @@ class BaseBootstrapData implements BootstrapData
 
     protected array $data = [];
     public ?CssTheme $initialTheme = null;
-
-    public function __construct(
-        protected Settings $settings,
-        protected Request $request,
-        protected Role $role,
-        protected LocalizationsRepository $localizationsRepository,
-    ) {
-    }
 
     public function getEncoded(): string
     {
@@ -65,27 +54,18 @@ class BaseBootstrapData implements BootstrapData
         $this->data['settings']['html_base_uri'] = app(
             AppUrl::class,
         )->htmlBaseUri;
-        $this->data['settings']['version'] = config('common.site.version');
+        $this->data['settings']['version'] = config('app.version');
         $this->data['sentry_release'] = config('sentry.release');
         $this->data['default_meta_tags'] = $this->getDefaultMetaTags();
         $this->data['user'] = $this->getCurrentUser();
+        $this->data['auth_redirect_uri'] = $this->getAuthRedirectUri();
         $this->data['guest_role'] = app('guestRole')?->load('permissions');
-        $this->data['i18n'] =
-            $this->localizationsRepository->getByNameOrCode(
-                app()->getLocale(),
-                settings('i18n.enable', true),
-            ) ?:
-            null;
         $this->data['themes'] = $this->getThemes();
         $this->setInitialTheme();
-        $this->data['language'] = $this->data['i18n']
-            ? $this->data['i18n']['language']
-            : 'en';
+        $this->setUploadingTypes();
+        $this->setLocalizationData();
 
-        if (
-            config('common.site.notifications_integrated') &&
-            $this->data['user']
-        ) {
+        if (config('app.notifications_integrated') && $this->data['user']) {
             $this->data['user']->loadCount('unreadNotifications');
         }
 
@@ -95,9 +75,40 @@ class BaseBootstrapData implements BootstrapData
         $this->data['show_cookie_notice'] =
             !$alreadyAccepted && $this->isCookieLawCountry();
 
-        $this->logActiveSession();
+        $this->data['is_settings_preview'] =
+            request('settingsPreview') === 'true';
+
+        if ($this->data['user']) {
+            $this->data['user']->createOrTouchSession();
+        }
+
+        // only used on landing page and will be fetched landing page data loader
+        unset($this->data['settings']['landingPage']);
 
         return $this;
+    }
+
+    protected function setLocalizationData()
+    {
+        $this->data['i18n'] = [
+            'locales' => Localization::query()
+                ->select(['name', 'language'])
+                ->get()
+                ->map(function (Localization $localization) {
+                    if (
+                        settings('i18n.enable', true) &&
+                        $localization->language === app()->getLocale()
+                    ) {
+                        $localization->loadLines();
+                    }
+                    return [
+                        'name' => $localization->name,
+                        'language' => $localization->language,
+                        'lines' => $localization->lines ?? [],
+                    ];
+                }),
+            'active' => app()->getLocale(),
+        ];
     }
 
     protected function setInitialTheme(): void
@@ -155,7 +166,7 @@ class BaseBootstrapData implements BootstrapData
      */
     public function getCurrentUser(): ?User
     {
-        $user = $this->request->user();
+        $user = request()->user();
         if ($user) {
             // load user subscriptions, if billing is enabled
             if (
@@ -178,6 +189,44 @@ class BaseBootstrapData implements BootstrapData
         return $user;
     }
 
+    protected function getAuthRedirectUri(): string
+    {
+        return '/';
+    }
+
+    protected function setUploadingTypes()
+    {
+        $configForFrontend = [];
+
+        foreach (Uploads::getAllTypes() as $uploadType) {
+            $configForFrontend[$uploadType->name] = [
+                'visibility' => $uploadType->visibility,
+                'max_file_size' => $uploadType->maxFileSize(),
+                'accept' => $uploadType->acceptedFileTypes(),
+                'backends' => array_map(function ($backendId) {
+                    $backend = Uploads::backend($backendId);
+                    $data = [
+                        'id' => $backendId,
+                        'driver' => $backend->baseDriver,
+                    ];
+
+                    if ($backend->isS3()) {
+                        $data['direct_upload'] = $backend->usesDirectUpload();
+                    }
+
+                    return $data;
+                }, $uploadType->backendIds),
+            ];
+        }
+
+        // not needed for frontend
+        unset($this->data['uploading']['backends']);
+        unset($this->data['uploading']['types']);
+
+        // set only partial config for frontend
+        $this->data['uploading_types'] = $configForFrontend;
+    }
+
     protected function getDefaultMetaTags(): string
     {
         $pageName = 'landing-page';
@@ -194,22 +243,5 @@ class BaseBootstrapData implements BootstrapData
         // prettier-ignore
         return in_array($isoCode, ['AT', 'BE', 'BG', 'BR', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'GB', 'HR', 'HU', 'IE', 'IT','LT', 'LU', 'LV', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK',
         ]);
-    }
-
-    protected function logActiveSession(): void
-    {
-        if ($this->data['user']) {
-            $token = $this->data['user']->currentAccessToken();
-            LogActiveSessionJob::dispatch([
-                'user_id' => $this->data['user']->id,
-                'ip_address' => getIp(),
-                'user_agent' => $this->request->userAgent(),
-                'session_id' => session()->getId(),
-                'token' =>
-                    $token instanceof PersonalAccessToken
-                        ? $token->token
-                        : null,
-            ]);
-        }
     }
 }

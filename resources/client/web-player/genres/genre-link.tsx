@@ -1,12 +1,11 @@
-import {Link, LinkProps} from 'react-router-dom';
-import clsx from 'clsx';
-import React, {useMemo} from 'react';
-import {slugifyString} from '@ui/utils/string/slugify-string';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
-import {Genre} from '@app/web-player/genres/genre';
+import {slugifyString} from '@ui/utils/string/slugify-string';
+import clsx from 'clsx';
+import {useMemo} from 'react';
+import {Link, LinkProps} from 'react-router';
 
 interface GenreLinkProps extends Omit<LinkProps, 'to'> {
-  genre: Genre;
+  genre: {name: string; display_name: string | null};
   className?: string;
 }
 export function GenreLink({genre, className, ...linkProps}: GenreLinkProps) {
@@ -29,7 +28,7 @@ export function GenreLink({genre, className, ...linkProps}: GenreLinkProps) {
 }
 
 export function getGenreLink(
-  genre: Genre,
+  genre: {name: string},
   {absolute}: {absolute?: boolean} = {},
 ) {
   const genreName = slugifyString(genre.name);

@@ -1,3 +1,4 @@
+import { loadYoutubePoster } from '@common/player/providers/youtube/load-youtube-poster';
 import {
   YoutubeInternalState,
   YouTubeMessage,
@@ -5,15 +6,14 @@ import {
   YouTubePlayerState,
   YoutubeProviderError,
 } from '@common/player/providers/youtube/youtube-types';
-import {MutableRefObject, RefObject} from 'react';
-import {PlayerStoreApi} from '@common/player/state/player-state';
-import {loadYoutubePoster} from '@common/player/providers/youtube/load-youtube-poster';
-import {isNumber} from '@ui/utils/number/is-number';
+import { PlayerStoreApi } from '@common/player/state/player-state';
+import { isNumber } from '@ui/utils/number/is-number';
+import { RefObject } from 'react';
 
 export function handleYoutubeEmbedMessage(
   e: MessageEvent,
-  internalStateRef: MutableRefObject<YoutubeInternalState>,
-  iframeRef: RefObject<HTMLIFrameElement>,
+  internalStateRef: RefObject<YoutubeInternalState>,
+  iframeRef: RefObject<HTMLIFrameElement | null>,
   store: PlayerStoreApi,
 ) {
   const data = (
@@ -85,8 +85,8 @@ export function handleYoutubeEmbedMessage(
 
 function onYoutubeStateChange(
   info: YoutubeMessageInfo,
-  internalStateRef: MutableRefObject<YoutubeInternalState>,
-  iframeRef: RefObject<HTMLIFrameElement>,
+  internalStateRef: RefObject<YoutubeInternalState>,
+  iframeRef: RefObject<HTMLIFrameElement | null>,
   store: PlayerStoreApi,
 ) {
   const emit = store.getState().emit;

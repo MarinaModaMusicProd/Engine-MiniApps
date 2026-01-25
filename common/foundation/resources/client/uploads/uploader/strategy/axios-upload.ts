@@ -1,14 +1,17 @@
-import {UploadedFile} from '@ui/utils/files/uploaded-file';
-import {UploadStrategy, UploadStrategyConfig} from './upload-strategy';
-import {apiClient} from '@common/http/query-client';
 import {getAxiosErrorMessage} from '@common/http/get-axios-error-message';
+import {apiClient} from '@common/http/query-client';
+import {UploadedFile} from '@ui/utils/files/uploaded-file';
 import {AxiosProgressEvent} from 'axios';
+import {
+  UploadStrategy,
+  UploadStrategyConfigWithBackend,
+} from './upload-strategy';
 
 export class AxiosUpload implements UploadStrategy {
   private abortController: AbortController;
   constructor(
     private file: UploadedFile,
-    private config: UploadStrategyConfig,
+    private config: UploadStrategyConfigWithBackend,
   ) {
     this.abortController = new AbortController();
   }
@@ -20,6 +23,9 @@ export class AxiosUpload implements UploadStrategy {
     formData.set('file', this.file.native);
     formData.set('clientMime', this.file.mime);
     formData.set('clientExtension', this.file.extension);
+    formData.set('uploadType', this.config.uploadType);
+    formData.set('backendId', this.config.backendId);
+
     if (metadata) {
       Object.entries(metadata).forEach(([key, value]) => {
         formData.set(key, `${value}`);
@@ -65,7 +71,7 @@ export class AxiosUpload implements UploadStrategy {
 
   static async create(
     file: UploadedFile,
-    config: UploadStrategyConfig,
+    config: UploadStrategyConfigWithBackend,
   ): Promise<AxiosUpload> {
     return new AxiosUpload(file, config);
   }

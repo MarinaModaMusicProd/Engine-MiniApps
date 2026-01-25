@@ -14,16 +14,16 @@ class DeleteAlbums
     public function execute(array|Collection $albumIds): void
     {
         $albums = Album::query()
+            ->with('uploadedImage')
             ->whereIn('id', $albumIds)
             ->get();
 
-        // delete images
-        app(DeleteEntries::class)->execute([
-            'paths' => $albums
-                ->pluck('image')
-                ->filter()
-                ->toArray(),
-        ]);
+        $uploadedImageEntries = $albums->pluck('uploadedImage')->flatten(1);
+        if ($uploadedImageEntries->isNotEmpty()) {
+            (new DeleteEntries())->execute([
+                'entryIds' => $uploadedImageEntries->pluck('id')->toArray(),
+            ]);
+        }
 
         // detach likeables
         DB::table('likes')
@@ -50,14 +50,10 @@ class DeleteAlbums
             ->delete();
 
         // detach artists
-        DB::table('artist_album')
-            ->whereIn('album_id', $albumIds)
-            ->delete();
+        DB::table('artist_album')->whereIn('album_id', $albumIds)->delete();
 
         // delete tracks
-        $trackIds = Track::query()
-            ->whereIn('album_id', $albumIds)
-            ->pluck('id');
+        $trackIds = Track::query()->whereIn('album_id', $albumIds)->pluck('id');
         app(DeleteTracks::class)->execute($trackIds->toArray());
 
         // delete albums

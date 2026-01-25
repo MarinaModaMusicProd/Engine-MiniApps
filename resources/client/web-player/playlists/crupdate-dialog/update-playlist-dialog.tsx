@@ -1,19 +1,19 @@
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {Trans} from '@ui/i18n/trans';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
 import {CrupdatePlaylistFields} from '@app/web-player/playlists/crupdate-dialog/crupdate-playlist-fields';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {FullPlaylist} from '@app/web-player/playlists/playlist';
 import {CreatePlaylistPayload} from '@app/web-player/playlists/requests/use-create-playlist';
-import {useForm} from 'react-hook-form';
-import {Form} from '@ui/forms/form';
 import {useUpdatePlaylist} from '@app/web-player/playlists/requests/use-update-playlist';
-import {Playlist} from '@app/web-player/playlists/playlist';
+import {Button} from '@ui/buttons/button';
+import {Form} from '@ui/forms/form';
+import {Trans} from '@ui/i18n/trans';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {useForm} from 'react-hook-form';
 
 interface UpdatePlaylistDialogProps {
-  playlist: Playlist;
+  playlist: FullPlaylist;
 }
 export function UpdatePlaylistDialog({playlist}: UpdatePlaylistDialogProps) {
   const {close, formId} = useDialogContext();

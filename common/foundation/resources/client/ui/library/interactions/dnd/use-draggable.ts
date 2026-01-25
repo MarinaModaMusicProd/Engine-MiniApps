@@ -1,14 +1,14 @@
+import {useGlobalListeners} from '@react-aria/utils';
 import React, {RefObject, useLayoutEffect, useRef} from 'react';
-import {draggables, dragMonitors, dragSession, droppables} from './drag-state';
+import {activeInteraction, setActiveInteraction} from '../active-interaction';
 import {
   InteractableEvent,
   interactableEvent,
   InteractableRect,
 } from '../interactable-event';
-import {activeInteraction, setActiveInteraction} from '../active-interaction';
 import {domRectToObj} from '../utils/dom-rect-to-obj';
+import {draggables, dragMonitors, dragSession, droppables} from './drag-state';
 import {updateRects} from './update-rects';
-import {useGlobalListeners} from '@react-aria/utils';
 import {DragMonitor} from './use-drag-monitor';
 import {NativeFileDraggable} from './use-droppable';
 
@@ -20,7 +20,7 @@ interface DragState {
 
 export type DragPreviewRenderer = (
   draggable: ConnectedDraggable,
-  callback: (node: HTMLElement) => void
+  callback: (node: HTMLElement) => void,
 ) => void;
 
 export type DraggableId = string | number | object;
@@ -29,7 +29,7 @@ export interface ConnectedDraggable<T = any> {
   type: string;
   id: DraggableId;
   getData: () => T;
-  ref: RefObject<HTMLElement>;
+  ref: RefObject<HTMLElement | null>;
 }
 
 // Either draggable from within the app, or file dragged in from the desktop
@@ -40,7 +40,7 @@ interface UseDragProps extends ConnectedDraggable {
   onDragStart?: (e: InteractableEvent, target: ConnectedDraggable) => void;
   onDragMove?: (e: InteractableEvent, target: ConnectedDraggable) => void;
   onDragEnd?: (e: InteractableEvent, target: ConnectedDraggable) => void;
-  preview?: RefObject<DragPreviewRenderer>;
+  preview?: RefObject<DragPreviewRenderer | null>;
   hidePreview?: boolean;
 }
 export function useDraggable({
@@ -51,7 +51,7 @@ export function useDraggable({
   hidePreview,
   ...options
 }: UseDragProps) {
-  const dragHandleRef = useRef<HTMLButtonElement>(null);
+  const dragHandleRef = useRef<any>(null);
   const {addGlobalListener, removeAllGlobalListeners} = useGlobalListeners();
 
   const state = useRef<DragState>({
@@ -88,6 +88,7 @@ export function useDraggable({
   };
 
   const onDragStart = (e: React.DragEvent<HTMLElement>) => {
+    e.stopPropagation();
     const draggable = draggables.get(id);
     const el = ref.current;
     const clickedOnHandle =
@@ -142,6 +143,7 @@ export function useDraggable({
   };
 
   const onDragOver = (e: React.DragEvent<HTMLElement> | DragEvent) => {
+    // don't stop propagation here, otherwise it will prevent the dragover event from being fired when using sortable
     e.preventDefault();
 
     if (!state.currentRect) return;
@@ -168,6 +170,7 @@ export function useDraggable({
   };
 
   const onDragEnd = (e: React.DragEvent<HTMLElement>) => {
+    e.stopPropagation();
     removeAllGlobalListeners();
     if (!state.currentRect) return;
 

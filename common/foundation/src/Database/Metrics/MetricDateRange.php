@@ -5,6 +5,8 @@ namespace Common\Database\Metrics;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Carbon\CarbonPeriod;
+use Carbon\Exceptions\InvalidTimeZoneException;
+use Exception;
 
 class MetricDateRange
 {
@@ -22,35 +24,58 @@ class MetricDateRange
     public CarbonPeriod $period;
 
     public function __construct(
-        string $start = null,
-        string $end = null,
-        string $timezone = null,
-        string $granularity = null,
+        string|null $start = null,
+        string|null $end = null,
+        string|null $timezone = null,
+        string|null $granularity = null,
     ) {
-        $this->start = $start
-            ? CarbonImmutable::parse($start)->timezone($timezone)
-            : CarbonImmutable::today()->startOfWeek();
-        $this->end = $end
-            ? CarbonImmutable::parse($end)->timezone($timezone)
-            : CarbonImmutable::today()->endOfWeek();
-
         $this->timezone = $timezone ?: config('app.timezone');
+
+        $this->start = $this->parseTimestamp(
+            $start,
+            $this->timezone,
+            CarbonImmutable::today()->startOfWeek(),
+        );
+
+        $this->end = $this->parseTimestamp(
+            $end,
+            $this->timezone,
+            CarbonImmutable::today()->endOfWeek(),
+        );
+
         $this->setGranularity($granularity);
 
-        $this->period = CarbonPeriod::create(
-            $this->start,
-            $this->end,
-        );
+        $this->period = CarbonPeriod::create($this->start, $this->end);
         $this->period->setDateInterval(
             CarbonInterval::make(1, $this->granularity),
         );
     }
 
+    protected function parseTimestamp(
+        string|null $timestamp = null,
+        string $timezone,
+        CarbonImmutable $fallback,
+    ): CarbonImmutable {
+        if (!$timestamp) {
+            return $fallback;
+        }
+
+        try {
+            return CarbonImmutable::parse($timestamp)->timezone($timezone);
+        } catch (InvalidTimeZoneException $e) {
+            return $this->parseTimestamp($timestamp, 'UTC', $fallback);
+        } catch (Exception $e) {
+            return $fallback;
+        }
+    }
+
     public function getPreviousPeriod(): self
     {
         return new self(
-            $this->start->sub($this->end->diffAsCarbonInterval($this->start)),
-            $this->start->subSecond(),
+            $this->start->sub($this->start->diffAsCarbonInterval($this->end)),
+            $this->start->addSecond(),
+            $this->timezone,
+            $this->granularity,
         );
     }
 
@@ -64,7 +89,8 @@ class MetricDateRange
         );
     }
 
-    protected function setGranularity(string $granularity = null): void {
+    protected function setGranularity(string $granularity = null): void
+    {
         // set unit specified by user
         if ($granularity) {
             $this->granularity = $granularity;
@@ -89,7 +115,8 @@ class MetricDateRange
     /**
      * Return format by which metric values should be grouped based on granularity.
      */
-    public function getGroupingFormat(): string {
+    public function getGroupingFormat(): string
+    {
         return match ($this->granularity) {
             $this::YEAR => 'Y',
             $this::MONTH => 'Y-m',

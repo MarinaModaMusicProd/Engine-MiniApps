@@ -1,11 +1,13 @@
 <?php
 
+use Common\Database\Traits\AddsIndexToExistingTable;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
+    use AddsIndexToExistingTable;
+
     /**
      * Run the migrations.
      *
@@ -14,14 +16,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table('comments', function (Blueprint $table) {
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $indexesFound = $sm->listTableIndexes('comments');
-            if (!array_key_exists('comments_created_at_index', $indexesFound)) {
-                $table->index('created_at');
-            }
-            if (!array_key_exists('comments_updated_at_index', $indexesFound)) {
-                $table->index('updated_at');
-            }
+            $this->addIndexIfDoesNotExist($table, 'created_at');
+            $this->addIndexIfDoesNotExist($table, 'updated_at');
         });
     }
 
@@ -30,8 +26,5 @@ return new class extends Migration
      *
      * @return void
      */
-    public function down()
-    {
-
-    }
+    public function down() {}
 };

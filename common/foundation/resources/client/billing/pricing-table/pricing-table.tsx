@@ -1,34 +1,32 @@
-import {AnimatePresence, m} from 'framer-motion';
-import {Fragment} from 'react';
-import {opacityAnimation} from '@ui/animation/opacity-animation';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {useProducts} from '@common/billing/pricing-table/use-products';
-import {Product} from '@common/billing/product';
+import {useAuth} from '@common/auth/use-auth';
+import {FormattedPrice} from '@common/billing/formatted-price';
 import {
   findBestPrice,
   UpsellBillingCycle,
 } from '@common/billing/pricing-table/find-best-price';
-import {useAuth} from '@common/auth/use-auth';
-import clsx from 'clsx';
+import {ProductFeatureList} from '@common/billing/pricing-table/product-feature-list';
+import {Product} from '@common/billing/product';
+import {opacityAnimation} from '@ui/animation/opacity-animation';
+import {Button} from '@ui/buttons/button';
 import {Chip} from '@ui/forms/input-field/chip-field/chip';
 import {Trans} from '@ui/i18n/trans';
-import {FormattedPrice} from '@common/billing/formatted-price';
-import {Button} from '@ui/buttons/button';
-import {Link} from 'react-router-dom';
+import {Skeleton} from '@ui/skeleton/skeleton';
 import {setInLocalStorage} from '@ui/utils/hooks/local-storage';
-import {ProductFeatureList} from '@common/billing/pricing-table/product-feature-list';
+import clsx from 'clsx';
+import {AnimatePresence, m} from 'framer-motion';
+import {Fragment} from 'react';
+import {Link} from 'react-router';
 
 interface PricingTableProps {
   selectedCycle: UpsellBillingCycle;
   className?: string;
-  productLoader?: string;
+  products?: Product[];
 }
 export function PricingTable({
   selectedCycle,
   className,
-  productLoader,
+  products,
 }: PricingTableProps) {
-  const query = useProducts(productLoader);
   return (
     <div
       className={clsx(
@@ -37,10 +35,10 @@ export function PricingTable({
       )}
     >
       <AnimatePresence initial={false} mode="wait">
-        {query.data ? (
+        {products ? (
           <PlanList
             key="plan-list"
-            plans={query.data.products}
+            plans={products}
             selectedPeriod={selectedCycle}
           />
         ) : (
@@ -81,7 +79,7 @@ function PlanList({plans, selectedPeriod}: PlanListProps) {
             key={plan.id}
             {...opacityAnimation}
             className={clsx(
-              'w-full rounded-panel border bg px-28 py-28 shadow-lg md:min-w-240 md:max-w-350',
+              'w-full max-w-500 rounded-panel border bg-elevated p-32 shadow',
               isFirst && 'ml-auto',
               isLast && 'mr-auto',
             )}
@@ -134,11 +132,7 @@ function PlanList({plans, selectedPeriod}: PlanListProps) {
                   }}
                   to={upgradeRoute}
                 >
-                  {plan.free ? (
-                    <Trans message="Get started" />
-                  ) : (
-                    <Trans message="Upgrade" />
-                  )}
+                  <SubscribeButtonLabel plan={plan} />
                 </Button>
               </div>
               <ProductFeatureList product={plan} />
@@ -148,6 +142,28 @@ function PlanList({plans, selectedPeriod}: PlanListProps) {
       })}
     </Fragment>
   );
+}
+
+type SubscribeButtonLabelProps = {
+  plan: Product;
+};
+function SubscribeButtonLabel({plan}: SubscribeButtonLabelProps) {
+  const {isLoggedIn} = useAuth();
+  if (plan.free) {
+    return <Trans message="Get started" />;
+  }
+  if (!isLoggedIn) {
+    if (plan.trial_period_days > 0) {
+      return (
+        <Trans
+          message="Free :days day trial"
+          values={{days: plan.trial_period_days}}
+        />
+      );
+    }
+    return <Trans message="Get started" />;
+  }
+  return <Trans message="Upgrade" />;
 }
 
 function SkeletonLoader() {

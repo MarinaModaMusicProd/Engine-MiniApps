@@ -1,17 +1,17 @@
+import {PartialAlbum} from '@app/web-player/albums/album';
+import {userReposts} from '@app/web-player/library/state/reposts-store';
+import {Track} from '@app/web-player/tracks/track';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {useMutation} from '@tanstack/react-query';
 import {apiClient, queryClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
-import {Track} from '@app/web-player/tracks/track';
-import {Album} from '@app/web-player/albums/album';
-import {userReposts} from '@app/web-player/library/state/reposts-store';
+import {useMutation} from '@tanstack/react-query';
 
 interface Response extends BackendResponse {
   action: 'added' | 'removed';
 }
 
 interface Payload {
-  repostable: Track | Album;
+  repostable: Track | PartialAlbum;
 }
 
 export function useToggleRepost() {

@@ -3,6 +3,8 @@
 use App\Traits\OrdersByPopularity;
 use Carbon\Carbon;
 use Common\Core\BaseModel;
+use Common\Files\Actions\SyncFileEntryModels;
+use Common\Files\Traits\HasAttachedFileEntries;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +14,7 @@ use Laravel\Scout\Searchable;
 
 class Artist extends BaseModel
 {
-    use OrdersByPopularity, HasFactory, Searchable;
+    use OrdersByPopularity, HasFactory, Searchable, HasAttachedFileEntries;
 
     const MODEL_TYPE = 'artist';
 
@@ -23,48 +25,16 @@ class Artist extends BaseModel
         'verified' => 'boolean',
     ];
     protected $appends = ['model_type'];
-    protected $guarded = ['id', 'views'];
-    protected $hidden = [
-        'pivot',
-        'spotify_followers',
-        'fully_scraped',
-        'updated_at',
-        'created_at',
-        'spotify_id',
-        'spotify_popularity',
-        'views',
-    ];
+    protected $guarded = [];
 
     public function albums(): BelongsToMany
     {
         return $this->belongsToMany(Album::class, 'artist_album');
     }
 
-    public function topTracks()
-    {
-        return $this->belongsToMany(Track::class)
-            ->withCount('plays')
-            ->orderByPopularity('desc')
-            ->with([
-                'album',
-                'artists' => function (BelongsToMany $builder) {
-                    return $builder->select('artists.name', 'artists.id');
-                },
-            ])
-            ->limit(20);
-    }
-
     public function tracks(): BelongsToMany
     {
-        return $this->belongsToMany(Track::class)
-            ->withCount('plays')
-            ->orderByPopularity('desc')
-            ->with([
-                'album',
-                'artists' => function (BelongsToMany $builder) {
-                    return $builder->select('artists.name', 'artists.id');
-                },
-            ]);
+        return $this->belongsToMany(Track::class);
     }
 
     public function similar()
@@ -74,23 +44,18 @@ class Artist extends BaseModel
             'similar_artists',
             'artist_id',
             'similar_id',
-        )
-            ->select(['artists.id', 'name', 'image_small'])
-            ->orderByPopularity('desc');
+            // sort by original spotify order
+        )->orderBy('similar_artists.id', 'asc');
     }
 
     public function genres(): MorphToMany
     {
-        return $this->morphToMany(Genre::class, 'genreable')->select(
-            'genres.name',
-            'genres.id',
-            'genres.display_name',
-        );
+        return $this->morphToMany(Genre::class, 'genreable');
     }
 
     public function profile(): HasOne
     {
-        return $this->hasOne(UserProfile::class);
+        return $this->hasOne(ProfileDetails::class);
     }
 
     public function profileImages(): HasMany
@@ -119,6 +84,16 @@ class Artist extends BaseModel
             'likeable',
             'likes',
         )->withTimestamps();
+    }
+
+    public function uploadedImage()
+    {
+        return $this->attachedFileEntriesRelation('uploaded_image');
+    }
+
+    public function uploadedProfileImages()
+    {
+        return $this->attachedFileEntriesRelation('uploaded_profile_image');
     }
 
     public function toNormalizedArray(): array

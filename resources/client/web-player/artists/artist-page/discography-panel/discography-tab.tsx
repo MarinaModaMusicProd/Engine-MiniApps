@@ -1,42 +1,49 @@
-import {Artist} from '@app/web-player/artists/artist';
-import {Trans} from '@ui/i18n/trans';
 import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
-import {Link} from 'react-router-dom';
 import {getArtistLink} from '@app/web-player/artists/artist-link';
-import {TopTracksTable} from '@app/web-player/artists/artist-page/discography-panel/top-tracks-table';
-import {ArtistAlbumsList} from '@app/web-player/artists/artist-page/discography-panel/artist-albums-list';
-import {IconButton} from '@ui/buttons/icon-button';
-import {ViewAgendaIcon} from '@ui/icons/material/ViewAgenda';
-import {GridViewIcon} from '@ui/icons/material/GridView';
-import {ArtistAlbumsGrid} from '@app/web-player/artists/artist-page/discography-panel/artist-albums-grid';
-import {Tooltip} from '@ui/tooltip/tooltip';
 import {
   albumGridViewPerPage,
   albumListViewPerPage,
-} from '@app/web-player/artists/requests/use-artist-albums';
-import {useSettings} from '@ui/settings/use-settings';
-import {AdHost} from '@common/admin/ads/ad-host';
-import React from 'react';
+  AlbumsViewMode,
+} from '@app/web-player/artists/artist-page/discography-panel/albums-view-mode';
+import {DiscographyAlbumsGrid} from '@app/web-player/artists/artist-page/discography-panel/discography-albums-grid';
+import {DiscographyAlbumsList} from '@app/web-player/artists/artist-page/discography-panel/discography-albums-list';
+import {TopTracksTable} from '@app/web-player/artists/artist-page/discography-panel/top-tracks-table';
 import {
-  albumLayoutKey,
-  UseArtistResponse,
-} from '@app/web-player/artists/requests/use-artist';
+  albumViewModeKey,
+  GetArtistResponse,
+} from '@app/web-player/artists/requests/get-artist-response';
+import {AdHost} from '@common/admin/ads/ad-host';
+import {useShowGlobalLoadingBar} from '@common/core/use-show-global-loading-bar';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
+import {GridViewIcon} from '@ui/icons/material/GridView';
+import {ViewAgendaIcon} from '@ui/icons/material/ViewAgenda';
+import {useSettings} from '@ui/settings/use-settings';
+import {Tooltip} from '@ui/tooltip/tooltip';
 import {useCookie} from '@ui/utils/hooks/use-cookie';
+import {useTransition} from 'react';
+import {Link} from 'react-router';
 
 interface DiscographyTabProps {
-  data: UseArtistResponse;
+  data: GetArtistResponse;
 }
-export function DiscographyTab({
-  data: {artist, albums, selectedAlbumLayout},
-}: DiscographyTabProps) {
+export function DiscographyTab({data}: DiscographyTabProps) {
+  const {selectedAlbumViewMode, albums, artist} = data;
+  const [isPending, startTransition] = useTransition();
   const {player} = useSettings();
-  const [viewMode, setViewMode] = useCookie(
-    albumLayoutKey,
-    selectedAlbumLayout || player?.default_artist_view || 'list',
+  const [viewMode, setViewModeCookie] = useCookie(
+    albumViewModeKey,
+    selectedAlbumViewMode || player?.default_artist_view || 'list',
   );
+  const setViewMode = (viewMode: AlbumsViewMode) => {
+    startTransition(() => setViewModeCookie(viewMode));
+  };
+
+  useShowGlobalLoadingBar({isLoading: isPending});
+
   return (
     <div>
-      <Header artist={artist} />
+      <Header data={data} />
       <AdHost slot="artist_bottom" className="mt-34" />
       <div className="mt-44">
         <div className="mb-30 flex items-center border-b pb-4 text-muted">
@@ -63,14 +70,14 @@ export function DiscographyTab({
           </Tooltip>
         </div>
         {viewMode === 'list' ? (
-          <ArtistAlbumsList
+          <DiscographyAlbumsList
             artist={artist}
             initialAlbums={
               albums?.per_page === albumListViewPerPage ? albums : null
             }
           />
         ) : (
-          <ArtistAlbumsGrid
+          <DiscographyAlbumsGrid
             artist={artist}
             initialAlbums={
               albums?.per_page === albumGridViewPerPage ? albums : null
@@ -83,15 +90,15 @@ export function DiscographyTab({
 }
 
 interface HeaderProps {
-  artist: Artist;
+  data: GetArtistResponse;
 }
-function Header({artist}: HeaderProps) {
-  if (!artist.top_tracks?.length) return null;
-  const similarArtists = artist.similar?.slice(0, 4) || [];
+function Header({data}: HeaderProps) {
+  if (!data.top_tracks?.length) return null;
+  const similarArtists = data.artist.similar?.slice(0, 5) || [];
 
   return (
     <div className="flex items-start gap-30">
-      <TopTracksTable tracks={artist.top_tracks} />
+      <TopTracksTable tracks={data.top_tracks} />
       {similarArtists.length ? (
         <div className="w-1/3 max-w-320 max-md:hidden">
           <h2 className="my-16 text-base text-muted">

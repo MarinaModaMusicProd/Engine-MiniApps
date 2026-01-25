@@ -1,35 +1,37 @@
-import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {User} from '@ui/types/user';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {toast} from '@ui/toast/toast';
-import {apiClient, queryClient} from '@common/http/query-client';
+import {UpdateUserPageUser} from '@common/admin/users/update-user-page/update-user-page-user';
 import {onFormQueryError} from '@common/errors/on-form-query-error';
-import {message} from '@ui/i18n/message';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
+import {User} from '@ui/types/user';
+import {UseFormReturn} from 'react-hook-form';
 
 interface Response extends BackendResponse {
   user: User;
 }
 
 export interface UpdateUserPayload
-  extends Omit<Partial<User>, 'email_verified_at'> {
+  extends Omit<Partial<UpdateUserPageUser>, 'email_verified_at'> {
   email_verified_at?: boolean;
 }
 
 export function useUpdateUser(
   userId: number,
-  form: UseFormReturn<UpdateUserPayload>,
+  form?: UseFormReturn<UpdateUserPayload>,
 ) {
   const navigate = useNavigate();
   return useMutation({
     mutationFn: (payload: UpdateUserPayload) => updateUser(userId, payload),
-    onSuccess: (response, props) => {
+    onSuccess: () => {
       toast(message('User updated'));
       queryClient.invalidateQueries({queryKey: ['users']});
-      navigate('/admin/users');
+      navigate('../..', {relative: 'path'});
     },
-    onError: r => onFormQueryError(r, form),
+    onError: r => (form ? onFormQueryError(r, form) : showHttpErrorToast(r)),
   });
 }
 

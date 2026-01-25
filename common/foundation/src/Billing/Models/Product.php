@@ -6,16 +6,13 @@ use Common\Auth\Permissions\Traits\HasPermissionsRelation;
 use Common\Billing\Subscription;
 use Common\Billing\Models\Price;
 use Common\Core\BaseModel;
-use Common\Files\Traits\SetsAvailableSpaceAttribute;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends BaseModel
 {
-    use HasFactory,
-        HasPermissionsRelation,
-        SetsAvailableSpaceAttribute;
+    use HasFactory, HasPermissionsRelation;
 
     protected $guarded = ['id'];
 
@@ -23,7 +20,7 @@ class Product extends BaseModel
         'free' => 'bool',
         'recommended' => 'bool',
         'position' => 'int',
-        'available_space' => 'float',
+        'trial_period_days' => 'int',
         'hidden' => 'boolean',
     ];
 
@@ -89,6 +86,6 @@ class Product extends BaseModel
 
     public static function getModelTypeAttribute(): string
     {
-       return static::MODEL_TYPE;
+        return static::MODEL_TYPE;
     }
 }

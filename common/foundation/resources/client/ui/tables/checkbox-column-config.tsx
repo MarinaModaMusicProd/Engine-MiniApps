@@ -1,10 +1,10 @@
 import {ColumnConfig} from '@common/datatable/column-config';
+import {TableContext} from '@common/ui/tables/table-context';
 import {TableDataItem} from '@common/ui/tables/types/table-data-item';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import React, {useContext} from 'react';
 import {Checkbox} from '@ui/forms/toggle/checkbox';
 import {useTrans} from '@ui/i18n/use-trans';
-import {TableContext} from '@common/ui/tables/table-context';
+import {Skeleton} from '@ui/skeleton/skeleton';
+import {useContext} from 'react';
 
 export const CheckboxColumnConfig: ColumnConfig<TableDataItem> = {
   key: 'checkbox',

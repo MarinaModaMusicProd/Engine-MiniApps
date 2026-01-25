@@ -1,9 +1,9 @@
 import {DateValue, parseAbsolute} from '@internationalized/date';
-import {Fragment, memo} from 'react';
 import {useDateFormatter} from '@ui/i18n/use-date-formatter';
-import {shallowEqual} from '@ui/utils/shallow-equal';
-import {useSettings} from '@ui/settings/use-settings';
 import {useUserTimezone} from '@ui/i18n/use-user-timezone';
+import {useSettings} from '@ui/settings/use-settings';
+import {shallowEqual} from '@ui/utils/shallow-equal';
+import {Fragment, memo} from 'react';
 
 export const DateFormatPresets: Record<
   'numeric' | 'short' | 'long' | 'timestamp' | 'time',
@@ -27,7 +27,7 @@ export const DateFormatPresets: Record<
 };
 
 interface FormattedDateProps {
-  date?: string | DateValue | Date;
+  date?: string | DateValue | Date | null;
   options?: Intl.DateTimeFormatOptions;
   preset?: keyof typeof DateFormatPresets;
   timezone?: string;
@@ -38,12 +38,19 @@ export const FormattedDate = memo(
     const {dates} = useSettings();
     const userTimezone = useUserTimezone();
     const timezone = propsTimezone || options?.timeZone || userTimezone;
-    const formatter = useDateFormatter(
+
+    const formatterOptions: Intl.DateTimeFormatOptions =
       options ||
-        (DateFormatPresets as Record<string, Intl.DateTimeFormatOptions>)[
-          preset || dates?.format
-        ],
-    );
+      (DateFormatPresets as Record<string, Intl.DateTimeFormatOptions>)[
+        preset || dates?.format || 'short'
+      ] ||
+      {};
+
+    if (!formatterOptions.timeZone) {
+      formatterOptions.timeZone = timezone;
+    }
+
+    const formatter = useDateFormatter(formatterOptions);
 
     if (!date) {
       return null;

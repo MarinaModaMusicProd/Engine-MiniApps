@@ -1,7 +1,7 @@
 import {DateFormatter} from '@internationalized/date';
-import {useMemo, useRef} from 'react';
 import {useSelectedLocale} from '@ui/i18n/selected-locale';
 import {shallowEqual} from '@ui/utils/shallow-equal';
+import {useMemo, useRef} from 'react';
 
 export function useDateFormatter(
   options?: Intl.DateTimeFormatOptions,

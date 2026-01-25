@@ -1,9 +1,10 @@
-import React from 'react';
-import {RouteObject} from 'react-router-dom';
-import {AuthRoute} from '../auth/guards/auth-route';
-import {NotificationsPage} from './notifications-page';
-import {NotificationSettingsPage} from './subscriptions/notification-settings-page';
+import {queryClient} from '@common/http/query-client';
+import {notificationSubscriptionsQueryOptions} from '@common/notifications/subscriptions/requests/notification-subscriptions';
+import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {replace, RouteObject} from 'react-router';
+import {authGuard, AuthRoute} from '../auth/guards/auth-route';
 import {ActiveWorkspaceProvider} from '../workspace/active-workspace-id-context';
+import {NotificationsPage} from './notifications-page';
 
 export const notificationRoutes: RouteObject[] = [
   {
@@ -18,10 +19,17 @@ export const notificationRoutes: RouteObject[] = [
   },
   {
     path: '/notifications/settings',
-    element: (
-      <AuthRoute>
-        <NotificationSettingsPage />
-      </AuthRoute>
-    ),
+    loader: () => {
+      const redirect = authGuard();
+      if (redirect) return redirect;
+
+      if (!getBootstrapData()?.settings.notif.subs.integrated) {
+        return replace('/');
+      }
+
+      return queryClient.ensureQueryData(notificationSubscriptionsQueryOptions);
+    },
+    lazy: () =>
+      import('@common/notifications/subscriptions/notification-settings-page'),
   },
 ];

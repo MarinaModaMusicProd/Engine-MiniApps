@@ -1,82 +1,121 @@
-import {DataTablePage} from '@common/datatable/page/data-table-page';
-import {Trans} from '@ui/i18n/trans';
-import {DataTableEmptyStateMessage} from '@common/datatable/page/data-table-emty-state-message';
-import React, {Fragment, useEffect, useRef, useState} from 'react';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
 import bugFixingImage from '@common/admin/logging/error/bug-fixing.svg';
-import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
-import {DownloadIcon} from '@ui/icons/material/Download';
 import {ErrorLogDatatableColumns} from '@common/admin/logging/error/error-log-datatable-columns';
-import {closeDialog, openDialog} from '@ui/overlays/store/dialog-store';
-import {ErrorLogEntryDialog} from '@common/admin/logging/error/error-log-entry-dialog';
-import {useDataTable} from '@common/datatable/page/data-table-context';
-import {Select} from '@ui/forms/select/select';
-import {Item} from '@ui/forms/listbox/item';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {ErrorLogItem} from '@common/admin/logging/error/error-log-item';
-import {Button} from '@ui/buttons/button';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {
+  ErrorLogItem,
+  ErrorLogsPageData,
+} from '@common/admin/logging/error/error-log-item';
 import {useDeleteErrorLog} from '@common/admin/logging/error/use-delete-error-log';
+import {validateErrorLogDatatableSearch} from '@common/admin/logging/error/validate-error-log-datatable-search';
+import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
+import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
+import {DataTableHeader} from '@common/datatable/data-table-header';
+import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
+import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
+import {DataTableEmptyStateMessage} from '@common/datatable/page/data-table-emty-state-message';
+import {
+  DatatablePageScrollContainer,
+  DatatablePageWithHeaderBody,
+  DatatablePageWithHeaderLayout,
+} from '@common/datatable/page/datatable-page-with-header-layout';
+import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
+import {Table} from '@common/ui/tables/table';
+import {Button} from '@ui/buttons/button';
+import {Item} from '@ui/forms/listbox/item';
+import {Select} from '@ui/forms/select/select';
 import {FormattedBytes} from '@ui/i18n/formatted-bytes';
+import {Trans} from '@ui/i18n/trans';
+import {DownloadIcon} from '@ui/icons/material/Download';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {closeDialog, openDialog} from '@ui/overlays/store/dialog-store';
+import {Skeleton} from '@ui/skeleton/skeleton';
+import {Fragment, useEffect, useRef, useState} from 'react';
 
-interface ErrorLogFile {
-  name: string;
-  identifier: string;
-  size: number;
-}
+type ErrorLogFile = ErrorLogsPageData['files'][number];
 
-export function ErrorLogDatatable() {
+export function Component() {
+  const {
+    searchParams,
+    sortDescriptor,
+    mergeIntoSearchParams,
+    setSearchQuery,
+    isFiltering,
+  } = useDatatableSearchParams(validateErrorLogDatatableSearch);
+
+  const query = useDatatableQuery({
+    ...commonAdminQueries.logs.error(searchParams),
+  } as any);
+
   return (
-    <DataTablePage
-      padding="pt-12 md:pt-24"
-      endpoint="logs/error"
-      title={<Trans message="Error log" />}
-      onRowAction={item => {
-        openDialog(ErrorLogEntryDialog, {error: item});
-      }}
-      columns={ErrorLogDatatableColumns}
-      actions={<Actions />}
-      enableSelection={false}
-      emptyStateMessage={
-        <DataTableEmptyStateMessage
-          image={bugFixingImage}
-          title={<Trans message="No errors have been logged yet" />}
-          filteringTitle={<Trans message="No matching error log entries" />}
+    <DatatablePageWithHeaderLayout>
+      <GlobalLoadingProgress query={query} />
+      <DatatablePageWithHeaderBody>
+        <DataTableHeader
+          searchValue={searchParams.query}
+          onSearchChange={setSearchQuery}
+          actions={
+            <Actions
+              data={query.data as ErrorLogsPageData}
+              onParamsChange={mergeIntoSearchParams}
+            />
+          }
         />
-      }
-    />
+        <DatatablePageScrollContainer>
+          <Table
+            columns={ErrorLogDatatableColumns}
+            data={query.items as ErrorLogItem[]}
+            sortDescriptor={sortDescriptor}
+            onSortChange={mergeIntoSearchParams}
+            enableSelection={false}
+          />
+          {query.isEmpty && (
+            <DataTableEmptyStateMessage
+              isFiltering={isFiltering}
+              image={bugFixingImage}
+              title={<Trans message="No errors have been logged yet" />}
+              filteringTitle={<Trans message="No matching error log entries" />}
+            />
+          )}
+          <DataTablePaginationFooter
+            query={query}
+            onPageChange={page => mergeIntoSearchParams({page})}
+            onPerPageChange={perPage => mergeIntoSearchParams({perPage})}
+          />
+        </DatatablePageScrollContainer>
+      </DatatablePageWithHeaderBody>
+    </DatatablePageWithHeaderLayout>
   );
 }
 
-function Actions() {
-  const {query, setParams} = useDataTable<
-    ErrorLogItem,
-    {files: ErrorLogFile[]; selectedFile?: string}
-  >();
-
+interface ActionsProps {
+  data: ErrorLogsPageData;
+  onParamsChange: (params: Record<string, string>) => void;
+}
+function Actions({data, onParamsChange}: ActionsProps) {
   const setOnce = useRef(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   // set initial selected file once files are loaded
   useEffect(() => {
-    if (query.data?.files?.length && !setOnce.current) {
+    if (data.files.length && !setOnce.current) {
       setOnce.current = true;
-      const firstFile = query.data.files[0].identifier;
-      setSelectedFile(query.data.files[0].identifier);
+      const firstFile = data.files[0].identifier;
+      setSelectedFile(firstFile);
       // prevent unnecessary http call
-      if (firstFile !== query.data.selectedFile) {
-        setParams({file: query.data.files[0].identifier});
+      if (firstFile !== data.selectedFile) {
+        onParamsChange({file: firstFile});
       }
     }
-  }, [query.data, setParams, setOnce]);
+  }, [data, onParamsChange, setOnce]);
 
   return (
     <Fragment>
       <FileSelector
-        files={query.data?.files ?? null}
+        files={data.files ?? null}
         selectedFile={selectedFile}
         onSelected={file => {
           setSelectedFile(file.identifier);
-          setParams({file: file.identifier});
+          onParamsChange({file: file.identifier});
         }}
       />
       <Button
@@ -92,9 +131,7 @@ function Actions() {
       {selectedFile && (
         <DataTableAddItemButton
           elementType="a"
-          download={
-            query.data?.files.find(f => f.identifier === selectedFile)?.name
-          }
+          download={data.files.find(f => f.identifier === selectedFile)?.name}
           href={`api/v1/logs/error/${selectedFile}/download`}
           icon={<DownloadIcon />}
         >
@@ -123,6 +160,7 @@ function FileSelector({files, selectedFile, onSelected}: FileSelectorProps) {
 
   return (
     <Select
+      appearance="dropdown"
       selectionMode="single"
       selectedValue={selectedFile}
       size="sm"

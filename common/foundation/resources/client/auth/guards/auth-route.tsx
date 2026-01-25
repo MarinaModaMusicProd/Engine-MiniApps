@@ -1,10 +1,9 @@
-import {ReactElement} from 'react';
-import {Navigate, Outlet} from 'react-router-dom';
-import {auth, useAuth} from '../use-auth';
 import {NotFoundPage} from '@common/ui/not-found-page/not-found-page';
-import {useSettings} from '@ui/settings/use-settings';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
-import {replace} from '@remix-run/router/utils';
+import {useSettings} from '@ui/settings/use-settings';
+import {ReactElement} from 'react';
+import {Navigate, Outlet, redirect} from 'react-router';
+import {auth, useAuth} from '../use-auth';
 
 interface Props {
   children?: ReactElement;
@@ -46,10 +45,10 @@ export function authGuard({
   ) {
     if (auth.isLoggedIn) {
       return billingEnabled && !auth.isSubscribed
-        ? replace('/pricing')
-        : replace('/404');
+        ? redirect('/pricing')
+        : redirect('/404');
     }
-    return replace('/login');
+    return redirect('/login');
   }
 
   return null;

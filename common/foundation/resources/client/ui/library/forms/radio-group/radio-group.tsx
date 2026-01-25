@@ -1,3 +1,5 @@
+import {InputSize} from '@ui/forms/input-field/input-size';
+import clsx from 'clsx';
 import {
   Children,
   cloneElement,
@@ -6,24 +8,26 @@ import {
   ReactNode,
   useId,
 } from 'react';
-import clsx from 'clsx';
 import {useController} from 'react-hook-form';
+import {getInputFieldClassNames} from '../input-field/get-input-field-class-names';
 import {Orientation} from '../orientation';
 import {RadioProps} from './radio';
-import {getInputFieldClassNames} from '../input-field/get-input-field-class-names';
 
 export interface RadioGroupProps {
   children: ReactNode;
   orientation?: Orientation;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: InputSize;
   className?: string;
   label?: ReactNode;
+  wrapLabel?: boolean;
   disabled?: boolean;
   name?: string;
   errorMessage?: ReactNode;
   description?: ReactNode;
   invalid?: boolean;
   required?: boolean;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 export const RadioGroup = forwardRef<HTMLFieldSetElement, RadioGroupProps>(
   (props, ref) => {
@@ -39,6 +43,8 @@ export const RadioGroup = forwardRef<HTMLFieldSetElement, RadioGroupProps>(
       invalid,
       errorMessage,
       description,
+      value,
+      onChange: groupOnChange,
     } = props;
 
     const labelProps = {};
@@ -61,7 +67,7 @@ export const RadioGroup = forwardRef<HTMLFieldSetElement, RadioGroupProps>(
             'flex',
             label ? 'mt-6' : 'mt-0',
             orientation === 'vertical'
-              ? 'flex-col gap-10'
+              ? 'flex-col gap-8'
               : 'flex-row flex-wrap gap-16',
           )}
         >
@@ -73,6 +79,13 @@ export const RadioGroup = forwardRef<HTMLFieldSetElement, RadioGroupProps>(
                 invalid: child.props.invalid || invalid || undefined,
                 disabled: child.props.disabled || disabled,
                 required: child.props.required || required,
+                checked:
+                  value !== undefined ? value === child.props.value : undefined,
+                onChange: child.props.onChange
+                  ? child.props.onChange
+                  : groupOnChange
+                    ? e => groupOnChange(e.target.value)
+                    : undefined,
               });
             }
           })}

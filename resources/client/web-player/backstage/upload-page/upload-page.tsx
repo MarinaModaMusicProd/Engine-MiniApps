@@ -1,33 +1,33 @@
-import {Trans} from '@ui/i18n/trans';
-import {Button} from '@ui/buttons/button';
-import {Switch} from '@ui/forms/toggle/switch';
-import {ComponentPropsWithoutRef, ReactNode, useRef, useState} from 'react';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {Link} from 'react-router-dom';
-import {LinkStyle} from '@ui/buttons/external-link';
-import {Track} from '@app/web-player/tracks/track';
-import {Album} from '@app/web-player/albums/album';
+import {FullAlbum} from '@app/web-player/albums/album';
+import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
 import {AlbumUploader} from '@app/web-player/backstage/upload-page/album-uploader';
+import {DropTargetMask} from '@app/web-player/backstage/upload-page/drop-tarket-mask';
 import {TracksUploader} from '@app/web-player/backstage/upload-page/tracks-uploader';
 import {UploadedMediaPreview} from '@app/web-player/backstage/upload-page/uploaded-media-preview';
-import {
-  NativeFileDraggable,
-  useDroppable,
-} from '@ui/interactions/dnd/use-droppable';
-import {DropTargetMask} from '@app/web-player/backstage/upload-page/drop-tarket-mask';
 import {useTrackUploader} from '@app/web-player/backstage/upload-page/use-track-uploader';
 import {
   resetMinutesLimitQuery,
   useUserMinutesLimit,
 } from '@app/web-player/backstage/upload-page/use-user-minutes-limit';
-import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
+import {Track} from '@app/web-player/tracks/track';
+import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {Button} from '@ui/buttons/button';
+import {LinkStyle} from '@ui/buttons/external-link';
+import {Switch} from '@ui/forms/toggle/switch';
+import {Trans} from '@ui/i18n/trans';
+import {
+  NativeFileDraggable,
+  useDroppable,
+} from '@ui/interactions/dnd/use-droppable';
+import {ComponentPropsWithoutRef, ReactNode, useRef, useState} from 'react';
+import {Link} from 'react-router';
 
 type UploadMode = 'album' | 'tracks';
 
 export interface UploaderProps {
   onUploadStart: () => void;
   onCancel: () => void;
-  onCreate: (item: Track | Album) => void;
+  onCreate: (item: Track | FullAlbum) => void;
 }
 
 export type UploaderActions = ReturnType<typeof useTrackUploader>;
@@ -35,7 +35,7 @@ export type UploaderActions = ReturnType<typeof useTrackUploader>;
 interface Props {
   backstageLayout?: boolean;
 }
-export function UploadPage({backstageLayout = false}: Props) {
+export function Component({backstageLayout = false}: Props) {
   return (
     <FileUploadProvider>
       <Content backstageLayout={backstageLayout} />
@@ -50,7 +50,7 @@ function Content({backstageLayout}: Props) {
   const uploaderRef = useRef<UploaderActions>(null);
   const Uploader = uploadMode === 'tracks' ? TracksUploader : AlbumUploader;
 
-  const [createdItems, setCreatedItems] = useState<(Album | Track)[]>([]);
+  const [createdItems, setCreatedItems] = useState<(FullAlbum | Track)[]>([]);
 
   const ref = useRef<HTMLDivElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -114,7 +114,7 @@ function UploadPanel({
   const {data} = useUserMinutesLimit();
   return (
     <div className="pt-40">
-      <div className="mx-auto flex max-w-580 flex-col items-center rounded border bg-paper p-20 md:p-48">
+      <div className="mx-auto flex max-w-580 flex-col items-center rounded-panel border bg-elevated p-20 md:p-48">
         <h1 className="text-base md:text-[22px] md:font-light">
           <Trans message="Drag and drop your tracks, videos & albums here." />
         </h1>
@@ -168,5 +168,5 @@ function DefaultWrapper({children, ...domProps}: DefaultWrapperProps) {
 }
 
 export function BackstageUploadPage() {
-  return <UploadPage backstageLayout />;
+  return <Component backstageLayout />;
 }

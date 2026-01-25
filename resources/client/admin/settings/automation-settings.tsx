@@ -1,36 +1,21 @@
-import {FormSelect} from '@ui/forms/select/select';
-import {Trans} from '@ui/i18n/trans';
-import {useForm, useFormContext} from 'react-hook-form';
-import {Item} from '@ui/forms/listbox/item';
-import React, {Fragment} from 'react';
-import {FormSwitch} from '@ui/forms/toggle/switch';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {
-  AdminSettingsForm,
-  AdminSettingsLayout,
-} from '@common/admin/settings/form/admin-settings-form';
+import {AdminDocsUrls} from '@app/admin/admin-config';
 import {AdminSettings} from '@common/admin/settings/admin-settings';
-import {AdminSettingsWithFiles} from '@common/admin/settings/requests/use-update-admin-settings';
-import {SettingsErrorGroup} from '@common/admin/settings/form/settings-error-group';
-import {LearnMoreLink} from '@common/admin/settings/form/learn-more-link';
+import {SettingsErrorGroup} from '@common/admin/settings/layout/settings-error-group';
+import {AdminSettingsLayout} from '@common/admin/settings/layout/settings-layout';
+import {DocsLink} from '@common/admin/settings/layout/settings-links';
+import {SettingsPanel} from '@common/admin/settings/layout/settings-panel';
+import {useAdminSettings} from '@common/admin/settings/requests/use-admin-settings';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {Item} from '@ui/forms/listbox/item';
+import {FormSelect} from '@ui/forms/select/select';
+import {FormSwitch} from '@ui/forms/toggle/switch';
+import {Trans} from '@ui/i18n/trans';
+import {getLanguageList} from '@ui/utils/intl/languages';
+import {Fragment} from 'react';
+import {useForm, useFormContext} from 'react-hook-form';
 
-export function AutomationSettings() {
-  return (
-    <AdminSettingsLayout
-      title={<Trans message="Content automation" />}
-      description={
-        <Trans message="Select and configure providers that will be used to automatically import artist, album, track and other content." />
-      }
-    >
-      {data => <Form data={data} />}
-    </AdminSettingsLayout>
-  );
-}
-
-interface FormProps {
-  data: AdminSettings;
-}
-function Form({data}: FormProps) {
+export function Component() {
+  const {data} = useAdminSettings();
   const form = useForm<AdminSettings>({
     defaultValues: {
       client: {
@@ -52,38 +37,81 @@ function Form({data}: FormProps) {
   });
 
   return (
-    <AdminSettingsForm form={form}>
-      <div className="mb-20 border-b">
-        <FormSwitch
-          className="mb-24"
-          name="client.artist_provider"
-          value="spotify"
-          description={
-            <Trans message="This will automatically import, and periodically update, all metadata available on spotify about the artist when user visits that artist's page." />
-          }
-        >
-          <Trans message="Artist automation" />
-        </FormSwitch>
-        <WikipediaFields />
-      </div>
+    <AdminSettingsLayout
+      form={form}
+      title={<Trans message="Content automation" />}
+      docsLink={AdminDocsUrls.settings.automation}
+    >
+      <ArtistAutomationSection />
+      <AlbumAutomationSection />
+      <SearchProviderSection />
+      <LyricsAutomationSection />
+      <SpotifyCredentialsSection />
+    </AdminSettingsLayout>
+  );
+}
+
+function ArtistAutomationSection() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Artist Automation" />}
+      description={
+        <Trans message="Configure automatic import and updates of artist metadata and biographies." />
+      }
+    >
       <FormSwitch
-        className="mb-24"
+        size="sm"
+        name="client.artist_provider"
+        value="spotify"
+        description={
+          <Trans message="This will automatically import, and periodically update, all metadata available on spotify about the artist when user visits that artist's page." />
+        }
+      >
+        <Trans message="Enable artist automation" />
+      </FormSwitch>
+      <WikipediaFields />
+    </SettingsPanel>
+  );
+}
+
+function AlbumAutomationSection() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Album Automation" />}
+      description={
+        <Trans message="Configure automatic import and updates of album metadata." />
+      }
+    >
+      <FormSwitch
+        size="sm"
         name="client.album_provider"
         value="spotify"
         description={
-          <Trans message="This will automatically import, and periodically update, all metadata available on spotify about an when user visits that album's page." />
+          <Trans message="This will automatically import, and periodically update, all metadata available on spotify about an album when user visits that album's page." />
         }
       >
-        <Trans message="Album automation" />
+        <Trans message="Enable album automation" />
       </FormSwitch>
+    </SettingsPanel>
+  );
+}
+
+function SearchProviderSection() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Search Provider" />}
+      description={
+        <Trans message="Configure which method should be used for user facing search in the web player." />
+      }
+    >
       <FormSelect
-        className="mb-24"
+        size="sm"
         name="client.search_provider"
         selectionMode="single"
         label={<Trans message="Search method" />}
-        description={
-          <Trans message="Which method should be used for user facing search in the web player." />
-        }
       >
         <Item
           value="spotify"
@@ -110,33 +138,44 @@ function Form({data}: FormProps) {
           <Trans message="Local and spotify" />
         </Item>
       </FormSelect>
-      <SpotifyFields />
+    </SettingsPanel>
+  );
+}
+
+function LyricsAutomationSection() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Lyrics Automation" />}
+      description={
+        <Trans message="Configure automatic lyrics import for tracks." />
+      }
+    >
       <FormSwitch
-        className="mb-24"
+        size="sm"
         name="client.player.lyrics_automate"
         value="spotify"
         description={
           <Trans message="Try to automatically find and import lyrics based on song and artist name. Lyrics can still be added manually, if this is disabled." />
         }
       >
-        <Trans message="Lyrics automation" />
+        <Trans message="Enable lyrics automation" />
       </FormSwitch>
-    </AdminSettingsForm>
+    </SettingsPanel>
   );
 }
 
 function WikipediaFields() {
-  const {watch} = useFormContext<AdminSettingsWithFiles>();
+  const languages = getLanguageList();
+  const {watch} = useFormContext<AdminSettings>();
   return (
-    <Fragment>
+    <div className="mt-24 flex gap-12">
       <FormSelect
-        className="mb-24"
+        size="sm"
+        className="flex-1"
         name="client.artist_bio_provider"
         selectionMode="single"
         label={<Trans message="Artist biography provider" />}
-        description={
-          <Trans message="Which method should be used for user facing search in the web player." />
-        }
       >
         <Item
           value="wikipedia"
@@ -156,23 +195,27 @@ function WikipediaFields() {
         </Item>
       </FormSelect>
       {watch('client.artist_bio_provider') === 'wikipedia' && (
-        <FormTextField
-          className="mb-24"
-          minLength={2}
-          maxLength={2}
+        <FormSelect
+          size="sm"
           name="client.wikipedia_language"
-          label={<Trans message="Wikipedia language" />}
-          description={
-            <Trans message="ISO 639-1 (two letter) language code." />
-          }
-        />
+          className="flex-1"
+          label={<Trans message="Language" />}
+          selectionMode="single"
+          showSearchField
+        >
+          {languages.map(language => (
+            <Item value={language.code} key={language.code}>
+              {language.name}
+            </Item>
+          ))}
+        </FormSelect>
       )}
-    </Fragment>
+    </div>
   );
 }
 
-function SpotifyFields() {
-  const {watch: w} = useFormContext<AdminSettingsWithFiles>();
+function SpotifyCredentialsSection() {
+  const {watch: w} = useFormContext<AdminSettings>();
   const shouldShow = [
     w('client.artist_provider'),
     w('client.album_provider'),
@@ -184,37 +227,47 @@ function SpotifyFields() {
   }
 
   return (
-    <Fragment>
-      <SettingsErrorGroup name="spotify_group">
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="API Credentials" />}
+      description={
+        <Trans message="Configure API credentials for external services used by automation features." />
+      }
+      link={
+        <DocsLink link="https://support.vebto.com/hc/articles/28/34/165/spotify-credentials" />
+      }
+    >
+      <SettingsErrorGroup
+        name="spotify_group"
+        separatorBottom={false}
+        separatorTop={false}
+      >
         {isInvalid => (
           <Fragment>
             <FormTextField
+              size="sm"
               invalid={isInvalid}
               name="server.spotify_id"
               label={<Trans message="Spotify ID" />}
-              className="mb-24"
               required
             />
             <FormTextField
+              size="sm"
+              className="mt-24"
               invalid={isInvalid}
               name="server.spotify_secret"
               label={<Trans message="Spotify secret" />}
               required
-              description={
-                <LearnMoreLink link="https://support.MarinaModa.com/help-center/articles/28/34/165/spotify-credentials" />
-              }
+            />
+            <FormTextField
+              size="sm"
+              className="mt-24"
+              name="server.lastfm_api_key"
+              label={<Trans message="LastFM Api Key" />}
             />
           </Fragment>
         )}
       </SettingsErrorGroup>
-      <FormTextField
-        className="mb-24"
-        name="server.lastfm_api_key"
-        label={<Trans message="LastFM Api Key" />}
-        description={
-          <LearnMoreLink link="https://support.MarinaModa.com/help-center/articles/28/34/166/lastfm-credentials" />
-        }
-      />
-    </Fragment>
+    </SettingsPanel>
   );
 }

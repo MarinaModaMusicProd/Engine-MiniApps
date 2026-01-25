@@ -1,20 +1,21 @@
-import React, {ReactNode} from 'react';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {Trans} from '@ui/i18n/trans';
-import {FormImageSelector} from '@common/uploads/components/image-selector';
-import {FormArtistPicker} from '@app/web-player/artists/artist-picker/form-artist-picker';
-import {FormNormalizedModelChipField} from '@common/tags/form-normalized-model-chip-field';
-import {useTrans} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
-import {TAG_MODEL} from '@common/tags/tag';
-import {GENRE_MODEL} from '@app/web-player/genres/genre';
-import {useFormContext} from 'react-hook-form';
 import {CreateTrackPayload} from '@app/admin/tracks-datatable-page/requests/use-create-track';
-import {FormattedDuration} from '@ui/i18n/formatted-duration';
-import {useSettings} from '@ui/settings/use-settings';
 import {TrackFormUploadButton} from '@app/admin/tracks-datatable-page/track-form/track-form-upload-button';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {UploadType} from '@app/site-config';
+import {FormArtistPicker} from '@app/web-player/artists/artist-picker/form-artist-picker';
+import {GENRE_MODEL} from '@app/web-player/genres/genre';
+import {FormNormalizedModelChipField} from '@common/tags/form-normalized-model-chip-field';
+import {TAG_MODEL} from '@common/tags/tag';
 import {FormNormalizedModelField} from '@common/ui/normalized-model/normalized-model-field';
+import {FormImageSelector} from '@common/uploads/components/image-selector';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {FormattedDuration} from '@ui/i18n/formatted-duration';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {useSettings} from '@ui/settings/use-settings';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {ReactNode} from 'react';
+import {useFormContext} from 'react-hook-form';
 
 interface TrackFormProps {
   showExternalIdFields?: boolean;
@@ -34,7 +35,7 @@ export function TrackForm({
       <div className="flex-shrink-0">
         <FormImageSelector
           name="image"
-          diskPrefix="track_image"
+          uploadType={UploadType.artwork}
           variant={isMobile ? 'input' : 'square'}
           label={isMobile ? <Trans message="Image" /> : null}
           previewSize={isMobile ? undefined : 'w-full md:w-224 aspect-square'}

@@ -11,7 +11,7 @@ class BillingPlanSeeder extends Seeder
 {
     public function run()
     {
-        if (!Product::count() && true) {
+        if (!Product::count()) {
             $this->basicPlan();
             $this->proPlan();
         }
@@ -19,11 +19,8 @@ class BillingPlanSeeder extends Seeder
 
     protected function basicPlan()
     {
-        $permissionIds = app(Permission::class)->pluck('id', 'name');
+        $permissionIds = Permission::pluck('id', 'name');
         $permissions = [
-            [
-                'id' => $permissionIds['files.create'],
-            ],
             [
                 'id' => $permissionIds['music.create'],
                 'restrictions' => json_encode([
@@ -32,7 +29,7 @@ class BillingPlanSeeder extends Seeder
             ],
         ];
 
-        app(CrupdateProduct::class)->execute([
+        (new CrupdateProduct())->execute([
             'name' => 'Basic',
             'free' => true,
             'position' => 1,
@@ -49,11 +46,8 @@ class BillingPlanSeeder extends Seeder
 
     protected function proPlan()
     {
-        $permissionIds = app(Permission::class)->pluck('id', 'name');
+        $permissionIds = Permission::pluck('id', 'name');
         $permissions = [
-            [
-                'id' => $permissionIds['files.create'],
-            ],
             [
                 'id' => $permissionIds['music.create'],
                 'restrictions' => json_encode([
@@ -62,11 +56,12 @@ class BillingPlanSeeder extends Seeder
             ],
         ];
 
-        app(CrupdateProduct::class)->execute(
+        (new CrupdateProduct())->execute(
             [
                 'name' => 'Pro Unlimited',
                 'position' => 2,
                 'recommended' => true,
+                'trial_period_days' => 7,
                 'feature_list' => [
                     'Unlimited upload time',
                     'No advertisements',

@@ -5,47 +5,61 @@
 @endsection
 
 @section('body')
-    <h1>{{ $artist->name }}</h1>
+    <h1>{{ $artist['name'] }}</h1>
 
-    @if ($artist->profile?->description) {
-        {!! $artist->profile->description !!}
+    @if (isset($artist['profile']['description']))
+        {!! $artist['profile']['description'] !!}
     @endif
 
-    @if ($artist->profile?->links) {
+    @if (isset($artist['profile']['links']))
         <ul>
-            @foreach($artist->profile->links as $link)
+            @foreach ($artist['profile']['links'] as $link)
                 <li><a href="{{ $link['url'] }}">{{ $link['title'] }}</a></li>
             @endforeach
         </ul>
     @endif
 
-    @if ($artist->image_small) {
-        <img src="{{urls()->image($artist->image_small)}}" alt="">
+    @if (isset($artist['image_small']))
+        <img src="{{ urls()->image($artist['image_small']) }}" alt="" />
     @endif
 
     <ul>
-        @foreach($artist->genres as $genre)
-            <li><a href="{{urls()->genre($genre)}}">{{$genre['name']}}</a></li>
+        @foreach ($artist['genres'] as $genre)
+            <li>
+                <a href="{{ urls()->genre($genre) }}">{{ $genre['name'] }}</a>
+            </li>
         @endforeach
     </ul>
 
-   @isset($albums)
-       @foreach($albums as $album)
-           <h3><a href="{{ urls()->album($album) }}">{{ $album['name'] }}</a> - {{ $album['release_date'] }}</h3>
+    @isset($albums['data'])
+        @foreach ($albums['data'] as $album)
+            <h3>
+                <a href="{{ urls()->album($album) }}">{{ $album['name'] }}</a>
+                - {{ $album['release_date'] }}
+            </h3>
 
-           <ul>
-               @foreach($album['tracks'] as $track)
-                   <li><a href="{{ urls()->track($track)  }}">{{ $track['name'] }} - {{ $album['name'] }} - {{ $artist->name }}</a></li>
-               @endforeach
-           </ul>
-       @endforeach
-   @endisset
+            <ul>
+                @foreach ($album['tracks'] as $track)
+                    <li>
+                        <a href="{{ urls()->track($track) }}">
+                            {{ $track['name'] }} - {{ $album['name'] }} -
+                            {{ $artist['name'] }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        @endforeach
+    @endisset
 
-    @if($artist->similar)
+    @if (isset($artist['similar']))
         <h2>Similar Artists</h2>
 
-        @foreach($artist->similar as $similarArtist)
-            <h3><a href="{{ urls()->artist($similarArtist) }}">{{ $similarArtist['name'] }}</a></h3>
+        @foreach ($artist['similar'] as $similarArtist)
+            <h3>
+                <a href="{{ urls()->artist($similarArtist) }}">
+                    {{ $similarArtist['name'] }}
+                </a>
+            </h3>
         @endforeach
     @endif
 @endsection

@@ -1,13 +1,11 @@
 <?php namespace Common\Localizations\Commands;
 
-use App\Models\User;
-use Common\Auth\Permissions\Permission;
-use Common\Core\Values\ValueLists;
+use Common\Core\Values\PermissionConfig;
+use Common\Settings\LoadDefaultSettings;
 use Error;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use SplFileInfo;
 use Symfony\Component\Finder\Finder;
@@ -104,7 +102,7 @@ class ExportTranslations extends Command
     private function getDefaultMenuLabels(): array
     {
         $menus = Arr::first(
-            config('common.default-settings'),
+            (new LoadDefaultSettings())->execute(),
             fn($setting) => $setting['name'] === 'menus',
         );
 
@@ -146,14 +144,12 @@ class ExportTranslations extends Command
 
     private function getPermissionNamesAndDescriptions(): array
     {
-        Auth::login(User::findAdmin());
-        $lines = app(ValueLists::class)
-            ->permissions()
-            ->map(function (Permission $permission) {
-                $restrictionLines = $permission->restrictions
+        $lines = collect((new PermissionConfig())->get())
+            ->map(function ($permission) {
+                $restrictionLines = collect($permission['restrictions'] ?? [])
                     ->map(function ($restriction) {
                         return [
-                            ucfirst(str_replace('_', ' ', $restriction['name'])),
+                            $restriction['display_name'],
                             $restriction['description'],
                         ];
                     })

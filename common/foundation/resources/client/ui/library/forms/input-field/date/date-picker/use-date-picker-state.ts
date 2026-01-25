@@ -47,6 +47,7 @@ export interface DatePickerValueProps<V, CV = V> {
   min?: DateValue;
   max?: DateValue;
   granularity?: Granularity;
+  timezone?: string;
   closeDialogOnSelection?: boolean;
 }
 export function useDatePickerState(

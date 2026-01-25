@@ -17,7 +17,7 @@ export function AccountSettingsPanel({
   return (
     <section
       id={id}
-      className="mb-24 w-full rounded-panel border bg px-24 py-20"
+      className="mb-24 w-full rounded-panel border border-divider-lighter bg-elevated px-24 py-20 shadow"
     >
       <div className="flex items-center gap-14 border-b pb-10">
         <div className="text-lg font-light">{title}</div>

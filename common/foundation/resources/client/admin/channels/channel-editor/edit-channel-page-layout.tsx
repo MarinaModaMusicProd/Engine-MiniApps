@@ -1,37 +1,27 @@
-import {useForm} from 'react-hook-form';
-import React, {ReactNode} from 'react';
-import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
-import {Trans} from '@ui/i18n/trans';
-import {PageStatus} from '@common/http/page-status';
-import {useChannel} from '@common/channels/requests/use-channel';
-import {Channel} from '@common/channels/channel';
 import {
   UpdateChannelPayload,
   useUpdateChannel,
 } from '@common/admin/channels/requests/use-update-channel';
+import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
+import {useChannel} from '@common/channels/requests/use-channel';
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
+import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
+import {Trans} from '@ui/i18n/trans';
+import {ReactNode} from 'react';
+import {useForm, UseFormReturn} from 'react-hook-form';
 
 interface Props {
   children: ReactNode;
 }
 export function EditChannelPageLayout({children}: Props) {
   const query = useChannel(undefined, 'editChannelPage');
-  if (query.data) {
-    return <PageContent channel={query.data.channel}>{children}</PageContent>;
-  }
-  return <PageStatus query={query} loaderIsScreen={false} />;
-}
-
-interface PageContentProps {
-  channel: Channel;
-  children: ReactNode;
-}
-function PageContent({channel, children}: PageContentProps) {
+  const channel = query.data.channel;
   const form = useForm<UpdateChannelPayload>({
     // @ts-ignore
     defaultValues: {
       ...channel,
     },
-  });
+  }) as unknown as UseFormReturn<UpdateChannelPayload>;
   const updateChannel = useUpdateChannel(form);
 
   return (
@@ -41,7 +31,12 @@ function PageContent({channel, children}: PageContentProps) {
         updateChannel.mutate(values);
       }}
       title={
-        <Trans message="Edit “:name“ channel" values={{name: channel.name}} />
+        <Breadcrumb>
+          <BreadcrumbItem to="/admin/channels">
+            <Trans message="Channels" />
+          </BreadcrumbItem>
+          <BreadcrumbItem>{channel.name}</BreadcrumbItem>
+        </Breadcrumb>
       }
       isLoading={updateChannel.isPending}
     >

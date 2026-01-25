@@ -4,7 +4,7 @@ use App\Http\Requests\ModifyAlbums;
 use App\Models\Album;
 use App\Services\Albums\CrupdateAlbum;
 use App\Services\Albums\DeleteAlbums;
-use App\Services\Albums\LoadAlbum;
+use App\Services\Albums\AlbumLoader;
 use App\Services\Albums\PaginateAlbums;
 use App\Services\IncrementModelViews;
 use Common\Core\BaseController;
@@ -12,19 +12,17 @@ use Illuminate\Http\Request;
 
 class AlbumController extends BaseController
 {
-    public function __construct(protected Request $request)
-    {
-    }
+    public function __construct(protected Request $request) {}
 
     public function index()
     {
         $this->authorize('index', Album::class);
 
-        $pagination = app(PaginateAlbums::class)->execute(
-            $this->request->all(),
+        $pagination = (new PaginateAlbums())->asApiResponse(
+            request()->all(),
+            includeScheduled: true,
+            loader: 'editAlbumDatatable',
         );
-
-        $pagination->makeVisible(['views', 'updated_at', 'plays']);
 
         return $this->success(['pagination' => $pagination]);
     }
@@ -34,11 +32,9 @@ class AlbumController extends BaseController
         $this->authorize('show', $album);
 
         $loader = request('loader', 'albumPage');
-        $data = (new LoadAlbum())->execute($album, $loader);
+        $data = (new AlbumLoader())->load($album, $loader);
 
-        app(IncrementModelViews::class)->execute($album->id, 'album');
-
-        $album->makeVisible('description');
+        (new IncrementModelViews())->execute($album->id, 'album');
 
         return $this->renderClientOrApi([
             'pageName' => $loader === 'albumPage' ? 'album-page' : null,
@@ -50,6 +46,8 @@ class AlbumController extends BaseController
     {
         $this->authorize('update', $album);
 
+        $this->blockOnDemoSite();
+
         $album = app(CrupdateAlbum::class)->execute($request->all(), $album);
 
         return $this->success(['album' => $album]);
@@ -58,6 +56,8 @@ class AlbumController extends BaseController
     public function store(ModifyAlbums $request)
     {
         $this->authorize('store', Album::class);
+
+        $this->blockOnDemoSite();
 
         $album = app(CrupdateAlbum::class)->execute($request->all());
 
@@ -68,6 +68,8 @@ class AlbumController extends BaseController
     {
         $albumIds = explode(',', $ids);
         $this->authorize('destroy', [Album::class, $albumIds]);
+
+        $this->blockOnDemoSite();
 
         app(DeleteAlbums::class)->execute($albumIds);
 

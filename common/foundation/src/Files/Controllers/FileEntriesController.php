@@ -1,15 +1,15 @@
 <?php namespace Common\Files\Controllers;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Core\BaseController;
 use Common\Database\Datasource\Datasource;
 use Common\Files\Actions\CreateFileEntry;
 use Common\Files\Actions\Deletion\DeleteEntries;
 use Common\Files\Actions\StoreFile;
-use Common\Files\Actions\ValidateFileUpload;
 use Common\Files\Events\FileUploaded;
 use Common\Files\FileEntry;
 use Common\Files\FileEntryPayload;
+use Common\Files\Actions\FileUploadValidator;
 use Common\Files\Response\FileResponseFactory;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
@@ -78,10 +78,12 @@ class FileEntriesController extends BaseController
                 function ($attribute, UploadedFile $value, $fail) use (
                     $payload,
                 ) {
-                    $errors = app(ValidateFileUpload::class)->execute([
-                        'extension' => $payload->clientExtension,
-                        'size' => $payload->size,
-                    ]);
+                    $errors = FileUploadValidator::validateForUploadType(
+                        $payload->uploadType,
+                        $payload->size,
+                        $payload->clientExtension,
+                        $payload->clientMime,
+                    );
                     if ($errors) {
                         $fail($errors->first());
                     }
@@ -91,9 +93,13 @@ class FileEntriesController extends BaseController
             'relativePath' => 'nullable|string',
         ]);
 
-        app(StoreFile::class)->execute($payload, ['file' => $file]);
+        (new StoreFile())->execute($payload, ['file' => $file]);
 
-        $fileEntry = app(CreateFileEntry::class)->execute($payload);
+        $fileEntry = (new CreateFileEntry())->execute($payload);
+        $fileEntry = $payload->uploadType->runHandler(
+            $fileEntry,
+            $this->request->all(),
+        );
 
         event(new FileUploaded($fileEntry));
 
@@ -102,22 +108,21 @@ class FileEntriesController extends BaseController
 
     public function update(int $entryId)
     {
-        $this->authorize('update', [FileEntry::class, [$entryId]]);
+        $entry = $this->entry->findOrFail($entryId);
 
-        $this->validate($this->request, [
+        $this->authorize('update', $entry);
+
+        $data = $this->validate($this->request, [
             'name' => 'string|min:3|max:200',
             'description' => 'nullable|string|min:3|max:200',
         ]);
 
-        $params = $this->request->all();
-        $entry = $this->entry->findOrFail($entryId);
-
-        $entry->fill($params)->update();
+        $entry->fill($data)->update();
 
         return $this->success(['fileEntry' => $entry->load('users')]);
     }
 
-    public function destroy(string $entryIds = null)
+    public function destroy(string|null $entryIds = null)
     {
         if ($entryIds) {
             $entryIds = explode(',', $entryIds);
@@ -133,6 +138,8 @@ class FileEntriesController extends BaseController
             'deleteForever' => 'boolean',
             'emptyTrash' => 'boolean',
         ]);
+
+        $this->blockOnDemoSite();
 
         // get all soft deleted entries for user, if we are emptying trash
         if ($this->request->get('emptyTrash')) {

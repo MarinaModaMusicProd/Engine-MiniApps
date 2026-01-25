@@ -10,7 +10,7 @@ trait Taggable
 {
     public function attachTag(
         string|int $tagId,
-        array $taggableIds = null,
+        array|null $taggableIds = null,
         int|null $userId = null,
     ): void {
         $taggableIds = $taggableIds ?? [$this->id];

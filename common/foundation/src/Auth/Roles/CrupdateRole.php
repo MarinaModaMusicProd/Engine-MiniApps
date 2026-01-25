@@ -10,37 +10,33 @@ class CrupdateRole
 {
     use SyncsPermissions;
 
-    /**
-     * @var Role
-     */
-    private $role;
-
-    /**
-     * @param Role $role
-     */
-    public function __construct(Role $role)
-    {
-        $this->role = $role;
-    }
-
-    /**
-     * @param array $data
-     * @param Role $role
-     * @return Role
-     */
     public function execute($data, $role = null)
     {
         if (!$role) {
-            $role = $this->role->newInstance([]);
+            $role = new Role();
         }
 
-        $attributes = [
-            'name' => $data['name'],
-            'description' => $data['description'] ?? null,
-            'default' => $data['default'] ?? false,
-            'guests' => $data['guests'] ?? false,
-            'type' => $data['type'] ?? 'sitewide',
-        ];
+        $attributes = [];
+
+        if (array_key_exists('name', $data)) {
+            $attributes['name'] = $data['name'];
+        }
+
+        if (array_key_exists('description', $data)) {
+            $attributes['description'] = $data['description'] ?? null;
+        }
+
+        if (array_key_exists('default', $data)) {
+            $attributes['default'] = $data['default'] ?? false;
+        }
+
+        if (array_key_exists('guests', $data)) {
+            $attributes['guests'] = $data['guests'] ?? false;
+        }
+
+        if (array_key_exists('type', $data)) {
+            $attributes['type'] = $data['type'] ?? 'users';
+        }
 
         $role->fill($attributes)->save();
 

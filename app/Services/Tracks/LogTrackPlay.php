@@ -7,8 +7,8 @@ use App\Models\Artist;
 use App\Models\Playlist;
 use App\Models\Track;
 use App\Models\TrackPlay;
-use Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Jenssegers\Agent\Agent;
 
 class LogTrackPlay

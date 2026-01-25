@@ -4,7 +4,6 @@ namespace Common\Domains;
 
 use App\Models\User;
 use Common\Core\BaseModel;
-use Common\Domains\CustomDomainFactory;
 use Common\Workspaces\Traits\BelongsToWorkspace;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

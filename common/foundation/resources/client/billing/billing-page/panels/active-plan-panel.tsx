@@ -1,38 +1,39 @@
-import {useBillingUser} from '@common/billing/billing-page/use-billing-user';
-import {FormattedDate} from '@ui/i18n/formatted-date';
 import {BillingPlanPanel} from '@common/billing/billing-page/billing-plan-panel';
-import {Trans} from '@ui/i18n/trans';
+import {billingQueries} from '@common/billing/billing-queries';
 import {FormattedPrice} from '@common/billing/formatted-price';
-import {Button} from '@ui/buttons/button';
-import {Link} from 'react-router-dom';
-import {Fragment} from 'react';
+import {Subscription} from '@common/billing/subscription';
 import {SectionHelper} from '@common/ui/other/section-helper';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {Button} from '@ui/buttons/button';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {Trans} from '@ui/i18n/trans';
+import {Fragment, ReactElement} from 'react';
+import {Link} from 'react-router';
 
 export function ActivePlanPanel() {
-  const {subscription} = useBillingUser();
-  if (!subscription?.price || !subscription?.product) return null;
+  const query = useSuspenseQuery(billingQueries.user());
 
   const renewDate = (
-    <FormattedDate preset="long" date={subscription.renews_at} />
+    <FormattedDate preset="long" date={query.data.subscription.renews_at} />
   );
 
   return (
     <Fragment>
-      {subscription.past_due ? <PastDueMessage /> : null}
+      {query.data.subscription.past_due ? <PastDueMessage /> : null}
       <BillingPlanPanel title={<Trans message="Current plan" />}>
         <div className="mt-24 flex justify-between gap-20">
           <div>
             <div className="mb-2 text-xl font-bold">
-              {subscription.product.name}
+              {query.data.subscription.product.name}
             </div>
             <FormattedPrice
               className="mb-2 text-xl"
-              price={subscription.price}
+              price={query.data.subscription.price}
             />
             <div className="text-base">
-              <Trans
-                message="Your plan renews on :date"
-                values={{date: renewDate}}
+              <RenewMessage
+                subscription={query.data.subscription}
+                renewDate={renewDate}
               />
             </div>
           </div>
@@ -44,7 +45,7 @@ export function ActivePlanPanel() {
               className="mb-12 w-full"
               elementType={Link}
               to="/billing/change-plan"
-              disabled={subscription.gateway_name === 'none'}
+              disabled={query.data.subscription.gateway_name === 'none'}
             >
               <Trans message="Change plan" />
             </Button>
@@ -62,6 +63,25 @@ export function ActivePlanPanel() {
         </div>
       </BillingPlanPanel>
     </Fragment>
+  );
+}
+
+type RenewMessageProps = {
+  subscription: Subscription;
+  renewDate: ReactElement;
+};
+function RenewMessage({subscription, renewDate}: RenewMessageProps) {
+  if (subscription.on_trial) {
+    return (
+      <Trans
+        message="You will be automatically charged after your free trial ends on :date."
+        values={{date: renewDate}}
+      />
+    );
+  }
+
+  return (
+    <Trans message="Your plan renews on :date" values={{date: renewDate}} />
   );
 }
 

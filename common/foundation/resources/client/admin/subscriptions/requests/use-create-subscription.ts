@@ -1,14 +1,14 @@
-import {useMutation} from '@tanstack/react-query';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {useTrans} from '@ui/i18n/use-trans';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {Tag} from '@common/tags/tag';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
-import {onFormQueryError} from '@common/errors/on-form-query-error';
-import {UseFormReturn} from 'react-hook-form';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
 import {Subscription} from '@common/billing/subscription';
+import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {Tag} from '@common/tags/tag';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
+import {UseFormReturn} from 'react-hook-form';
 
 const endpoint = 'billing/subscriptions';
 
@@ -25,7 +25,7 @@ export function useCreateSubscription(form: UseFormReturn<Payload>) {
     onSuccess: () => {
       toast(trans(message('Subscription created')));
       queryClient.invalidateQueries({
-        queryKey: DatatableDataQueryKey(endpoint),
+        queryKey: commonAdminQueries.subscriptions.invalidateKey,
       });
     },
     onError: err => onFormQueryError(err, form),

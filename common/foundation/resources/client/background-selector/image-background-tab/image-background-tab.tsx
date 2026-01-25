@@ -1,34 +1,35 @@
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {Trans} from '@ui/i18n/trans';
-import {UploadIcon} from '@ui/icons/material/Upload';
-import {useForm} from 'react-hook-form';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {Form} from '@ui/forms/form';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {FormImageSelector} from '@common/uploads/components/image-selector';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
+import {UploadType} from '@app/site-config';
+import {BackgroundSelectorButton} from '@common/background-selector/background-selector-button';
+import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {urlFromBackgroundImage} from '@common/background-selector/bg-config-from-css-props';
+import {BgSelectorTabProps} from '@common/background-selector/bg-selector-tab-props';
+import {cssPropsFromBgConfig} from '@common/background-selector/css-props-from-bg-config';
+import {AdvancedBackgroundPositionSelector} from '@common/background-selector/image-background-tab/advanced-background-position-selector';
+import {SimpleBackgroundPositionSelector} from '@common/background-selector/image-background-tab/simple-background-position-selector';
 import {
   BaseImageBg,
   ImageBackgrounds,
 } from '@common/background-selector/image-backgrounds';
-import {BackgroundSelectorButton} from '@common/background-selector/background-selector-button';
-import {cssPropsFromBgConfig} from '@common/background-selector/css-props-from-bg-config';
-import {SimpleBackgroundPositionSelector} from '@common/background-selector/image-background-tab/simple-background-position-selector';
-import {BgSelectorTabProps} from '@common/background-selector/bg-selector-tab-props';
-import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
-import {AdvancedBackgroundPositionSelector} from '@common/background-selector/image-background-tab/advanced-background-position-selector';
-import {urlFromBackgroundImage} from '@common/background-selector/bg-config-from-css-props';
+import {FormImageSelector} from '@common/uploads/components/image-selector';
+import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {Button} from '@ui/buttons/button';
+import {Form} from '@ui/forms/form';
+import {Trans} from '@ui/i18n/trans';
+import {UploadIcon} from '@ui/icons/material/Upload';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useForm} from 'react-hook-form';
 
 export function ImageBackgroundTab({
   value,
   onChange,
   className,
   positionSelector,
-  diskPrefix,
+  uploadType,
   isInsideDialog,
 }: BgSelectorTabProps<BackgroundSelectorConfig>) {
   return (
@@ -37,7 +38,7 @@ export function ImageBackgroundTab({
         <CustomImageTrigger
           value={value}
           onChange={onChange}
-          diskPrefix={diskPrefix}
+          uploadType={uploadType!}
           hideFooter={isInsideDialog}
         />
         {ImageBackgrounds.map(background => (
@@ -74,13 +75,13 @@ export function ImageBackgroundTab({
 interface CustomImageTrigger {
   value?: BackgroundSelectorConfig;
   onChange?: (value: BackgroundSelectorConfig | null) => void;
-  diskPrefix?: string;
+  uploadType: keyof typeof UploadType;
   hideFooter?: boolean;
 }
 function CustomImageTrigger({
   value,
   onChange,
-  diskPrefix,
+  uploadType,
   hideFooter,
 }: CustomImageTrigger) {
   // only seed form with custom uploaded image
@@ -113,7 +114,7 @@ function CustomImageTrigger({
       </BackgroundSelectorButton>
       <CustomImageDialog
         value={value}
-        diskPrefix={diskPrefix}
+        uploadType={uploadType}
         hideFooter={hideFooter}
       />
     </DialogTrigger>
@@ -122,12 +123,12 @@ function CustomImageTrigger({
 
 interface CustomImageDialogProps {
   value?: BackgroundSelectorConfig;
-  diskPrefix?: string;
+  uploadType: keyof typeof UploadType;
   hideFooter?: boolean;
 }
 export function CustomImageDialog({
   value,
-  diskPrefix,
+  uploadType,
   hideFooter,
 }: CustomImageDialogProps) {
   const defaultValue =
@@ -153,7 +154,7 @@ export function CustomImageDialog({
             <FormImageSelector
               autoFocus
               name="imageUrl"
-              diskPrefix={diskPrefix || 'biolinks'}
+              uploadType={uploadType}
               showRemoveButton
               onChange={hideFooter ? imageUrl => close(imageUrl) : undefined}
             />

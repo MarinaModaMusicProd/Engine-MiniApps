@@ -3,8 +3,10 @@
 namespace Common\Database\Metrics;
 
 use Carbon\CarbonImmutable;
+use DateInvalidTimeZoneException;
 use DateTime;
 use DateTimeZone;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Grammar;
 use Illuminate\Database\Query\Expression;
@@ -16,8 +18,7 @@ class TrendDateExpression extends Expression
         protected string $column,
         protected string $unit,
         protected string $timezone,
-    ) {
-    }
+    ) {}
 
     public function getValue(Grammar $grammar): string
     {
@@ -62,18 +63,21 @@ class TrendDateExpression extends Expression
 
     protected function wrap(string $value): string
     {
-        return $this->query
-            ->getQuery()
-            ->getGrammar()
-            ->wrap($value);
+        return $this->query->getQuery()->getGrammar()->wrap($value);
     }
 
     protected function offset(): int
     {
         $timezoneOffset = function ($timezone) {
+            try {
+                $dateTimeZone = new DateTimeZone($timezone);
+            } catch (DateInvalidTimeZoneException $e) {
+                $dateTimeZone = new DateTimeZone('UTC');
+            }
+
             return (new DateTime(
                 CarbonImmutable::now()->format('Y-m-d H:i:s'),
-                new DateTimeZone($timezone),
+                $dateTimeZone,
             ))->getOffset() /
                 60 /
                 60;

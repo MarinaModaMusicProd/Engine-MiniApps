@@ -1,5 +1,5 @@
-import {RefObject, useEffect, useState} from 'react';
 import {m} from 'framer-motion';
+import {RefObject, useEffect, useState} from 'react';
 
 interface ActiveIndicatorProps {
   selectedValue?: string;
@@ -35,7 +35,7 @@ export function ActiveIndicator({
     <m.div
       animate={style}
       initial={false}
-      className="bg-paper shadow rounded absolute z-10 pointer-events-none"
+      className="pointer-events-none absolute z-10 rounded-button bg-elevated shadow"
     />
   );
 }

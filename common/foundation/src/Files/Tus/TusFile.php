@@ -5,7 +5,6 @@ namespace Common\Files\Tus;
 use Common\Files\Tus\Exceptions\ConnectionException;
 use Common\Files\Tus\Exceptions\FileException;
 use Common\Files\Tus\Exceptions\OutOfRangeException;
-use Common\Files\Tus\TusCache;
 use Illuminate\Support\Facades\File;
 
 class TusFile
@@ -35,7 +34,7 @@ class TusFile
             return $this->offset;
         }
 
-        $method = config('common.site.uploads_tus_method') ?: 'wait';
+        $method = config('filesystems.uploads_tus_method') ?: 'wait';
 
         $input = $this->open(self::INPUT_STREAM, self::READ_BINARY);
         $output = $this->open($this->filePath, self::APPEND_BINARY);

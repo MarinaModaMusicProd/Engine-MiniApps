@@ -1,6 +1,6 @@
-import {apiClient, queryClient} from '@common/http/query-client';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
 import {Track} from '@app/web-player/tracks/track';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
 import {CancelTokenSource} from 'axios';
 
 interface Response extends BackendResponse {
@@ -11,7 +11,7 @@ const endpoint = (track: Track) => {
   const artistName =
     track.artists?.[0]?.name || track.album?.artists?.[0]?.name;
   return `search/audio/${track.id}/${doubleEncode(artistName!)}/${doubleEncode(
-    track.name
+    track.name,
   )}`;
 };
 
@@ -19,7 +19,7 @@ export let isSearchingForYoutubeVideo = false;
 
 export async function findYoutubeVideosForTrack(
   track: Track,
-  cancelToken?: CancelTokenSource
+  cancelToken?: CancelTokenSource,
 ): Promise<Response['results']> {
   const query = {
     queryKey: [endpoint(track)],
@@ -27,9 +27,15 @@ export async function findYoutubeVideosForTrack(
     staleTime: Infinity,
   };
 
-  const response =
-    queryClient.getQueryData<Response>(query.queryKey) ??
-    (await queryClient.fetchQuery(query));
+  let response: Response | undefined;
+
+  try {
+    response =
+      queryClient.getQueryData<Response>(query.queryKey) ??
+      (await queryClient.fetchQuery(query));
+  } catch {
+    //
+  }
 
   isSearchingForYoutubeVideo = false;
 
@@ -38,7 +44,7 @@ export async function findYoutubeVideosForTrack(
 
 function findMatch(
   track: Track,
-  cancelToken?: CancelTokenSource
+  cancelToken?: CancelTokenSource,
 ): Promise<Response> {
   isSearchingForYoutubeVideo = true;
   return apiClient

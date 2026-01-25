@@ -1,19 +1,18 @@
-import {ColumnConfig} from '@common/datatable/column-config';
-import {Trans} from '@ui/i18n/trans';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {Link} from 'react-router-dom';
-import {IconButton} from '@ui/buttons/icon-button';
-import {EditIcon} from '@ui/icons/material/Edit';
-import React from 'react';
-import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
-import {FormattedNumber} from '@ui/i18n/formatted-number';
-import {ArtistLink} from '@app/web-player/artists/artist-link';
+import {FullAlbum} from '@app/web-player/albums/album';
 import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
-import {Album} from '@app/web-player/albums/album';
 import {AlbumLink} from '@app/web-player/albums/album-link';
+import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
+import {ArtistLink} from '@app/web-player/artists/artist-link';
+import {ColumnConfig} from '@common/datatable/column-config';
+import {IconButton} from '@ui/buttons/icon-button';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {Trans} from '@ui/i18n/trans';
 import {BarChartIcon} from '@ui/icons/material/BarChart';
+import {EditIcon} from '@ui/icons/material/Edit';
+import {Link} from 'react-router';
 
-export const AlbumsDatatableColumns: ColumnConfig<Album>[] = [
+export const AlbumsDatatableColumns: ColumnConfig<FullAlbum>[] = [
   {
     key: 'name',
     allowsSorting: true,

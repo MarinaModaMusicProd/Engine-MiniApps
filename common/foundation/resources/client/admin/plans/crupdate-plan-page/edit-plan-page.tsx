@@ -1,33 +1,25 @@
-import {FullPageLoader} from '@ui/progress/full-page-loader';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
+import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
 import {Trans} from '@ui/i18n/trans';
 import {useForm} from 'react-hook-form';
 import {CrupdateResourceLayout} from '../../crupdate-resource-layout';
-import {useProduct} from '../requests/use-product';
-import {Product} from '@common/billing/product';
-import {CrupdatePlanForm} from './crupdate-plan-form';
 import {
   UpdateProductPayload,
   useUpdateProduct,
 } from '../requests/use-update-product';
+import {CrupdatePlanForm} from './crupdate-plan-form';
 
-export function EditPlanPage() {
-  const query = useProduct();
+export function Component() {
+  const {productId} = useRequiredParams(['productId']);
+  const query = useSuspenseQuery(commonAdminQueries.products.get(productId));
 
-  if (query.status !== 'success') {
-    return <FullPageLoader />;
-  }
-
-  return <PageContent product={query.data.product} />;
-}
-
-interface PageContentProps {
-  product: Product;
-}
-function PageContent({product}: PageContentProps) {
   const form = useForm<UpdateProductPayload>({
     defaultValues: {
-      ...product,
-      feature_list: product.feature_list.map(f => ({value: f})),
+      ...query.data.product,
+      feature_list: query.data.product.feature_list.map(f => ({value: f})),
     },
   });
   const updateProduct = useUpdateProduct(form);
@@ -39,7 +31,12 @@ function PageContent({product}: PageContentProps) {
         updateProduct.mutate(values);
       }}
       title={
-        <Trans message="Edit “:name“ plan" values={{name: product.name}} />
+        <Breadcrumb size="xl">
+          <BreadcrumbItem to="/admin/plans">
+            <Trans message="Plans" />
+          </BreadcrumbItem>
+          <BreadcrumbItem>{query.data.product.name}</BreadcrumbItem>
+        </Breadcrumb>
       }
       isLoading={updateProduct.isPending}
     >

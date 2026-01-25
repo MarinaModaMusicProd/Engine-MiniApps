@@ -10,6 +10,7 @@ use Common\Core\Prerender\Actions\ReplacePlaceholders;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class ChannelController extends BaseController
@@ -37,6 +38,7 @@ class ChannelController extends BaseController
             $params['normalizeContent'] = true;
         } elseif ($loader === 'editChannelPage') {
             $params['normalizeContent'] = true;
+            $params['paginate'] = 'simple';
             $params['perPage'] = $params['perPage'] ?? 100;
         }
 
@@ -49,25 +51,12 @@ class ChannelController extends BaseController
             abort(404);
         }
 
-        $channel =
-            $loader === 'channelPage' && class_exists(ChannelResource::class)
-                ? new ChannelResource($channel)
-                : $channel;
-
-        // return only content for pagination
-        if (request()->get('returnContentOnly')) {
-            return [
-                'pagination' => $channel->toArray(request())['content'],
-            ];
-        }
-
         $data = [
             'channel' => $channel,
             'loader' => $loader,
         ];
 
         if ($loader === 'channelPage') {
-            // used as default value during SSR in layout selector button
             $channel->config = array_merge($channel->config, [
                 'selectedLayout' => Arr::get(
                     $_COOKIE,
@@ -92,7 +81,13 @@ class ChannelController extends BaseController
         return $this->renderClientOrApi([
             'pageName' => $loader === 'channelPage' ? 'channel-page' : null,
             'data' => [
-                'channel' => $channel,
+                'channel' =>
+                    $loader === 'channelPage'
+                        ? $channel->toApiResource(
+                            normalizeContent: $params['normalizeContent'] ??
+                                false,
+                        )
+                        : $channel,
                 'loader' => $loader,
             ],
         ]);
@@ -101,6 +96,8 @@ class ChannelController extends BaseController
     public function store(CrupdateChannelRequest $request): Response
     {
         $this->authorize('store', [Channel::class, request('type', 'channel')]);
+
+        $this->blockOnDemoSite();
 
         $channel = app(CrupdateChannel::class)->execute(
             $request->validationData(),
@@ -114,6 +111,8 @@ class ChannelController extends BaseController
         CrupdateChannelRequest $request,
     ): Response {
         $this->authorize('update', $channel);
+
+        $this->blockOnDemoSite();
 
         $channel = app(CrupdateChannel::class)->execute(
             $request->validationData(),
@@ -130,6 +129,8 @@ class ChannelController extends BaseController
 
         $this->authorize('destroy', [Channel::class, $channels]);
 
+        $this->blockOnDemoSite();
+
         app(DeleteChannels::class)->execute($channels);
 
         return $this->success();
@@ -138,6 +139,8 @@ class ChannelController extends BaseController
     public function updateContent(Channel $channel): Response
     {
         $this->authorize('update', $channel);
+
+        $this->blockOnDemoSite();
 
         if ($newConfig = request('channelConfig')) {
             $config = $channel->config;
@@ -163,12 +166,22 @@ class ChannelController extends BaseController
         $builder = app($namespace);
 
         if ($query = request('query')) {
-            $builder = $builder
-                ->mysqlSearch($query)
-                ->when(is_numeric($query), fn($q) => $q->orWhere('id', $query));
+            if (Str::startsWith($query, 'id:')) {
+                $builder = $builder->where('id', substr($query, 3));
+            } else {
+                $builder = $builder->mysqlSearch($query);
+            }
         }
 
         $results = $builder
+            ->when(
+                request('modelType') === 'track',
+                fn($q) => $q->with(['album', 'artists']),
+            )
+            ->when(
+                request('modelType') === 'album',
+                fn($q) => $q->with('artists'),
+            )
             ->take(20)
             ->get()
             ->filter(function ($result) {
@@ -189,14 +202,14 @@ class ChannelController extends BaseController
     {
         $this->authorize('destroy', Channel::class);
 
+        $this->blockOnDemoSite();
+
         $data = request()->validate([
             'preset' => 'required|string',
         ]);
 
         $ids = Channel::where('type', 'channel')->pluck('id');
-        DB::table('channelables')
-            ->whereIn('channel_id', $ids)
-            ->delete();
+        DB::table('channelables')->whereIn('channel_id', $ids)->delete();
         Channel::whereIn('id', $ids)->delete();
 
         (new ChannelPresets())->apply($data['preset']);

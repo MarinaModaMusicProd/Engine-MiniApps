@@ -1,28 +1,28 @@
-import React from 'react';
 import {IconButton} from '@ui/buttons/icon-button';
-import {UndoIcon} from '@ui/icons/material/Undo';
 import {RedoIcon} from '@ui/icons/material/Redo';
-import {MenubarButtonProps} from './menubar-button-props';
+import {UndoIcon} from '@ui/icons/material/Undo';
+import {useCurrentTextEditor} from '../tiptap-editor-context';
 
-export function HistoryButtons({editor}: MenubarButtonProps) {
+export function HistoryButtons() {
+  const editor = useCurrentTextEditor();
   return (
-    <span>
+    <span className="flex items-center max-md:hidden">
       <IconButton
         size="md"
-        disabled={!editor.can().undo()}
+        disabled={!editor || !editor.can().undo()}
         onClick={() => {
-          editor.commands.focus();
-          editor.commands.undo();
+          editor?.commands.focus();
+          editor?.commands.undo();
         }}
       >
         <UndoIcon />
       </IconButton>
       <IconButton
         size="md"
-        disabled={!editor.can().redo()}
+        disabled={!editor || !editor.can().redo()}
         onClick={() => {
-          editor.commands.focus();
-          editor.commands.redo();
+          editor?.commands.focus();
+          editor?.commands.redo();
         }}
       >
         <RedoIcon />

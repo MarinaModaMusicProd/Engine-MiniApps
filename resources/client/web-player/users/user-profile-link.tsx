@@ -1,11 +1,13 @@
-import {Link, LinkProps} from 'react-router-dom';
-import clsx from 'clsx';
-import React, {useMemo} from 'react';
 import {slugifyString} from '@ui/utils/string/slugify-string';
-import {CompactUser, User} from '@ui/types/user';
+import clsx from 'clsx';
+import {useMemo} from 'react';
+import {Link, LinkProps} from 'react-router';
 
 interface UserProfileLinkProps extends Omit<LinkProps, 'to'> {
-  user: User;
+  user: {
+    id: number | string;
+    name: string;
+  };
   className?: string;
 }
 export function UserProfileLink({
@@ -28,6 +30,9 @@ export function UserProfileLink({
   );
 }
 
-export function getUserProfileLink(user: CompactUser): string {
+export function getUserProfileLink(user: {
+  id: number | string;
+  name: string;
+}): string {
   return `/user/${user.id}/${slugifyString(user.name)}`;
 }

@@ -1,22 +1,22 @@
-import {Trans} from '@ui/i18n/trans';
-import {ChartLayout, ChartLayoutProps} from '@common/charts/chart-layout';
-import React, {Fragment, ReactElement} from 'react';
-import {ReportMetric} from '@common/admin/analytics/report-metric';
-import {ChartLoadingIndicator} from '@common/charts/chart-loading-indicator';
 import {TopModelDatasetItem} from '@app/admin/reports/requests/use-insights-report';
-import {PlayArrowFilledIcon} from '@app/web-player/tracks/play-arrow-filled';
-import {InfoIcon} from '@ui/icons/material/Info';
-import {FormattedNumber} from '@ui/i18n/formatted-number';
-import {Link, useLocation} from 'react-router-dom';
+import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
+import {AlbumLink} from '@app/web-player/albums/album-link';
 import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
 import {ArtistLink} from '@app/web-player/artists/artist-link';
-import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {AlbumLink} from '@app/web-player/albums/album-link';
-import {TrackLink} from '@app/web-player/tracks/track-link';
 import {ArtistLinks} from '@app/web-player/artists/artist-links';
+import {PlayArrowFilledIcon} from '@app/web-player/tracks/play-arrow-filled';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {TrackLink} from '@app/web-player/tracks/track-link';
 import {UserProfileLink} from '@app/web-player/users/user-profile-link';
+import {ReportMetric} from '@common/admin/analytics/report-metric';
 import {UserAvatar} from '@common/auth/user-avatar';
+import {ChartLayout, ChartLayoutProps} from '@common/charts/chart-layout';
+import {ChartLoadingIndicator} from '@common/charts/chart-loading-indicator';
+import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {Trans} from '@ui/i18n/trans';
+import {InfoIcon} from '@ui/icons/material/Info';
+import {Fragment, ReactElement} from 'react';
+import {Link, useLocation} from 'react-router';
 
 interface Props extends Partial<ChartLayoutProps> {
   data?: ReportMetric<TopModelDatasetItem>;
@@ -28,9 +28,8 @@ export function TopModelsChartLayout({data, isLoading, ...layoutProps}: Props) {
   return (
     <ChartLayout
       {...layoutProps}
-      className="w-1/2 min-w-500 md:min-w-0"
       contentIsFlex={isLoading}
-      contentClassName="max-h-[370px] overflow-y-auto compact-scrollbar"
+      className="col-span-6 row-span-11 overflow-y-auto overflow-x-hidden"
     >
       {isLoading && <ChartLoadingIndicator />}
       {dataItems.map(item => (

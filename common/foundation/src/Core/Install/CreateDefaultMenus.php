@@ -2,7 +2,8 @@
 
 namespace Common\Core\Install;
 
-use Common\Settings\Setting;
+use Common\Settings\LoadDefaultSettings;
+use Common\Settings\Models\Setting;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
@@ -16,7 +17,7 @@ class CreateDefaultMenus
 
         $menus = json_decode(
             Arr::first(
-                config('common.default-settings'),
+                (new LoadDefaultSettings())->execute(),
                 fn($value) => $value['name'] === 'menus',
             )['value'],
             true,

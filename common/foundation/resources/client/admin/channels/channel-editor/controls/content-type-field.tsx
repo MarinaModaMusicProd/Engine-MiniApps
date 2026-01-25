@@ -3,7 +3,6 @@ import {FormSelect, Option} from '@ui/forms/select/select';
 import {Trans} from '@ui/i18n/trans';
 import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
 import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
-import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 interface Props {
   config: ChannelContentConfig;
@@ -17,7 +16,7 @@ export function ContentTypeField({config, className}: Props) {
       selectionMode="single"
       name="config.contentType"
       label={<Trans message="Content" />}
-      onSelectionChange={(newValue: PrimitiveValue) => {
+      onSelectionChange={newValue => {
         // if content type is "auto update" select first model that
         // can be auto updated, otherwise select first available model
         let model = Object.entries(config.models)[0];

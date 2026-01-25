@@ -1,35 +1,28 @@
-import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {toast} from '@ui/toast/toast';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
 import {onFormQueryError} from '@common/errors/on-form-query-error';
-import {User} from '@ui/types/user';
-import {message} from '@ui/i18n/message';
 import {apiClient} from '@common/http/query-client';
-
-interface Response extends BackendResponse {}
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
+import {User} from '@ui/types/user';
+import {UseFormReturn} from 'react-hook-form';
 
 interface Payload {
-  first_name?: string;
-  last_name?: string;
+  name?: string;
+  image?: string | null;
+  image_entry_id?: number | null;
 }
 
 export function useUpdateAccountDetails(
   userId: number,
-  form: UseFormReturn<Partial<User>>,
+  form?: UseFormReturn<Partial<User> & {image_entry_id?: string | null}>,
 ) {
   return useMutation({
-    mutationFn: (props: Payload) => updateAccountDetails(userId, props),
+    mutationFn: (payload: Payload) =>
+      apiClient.put(`users/${userId}`, payload).then(r => r.data),
     onSuccess: () => {
       toast(message('Updated account details'));
     },
-    onError: r => onFormQueryError(r, form),
+    onError: r => (form ? onFormQueryError(r, form) : showHttpErrorToast(r)),
   });
-}
-
-function updateAccountDetails(
-  userId: number | string,
-  payload: Payload,
-): Promise<Response> {
-  return apiClient.put(`users/${userId}`, payload).then(r => r.data);
 }

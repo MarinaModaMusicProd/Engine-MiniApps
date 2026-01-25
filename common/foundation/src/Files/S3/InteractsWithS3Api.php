@@ -3,21 +3,17 @@
 namespace Common\Files\S3;
 
 use Aws\S3\S3Client;
-use Common\Settings\Settings;
+use Common\Files\FileEntryPayload;
+use Common\Files\Uploads\Uploads;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 trait InteractsWithS3Api
 {
-    protected function getDiskName(): string
-    {
-        return request()->input('disk') ?: 'uploads';
-    }
-
     protected function getDisk(): Filesystem
     {
-        return Storage::disk($this->getDiskName());
+        return Uploads::disk(request('uploadType'), request('backendId'));
     }
 
     protected function getClient(): ?S3Client
@@ -27,43 +23,21 @@ trait InteractsWithS3Api
 
     protected function getBucket(): string
     {
-        $credentialsKey = config(
-            "common.site.{$this->getDiskName()}_disk_driver",
-        );
-        return config("services.{$credentialsKey}.bucket");
-    }
-
-    protected function getAcl(): string
-    {
-        return $this->getDiskName() === 'public' ||
-            config('common.site.remote_file_visibility') === 'public'
-            ? 'public-read'
-            : 'private';
+        return Uploads::backend(request('backendId'))->bucket();
     }
 
     protected function buildFileKey(): string
     {
-        $uuid = Str::uuid();
-        $filename = request('filename');
-        $extension = request('extension');
-        $keepOriginalName = app(Settings::class)->get(
-            'uploads.keep_original_name',
-        );
+        $payload = new FileEntryPayload(request()->all());
 
-        if ($this->getDiskName() === 'public') {
-            $fileKey = $keepOriginalName ? $filename : "$uuid.$extension";
-            $diskPrefix = request('diskPrefix');
-            if ($diskPrefix) {
-                $fileKey = "$diskPrefix/$fileKey";
-            }
-        } else {
-            $diskPrefix = $uuid;
-            $filename = $keepOriginalName ? $filename : $uuid;
-            $fileKey = "$diskPrefix/$filename";
-        }
+        $fileKey = trim("$payload->diskPrefix/$payload->filename", '/');
 
-        $pathPrefix = $this->getDisk()->path('');
+        $pathPrefix = Uploads::disk(
+            $payload->uploadType,
+            $payload->backend,
+        )->path('');
 
+        // need full path when using direct uploading with presigned s3 urls
         if ($pathPrefix) {
             $fileKey = "{$pathPrefix}{$fileKey}";
         }

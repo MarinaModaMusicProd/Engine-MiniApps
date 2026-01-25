@@ -1,19 +1,19 @@
-import {useForm} from 'react-hook-form';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {Button} from '@ui/buttons/button';
+import {Form} from '@ui/forms/form';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {FormSelect, Option} from '@ui/forms/select/select';
+import {Localization} from '@ui/i18n/localization';
+import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {Dialog} from '@ui/overlays/dialog/dialog';
 import {DialogBody} from '@ui/overlays/dialog/dialog-body';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {Form} from '@ui/forms/form';
-import {Localization} from '@ui/i18n/localization';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {useValueLists} from '../../http/value-lists';
-import {FormSelect, Option} from '@ui/forms/select/select';
 import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {getLanguageList} from '@ui/utils/intl/languages';
+import {useForm} from 'react-hook-form';
 import {useUpdateLocalization} from './update-localization';
-import {message} from '@ui/i18n/message';
-import {useTrans} from '@ui/i18n/use-trans';
 
 interface UpdateLocalizationDialogProps {
   localization: Localization;
@@ -31,9 +31,7 @@ export function UpdateLocalizationDialog({
     },
   });
 
-  const {data} = useValueLists(['languages']);
-  const languages = data?.languages || [];
-
+  const languages = getLanguageList();
   const updateLocalization = useUpdateLocalization(form);
 
   return (

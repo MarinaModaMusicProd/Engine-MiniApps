@@ -1,15 +1,18 @@
-import {create} from 'zustand';
-import {immer} from 'zustand/middleware/immer';
-import {nanoid} from 'nanoid';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 import {ToastTimer} from '@ui/toast/toast-timer';
+import {nanoid} from 'nanoid';
+import {create} from 'zustand';
+import {immer} from 'zustand/middleware/immer';
 
 type ToastType = 'danger' | 'default' | 'positive' | 'loading' | null;
-type ToastPosition = 'bottom-center' | 'bottom-right';
+export type ToastPlacement = 'bottom-center' | 'bottom-right' | 'top-center';
 
-interface ToastAction {
+export interface ToastAction {
   label: string | MessageDescriptor;
-  action: string;
+  onExecute?: () => void;
+  link?: string;
+  // legacy, same as link
+  action?: string;
 }
 
 export interface ToastOptions {
@@ -17,19 +20,19 @@ export interface ToastOptions {
   action?: ToastAction;
   id?: string | number;
   duration?: number;
-  position?: 'bottom-center' | 'bottom-right';
+  position?: ToastPlacement;
   disableExitAnimation?: boolean;
   disableEnterAnimation?: boolean;
 }
 
-interface Toast {
+export interface Toast {
   timer?: ToastTimer | null;
   message: string | MessageDescriptor;
   type: ToastType;
   id: string | number;
   duration: number;
   action?: ToastAction;
-  position: ToastPosition;
+  placement: ToastPlacement;
   disableExitAnimation?: boolean;
   disableEnterAnimation?: boolean;
 }
@@ -76,7 +79,7 @@ export const useToastStore = create<ToastStore>()(
         ...opts,
         id: toastId,
         type: toastType,
-        position: opts?.position || 'bottom-center',
+        placement: opts?.position || 'bottom-center',
         duration,
         disableExitAnimation: opts?.disableExitAnimation,
         disableEnterAnimation: opts?.disableEnterAnimation,

@@ -2,7 +2,7 @@
 
 namespace Common\Votes;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Votes\Vote;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -54,8 +54,7 @@ class StoreVote
         string $voteType,
         ?int $userId,
         ?string $userIp,
-    ): void
-    {
+    ): void {
         $model->votes()->create([
             'vote_type' => $voteType,
             'user_id' => $userId,

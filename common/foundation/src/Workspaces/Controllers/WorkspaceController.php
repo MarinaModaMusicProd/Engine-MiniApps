@@ -2,7 +2,7 @@
 
 namespace Common\Workspaces\Controllers;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Core\BaseController;
 use Common\Database\Datasource\Datasource;
 use Common\Workspaces\Actions\CrupdateWorkspace;

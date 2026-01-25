@@ -3,7 +3,7 @@ import {Permission} from './permission';
 export interface Role {
   id: number;
   name: string;
-  type: 'sitewide' | 'workspace';
+  type: string;
   description: string;
   permissions?: Permission[];
   default: boolean;

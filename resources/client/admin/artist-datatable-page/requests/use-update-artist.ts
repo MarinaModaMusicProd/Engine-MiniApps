@@ -1,20 +1,20 @@
-import {useMutation} from '@tanstack/react-query';
-import {useTrans} from '@ui/i18n/use-trans';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {apiClient, queryClient} from '@common/http/query-client';
+import {CreateArtistPayload} from '@app/admin/artist-datatable-page/requests/use-create-artist';
+import {PartialArtist} from '@app/web-player/artists/artist';
+import {getArtistLink} from '@app/web-player/artists/artist-link';
 import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
 import {onFormQueryError} from '@common/errors/on-form-query-error';
-import {UseFormReturn} from 'react-hook-form';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Artist} from '@app/web-player/artists/artist';
-import {CreateArtistPayload} from '@app/admin/artist-datatable-page/requests/use-create-artist';
-import {useLocation} from 'react-router-dom';
-import {getArtistLink} from '@app/web-player/artists/artist-link';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
+import {UseFormReturn} from 'react-hook-form';
+import {useLocation} from 'react-router';
 
 interface Response extends BackendResponse {
-  artist: Artist;
+  artist: PartialArtist;
 }
 
 export interface UpdateArtistPayload extends CreateArtistPayload {

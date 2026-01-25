@@ -1,0 +1,1 @@
+import{r as t,j as e,d as i}from"./main-BEfQELxr.js";function d({children:a,className:l}){const r=t.Children.toArray(a);return e.jsx("div",{className:i("flex items-center gap-4",l),children:r.map((n,s)=>e.jsxs(t.Fragment,{children:[e.jsx("div",{children:n}),s<r.length-1?e.jsx("div",{children:"•"}):null]},s))})}export{d as B};

@@ -1,28 +1,35 @@
 <?php namespace App\Http\Controllers\UserLibrary;
 
 use App\Models\User;
-use Auth;
+use App\Services\Albums\PaginateAlbums;
 use Common\Core\BaseController;
-use Common\Database\Datasource\Datasource;
+use Illuminate\Support\Str;
 
 class UserLibraryAlbumsController extends BaseController
 {
-    public function index(User $user = null)
+    public function index(User $user)
     {
-        $user = $user ?? Auth::user();
-
         $this->authorize('show', $user);
 
-        $builder = $user
-            ->likedAlbums()
-            ->with('artists')
-            ->limit(30);
+        $params = $this->validate(request(), [
+            'orderBy' => 'string',
+            'orderDir' => 'string',
+            'query' => 'string|nullable',
+            'with' => 'string|nullable',
+        ]);
+        $params['perPage'] = 30;
 
-        $params = request()->all();
-        $params['orderBy'] = request()->get('orderBy', 'likes.created_at');
-        $params['orderDir'] = request()->get('orderDir', 'desc');
-
-        $pagination = (new Datasource($builder, $params))->paginate();
+        $pagination = (new PaginateAlbums())->asApiResponse(
+            [
+                'perPage' => $params['perPage'],
+                'orderBy' => $params['orderBy'] ?? 'likes.created_at',
+                'orderDir' => $params['orderDir'] ?? 'desc',
+                'query' => $params['query'] ?? null,
+            ],
+            $user->likedAlbums(),
+            includeTracks: isset($params['with']) &&
+                Str::contains($params['with'], 'tracks'),
+        );
 
         return $this->success(['pagination' => $pagination]);
     }

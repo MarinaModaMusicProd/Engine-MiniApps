@@ -1,19 +1,18 @@
+import { apiClient } from '@common/http/query-client';
+import { useTrans } from '@ui/i18n/use-trans';
+import { ProgressCircle } from '@ui/progress/progress-circle';
 import clsx from 'clsx';
-import {useEffect, useRef, useState} from 'react';
-import {FilePreviewProps} from './file-preview-props';
-import {DefaultFilePreview} from './default-file-preview';
-import {ProgressCircle} from '@ui/progress/progress-circle';
-import {FileEntry} from '../../../file-entry';
-import {useFileEntryUrls} from '../../../file-entry-urls';
-import {useTrans} from '@ui/i18n/use-trans';
-import {apiClient} from '@common/http/query-client';
+import { useEffect, useRef, useState } from 'react';
+import { useFileEntryUrls } from '../../../file-entry-urls';
+import { DefaultFilePreview } from './default-file-preview';
+import { FilePreviewProps } from './file-preview-props';
 
 export function WordDocumentFilePreview(props: FilePreviewProps) {
   const {entry, className} = props;
   const {trans} = useTrans();
   const ref = useRef<HTMLIFrameElement>(null);
   const [showDefault, setShowDefault] = useState(false);
-  const timeoutId = useRef<any>();
+  const timeoutId = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const {previewUrl} = useFileEntryUrls(entry);
 
@@ -64,7 +63,7 @@ export function WordDocumentFilePreview(props: FilePreviewProps) {
 
 async function buildPreviewUrl(
   urlString: string,
-  entry: FileEntry,
+  entry: {id: number},
 ): Promise<string> {
   const url = new URL(urlString);
   // if we're not trying to preview shareable link we will need to generate

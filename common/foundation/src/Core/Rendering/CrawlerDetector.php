@@ -15,7 +15,7 @@ class CrawlerDetector
         }
 
         return $this->isCrawler =
-            !request()->isMethod('GET') &&
+            request()->isMethod('GET') &&
             (request()->query->has('_escaped_fragment_') ||
                 request()->server->get('X-BUFFERBOT') ||
                 (new CrawlerDetect())->isCrawler());

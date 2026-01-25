@@ -1,10 +1,19 @@
-import {Link} from 'react-router-dom';
-import clsx from 'clsx';
-import React, {useMemo} from 'react';
-import {Album} from '@app/web-player/albums/album';
-import {Artist} from '@app/web-player/artists/artist';
-import {slugifyString} from '@ui/utils/string/slugify-string';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {slugifyString} from '@ui/utils/string/slugify-string';
+import clsx from 'clsx';
+import {useMemo} from 'react';
+import {Link} from 'react-router';
+
+type Album = {
+  id: number;
+  name: string;
+  artists: Artist[];
+};
+
+type Artist = {
+  id: number;
+  name: string;
+};
 
 interface AlbumLinkProps {
   album: Album;

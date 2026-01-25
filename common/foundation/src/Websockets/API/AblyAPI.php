@@ -20,8 +20,8 @@ class AblyAPI extends WebsocketProviderAPI
         );
 
         return collect($response ?? [])
-            ->map(fn($item) => json_decode($item['data'], true)['id'])
-            ->unique();
+            ->map(fn($item) => json_decode($item['data'], true))
+            ->unique('id');
     }
 
     protected function makeAblyRequest(string $path)
@@ -31,7 +31,9 @@ class AblyAPI extends WebsocketProviderAPI
 
     protected function getClient(): PendingRequest
     {
-        $parts = explode(':', config('broadcasting.connections.ably.key'));
-        return parent::getClient()->withBasicAuth($parts[0], $parts[1]);
+        return parent::getClient()->withBasicAuth(
+            config('broadcasting.connections.ably.key'),
+            config('broadcasting.connections.ably.secret'),
+        );
     }
 }

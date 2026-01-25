@@ -1,15 +1,9 @@
 <?php namespace Common\Files\Response;
 
 use Common\Files\FileEntry;
-use Common\Files\Response\FileResponse;
-use Common\Files\Response\RangeFileResponse;
-use Common\Files\Response\RemoteFileResponse;
-use Common\Files\Response\StreamedFileResponse;
-use Common\Files\Response\XAccelRedirectFileResponse;
-use Common\Files\Response\XSendFileResponse;
+use Common\Files\Uploads\Uploads;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
-use Request;
 
 class FileResponseFactory
 {
@@ -18,7 +12,7 @@ class FileResponseFactory
         string $disposition = 'inline',
     ): mixed {
         $options = [
-            'useThumbnail' => Request::get('thumbnail') && $entry->thumbnail,
+            'useThumbnail' => request('thumbnail') && $entry->thumbnail,
             'disposition' => $disposition,
         ];
 
@@ -34,7 +28,7 @@ class FileResponseFactory
     ): FileResponse {
         $isLocalDrive =
             $entry->getDisk()->getAdapter() instanceof LocalFilesystemAdapter;
-        $staticFileDelivery = config('common.site.static_file_delivery');
+        $staticFileDelivery = config('filesystems.static_file_delivery');
 
         if ($this->shouldRedirectToRemoteUrl($entry)) {
             return new RemoteFileResponse();
@@ -44,7 +38,7 @@ class FileResponseFactory
                 : new XAccelRedirectFileResponse();
         } elseif (
             !$isLocalDrive &&
-            config('common.site.use_presigned_s3_urls')
+            config('filesystems.use_presigned_s3_urls')
         ) {
             return new StreamedFileResponse();
         } elseif (
@@ -68,11 +62,13 @@ class FileResponseFactory
     {
         $adapter = $entry->getDisk()->getAdapter();
         $isS3 = $adapter instanceof AwsS3V3Adapter;
-        $shouldUsePublicUrl =
-            config('common.site.remote_file_visibility') === 'public' && $isS3;
+        $shouldUsePublicUrl = $entry->public && $isS3;
         $shouldUsePresignedUrl =
-            config('common.site.use_presigned_s3_urls') && $isS3;
-        $hasCustomCdnUrl = config('common.site.file_preview_endpoint');
+            config('filesystems.use_presigned_s3_urls') && $isS3;
+        $hasCustomCdnUrl =
+            config('filesystems.file_preview_endpoint') ||
+            ($entry->backend_id &&
+                !!Uploads::backend($entry->backend_id)->customDomain);
         return $shouldUsePresignedUrl ||
             $shouldUsePublicUrl ||
             $hasCustomCdnUrl;

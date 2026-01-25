@@ -6,6 +6,7 @@ use Common\Database\MigrateAndSeed;
 use Common\Settings\DotEnvEditor;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 class UpdateActions

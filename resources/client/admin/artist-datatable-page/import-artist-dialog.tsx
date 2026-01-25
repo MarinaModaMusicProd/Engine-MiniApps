@@ -13,8 +13,10 @@ import {
   useImportArtist,
 } from '@app/admin/artist-datatable-page/requests/use-import-artist';
 import {FormSwitch} from '@ui/forms/toggle/switch';
+import {useSettings} from '@ui/settings/use-settings';
 
 export function ImportArtistDialog() {
+  const settings = useSettings();
   const form = useForm<ImportArtistPayload>({
     defaultValues: {
       importAlbums: true,
@@ -52,9 +54,11 @@ export function ImportArtistDialog() {
           <FormSwitch name="importAlbums" className="mb-24">
             <Trans message="Import albums" />
           </FormSwitch>
-          <FormSwitch name="importSimilarArtists">
-            <Trans message="Import similar artists" />
-          </FormSwitch>
+          {settings.spotify_use_deprecated_api && (
+            <FormSwitch name="importSimilarArtists">
+              <Trans message="Import similar artists" />
+            </FormSwitch>
+          )}
         </Form>
       </DialogBody>
       <DialogFooter>

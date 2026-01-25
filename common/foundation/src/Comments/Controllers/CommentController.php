@@ -3,6 +3,7 @@
 namespace Common\Comments\Controllers;
 
 use Common\Comments\Comment;
+use Common\Comments\CommentToApiResource;
 use Common\Comments\CrupdateComment;
 use Common\Comments\CrupdateCommentRequest;
 use Common\Core\BaseController;
@@ -16,8 +17,7 @@ class CommentController extends BaseController
     public function __construct(
         protected Comment $comment,
         protected Request $request,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {
@@ -40,16 +40,11 @@ class CommentController extends BaseController
 
         $pagination = $dataSource->paginate();
 
-        $pagination->transform(function (Comment $comment) {
-            if (
-                $comment->relationLoaded('commentable') &&
-                $comment->commentable
-            ) {
-                $normalized = $comment->commentable->toNormalizedArray();
-                $comment->unsetRelation('commentable');
-                $comment->setAttribute('commentable', $normalized);
-            }
-            return $comment;
+        $pagination->through(function (Comment $comment) {
+            return (new CommentToApiResource())->execute(
+                $comment,
+                request('loader'),
+            );
         });
 
         return $this->success(['pagination' => $pagination]);
@@ -77,6 +72,8 @@ class CommentController extends BaseController
     ): Response {
         $this->authorize('store', $comment);
 
+        $this->blockOnDemoSite();
+
         $comment = app(CrupdateComment::class)->execute(
             $request->all(),
             $comment,
@@ -89,6 +86,8 @@ class CommentController extends BaseController
     {
         $commentIds = explode(',', $ids);
         $this->authorize('destroy', [Comment::class, $commentIds]);
+
+        $this->blockOnDemoSite();
 
         $allDeleted = [];
         $allMarkedAsDeleted = [];

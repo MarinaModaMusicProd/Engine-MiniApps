@@ -1,6 +1,5 @@
-import React from 'react';
-import {useListboxContext} from './listbox-context';
-import {ListItemBase, ListItemBaseProps} from '../../list/list-item-base';
+import { ListItemBase, ListItemBaseProps } from '../../list/list-item-base';
+import { useListboxContext } from './listbox-context';
 
 export interface ListboxItemProps extends ListItemBaseProps {
   value: any;
@@ -77,7 +76,12 @@ export function Item({
         onSelected?.();
         onClick?.(e);
       }}
-      ref={node => (listItemsRef.current[index] = node)}
+      ref={node => {
+        listItemsRef.current[index] = node;
+        return () => {
+          delete listItemsRef.current[index];
+        }
+      }}
       id={`${listboxId}-${index}`}
       role={role === 'menu' ? 'menuitem' : 'option'}
       tabIndex={virtualFocus ? undefined : tabIndex}

@@ -1,28 +1,34 @@
-import clsx from 'clsx';
-import {Button} from '@ui/buttons/button';
-import {FormEventHandler, Fragment, ReactNode, useState} from 'react';
 import {useStripe} from '@common/billing/checkout/stripe/use-stripe';
+import {Button} from '@ui/buttons/button';
 import {Skeleton} from '@ui/skeleton/skeleton';
+import clsx from 'clsx';
+import {FormEventHandler, Fragment, ReactNode, useState} from 'react';
 
 interface StripeElementsFormProps {
   productId?: string | number;
   priceId?: string | number;
-  type: 'setupIntent' | 'subscription';
+  confirmType: 'confirmSetup' | 'confirmPayment';
+  createType: 'subscription' | 'setupIntent';
   submitLabel: ReactNode;
   returnUrl: string;
 }
 export function StripeElementsForm({
   productId,
   priceId,
-  type = 'subscription',
+  confirmType,
+  createType,
   submitLabel,
-  returnUrl,
+  returnUrl: userReturnUrl,
 }: StripeElementsFormProps) {
-  const {stripe, elements, paymentElementRef, stripeIsEnabled} = useStripe({
-    type,
-    productId,
-    priceId,
-  });
+  const {stripe, elements, paymentElementRef, stripeIsEnabled, subscriptionId} =
+    useStripe({
+      type:
+        createType === 'setupIntent'
+          ? 'createSetupIntent'
+          : 'createSubscription',
+      productId,
+      priceId,
+    });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,10 +44,16 @@ export function StripeElementsForm({
 
     setIsSubmitting(true);
 
+    let returnUrl = userReturnUrl;
+
+    if (subscriptionId) {
+      const url = new URL(userReturnUrl);
+      url.searchParams.set('subscriptionId', subscriptionId);
+      returnUrl = url.href;
+    }
+
     try {
-      const method =
-        type === 'subscription' ? 'confirmPayment' : 'confirmSetup';
-      const result = await stripe[method]({
+      const result = await stripe[confirmType]({
         elements,
         confirmParams: {
           return_url: returnUrl,

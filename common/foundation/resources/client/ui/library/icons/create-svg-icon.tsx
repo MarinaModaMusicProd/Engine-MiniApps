@@ -1,5 +1,5 @@
-import React, {ComponentType, ReactElement, RefObject} from 'react';
 import {SvgIcon, SvgIconProps} from '@ui/icons/svg-icon';
+import React, {ComponentType, ReactElement, RefObject} from 'react';
 
 export function createSvgIcon(
   path: ReactElement | ReactElement[],
@@ -38,7 +38,7 @@ export function createSvgIconFromTree(
   displayName: string = '',
 ) {
   const path = treeToElement(data);
-  return createSvgIcon(path!, displayName);
+  return path ? createSvgIcon(path, displayName) : null;
 }
 
 function treeToElement(

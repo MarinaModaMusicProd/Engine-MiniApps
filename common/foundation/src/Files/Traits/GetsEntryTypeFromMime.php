@@ -2,7 +2,7 @@
 
 namespace Common\Files\Traits;
 
-use Str;
+use Illuminate\Support\Str;
 
 trait GetsEntryTypeFromMime
 {

@@ -1,19 +1,19 @@
-import {Track} from '@app/web-player/tracks/track';
-import {useEffect, useRef, useState} from 'react';
+import {useTrackSeekbar} from '@app/web-player/player-controls/seekbar/use-track-seekbar';
 import {useTrackWaveData} from '@app/web-player/tracks/requests/use-track-wave-data';
+import {Track} from '@app/web-player/tracks/track';
+import {CommentBar} from '@app/web-player/tracks/waveform/comment-bar';
+import {drawWaveform} from '@app/web-player/tracks/waveform/draw-waveform';
 import {
   WAVE_HEIGHT,
   WAVE_WIDTH,
 } from '@app/web-player/tracks/waveform/generate-waveform-data';
-import clsx from 'clsx';
-import {FormattedDuration} from '@ui/i18n/formatted-duration';
 import {useSlider} from '@ui/forms/slider/use-slider';
+import {FormattedDuration} from '@ui/i18n/formatted-duration';
 import {useThemeSelector} from '@ui/themes/theme-selector-context';
 import {themeValueToHex} from '@ui/themes/utils/theme-value-to-hex';
+import clsx from 'clsx';
 import {AnimatePresence} from 'framer-motion';
-import {drawWaveform} from '@app/web-player/tracks/waveform/draw-waveform';
-import {useTrackSeekbar} from '@app/web-player/player-controls/seekbar/use-track-seekbar';
-import {CommentBar} from '@app/web-player/tracks/waveform/comment-bar';
+import {useEffect, useRef, useState} from 'react';
 
 const durationClassName =
   'text-[11px] absolute bottom-32 p-3 rounded text-white font-semibold z-30 pointer-events-none bg-black/80';

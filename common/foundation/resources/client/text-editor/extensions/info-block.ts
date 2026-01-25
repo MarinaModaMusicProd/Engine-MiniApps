@@ -13,7 +13,7 @@ declare module '@tiptap/core' {
 export const InfoBlock = Node.create({
   name: 'be-info-block',
   group: 'block',
-  content: 'inline*',
+  content: 'block+',
   defining: true,
 
   addOptions() {
@@ -59,8 +59,7 @@ export const InfoBlock = Node.create({
       mergeAttributes(HTMLAttributes, {
         class: 'info-block',
       }),
-      ['div', {class: 'title'}, 'Important:'],
-      ['p', 0],
+      0,
     ];
   },
 
@@ -69,7 +68,7 @@ export const InfoBlock = Node.create({
       addInfo:
         attributes =>
         ({commands}) => {
-          return commands.setNode(this.name, attributes);
+          return commands.wrapIn(this.name, attributes);
         },
     };
   },

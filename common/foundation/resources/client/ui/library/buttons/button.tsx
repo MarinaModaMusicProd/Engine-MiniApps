@@ -1,8 +1,8 @@
-import React, {ReactElement} from 'react';
-import clsx from 'clsx';
-import {ButtonSize, getButtonSizeStyle} from './button-size';
-import {ButtonBase, ButtonBaseProps} from './button-base';
 import {IconSize} from '@ui/icons/svg-icon';
+import clsx from 'clsx';
+import React, {ReactElement} from 'react';
+import {ButtonBase, ButtonBaseProps} from './button-base';
+import {ButtonSize, getButtonSizeStyle} from './button-size';
 
 export interface ButtonProps extends ButtonBaseProps {
   size?: ButtonSize;
@@ -10,6 +10,8 @@ export interface ButtonProps extends ButtonBaseProps {
   equalWidth?: boolean;
   startIcon?: ReactElement | null | false;
   endIcon?: ReactElement | null | false;
+  fontWeight?: string;
+  padding?: string;
 }
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -29,13 +31,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       replace,
       href,
       download,
+      fontWeight = 'font-semibold',
+      padding,
       ...other
     },
     ref,
   ) => {
     const mergedClassName = clsx(
-      'font-semibold',
-      sizeClassName || getButtonSizeStyle(size, {equalWidth, variant}),
+      fontWeight,
+      sizeClassName || getButtonSizeStyle(size, {equalWidth, variant, padding}),
       className,
     );
     return (
@@ -63,7 +67,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 type InlineIconProps = {
-  icon: ReactElement;
+  icon: ReactElement<any>;
   position: 'start' | 'end';
   size?: IconSize | null;
 };

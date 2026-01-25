@@ -1,8 +1,8 @@
-import React from 'react';
 import clsx from 'clsx';
-import {ButtonColor, ButtonVariant} from './get-shared-button-style';
+import React from 'react';
 import {ButtonProps} from './button';
 import {ButtonSize} from './button-size';
+import {ButtonColor, ButtonVariant} from './get-shared-button-style';
 
 export interface ButtonGroupProps {
   children: React.ReactNode[];
@@ -50,28 +50,29 @@ export function ButtonGroup({
 
   const buttons = React.Children.map(children, (button, i) => {
     if (React.isValidElement(button)) {
-      const active = isActive(button.props.value);
+      const buttonProps = button.props as ButtonProps;
+      const active = isActive(buttonProps.value);
       const adjustedColor = active ? 'primary' : color;
       return React.cloneElement<ButtonProps>(button as any, {
         color: active ? 'primary' : color,
         variant,
         size,
         radius: null,
-        disabled: button.props.disabled || disabled,
-        ...button.props,
+        disabled: buttonProps.disabled || disabled,
+        ...buttonProps,
         onClick: e => {
-          if (button.props.onClick) {
-            button.props.onClick(e);
+          if (buttonProps.onClick) {
+            buttonProps.onClick(e);
           }
           if (!onChange) return;
           if (multiple) {
-            onChange?.(toggleMultipleValue(button.props.value));
+            onChange?.(toggleMultipleValue(buttonProps.value));
           } else {
-            onChange?.(button.props.value);
+            onChange?.(buttonProps.value);
           }
         },
         className: clsx(
-          button.props.className,
+          buttonProps.className,
           // borders are hidden via negative margin, make sure both are visible for active item
           active ? 'z-20' : 'z-10',
           getStyle(i, children, radius, adjustedColor),

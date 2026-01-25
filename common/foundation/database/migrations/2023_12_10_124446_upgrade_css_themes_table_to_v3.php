@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('css_themes', function (Blueprint $table) {
-            $table->renameColumn('colors', 'values');
-            $table->text('font')->after('colors')->nullable();
+            if (!Schema::hasColumn('css_themes', 'values')) {
+                $table->renameColumn('colors', 'values');
+            }
+            $table->text('font')->after('user_id')->nullable();
         });
     }
 

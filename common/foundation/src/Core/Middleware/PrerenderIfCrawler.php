@@ -43,7 +43,7 @@ class PrerenderIfCrawler
     public function handle(
         Request $request,
         Closure $next,
-        string $routeName = null
+        string|null $routeName = null,
     ) {
         if ($this->shouldPrerender($request)) {
             define('SHOULD_PRERENDER', true);

@@ -1,8 +1,8 @@
-import {moveItemInArray} from '@ui/utils/array/move-item-in-array';
 import {droppables} from '@ui/interactions/dnd/drag-state';
-import {moveItemInNewArray} from '@ui/utils/array/move-item-in-new-array';
-import type {SortSession} from '@ui/interactions/dnd/sortable/use-sortable';
 import type {SortableStrategy} from '@ui/interactions/dnd/sortable/sortable-strategy';
+import type {SortSession} from '@ui/interactions/dnd/sortable/use-sortable';
+import {moveItemInArray} from '@ui/utils/array/move-item-in-array';
+import {moveItemInNewArray} from '@ui/utils/array/move-item-in-new-array';
 
 const transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
 

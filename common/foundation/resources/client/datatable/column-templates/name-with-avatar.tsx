@@ -1,10 +1,10 @@
-import React, {ReactNode} from 'react';
 import {Avatar, AvatarProps} from '@ui/avatar/avatar';
 import {Skeleton} from '@ui/skeleton/skeleton';
 import clsx from 'clsx';
+import {ReactNode} from 'react';
 
 interface Props {
-  image?: string;
+  image?: string | null;
   label: ReactNode;
   description?: ReactNode;
   labelClassName?: string;
@@ -32,7 +32,7 @@ export function NameWithAvatar({
           size={avatarSize}
           className="flex-shrink-0"
           src={image}
-          label={avatarLabel ?? label}
+          label={avatarLabel ?? label ?? 'User'}
           fallback="initials"
           circle={avatarCircle}
         />

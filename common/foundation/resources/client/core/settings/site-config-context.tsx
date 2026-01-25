@@ -1,8 +1,6 @@
-import React, {ComponentType} from 'react';
 import type {NotificationListItemProps} from '@common/notifications/notification-list';
-import {CompactUser, User} from '@ui/types/user';
-import {SvgIconProps} from '@ui/icons/svg-icon';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import React, {ComponentType} from 'react';
 
 export interface AdConfig {
   slot: string;
@@ -20,25 +18,20 @@ export interface CustomPageType {
   label: MessageDescriptor;
 }
 
+export interface RoleType {
+  type: string;
+  label: MessageDescriptor;
+  permission_type: string;
+}
+
 export interface HomepageOption {
   label: MessageDescriptor;
   value: string;
 }
 
 export interface SiteConfigContextValue {
-  auth: {
-    redirectUri: string;
-    // redirect uri to use when homepage is set to login page, to avoid infinite loop
-    secondaryRedirectUri?: string;
-    adminRedirectUri: string;
-    getUserProfileLink?: (user: CompactUser) => string;
-    registerFields?: ComponentType;
-    accountSettingsPanels?: {
-      icon: ComponentType<SvgIconProps>;
-      label: MessageDescriptor;
-      id: string;
-      component: ComponentType<{user: User}>;
-    }[];
+  auth?: {
+    getUserProfileLink?: (user: {id: number | string; name: string}) => string;
   };
   notifications: {
     renderMap?: Record<string, ComponentType<NotificationListItemProps>>;
@@ -49,21 +42,15 @@ export interface SiteConfigContextValue {
   customPages: {
     types: CustomPageType[];
   };
-  settings?: {
-    showIncomingMailMethod?: boolean;
-    showRecaptchaLinkSwitch?: boolean;
+  roles?: {
+    types?: RoleType[];
   };
   admin: {
     ads: AdConfig[];
-    channelsDocsLink?: string;
   };
-  demo: {
-    loginPageDefaults: 'singleAccount' | 'randomAccount';
+  demo?: {
     email?: string;
     password?: string;
-  };
-  homepage: {
-    options: HomepageOption[];
   };
 }
 

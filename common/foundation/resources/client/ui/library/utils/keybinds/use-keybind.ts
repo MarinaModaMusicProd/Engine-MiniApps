@@ -1,8 +1,8 @@
 import {useGlobalListeners} from '@react-aria/utils';
-import {useCallbackRef} from '@ui/utils/hooks/use-callback-ref';
-import {useEffect} from 'react';
-import {isCtrlKeyPressed} from '@ui/utils/keybinds/is-ctrl-key-pressed';
 import {isAnyInputFocused} from '@ui/utils/dom/is-any-input-focused';
+import {useCallbackRef} from '@ui/utils/hooks/use-callback-ref';
+import {isCtrlKeyPressed} from '@ui/utils/keybinds/is-ctrl-key-pressed';
+import {useEffect} from 'react';
 
 interface Options {
   allowedInputSelector?: string;
@@ -24,10 +24,12 @@ export function useKeybind(
         return;
       }
       const matches = shortcut.split('+').every(key => {
+        if (key === 'plus') key = '+';
+        key = key.toLowerCase();
         if (key === 'ctrl') {
           return isCtrlKeyPressed(e);
         } else {
-          return e.key === key;
+          return e.key.toLowerCase() === key;
         }
       });
       if (matches) {

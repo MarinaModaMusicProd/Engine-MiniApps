@@ -2,18 +2,18 @@
 
 namespace Common\Core\Prerender;
 
-use Arr;
+use Illuminate\Support\Arr;
 use Common\Core\AppUrl;
 use Common\Core\Prerender\MetaTags;
 use Illuminate\Support\Collection;
 use Request;
-use Str;
+use Illuminate\Support\Str;
 
 trait HandlesSeo
 {
     protected function handleSeo(
         array|Collection &$data = [],
-        array $options = []
+        array $options = [],
     ) {
         if (Request::method() === 'GET') {
             $data['seo'] = $this->getMetaTags($data, $options) ?: null;

@@ -1,15 +1,16 @@
-import React, {ReactElement, useEffect, useRef, useState} from 'react';
-import {SvgIconProps} from '@ui/icons/svg-icon';
-import {useTrans} from '@ui/i18n/use-trans';
 import {useListboxContext} from '@ui/forms/listbox/listbox-context';
-import {ProgressCircle} from '@ui/progress/progress-circle';
+import {useTrans} from '@ui/i18n/use-trans';
 import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
+import {SvgIconProps} from '@ui/icons/svg-icon';
+import {ProgressCircle} from '@ui/progress/progress-circle';
+import {ReactElement, useEffect, useRef, useState} from 'react';
 
 interface Props {
   isLoading?: boolean;
   icon?: ReactElement<SvgIconProps>;
+  size?: string;
 }
-export function ComboboxEndAdornment({isLoading, icon}: Props) {
+export function ComboboxEndAdornment({isLoading, icon, size}: Props) {
   const timeout = useRef<any>(null);
   const {trans} = useTrans();
   const [showLoading, setShowLoading] = useState(false);
@@ -57,5 +58,5 @@ export function ComboboxEndAdornment({isLoading, icon}: Props) {
     );
   }
 
-  return icon || <KeyboardArrowDownIcon />;
+  return icon || <KeyboardArrowDownIcon size={size} />;
 }

@@ -1,22 +1,22 @@
-import {AccountSettingsPanel} from '../account-settings-panel';
-import {Trans} from '@ui/i18n/trans';
 import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
+import {useLogoutOtherSessions} from '@common/auth/ui/account-settings/sessions-panel/requests/use-logout-other-sessions';
 import {
-  ActiveSession,
+  UserSession,
   useUserSessions,
 } from '@common/auth/ui/account-settings/sessions-panel/requests/use-user-sessions';
+import {usePasswordConfirmedAction} from '@common/auth/ui/confirm-password/use-password-confirmed-action';
+import {Button} from '@ui/buttons/button';
+import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
 import {ComputerIcon} from '@ui/icons/material/Computer';
 import {SmartphoneIcon} from '@ui/icons/material/Smartphone';
 import {TabletIcon} from '@ui/icons/material/Tablet';
-import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
 import {SvgIconProps} from '@ui/icons/svg-icon';
-import {Fragment, ReactNode} from 'react';
 import {ProgressCircle} from '@ui/progress/progress-circle';
-import {useLogoutOtherSessions} from '@common/auth/ui/account-settings/sessions-panel/requests/use-logout-other-sessions';
-import {usePasswordConfirmedAction} from '@common/auth/ui/confirm-password/use-password-confirmed-action';
-import {Button} from '@ui/buttons/button';
 import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
+import {Fragment, ReactNode} from 'react';
+import {AccountSettingsPanel} from '../account-settings-panel';
 
 export function SessionsPanel() {
   const {data, isLoading} = useUserSessions();
@@ -35,7 +35,7 @@ export function SessionsPanel() {
   return (
     <AccountSettingsPanel
       id={AccountSettingsId.Sessions}
-      title={<Trans message="Active sessions" />}
+      title={<Trans message="Sessions" />}
     >
       <p className="text-sm">
         <Trans message="If necessary, you may log out of all of your other browser sessions across all of your devices. Your recent sessions are listed below. If you feel your account has been compromised, you should also update your password." />
@@ -73,13 +73,13 @@ export function SessionsPanel() {
 }
 
 interface SessionItemProps {
-  session: ActiveSession;
+  session: UserSession;
 }
 function SessionItem({session}: SessionItemProps) {
   return (
     <div className="mb-14 flex items-start gap-14 text-sm">
       <div className="flex-shrink-0 text-muted">
-        <DeviceIcon device={session.device_type} size="lg" />
+        <DeviceIcon device={session.device} size="lg" />
       </div>
       <div className="flex-auto">
         <div>
@@ -98,7 +98,7 @@ function SessionItem({session}: SessionItemProps) {
 }
 
 interface DeviceIconProps {
-  device: ActiveSession['device_type'];
+  device: UserSession['device'];
   size: SvgIconProps['size'];
 }
 function DeviceIcon({device, size}: DeviceIconProps) {
@@ -113,7 +113,7 @@ function DeviceIcon({device, size}: DeviceIconProps) {
 }
 
 interface LastActiveProps {
-  session: ActiveSession;
+  session: UserSession;
 }
 function LastActive({session}: LastActiveProps) {
   if (session.is_current_device) {
@@ -124,11 +124,11 @@ function LastActive({session}: LastActiveProps) {
     );
   }
 
-  return <FormattedRelativeTime date={session.last_active} />;
+  return <FormattedRelativeTime date={session.updated_at} />;
 }
 
 interface IpAddressProps {
-  session: ActiveSession;
+  session: UserSession;
 }
 function IpAddress({session}: IpAddressProps) {
   if (session.ip_address) {

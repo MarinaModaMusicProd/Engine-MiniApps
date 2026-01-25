@@ -9,6 +9,7 @@ export interface Product {
   hidden?: boolean;
   prices: Price[];
   recommended: boolean;
+  trial_period_days: number;
   created_at: string;
   updated_at: string;
 }

@@ -1,45 +1,25 @@
-import {Trans} from '@ui/i18n/trans';
-import {FormSwitch} from '@ui/forms/toggle/switch';
-import {useFieldArray, useForm, useFormContext} from 'react-hook-form';
-import {AdminSettings} from '../admin-settings';
-import React, {Fragment} from 'react';
-import {FormSelect} from '@ui/forms/select/select';
-import {Item} from '@ui/forms/listbox/item';
-import {MenuItemForm} from '../../menus/menu-item-form';
-import {Button} from '@ui/buttons/button';
-import {AddIcon} from '@ui/icons/material/Add';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {AddMenuItemDialog} from '../../appearance/sections/menus/add-menu-item-dialog';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {AdminSettingsLayout} from '@common/admin/settings/layout/settings-layout';
+import {SettingsSectionHeader} from '@common/admin/settings/layout/settings-panel';
+import {useAdminSettings} from '@common/admin/settings/requests/use-admin-settings';
 import {Accordion, AccordionItem} from '@ui/accordion/accordion';
+import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
+import {Item} from '@ui/forms/listbox/item';
+import {FormSelect} from '@ui/forms/select/select';
+import {FormSwitch} from '@ui/forms/toggle/switch';
+import {Trans} from '@ui/i18n/trans';
+import {AddIcon} from '@ui/icons/material/Add';
 import {CloseIcon} from '@ui/icons/material/Close';
-import {
-  AdminSettingsForm,
-  AdminSettingsLayout,
-} from '@common/admin/settings/form/admin-settings-form';
-import {SettingsSeparator} from '@common/admin/settings/form/settings-separator';
-import {useValueLists} from '@common/http/value-lists';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Fragment} from 'react';
+import {useFieldArray, useForm, useFormContext} from 'react-hook-form';
+import {MenuItemForm} from '../../menus/menu-item-form';
+import {AdminSettings} from '../admin-settings';
+import {AddMenuItemDialog} from './menu-settings/add-menu-item-dialog';
 
-export function GdprSettings() {
-  const optionQuery = useValueLists(['menuItemCategories']);
-
-  return (
-    <AdminSettingsLayout
-      title={<Trans message="GDPR" />}
-      description={
-        <Trans message="Configure settings related to EU General Data Protection Regulation." />
-      }
-      isLoading={optionQuery.isLoading}
-    >
-      {data => <Form data={data} />}
-    </AdminSettingsLayout>
-  );
-}
-
-interface FormProps {
-  data: AdminSettings;
-}
-function Form({data}: FormProps) {
+export function Component() {
+  const {data} = useAdminSettings();
   const form = useForm<AdminSettings>({
     defaultValues: {
       client: {
@@ -56,11 +36,14 @@ function Form({data}: FormProps) {
   });
 
   return (
-    <AdminSettingsForm form={form}>
+    <AdminSettingsLayout
+      form={form}
+      title={<Trans message="GDPR" />}
+      docsLink={AdminDocsUrls.settings.gdpr}
+    >
       <CookieNoticeSection />
-      <SettingsSeparator />
       <RegistrationPoliciesSection />
-    </AdminSettingsForm>
+    </AdminSettingsLayout>
   );
 }
 
@@ -69,18 +52,16 @@ function CookieNoticeSection() {
   const noticeEnabled = watch('client.cookie_notice.enable');
 
   return (
-    <div>
-      <FormSwitch
-        name="client.cookie_notice.enable"
-        className="mb-20"
-        description={
-          <Trans message="Whether cookie notice should be shown automatically to users from EU until it is accepted." />
-        }
-      >
+    <div className="mb-44">
+      <SettingsSectionHeader margin="mb-24" size="md">
+        <Trans message="Cookie Notice" />
+        <Trans message="Configure the cookie consent notice shown to visitors from the European Union." />
+      </SettingsSectionHeader>
+      <FormSwitch name="client.cookie_notice.enable">
         <Trans message="Enable cookie notice" />
       </FormSwitch>
       {noticeEnabled && (
-        <Fragment>
+        <div className="mt-20 rounded-panel border p-20">
           <div className="mb-20 border-b pb-6">
             <div className="mb-20 border-b pb-10 text-sm font-medium">
               <Trans message="Information button" />
@@ -96,7 +77,6 @@ function CookieNoticeSection() {
             name="client.cookie_notice.position"
             selectionMode="single"
             label={<Trans message="Cookie notice position" />}
-            className="mb-20"
           >
             <Item value="top">
               <Trans message="Top" />
@@ -105,7 +85,7 @@ function CookieNoticeSection() {
               <Trans message="Bottom" />
             </Item>
           </FormSelect>
-        </Fragment>
+        </div>
       )}
     </div>
   );
@@ -118,17 +98,14 @@ function RegistrationPoliciesSection() {
   >({
     name: 'client.registration.policies',
   });
-  const {watch} = useFormContext();
 
   return (
     <Fragment>
-      <div className="mb-6 text-sm">
-        <Trans message="Registration policies" />
-      </div>
-      <div className="text-xs text-muted">
-        <Trans message="Create policies that will be shown on registration page. User will be required to accept them by toggling a checkbox." />
-      </div>
-      <Accordion className="mt-16" variant="outline">
+      <SettingsSectionHeader margin="my-24" size="md">
+        <Trans message="Registration Policies" />
+        <Trans message="Create policies that will be shown on the registration page. Users will be required to accept them by toggling a checkbox." />
+      </SettingsSectionHeader>
+      <Accordion variant="outline">
         {fields.map((field, index) => (
           <AccordionItem
             key={field.id}
@@ -165,7 +142,7 @@ function RegistrationPoliciesSection() {
           variant="link"
           color="primary"
           startIcon={<AddIcon />}
-          size="xs"
+          size="sm"
         >
           <Trans message="Add another policy" />
         </Button>

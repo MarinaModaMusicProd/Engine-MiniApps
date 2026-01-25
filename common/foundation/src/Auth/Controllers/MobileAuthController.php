@@ -63,11 +63,7 @@ class MobileAuthController extends BaseController
     {
         $this->middleware('auth');
 
-        if (
-            request()
-                ->user()
-                ->hasVerifiedEmail()
-        ) {
+        if (request()->user()->hasVerifiedEmail()) {
             return request()->wantsJson()
                 ? new JsonResponse('', 204)
                 : redirect()->intended(
@@ -75,9 +71,7 @@ class MobileAuthController extends BaseController
                 );
         }
 
-        request()
-            ->user()
-            ->sendEmailVerificationNotification();
+        request()->user()->sendEmailVerificationNotification();
 
         return app(EmailVerificationNotificationSentResponse::class);
     }

@@ -2,7 +2,7 @@
 
 namespace Common\Workspaces\Requests;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Core\BaseFormRequest;
 use Illuminate\Validation\Rule;
 

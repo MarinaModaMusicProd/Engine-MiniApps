@@ -1,27 +1,37 @@
-import {ReactElement, useContext} from 'react';
-import {ListboxItemProps} from '@ui/forms/listbox/item';
-import {SiteConfigContext} from '@common/core/settings/site-config-context';
+import {authDropdownIcons} from '@app/auth/auth-dropdown-icons';
 import {useLogout} from '@common/auth/requests/logout';
-import {useCustomMenu} from '@common/menus/use-custom-menu';
-import {useSettings} from '@ui/settings/use-settings';
 import {useAuth} from '@common/auth/use-auth';
+import {SiteConfigContext} from '@common/core/settings/site-config-context';
+import {useCustomMenu} from '@common/menus/use-custom-menu';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {useThemeSelector} from '@ui/themes/theme-selector-context';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {NotificationsIcon} from '@ui/icons/material/Notifications';
+import {Placement} from '@floating-ui/react-dom';
+import {ListboxItemProps} from '@ui/forms/listbox/item';
 import {Trans} from '@ui/i18n/trans';
-import {PaymentsIcon} from '@ui/icons/material/Payments';
 import {createSvgIconFromTree} from '@ui/icons/create-svg-icon';
 import {AccountCircleIcon} from '@ui/icons/material/AccountCircle';
 import {DarkModeIcon} from '@ui/icons/material/DarkMode';
-import {LightModeIcon} from '@ui/icons/material/LightMode';
 import {ExitToAppIcon} from '@ui/icons/material/ExitToApp';
+import {LightModeIcon} from '@ui/icons/material/LightMode';
+import {NotificationsIcon} from '@ui/icons/material/Notifications';
+import {PaymentsIcon} from '@ui/icons/material/Payments';
+import {SvgIconProps} from '@ui/icons/svg-icon';
+import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
+import {useSettings} from '@ui/settings/use-settings';
+import {useThemeSelector} from '@ui/themes/theme-selector-context';
+import {ReactElement, useContext} from 'react';
 
 interface Props {
   children: ReactElement;
   items?: ReactElement<ListboxItemProps>[];
+  placement?: Placement;
+  accountSettingsLink?: string;
 }
-export function NavbarAuthMenu({children, items}: Props) {
+export function NavbarAuthMenu({
+  children,
+  items,
+  placement,
+  accountSettingsLink,
+}: Props) {
   const {auth} = useContext(SiteConfigContext);
   const logout = useLogout();
   const menu = useCustomMenu('auth-dropdown');
@@ -59,22 +69,37 @@ export function NavbarAuthMenu({children, items}: Props) {
   );
 
   return (
-    <MenuTrigger>
+    <MenuTrigger placement={placement}>
       {children}
       <Menu>
         {menu &&
           menu.items.map(item => {
-            const Icon = item.icon && createSvgIconFromTree(item.icon);
+            let icon: ReactElement<SvgIconProps> | null = null;
+
+            if (item.icon) {
+              const IconCmp = createSvgIconFromTree(item.icon);
+              icon = IconCmp && <IconCmp size="sm" />;
+            } else {
+              const IconCmp = authDropdownIcons[item.action.split('?')[0]];
+              icon = IconCmp && <IconCmp size="sm" />;
+            }
+
+            let action = item.action;
+
+            if (action === '/account-settings' && accountSettingsLink) {
+              action = accountSettingsLink;
+            }
+
             return (
               <MenuItem
                 value={item.id}
                 key={item.id}
-                startIcon={Icon && <Icon />}
+                startIcon={icon}
                 onSelected={() => {
                   if (item.type === 'link') {
-                    window.open(item.action, '_blank');
+                    window.open(action, '_blank');
                   } else {
-                    navigate(item.action);
+                    navigate(action);
                   }
                 }}
               >
@@ -82,10 +107,10 @@ export function NavbarAuthMenu({children, items}: Props) {
               </MenuItem>
             );
           })}
-        {auth.getUserProfileLink && (
+        {auth?.getUserProfileLink && (
           <MenuItem
             value="profile"
-            startIcon={<AccountCircleIcon />}
+            startIcon={<AccountCircleIcon size="sm" />}
             onSelected={() => {
               navigate(auth.getUserProfileLink!(user));
             }}
@@ -99,7 +124,7 @@ export function NavbarAuthMenu({children, items}: Props) {
         {themes?.user_change && !selectedTheme.is_dark && (
           <MenuItem
             value="light"
-            startIcon={<DarkModeIcon />}
+            startIcon={<DarkModeIcon size="sm" />}
             onSelected={() => {
               selectTheme('dark');
             }}
@@ -110,7 +135,7 @@ export function NavbarAuthMenu({children, items}: Props) {
         {themes?.user_change && selectedTheme.is_dark && (
           <MenuItem
             value="dark"
-            startIcon={<LightModeIcon />}
+            startIcon={<LightModeIcon size="sm" />}
             onSelected={() => {
               selectTheme('light');
             }}
@@ -120,7 +145,7 @@ export function NavbarAuthMenu({children, items}: Props) {
         )}
         <MenuItem
           value="logout"
-          startIcon={<ExitToAppIcon />}
+          startIcon={<ExitToAppIcon size="sm" />}
           onSelected={() => {
             logout.mutate();
           }}

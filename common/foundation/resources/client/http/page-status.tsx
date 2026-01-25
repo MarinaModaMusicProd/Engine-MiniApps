@@ -1,12 +1,12 @@
-import {FullPageLoader} from '@ui/progress/full-page-loader';
+import {useAuth} from '@common/auth/use-auth';
+import {PageErrorMessage} from '@common/errors/page-error-message';
 import {errorStatusIs} from '@common/http/error-status-is';
 import {NotFoundPage} from '@common/ui/not-found-page/not-found-page';
-import {PageErrorMessage} from '@common/errors/page-error-message';
-import React, {ReactNode} from 'react';
 import {UseQueryResult} from '@tanstack/react-query';
-import {Navigate} from 'react-router-dom';
-import {useAuth} from '@common/auth/use-auth';
+import {FullPageLoader} from '@ui/progress/full-page-loader';
 import useSpinDelay from '@ui/utils/hooks/use-spin-delay';
+import {ReactNode} from 'react';
+import {Navigate} from 'react-router';
 
 interface Props {
   query: UseQueryResult;

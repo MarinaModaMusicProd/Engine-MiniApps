@@ -2,17 +2,13 @@
 
 namespace Common\Admin\Analytics\Actions;
 
-use Common\Admin\Analytics\Actions\BuildAnalyticsReport;
-
-class BuildNullAnalyticsReport implements BuildAnalyticsReport
+class BuildNullAnalyticsReport extends BuildAnalyticsReport
 {
-    public function execute(array $params): array
+    public function execute(): array
     {
-        $dateRange = $params['dateRange'];
-
         return [
             'pageViews' => [
-                'granularity' => $dateRange->granularity,
+                'granularity' => $this->dateRange->granularity,
                 'datasets' => [
                     [
                         'label' => __('Current period'),
@@ -25,7 +21,7 @@ class BuildNullAnalyticsReport implements BuildAnalyticsReport
                 ],
             ],
             'browsers' => [
-                'granularity' => $dateRange->granularity,
+                'granularity' => $this->dateRange->granularity,
                 'datasets' => [
                     [
                         'label' => __('Sessions'),
@@ -34,7 +30,7 @@ class BuildNullAnalyticsReport implements BuildAnalyticsReport
                 ],
             ],
             'locations' => [
-                'granularity' => $dateRange->granularity,
+                'granularity' => $this->dateRange->granularity,
                 'datasets' => [
                     [
                         'label' => __('Sessions'),
@@ -43,7 +39,7 @@ class BuildNullAnalyticsReport implements BuildAnalyticsReport
                 ],
             ],
             'devices' => [
-                'granularity' => $dateRange->granularity,
+                'granularity' => $this->dateRange->granularity,
                 'datasets' => [
                     [
                         'label' => __('Sessions'),
@@ -52,7 +48,7 @@ class BuildNullAnalyticsReport implements BuildAnalyticsReport
                 ],
             ],
             'platforms' => [
-                'granularity' => $dateRange->granularity,
+                'granularity' => $this->dateRange->granularity,
                 'datasets' => [
                     [
                         'label' => __('Sessions'),

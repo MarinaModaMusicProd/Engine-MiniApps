@@ -1,6 +1,6 @@
 <?php namespace Common\Localizations;
 
-use Arr;
+use Illuminate\Support\Arr;
 use Common\Localizations\Localization;
 use Illuminate\Filesystem\Filesystem;
 
@@ -141,8 +141,9 @@ class LocalizationsRepository
         }
     }
 
-    public function makeLocalizationLinesPath(Localization $localization): string
-    {
+    public function makeLocalizationLinesPath(
+        Localization $localization,
+    ): string {
         return resource_path("lang/$localization->language.json");
     }
 

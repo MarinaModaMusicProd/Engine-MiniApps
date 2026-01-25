@@ -1,9 +1,9 @@
-import {Navbar} from '@common/ui/navigation/navbar/navbar';
 import {Footer} from '@common/ui/footer/footer';
-import lightBgImage from './images/light-bg.svg';
-import darkBgImage from './images/dark-bg.svg';
+import {Navbar} from '@common/ui/navigation/navbar/navbar';
 import {useIsDarkMode} from '@ui/themes/use-is-dark-mode';
 import {ComponentPropsWithoutRef, ReactNode} from 'react';
+import darkBgImage from './images/dark-bg.svg';
+import lightBgImage from './images/light-bg.svg';
 
 interface Props extends ComponentPropsWithoutRef<'div'> {
   children: ReactNode;

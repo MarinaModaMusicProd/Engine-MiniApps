@@ -1,11 +1,12 @@
 import {Radio} from '@ui/forms/radio-group/radio';
-import {UpsellBillingCycle} from './find-best-price';
-import {Trans} from '@ui/i18n/trans';
 import {RadioGroup, RadioGroupProps} from '@ui/forms/radio-group/radio-group';
-import {UpsellLabel} from './upsell-label';
+import {Trans} from '@ui/i18n/trans';
 import {Product} from '../product';
+import {UpsellBillingCycle} from './find-best-price';
+import {UpsellLabel} from './upsell-label';
 
-interface BillingCycleRadioProps extends Omit<RadioGroupProps, 'children'> {
+interface BillingCycleRadioProps
+  extends Omit<RadioGroupProps, 'children' | 'onChange'> {
   selectedCycle: UpsellBillingCycle;
   onChange: (value: UpsellBillingCycle) => void;
   products?: Product[];
@@ -17,24 +18,16 @@ export function BillingCycleRadio({
   ...radioGroupProps
 }: BillingCycleRadioProps) {
   return (
-    <RadioGroup {...radioGroupProps}>
-      <Radio
-        value="yearly"
-        checked={selectedCycle === 'yearly'}
-        onChange={e => {
-          onChange(e.target.value as UpsellBillingCycle);
-        }}
-      >
+    <RadioGroup
+      {...radioGroupProps}
+      value={selectedCycle}
+      onChange={value => onChange(value as UpsellBillingCycle)}
+    >
+      <Radio value="yearly">
         <Trans message="Annual" />
         <UpsellLabel products={products} />
       </Radio>
-      <Radio
-        value="monthly"
-        checked={selectedCycle === 'monthly'}
-        onChange={e => {
-          onChange(e.target.value as UpsellBillingCycle);
-        }}
-      >
+      <Radio value="monthly">
         <Trans message="Monthly" />
       </Radio>
     </RadioGroup>

@@ -1,17 +1,17 @@
-import {Commentable} from '@common/comments/commentable';
-import {Comment} from '@common/comments/comment';
-import {useTrans} from '@ui/i18n/use-trans';
 import {useAuth} from '@common/auth/use-auth';
+import {Comment} from '@common/comments/comment';
+import {Commentable} from '@common/comments/commentable';
 import {useCreateComment} from '@common/comments/requests/use-create-comment';
-import {RefObject, useState} from 'react';
-import clsx from 'clsx';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {useObjectRef} from '@react-aria/utils';
 import {Avatar} from '@ui/avatar/avatar';
+import {Button} from '@ui/buttons/button';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
-import {useObjectRef} from '@react-aria/utils';
-import {Button} from '@ui/buttons/button';
+import {useTrans} from '@ui/i18n/use-trans';
 import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import clsx from 'clsx';
+import {RefObject, useState} from 'react';
 
 export interface NewCommentFormProps {
   commentable: Commentable;
@@ -19,7 +19,7 @@ export interface NewCommentFormProps {
   onSuccess?: () => void;
   className?: string;
   autoFocus?: boolean;
-  inputRef?: RefObject<HTMLInputElement>;
+  inputRef?: RefObject<HTMLInputElement | null>;
   // additional data that should be sent to backend when creating comments
   payload?: Record<string, number | string>;
 }

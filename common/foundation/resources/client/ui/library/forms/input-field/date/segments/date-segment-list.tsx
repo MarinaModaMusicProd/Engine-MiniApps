@@ -21,19 +21,20 @@ export function DateSegmentList({
   onChange,
   isPlaceholder,
 }: DateSegmentListProps) {
-  const {granularity} = state;
+  const {granularity, timezone} = state;
   const options = useMemo(() => {
     const memoOptions: Intl.DateTimeFormatOptions = {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',
+      timeZone: timezone,
     };
     if (granularity === 'minute') {
       memoOptions.hour = 'numeric';
       memoOptions.minute = 'numeric';
     }
     return memoOptions;
-  }, [granularity]);
+  }, [granularity, timezone]);
 
   const formatter = useDateFormatter(options);
 

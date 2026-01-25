@@ -15,7 +15,8 @@ class AlbumPolicy extends BasePolicy
     public function index(?User $user)
     {
         return $this->hasPermission($user, 'albums.view') ||
-            $this->hasPermission($user, 'music.view');
+            $this->hasPermission($user, 'music.view') ||
+            $this->hasPermission($user, 'music.update');
     }
 
     public function show(?User $user, Album $album)
@@ -24,7 +25,8 @@ class AlbumPolicy extends BasePolicy
             return true;
         } elseif (
             $this->hasPermission($user, 'albums.view') ||
-            $this->hasPermission($user, 'music.view')
+            $this->hasPermission($user, 'music.view') ||
+            $this->hasPermission($user, 'music.update')
         ) {
             return true;
         } else {
@@ -37,7 +39,8 @@ class AlbumPolicy extends BasePolicy
     public function store(User $user)
     {
         return $this->hasPermission($user, 'albums.create') ||
-            $this->hasPermission($user, 'music.create');
+            $this->hasPermission($user, 'music.create') ||
+            $this->hasPermission($user, 'music.update');
     }
 
     public function update(User $user, Album $album)
@@ -60,7 +63,7 @@ class AlbumPolicy extends BasePolicy
     {
         if (
             $this->hasPermission($user, 'albums.delete') ||
-            $this->hasPermission($user, 'music.delete')
+            $this->hasPermission($user, 'music.update')
         ) {
             return true;
         } else {

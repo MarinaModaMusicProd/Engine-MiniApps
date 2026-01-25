@@ -1,26 +1,31 @@
-import {Link} from 'react-router-dom';
-import clsx from 'clsx';
-import {AccountSettingsPanel} from '../account-settings-panel';
-import {User} from '@ui/types/user';
+import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
+import {queryClient} from '@common/http/query-client';
+import {Button} from '@ui/buttons/button';
+import {LinkStyle} from '@ui/buttons/external-link';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {Trans} from '@ui/i18n/trans';
 import {IllustratedMessage} from '@ui/images/illustrated-message';
 import {SvgImage} from '@ui/images/svg-image';
-import {Button} from '@ui/buttons/button';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {AccessToken} from '../../../access-token';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import {useDeleteAccessToken} from './delete-access-token';
-import {CreateNewTokenDialog} from './create-new-token-dialog';
-import {LinkStyle} from '@ui/buttons/external-link';
-import {useAuth} from '../../../use-auth';
-import {Trans} from '@ui/i18n/trans';
-import secureFilesSvg from './secure-files.svg';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {useSettings} from '@ui/settings/use-settings';
-import {queryClient} from '@common/http/query-client';
-import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
+import {User} from '@ui/types/user';
+import clsx from 'clsx';
+import {Link} from 'react-router';
+import {AccessToken} from '../../../access-token';
+import {useAuth} from '../../../use-auth';
+import {AccountSettingsPanel} from '../account-settings-panel';
+import {CreateNewTokenDialog} from './create-new-token-dialog';
+import {useDeleteAccessToken} from './delete-access-token';
+import secureFilesSvg from './secure-files.svg';
+
+interface PartialUser {
+  id: number;
+  tokens?: User['tokens'];
+}
 
 interface Props {
-  user: User;
+  user: PartialUser;
 }
 export function AccessTokenPanel({user}: Props) {
   const tokens = user.tokens || [];
@@ -36,7 +41,7 @@ export function AccessTokenPanel({user}: Props) {
           <Trans message="Documentation" />
         </Link>
       }
-      actions={<CreateNewTokenButton />}
+      actions={user.id === authUser?.id ? <CreateNewTokenButton /> : null}
     >
       {!tokens.length ? (
         <IllustratedMessage

@@ -3,16 +3,15 @@
 namespace Common\Comments;
 
 use App\Models\User;
-use Auth;
-use Common\Comments\Comment;
 use Common\Comments\Notifications\CommentReceivedReply;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 
 class CrupdateComment
 {
     public function execute(
         array $data,
-        Comment $initialComment = null,
+        Comment|null $initialComment = null,
     ): Comment {
         if (!$initialComment) {
             $comment = new Comment([

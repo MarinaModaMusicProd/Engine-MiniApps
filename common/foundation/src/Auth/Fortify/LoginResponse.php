@@ -5,6 +5,7 @@ namespace Common\Auth\Fortify;
 use Common\Core\Bootstrap\BootstrapData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
 class LoginResponse implements LoginResponseContract
@@ -15,13 +16,12 @@ class LoginResponse implements LoginResponseContract
             Auth::logoutOtherDevices($request->get('password'));
         }
 
-        $data = app(BootstrapData::class)
-            ->init()
-            ->getEncoded();
+        $data = app(BootstrapData::class)->init()->getEncoded();
 
         return response()->json([
             'bootstrapData' => $data,
             'two_factor' => false,
+            'url' => Session::get('url'),
         ]);
     }
 }

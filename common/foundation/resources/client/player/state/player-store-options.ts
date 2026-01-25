@@ -1,8 +1,8 @@
 import {MediaItem, YoutubeMediaItem} from '@common/player/media-item';
-import {PlayerInitialData} from '@common/player/utils/player-local-storage';
-import type {PlayerState} from '@common/player/state/player-state';
 import {YouTubePlayerState} from '@common/player/providers/youtube/youtube-types';
 import {PlayerEvents} from '@common/player/state/player-events';
+import type {PlayerState} from '@common/player/state/player-state';
+import {PlayerInitialData} from '@common/player/utils/player-local-storage';
 
 // all listeners specified by user will get full player state passed
 // along with original event payload, so it needs a separate type
@@ -29,7 +29,7 @@ export interface PlayerStoreOptions {
   setMediaSessionMetadata?: (mediaItem: MediaItem) => void;
   onBeforePlay?: () => Promise<void> | undefined;
   loadMoreMediaItems?: (
-    mediaItem?: MediaItem
+    mediaItem?: MediaItem,
   ) => Promise<MediaItem[] | undefined>;
   youtube?: {
     srcResolver?: (mediaItem: YoutubeMediaItem) => Promise<YoutubeMediaItem>;

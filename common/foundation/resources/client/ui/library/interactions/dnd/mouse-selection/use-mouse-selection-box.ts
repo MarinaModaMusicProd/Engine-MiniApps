@@ -1,12 +1,12 @@
-import React, {RefObject, useRef} from 'react';
-import {usePointerEvents} from '../../use-pointer-events';
-import {InteractableRect} from '../../interactable-event';
-import {restrictResizableWithinBoundary} from '../../utils/restrict-resizable-within-boundary';
-import {activeInteraction} from '../../active-interaction';
-import {updateRects} from '../update-rects';
-import {mouseSelectables} from './use-mouse-selectable';
-import {rectsIntersect} from '../../utils/rects-intersect';
-import {DraggableId} from '../use-draggable';
+import React, { RefObject, useRef } from 'react';
+import { activeInteraction } from '../../active-interaction';
+import { InteractableRect } from '../../interactable-event';
+import { usePointerEvents } from '../../use-pointer-events';
+import { rectsIntersect } from '../../utils/rects-intersect';
+import { restrictResizableWithinBoundary } from '../../utils/restrict-resizable-within-boundary';
+import { updateRects } from '../update-rects';
+import { DraggableId } from '../use-draggable';
+import { mouseSelectables } from './use-mouse-selectable';
 
 interface SelectionState {
   startPoint?: {x: number; y: number; scrollTop: number};
@@ -19,7 +19,7 @@ interface SelectionState {
 
 interface Props {
   onPointerDown?: (e: React.PointerEvent) => void;
-  containerRef?: RefObject<HTMLDivElement>;
+  containerRef?: RefObject<HTMLDivElement | null>;
 }
 export function useMouseSelectionBox({onPointerDown, ...props}: Props = {}) {
   const defaultRef = useRef<HTMLDivElement>(null);

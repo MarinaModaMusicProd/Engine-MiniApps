@@ -1,52 +1,44 @@
-import React, {useMemo, useRef, useState} from 'react';
-import {useParams} from 'react-router-dom';
-import {useLocaleWithLines} from './use-locale-with-lines';
-import {Trans} from '@ui/i18n/trans';
-import {IconButton} from '@ui/buttons/icon-button';
-import {Button} from '@ui/buttons/button';
-import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
-import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {useTrans} from '@ui/i18n/use-trans';
-import {SearchIcon} from '@ui/icons/material/Search';
-import {CloseIcon} from '@ui/icons/material/Close';
-import {AddIcon} from '@ui/icons/material/Add';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {NewTranslationDialog} from './new-translation-dialog';
-import {useUpdateLocalization} from './update-localization';
-import {Localization} from '@ui/i18n/localization';
-import {FullPageLoader} from '@ui/progress/full-page-loader';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {useVirtualizer} from '@tanstack/react-virtual';
-import {useNavigate} from '../../ui/navigation/use-navigate';
 import {useUploadTranslationFile} from '@common/admin/translations/use-upload-translation-file';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
+import {useVirtualizer} from '@tanstack/react-virtual';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {Localization} from '@ui/i18n/localization';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {AddIcon} from '@ui/icons/material/Add';
+import {CloseIcon} from '@ui/icons/material/Close';
 import {MoreVertIcon} from '@ui/icons/material/MoreVert';
+import {SearchIcon} from '@ui/icons/material/Search';
+import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {downloadFileFromUrl} from '@ui/utils/files/download-file-from-url';
 import {openUploadWindow} from '@ui/utils/files/open-upload-window';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {useMemo, useRef, useState} from 'react';
+import {useNavigate} from '../../ui/navigation/use-navigate';
+import {NewTranslationDialog} from './new-translation-dialog';
+import {useUpdateLocalization} from './update-localization';
 
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
+import {DatatablePageHeaderBar} from '@common/datatable/page/datatable-page-with-header-layout';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
+import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
 import {FileInputType} from '@ui/utils/files/file-input-config';
 
 type Lines = Record<string, string>;
 
-export function TranslationManagementPage() {
-  const {localeId} = useParams();
+export function Component() {
+  const {localeId} = useRequiredParams(['localeId']);
+  const query = useSuspenseQuery(
+    commonAdminQueries.localizations.get(localeId),
+  );
 
-  const {data, isLoading} = useLocaleWithLines(localeId!);
-  const localization = data?.localization;
-
-  if (isLoading || !localization) {
-    return <FullPageLoader />;
-  }
-
-  return <Form localization={localization} />;
-}
-
-interface FormProps {
-  localization: Localization;
-}
-function Form({localization}: FormProps) {
-  const [lines, setLines] = useState<Lines>(localization.lines || {});
+  const [lines, setLines] = useState<Lines>(
+    query.data.localization.lines || {},
+  );
 
   const navigate = useNavigate();
   const updateLocalization = useUpdateLocalization();
@@ -54,11 +46,11 @@ function Form({localization}: FormProps) {
 
   return (
     <form
-      className="flex h-full flex-col p-14 md:p-24"
+      className="flex h-full flex-col"
       onSubmit={e => {
         e.preventDefault();
         updateLocalization.mutate(
-          {id: localization.id, lines},
+          {id: query.data.localization.id, lines},
           {
             onSuccess: () => {
               navigate('/admin/localizations');
@@ -67,8 +59,28 @@ function Form({localization}: FormProps) {
         );
       }}
     >
+      <DatatablePageHeaderBar
+        showSidebarToggleButton
+        title={
+          <Breadcrumb size="xl">
+            <BreadcrumbItem
+              onSelected={() => {
+                navigate('/admin/localizations');
+              }}
+            >
+              <Trans message="Localizations" />
+            </BreadcrumbItem>
+            <BreadcrumbItem>
+              <Trans
+                message=":locale translations"
+                values={{locale: query.data.localization.name}}
+              />
+            </BreadcrumbItem>
+          </Breadcrumb>
+        }
+      />
       <Header
-        localization={localization}
+        localization={query.data.localization}
         setLines={setLines}
         lines={lines}
         searchQuery={searchQuery}
@@ -96,28 +108,12 @@ function Header({
   lines,
   setLines,
 }: HeaderProps) {
-  const navigate = useNavigate();
   const isMobile = useIsMobileMediaQuery();
   const {trans} = useTrans();
 
   return (
-    <div className="flex-shrink-0">
-      <Breadcrumb size="lg" className="mb-16">
-        <BreadcrumbItem
-          onSelected={() => {
-            navigate('/admin/localizations');
-          }}
-        >
-          <Trans message="Localizations" />
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <Trans
-            message=":locale translations"
-            values={{locale: localization.name}}
-          />
-        </BreadcrumbItem>
-      </Breadcrumb>
-      <div className="mb-24 flex items-center gap-32 md:gap-12">
+    <div className="flex-shrink-0 p-14 md:p-24">
+      <div className="flex items-center gap-32 md:gap-12">
         <div className="max-w-440 flex-auto">
           <TextField
             value={searchQuery}
@@ -191,7 +187,7 @@ function LinesList({searchQuery, lines, setLines}: LinesListProps) {
   });
 
   return (
-    <div className="flex-auto overflow-y-auto" ref={ref}>
+    <div className="flex-auto overflow-y-auto px-14 md:px-24" ref={ref}>
       <div
         className="relative w-full"
         style={{

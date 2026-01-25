@@ -14,8 +14,7 @@ class LyricsController extends BaseController
         protected Lyric $lyric,
         protected Track $track,
         protected Request $request,
-    ) {
-    }
+    ) {}
 
     public function index()
     {
@@ -50,6 +49,8 @@ class LyricsController extends BaseController
     {
         $this->authorize('store', Lyric::class);
 
+        $this->blockOnDemoSite();
+
         $data = $this->validate($this->request, [
             'text' => 'required|string',
             'track_id' => 'required|integer|exists:tracks,id',
@@ -65,6 +66,8 @@ class LyricsController extends BaseController
     public function update(int $id)
     {
         $this->authorize('update', Lyric::class);
+
+        $this->blockOnDemoSite();
 
         $data = $this->validate($this->request, [
             'text' => 'required|string',
@@ -84,6 +87,8 @@ class LyricsController extends BaseController
     {
         $lyricIds = explode(',', $ids);
         $this->authorize('destroy', [Lyric::class, $lyricIds]);
+
+        $this->blockOnDemoSite();
 
         $this->lyric->destroy($lyricIds);
 

@@ -1,5 +1,5 @@
-import React, {ReactNode} from 'react';
 import clsx from 'clsx';
+import {ReactNode} from 'react';
 
 export interface IllustratedMessageProps {
   className?: string;
@@ -23,7 +23,7 @@ export function IllustratedMessage({
 }: IllustratedMessageProps) {
   const style = getSizeClassName(size, imageHeight);
   return (
-    <div className={clsx('text-center', className)}>
+    <div className={clsx('mx-auto w-max max-w-full text-center', className)}>
       {image && <div className={clsx(style.image, imageMargin)}>{image}</div>}
       {title && (
         <div className={clsx(style.title, 'mb-2 text-main')}>{title}</div>

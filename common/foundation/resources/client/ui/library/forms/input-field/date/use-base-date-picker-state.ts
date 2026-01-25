@@ -12,7 +12,8 @@ export function useBaseDatePickerState(
     | DatePickerValueProps<ZonedDateTime>
     | DatePickerValueProps<Partial<DateRangeValue>, DateRangeValue>,
 ) {
-  const timezone = useUserTimezone();
+  const userTimezone = useUserTimezone();
+  const timezone = props.timezone ?? userTimezone;
   const [calendarIsOpen, setCalendarIsOpen] = useState(false);
   const closeDialogOnSelection = props.closeDialogOnSelection ?? true;
 

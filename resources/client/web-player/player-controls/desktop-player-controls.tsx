@@ -1,37 +1,37 @@
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {ArtistContextDialog} from '@app/web-player/artists/artist-context-dialog';
 import {ArtistLinks} from '@app/web-player/artists/artist-links';
-import {ReactNode, useContext} from 'react';
-import {useCuedTrack} from '@app/web-player/player-controls/use-cued-track';
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import {PlaybackControls} from '@app/web-player/player-controls/playback-controls';
-import {IconButton} from '@ui/buttons/icon-button';
 import {LikeIconButton} from '@app/web-player/library/like-icon-button';
+import {DownloadTrackButton} from '@app/web-player/player-controls/download-track-button';
+import {LyricsButton} from '@app/web-player/player-controls/lyrics-button';
+import {PlaybackControls} from '@app/web-player/player-controls/playback-controls';
+import {useCuedTrack} from '@app/web-player/player-controls/use-cued-track';
 import {
   playerOverlayState,
   usePlayerOverlayStore,
 } from '@app/web-player/state/player-overlay-store';
+import {TrackContextDialog} from '@app/web-player/tracks/context-dialog/track-context-dialog';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {getTrackLink, TrackLink} from '@app/web-player/tracks/track-link';
+import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {VolumeControls} from '@common/player/ui/controls/volume-controls';
+import {DashboardLayoutContext} from '@common/ui/dashboard-layout/dashboard-layout-context';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
 import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
 import {KeyboardArrowUpIcon} from '@ui/icons/material/KeyboardArrowUp';
-import {LyricsButton} from '@app/web-player/player-controls/lyrics-button';
-import {DownloadTrackButton} from '@app/web-player/player-controls/download-track-button';
-import {useSettings} from '@ui/settings/use-settings';
-import {getTrackLink, TrackLink} from '@app/web-player/tracks/track-link';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {TrackContextDialog} from '@app/web-player/tracks/context-dialog/track-context-dialog';
-import {Link} from 'react-router-dom';
-import {ArtistContextDialog} from '@app/web-player/artists/artist-context-dialog';
 import {MediaQueueListIcon} from '@ui/icons/media/media-queue-list';
-import {VolumeControls} from '@common/player/ui/controls/volume-controls';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useSettings} from '@ui/settings/use-settings';
 import {Tooltip} from '@ui/tooltip/tooltip';
-import {Trans} from '@ui/i18n/trans';
-import {DashboardLayoutContext} from '@common/ui/dashboard-layout/dashboard-layout-context';
+import {ReactNode, useContext} from 'react';
+import {Link} from 'react-router';
 
 export function DesktopPlayerControls() {
   const mediaIsCued = usePlayerStore(s => s.cuedMedia != null);
   if (!mediaIsCued) return null;
 
   return (
-    <div className="dashboard-grid-footer z-30 flex h-96 items-center justify-between border-t bg px-16">
+    <div className="dashboard-grid-footer player-section z-30 m-8 flex h-96 items-center justify-between px-16">
       <QueuedTrack />
       <PlaybackControls className="w-2/5 max-w-[722px]" />
       <SecondaryControls />

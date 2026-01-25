@@ -1,12 +1,11 @@
+import {errorStatusIs} from '@common/http/error-status-is';
 import {Button} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import React from 'react';
 import {useDeleteSelectedRows} from '../requests/delete-selected-rows';
 import {useDataTable} from './data-table-context';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {errorStatusIs} from '@common/http/error-status-is';
 
 export function DeleteSelectedItemsAction() {
   return (

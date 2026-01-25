@@ -1,42 +1,50 @@
-import {Trans} from '@ui/i18n/trans';
-import {loadMediaItemTracks} from '@app/web-player/requests/load-media-item-tracks';
-import {queueGroupId} from '@app/web-player/queue-group-id';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {Track} from '@app/web-player/tracks/track';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {
+  offlinedEntitiesStore,
+  useOfflineEntitiesStore,
+} from '@app/offline/offline-entities-store';
+import {useCanOffline} from '@app/offline/use-can-offline';
+import {AddToQueueButton} from '@app/web-player/context-dialog/add-to-queue-menu-button';
 import {
   ContextDialogLayout,
   ContextMenuButton,
 } from '@app/web-player/context-dialog/context-dialog-layout';
-import useCopyClipboard from 'react-use-clipboard';
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {
-  getPlaylistLink,
-  PlaylistLink,
-} from '@app/web-player/playlists/playlist-link';
-import {usePlaylistPermissions} from '@app/web-player/playlists/hooks/use-playlist-permissions';
-import {PlaylistImage} from '@app/web-player/playlists/playlist-image';
-import React, {Fragment, useCallback} from 'react';
-import {useIsFollowingPlaylist} from '@app/web-player/playlists/hooks/use-is-following-playlist';
-import {openDialog} from '@ui/overlays/store/dialog-store';
+import {ShareMediaButton} from '@app/web-player/context-dialog/share-media-button';
 import {UpdatePlaylistDialog} from '@app/web-player/playlists/crupdate-dialog/update-playlist-dialog';
-import {useUpdatePlaylist} from '@app/web-player/playlists/requests/use-update-playlist';
-import {CheckIcon} from '@ui/icons/material/Check';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {useIsFollowingPlaylist} from '@app/web-player/playlists/hooks/use-is-following-playlist';
+import {usePlaylistPermissions} from '@app/web-player/playlists/hooks/use-playlist-permissions';
+import {
+  FullPlaylist,
+  PartialPlaylist,
+} from '@app/web-player/playlists/playlist';
+import {PlaylistOwnerName} from '@app/web-player/playlists/playlist-grid-item';
+import {PlaylistImage} from '@app/web-player/playlists/playlist-image';
+import {
+  PlaylistLink,
+  getPlaylistLink,
+} from '@app/web-player/playlists/playlist-link';
 import {useDeletePlaylist} from '@app/web-player/playlists/requests/use-delete-playlist';
 import {useFollowPlaylist} from '@app/web-player/playlists/requests/use-follow-playlist';
 import {useUnfollowPlaylist} from '@app/web-player/playlists/requests/use-unfollow-playlist';
-import {AddToQueueButton} from '@app/web-player/context-dialog/add-to-queue-menu-button';
-import {PlaylistOwnerName} from '@app/web-player/playlists/playlist-grid-item';
-import {ShareMediaButton} from '@app/web-player/context-dialog/share-media-button';
+import {useUpdatePlaylist} from '@app/web-player/playlists/requests/use-update-playlist';
+import {queueGroupId} from '@app/web-player/queue-group-id';
+import {loadMediaItemTracks} from '@app/web-player/requests/load-media-item-tracks';
+import {Track} from '@app/web-player/tracks/track';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {CheckIcon} from '@ui/icons/material/Check';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {openDialog} from '@ui/overlays/store/dialog-store';
+import {toast} from '@ui/toast/toast';
+import useClipboard from '@ui/utils/hooks/use-clipboard';
+import {Fragment, useCallback} from 'react';
 
 interface PlaylistContextDialogProps {
-  playlist: Playlist;
+  playlist: PartialPlaylist | FullPlaylist;
 }
 export function PlaylistContextDialog({playlist}: PlaylistContextDialogProps) {
   const {close: closeMenu} = useDialogContext();
-  const [, copyAlbumLink] = useCopyClipboard(
+  const [, copyAlbumLink] = useClipboard(
     getPlaylistLink(playlist, {absolute: true}),
   );
   const {canEdit} = usePlaylistPermissions(playlist);
@@ -56,6 +64,7 @@ export function PlaylistContextDialog({playlist}: PlaylistContextDialogProps) {
       <TogglePublicButton playlist={playlist} />
       <ToggleCollaborativeButton playlist={playlist} />
       <FollowButtons playlist={playlist} />
+      <OfflinePlaylistButton playlist={playlist} />
       <ContextMenuButton
         onClick={() => {
           copyAlbumLink();
@@ -82,7 +91,7 @@ export function PlaylistContextDialog({playlist}: PlaylistContextDialogProps) {
 }
 
 interface FollowButtonsProps {
-  playlist: Playlist;
+  playlist: PartialPlaylist;
 }
 function FollowButtons({playlist}: FollowButtonsProps) {
   const isFollowing = useIsFollowingPlaylist(playlist.id);
@@ -118,6 +127,41 @@ function FollowButtons({playlist}: FollowButtonsProps) {
         </ContextMenuButton>
       )}
     </Fragment>
+  );
+}
+
+type OfflinePlaylistButtonProps = {
+  playlist: PartialPlaylist | FullPlaylist;
+};
+function OfflinePlaylistButton({playlist}: OfflinePlaylistButtonProps) {
+  const {close: closeMenu} = useDialogContext();
+  const canOffline = useCanOffline();
+  const isOfflined = useOfflineEntitiesStore(s =>
+    s.offlinedPlaylistIds.has(playlist.id),
+  );
+
+  if (!canOffline) {
+    return null;
+  }
+
+  return (
+    <ContextMenuButton
+      enableWhileOffline
+      onClick={async () => {
+        closeMenu();
+        if (isOfflined) {
+          offlinedEntitiesStore().deleteOfflinedMediaItem(playlist);
+        } else {
+          offlinedEntitiesStore().offlineMediaItem(playlist);
+        }
+      }}
+    >
+      {isOfflined ? (
+        <Trans message="Remove from this device" />
+      ) : (
+        <Trans message="Make available offline" />
+      )}
+    </ContextMenuButton>
   );
 }
 
@@ -206,14 +250,10 @@ function DeleteButton({playlist}: FollowButtonsProps) {
   );
 }
 
-async function loadPlaylistTracks(playlist: Playlist): Promise<Track[]> {
-  // load playlist tracks if not loaded already
-  if (typeof playlist.tracks === 'undefined') {
-    const tracks = await loadMediaItemTracks(queueGroupId(playlist));
-    if (!tracks.length) {
-      toast(message('This playlist has no tracks yet.'));
-    }
-    return tracks;
+async function loadPlaylistTracks(playlist: PartialPlaylist): Promise<Track[]> {
+  const tracks = await loadMediaItemTracks(queueGroupId(playlist));
+  if (!tracks.length) {
+    toast(message('This playlist has no tracks yet.'));
   }
-  return playlist.tracks;
+  return tracks;
 }

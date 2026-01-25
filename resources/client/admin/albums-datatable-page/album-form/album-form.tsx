@@ -1,17 +1,18 @@
-import React, {Fragment} from 'react';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {Trans} from '@ui/i18n/trans';
-import {FormArtistPicker} from '@app/web-player/artists/artist-picker/form-artist-picker';
-import {FormNormalizedModelChipField} from '@common/tags/form-normalized-model-chip-field';
-import {useTrans} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
-import {TAG_MODEL} from '@common/tags/tag';
-import {GENRE_MODEL} from '@app/web-player/genres/genre';
-import {useSettings} from '@ui/settings/use-settings';
-import {FormDatePicker} from '@ui/forms/input-field/date/date-picker/date-picker';
 import {AlbumTracksForm} from '@app/admin/albums-datatable-page/album-form/album-tracks-form';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {UploadType} from '@app/site-config';
+import {FormArtistPicker} from '@app/web-player/artists/artist-picker/form-artist-picker';
+import {GENRE_MODEL} from '@app/web-player/genres/genre';
+import {FormNormalizedModelChipField} from '@common/tags/form-normalized-model-chip-field';
+import {TAG_MODEL} from '@common/tags/tag';
 import {FormImageSelector} from '@common/uploads/components/image-selector';
+import {FormDatePicker} from '@ui/forms/input-field/date/date-picker/date-picker';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {useSettings} from '@ui/settings/use-settings';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {Fragment} from 'react';
 
 // AlbumForm will be wrapped in FileUploadProvider by parent component
 
@@ -27,7 +28,7 @@ export function AlbumForm({showExternalIdFields}: AlbumFormProps) {
         <div className="flex-shrink-0">
           <FormImageSelector
             name="image"
-            diskPrefix="album_images"
+            uploadType={UploadType.artwork}
             label={isMobile ? <Trans message="Image" /> : null}
             variant={isMobile ? 'input' : 'square'}
             previewSize="md:w-full md:w-224 md:aspect-square"
@@ -47,6 +48,9 @@ export function AlbumForm({showExternalIdFields}: AlbumFormProps) {
             label={<Trans message="Release date" />}
             className="mb-24"
             granularity="day"
+            description={
+              <Trans message="Set a future date to schedule release to become public only on that date." />
+            }
           />
           <FormArtistPicker name="artists" className="mb-24" />
           <FormNormalizedModelChipField

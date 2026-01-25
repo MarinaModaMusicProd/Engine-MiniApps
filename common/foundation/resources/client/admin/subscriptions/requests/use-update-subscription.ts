@@ -1,13 +1,13 @@
-import {useMutation} from '@tanstack/react-query';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {useTrans} from '@ui/i18n/use-trans';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
-import {onFormQueryError} from '@common/errors/on-form-query-error';
-import {UseFormReturn} from 'react-hook-form';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
 import {Subscription} from '@common/billing/subscription';
+import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
+import {UseFormReturn} from 'react-hook-form';
 
 interface Response extends BackendResponse {
   subscription: Subscription;
@@ -26,7 +26,7 @@ export function useUpdateSubscription(
     onSuccess: () => {
       toast(trans(message('Subscription updated')));
       queryClient.invalidateQueries({
-        queryKey: DatatableDataQueryKey('billing/subscriptions'),
+        queryKey: commonAdminQueries.subscriptions.invalidateKey,
       });
     },
     onError: err => onFormQueryError(err, form),

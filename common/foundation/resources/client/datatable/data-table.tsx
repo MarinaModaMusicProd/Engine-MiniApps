@@ -1,34 +1,32 @@
-import React, {
+import {BackendFiltersUrlKey} from '@common/datatable/filters/backend-filters-url-key';
+import {DatatableFilters} from '@common/datatable/page/datatable-filters';
+import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {useTrans} from '@ui/i18n/use-trans';
+import {ProgressBar} from '@ui/progress/progress-bar';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import clsx from 'clsx';
+import {nanoid} from 'nanoid';
+import {
   cloneElement,
   ComponentProps,
   ReactElement,
   ReactNode,
+  useRef,
   useState,
 } from 'react';
+import {useSearchParams} from 'react-router';
+import {Table, TableProps} from '../ui/tables/table';
 import {TableDataItem} from '../ui/tables/types/table-data-item';
-import {BackendFilter} from './filters/backend-filter';
-import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 import {ColumnConfig} from './column-config';
-import {useTrans} from '@ui/i18n/use-trans';
+import {DataTableHeader} from './data-table-header';
+import {DataTablePaginationFooter} from './data-table-pagination-footer';
+import {BackendFilter} from './filters/backend-filter';
 import {useBackendFilterUrlParams} from './filters/backend-filter-url-params';
+import {DataTableContext} from './page/data-table-context';
 import {
   GetDatatableDataParams,
   useDatatableData,
 } from './requests/paginated-resources';
-import {DataTableContext} from './page/data-table-context';
-import {AnimatePresence, m} from 'framer-motion';
-import {ProgressBar} from '@ui/progress/progress-bar';
-import {Table, TableProps} from '../ui/tables/table';
-import {DataTablePaginationFooter} from './data-table-pagination-footer';
-import {DataTableHeader} from './data-table-header';
-import {FilterList} from './filters/filter-list/filter-list';
-import {SelectedStateDatatableHeader} from '@common/datatable/selected-state-datatable-header';
-import clsx from 'clsx';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {BackendFiltersUrlKey} from '@common/datatable/filters/backend-filters-url-key';
-import {opacityAnimation} from '@ui/animation/opacity-animation';
-import {FilterListSkeleton} from '@common/datatable/filters/filter-list/filter-list-skeleton';
-import {nanoid} from 'nanoid';
 
 export interface DataTableProps<T extends TableDataItem> {
   filters?: BackendFilter[];
@@ -38,7 +36,7 @@ export interface DataTableProps<T extends TableDataItem> {
   searchPlaceholder?: MessageDescriptor;
   queryParams?: Record<string, string | number | undefined | null>;
   endpoint: string;
-  queryKey?: string[];
+  baseQueryKey?: string[];
   skeletonsWhileLoading?: number;
   resourceName?: ReactNode;
   emptyStateMessage: ReactElement<{isFiltering: boolean}>;
@@ -52,6 +50,9 @@ export interface DataTableProps<T extends TableDataItem> {
   collapseTableOnMobile?: boolean;
   cellHeight?: string;
   border?: string;
+  scrollContainerVertically?: boolean;
+  disableQueryIfNoFilters?: boolean;
+  renderRowAs?: TableProps<T>['renderRowAs'];
 }
 export function DataTable<T extends TableDataItem>({
   filters,
@@ -61,7 +62,7 @@ export function DataTable<T extends TableDataItem>({
   searchPlaceholder,
   queryParams,
   endpoint,
-  queryKey,
+  baseQueryKey: baseQueryKeyProp,
   actions,
   selectedActions,
   emptyStateMessage,
@@ -74,12 +75,30 @@ export function DataTable<T extends TableDataItem>({
   collapseTableOnMobile = true,
   skeletonsWhileLoading,
   border,
+  scrollContainerVertically,
+  disableQueryIfNoFilters,
+  renderRowAs,
 }: DataTableProps<T>) {
+  const baseQueryKey = useRef(baseQueryKeyProp);
   const isMobile = useIsMobileMediaQuery();
   const {trans} = useTrans();
-  const {encodedFilters} = useBackendFilterUrlParams(filters);
-  const [params, setParams] = useState<GetDatatableDataParams>({perPage: 15});
+  const {encodedFilters, decodedFilters} = useBackendFilterUrlParams(filters);
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
+
+  const [params, setParams] = useState<GetDatatableDataParams>({
+    perPage: 15,
+  });
+  const [searchParams, setSearchParams] = useSearchParams();
+  if (searchParams.get('page')) {
+    params.page = searchParams.get('page');
+  }
+  if (searchParams.get('perPage')) {
+    params.perPage = searchParams.get('perPage');
+  }
+
+  const isFiltering = !!(params.query || params.filters || encodedFilters);
+  const isQueryDisabled = disableQueryIfNoFilters ? !isFiltering : false;
+
   const query = useDatatableData<T>(
     endpoint,
     {
@@ -87,13 +106,14 @@ export function DataTable<T extends TableDataItem>({
       ...queryParams,
       [BackendFiltersUrlKey]: encodedFilters,
     },
-    {queryKey},
+    {
+      baseQueryKey: baseQueryKey.current,
+      enabled: !isQueryDisabled,
+    },
     () => setSelectedRows([]),
   );
 
-  const isFiltering = !!(params.query || params.filters || encodedFilters);
   const pagination = query.data?.pagination;
-
   const data =
     pagination?.data ||
     (query.isLoading && skeletonsWhileLoading
@@ -105,6 +125,23 @@ export function DataTable<T extends TableDataItem>({
         })
       : []);
 
+  const setParamInUrl = (
+    key: keyof GetDatatableDataParams,
+    value: string | number,
+  ) => {
+    setParams({...params, [key]: value});
+    setSearchParams(prev => {
+      prev.set(key as string, value.toString());
+      if (key === 'query') {
+        prev.delete('page');
+      }
+      if (key === 'page' && value == 1) {
+        prev.delete('page');
+      }
+      return prev;
+    });
+  };
+
   return (
     <DataTableContext.Provider
       value={{
@@ -114,46 +151,34 @@ export function DataTable<T extends TableDataItem>({
         params,
         setParams,
         query,
+        baseQueryKey: baseQueryKey.current,
       }}
     >
       {children}
-      <AnimatePresence initial={false} mode="wait">
-        {selectedRows.length ? (
-          <SelectedStateDatatableHeader
-            selectedItemsCount={selectedRows.length}
-            actions={selectedActions}
-            key="selected"
-          />
-        ) : (
-          <DataTableHeader
-            searchPlaceholder={searchPlaceholder}
-            searchValue={params.query}
-            onSearchChange={query => setParams({...params, query})}
-            actions={actions}
-            filters={filters}
-            filtersLoading={filtersLoading}
-            key="default"
-          />
-        )}
-      </AnimatePresence>
 
-      {filters && (
-        <div className="mb-14">
-          <AnimatePresence initial={false} mode="wait">
-            {filtersLoading && (encodedFilters || pinnedFilters?.length) ? (
-              <FilterListSkeleton />
-            ) : (
-              <m.div key="filter-list" {...opacityAnimation}>
-                <FilterList filters={filters} pinnedFilters={pinnedFilters} />
-              </m.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
+      <DataTableHeader
+        searchPlaceholder={searchPlaceholder}
+        searchValue={params.query}
+        onSearchChange={query => setParamInUrl('query', query)}
+        actions={actions}
+        filters={filters}
+        filtersLoading={filtersLoading}
+        selectedItems={selectedRows}
+        selectedActions={selectedActions}
+      />
+
+      {filters ? (
+        <DatatableFilters
+          filters={filters}
+          pinnedFilters={pinnedFilters}
+          isLoading={filtersLoading}
+        />
+      ) : null}
 
       <div
         className={clsx(
-          'relative rounded-panel',
+          'relative flex-auto rounded-panel',
+          scrollContainerVertically && 'overflow-y-auto',
           border ? border : (!isMobile || !collapseTableOnMobile) && 'border',
         )}
       >
@@ -175,6 +200,7 @@ export function DataTable<T extends TableDataItem>({
             onSortChange={descriptor => {
               setParams({...params, ...descriptor});
             }}
+            renderRowAs={renderRowAs}
             selectedRows={selectedRows}
             enableSelection={enableSelection}
             selectionStyle={selectionStyle}
@@ -185,19 +211,19 @@ export function DataTable<T extends TableDataItem>({
           />
         </div>
 
-        {(query.isFetched || query.isPlaceholderData) &&
+        {(query.isFetched || query.isPlaceholderData || isQueryDisabled) &&
         !pagination?.data.length ? (
           <div className="pt-50">
             {cloneElement(emptyStateMessage, {
-              isFiltering,
+              isFiltering: isQueryDisabled ? false : isFiltering,
             })}
           </div>
         ) : undefined}
 
         <DataTablePaginationFooter
-          query={query}
-          onPageChange={page => setParams({...params, page})}
-          onPerPageChange={perPage => setParams({...params, perPage})}
+          query={query as any}
+          onPageChange={page => setParamInUrl('page', page)}
+          onPerPageChange={perPage => setParamInUrl('perPage', perPage)}
         />
       </div>
     </DataTableContext.Provider>

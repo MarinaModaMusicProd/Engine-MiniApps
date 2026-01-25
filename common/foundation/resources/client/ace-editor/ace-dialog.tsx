@@ -1,15 +1,15 @@
-import React, {MutableRefObject, ReactNode, Suspense, useState} from 'react';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {Button} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
+import {Dialog} from '@ui/overlays/dialog/dialog';
 import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {ProgressCircle} from '@ui/progress/progress-circle';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {ProgressCircle} from '@ui/progress/progress-circle';
+import React, {MutableRefObject, ReactNode, Suspense, useState} from 'react';
 import type ReactAce from 'react-ace';
 
-const AceEditor = React.lazy(() => import('./ace-editor'));
+export const AceEditor = React.lazy(() => import('./ace-editor'));
 
 interface TextEditorSourcecodeDialogProps {
   defaultValue: string;

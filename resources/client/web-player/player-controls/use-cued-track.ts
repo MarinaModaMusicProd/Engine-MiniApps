@@ -1,5 +1,5 @@
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
 import {Track} from '@app/web-player/tracks/track';
+import {usePlayerStore} from '@common/player/hooks/use-player-store';
 
 export function useCuedTrack(): Track | undefined {
   const media = usePlayerStore(s => s.cuedMedia);

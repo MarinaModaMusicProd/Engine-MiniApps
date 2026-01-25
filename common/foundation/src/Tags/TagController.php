@@ -59,6 +59,7 @@ class TagController extends BaseController
     public function update(int $tagId)
     {
         $this->authorize('update', Tag::class);
+        $this->blockOnDemoSite();
 
         $this->validate(request(), [
             'name' => "string|min:2|unique:tags,name,$tagId",
@@ -77,13 +78,10 @@ class TagController extends BaseController
     {
         $tagIds = explode(',', $ids);
         $this->authorize('destroy', [Tag::class, $tagIds]);
+        $this->blockOnDemoSite();
 
-        $this->getModel()
-            ->whereIn('id', $tagIds)
-            ->delete();
-        DB::table('taggables')
-            ->whereIn('tag_id', $tagIds)
-            ->delete();
+        $this->getModel()->whereIn('id', $tagIds)->delete();
+        DB::table('taggables')->whereIn('tag_id', $tagIds)->delete();
 
         return $this->success();
     }

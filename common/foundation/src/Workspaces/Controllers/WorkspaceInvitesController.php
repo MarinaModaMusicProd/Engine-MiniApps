@@ -3,8 +3,6 @@
 namespace Common\Workspaces\Controllers;
 
 use App\Models\User;
-use Arr;
-use Auth;
 use Common\Core\BaseController;
 use Common\Settings\Settings;
 use Common\Validation\Validators\EmailsAreValid;
@@ -14,8 +12,10 @@ use Common\Workspaces\Workspace;
 use Common\Workspaces\WorkspaceInvite;
 use Common\Workspaces\WorkspaceMember;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Notification;
-use Str;
 
 class WorkspaceInvitesController extends BaseController
 {

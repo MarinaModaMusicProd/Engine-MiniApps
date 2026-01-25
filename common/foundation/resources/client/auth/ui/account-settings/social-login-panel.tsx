@@ -1,23 +1,29 @@
+import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
+import {useAllSocialLoginsDisabled} from '@common/auth/ui/use-all-social-logins-disabled';
+import {queryClient} from '@common/http/query-client';
+import {Button} from '@ui/buttons/button';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {EnvatoIcon} from '@ui/icons/social/envato';
+import {FacebookIcon} from '@ui/icons/social/facebook';
+import {GoogleIcon} from '@ui/icons/social/google';
+import {TwitterIcon} from '@ui/icons/social/twitter';
+import {SvgIconProps} from '@ui/icons/svg-icon';
+import {useSettings} from '@ui/settings/use-settings';
+import {toast} from '@ui/toast/toast';
+import {User} from '@ui/types/user';
 import clsx from 'clsx';
 import {cloneElement, ReactElement} from 'react';
 import {SocialService, useSocialLogin} from '../../requests/use-social-login';
-import {toast} from '@ui/toast/toast';
-import {Button} from '@ui/buttons/button';
-import {EnvatoIcon} from '@ui/icons/social/envato';
-import {GoogleIcon} from '@ui/icons/social/google';
-import {FacebookIcon} from '@ui/icons/social/facebook';
-import {TwitterIcon} from '@ui/icons/social/twitter';
-import {User} from '@ui/types/user';
 import {AccountSettingsPanel} from './account-settings-panel';
-import {Trans} from '@ui/i18n/trans';
-import {message} from '@ui/i18n/message';
-import {useSettings} from '@ui/settings/use-settings';
-import {queryClient} from '@common/http/query-client';
-import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
-import {useAllSocialLoginsDisabled} from '@common/auth/ui/use-all-social-logins-disabled';
+
+interface PartialUser {
+  id: number;
+  social_profiles?: User['social_profiles'];
+}
 
 interface Props {
-  user: User;
+  user: PartialUser;
 }
 export function SocialLoginPanel({user}: Props) {
   if (useAllSocialLoginsDisabled()) {
@@ -63,9 +69,9 @@ export function SocialLoginPanel({user}: Props) {
 
 interface SocialLoginPanelRowProps {
   service: SocialService;
-  user: User;
+  user: PartialUser;
   className?: string;
-  icon: ReactElement;
+  icon: ReactElement<SvgIconProps>;
 }
 
 function SocialLoginPanelRow({
@@ -76,8 +82,9 @@ function SocialLoginPanelRow({
 }: SocialLoginPanelRowProps) {
   const {social} = useSettings();
   const {connectSocial, disconnectSocial} = useSocialLogin();
-  const username = user?.social_profiles?.find(s => s.service_name === service)
-    ?.username;
+  const username = user?.social_profiles?.find(
+    s => s.service_name === service,
+  )?.username;
 
   if (!social?.[service]?.enable) {
     return null;

@@ -22,7 +22,7 @@ export interface SimplePaginationResponse<T = unknown> {
   prev_page?: number | null;
 }
 
-interface CursorPaginationResponse<T> {
+export interface CursorPaginationResponse<T> {
   data: T[];
   next_cursor: string | null;
   per_page: number;
@@ -45,6 +45,8 @@ export interface PaginatedBackendResponse<T> extends BackendResponse {
 export function hasPreviousPage(
   pagination: PaginationResponse<unknown>,
 ): boolean {
+  if (!pagination) return false;
+
   if ('prev_cursor' in pagination) {
     return pagination.prev_cursor != null;
   }
@@ -57,6 +59,8 @@ export function hasPreviousPage(
 }
 
 export function hasNextPage(pagination: PaginationResponse<unknown>): boolean {
+  if (!pagination) return false;
+
   if ('next_cursor' in pagination) {
     return pagination.next_cursor != null;
   }
@@ -72,4 +76,16 @@ export function hasNextPage(pagination: PaginationResponse<unknown>): boolean {
   return (
     pagination.data.length > 0 && pagination.data.length >= pagination.per_page
   );
+}
+
+export function getNextPageParam(
+  lastResponse: PaginatedBackendResponse<unknown>,
+): number | string | null {
+  if (!hasNextPage(lastResponse.pagination)) {
+    return null;
+  }
+  if ('next_cursor' in lastResponse.pagination) {
+    return lastResponse.pagination.next_cursor;
+  }
+  return lastResponse.pagination.current_page + 1;
 }

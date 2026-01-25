@@ -1,6 +1,6 @@
 <?php
 
-use Common\Settings\Setting;
+use Common\Settings\Models\Setting;
 use Illuminate\Database\Migrations\Migration;
 
 class AddIdToAllMenus extends Migration
@@ -13,22 +13,22 @@ class AddIdToAllMenus extends Migration
     public function up()
     {
         $setting = Setting::where('name', 'menus')->first();
-        if ( ! $setting) return;
+        if (!$setting) {
+            return;
+        }
 
-        $transformed = collect($setting['value'])->map(
-            function ($menu) {
-                if (!isset($menu['id'])) {
-                    $menu['id'] = Str::random('6');
+        $transformed = collect($setting['value'])->map(function ($menu) {
+            if (!isset($menu['id'])) {
+                $menu['id'] = Str::random('6');
+            }
+            $menu['items'] = array_map(function ($item) {
+                if (!isset($item['id'])) {
+                    $item['id'] = Str::random('6');
                 }
-                $menu['items'] = array_map(function ($item) {
-                    if (!isset($item['id'])) {
-                        $item['id'] = Str::random('6');
-                    }
-                    return $item;
-                }, $menu['items']);
-                return $menu;
-            },
-        );
+                return $item;
+            }, $menu['items']);
+            return $menu;
+        });
 
         Setting::where('name', 'menus')->update(['value' => $transformed]);
     }

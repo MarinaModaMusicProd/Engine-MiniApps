@@ -9,7 +9,7 @@ import {IconTree} from '@ui/icons/create-svg-icon';
 
 const Endpoint = 'admin/reports';
 
-export interface HeaderDatum {
+export interface HeaderCardData {
   icon: IconTree[] | ReactElement<SvgIconProps>;
   name: string;
   type?: 'number' | 'fileSize' | 'percentage';
@@ -20,7 +20,7 @@ export interface HeaderDatum {
 
 interface FetchAnalyticsReportResponse extends BackendResponse {
   visitorsReport: VisitorsReportData;
-  headerReport: HeaderDatum[];
+  headerReport: HeaderCardData[];
 }
 
 interface Payload {

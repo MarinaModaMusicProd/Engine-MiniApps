@@ -1,6 +1,3 @@
-import React from 'react';
-import clsx from 'clsx';
-import {m} from 'framer-motion';
 import {
   CalendarDate,
   endOfMonth,
@@ -8,15 +5,17 @@ import {
   startOfMonth,
   startOfWeek,
 } from '@internationalized/date';
-import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
 import {IconButton} from '@ui/buttons/icon-button';
-import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
-import {CalendarCell} from './calendar-cell';
-import {DatePickerState} from '../date-picker/use-date-picker-state';
-import {useDateFormatter} from '@ui/i18n/use-date-formatter';
 import {useSelectedLocale} from '@ui/i18n/selected-locale';
-import {dateIsInvalid} from '../utils';
+import {useDateFormatter} from '@ui/i18n/use-date-formatter';
+import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
+import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
+import clsx from 'clsx';
+import {m} from 'framer-motion';
+import {DatePickerState} from '../date-picker/use-date-picker-state';
 import {DateRangePickerState} from '../date-range-picker/use-date-range-picker-state';
+import {dateIsInvalid} from '../utils';
+import {CalendarCell} from './calendar-cell';
 
 export interface CalendarMonthProps {
   state: DatePickerState | DateRangePickerState;

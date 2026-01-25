@@ -1,10 +1,13 @@
-import {Upload} from 'tus-js-client';
-import {UploadedFile} from '@ui/utils/files/uploaded-file';
-import {UploadStrategy, UploadStrategyConfig} from './upload-strategy';
-import {FileEntry} from '../../file-entry';
 import {getAxiosErrorMessage} from '@common/http/get-axios-error-message';
 import {apiClient} from '@common/http/query-client';
+import {UploadedFile} from '@ui/utils/files/uploaded-file';
 import {getCookie} from 'react-use-cookie';
+import {Upload} from 'tus-js-client';
+import {FileEntry} from '../../file-entry';
+import {
+  UploadStrategy,
+  UploadStrategyConfigWithBackend,
+} from './upload-strategy';
 
 export class TusUpload implements UploadStrategy {
   constructor(private upload: Upload) {}
@@ -23,10 +26,12 @@ export class TusUpload implements UploadStrategy {
       onProgress,
       onSuccess,
       onError,
+      uploadType,
+      backendId,
       metadata,
       chunkSize,
       baseUrl,
-    }: UploadStrategyConfig,
+    }: UploadStrategyConfigWithBackend,
   ): Promise<TusUpload> {
     const tusFingerprint = ['tus', file.fingerprint, 'drive'].join('-');
     const upload = new Upload(file.native, {
@@ -42,6 +47,8 @@ export class TusUpload implements UploadStrategy {
         clientExtension: file.extension,
         clientMime: file.mime || '',
         clientSize: `${file.size}`,
+        uploadType: uploadType,
+        backendId: backendId,
         ...(metadata as Record<string, string>),
       },
       headers: {

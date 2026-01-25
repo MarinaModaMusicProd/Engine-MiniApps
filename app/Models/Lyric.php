@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Common\Core\BaseModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Str;
+use Illuminate\Support\Str;
 
 class Lyric extends BaseModel
 {
     const MODEL_TYPE = 'lyric';
 
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     protected $casts = [
         'id' => 'integer',

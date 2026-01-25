@@ -1,7 +1,7 @@
-import {Helmet} from './helmet';
-import {ReactElement} from 'react';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 import {useSettings} from '@ui/settings/use-settings';
+import {ReactElement} from 'react';
+import {Helmet} from './helmet';
 
 type TitleChild =
   | string
@@ -20,7 +20,6 @@ export function StaticPageTitle({children}: StaticPageTitleProps) {
   return (
     <Helmet>
       {children ? (
-        // @ts-ignore
         <title>
           {children as any} - {site_name}
         </title>

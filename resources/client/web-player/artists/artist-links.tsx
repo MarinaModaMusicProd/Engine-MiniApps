@@ -1,11 +1,11 @@
-import {Artist} from '@app/web-player/artists/artist';
+import {PartialArtist} from '@app/web-player/artists/artist';
 import {ArtistLink} from '@app/web-player/artists/artist-link';
-import {Fragment, HTMLAttributeAnchorTarget} from 'react';
 import {Trans} from '@ui/i18n/trans';
 import clsx from 'clsx';
+import {Fragment, HTMLAttributeAnchorTarget} from 'react';
 
 interface ArtistLinksProps {
-  artists?: Artist[];
+  artists?: PartialArtist[];
   className?: string;
   linkClassName?: string;
   target?: HTMLAttributeAnchorTarget;

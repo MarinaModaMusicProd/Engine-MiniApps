@@ -1,6 +1,6 @@
+import {useAutoFocus} from '@ui/focus/use-auto-focus';
 import {HTMLAttributes, HTMLProps, RefObject, useId} from 'react';
 import {BaseFieldPropsWithDom} from './base-field-props';
-import {useAutoFocus} from '@ui/focus/use-auto-focus';
 import type {FieldProps} from './field';
 
 interface UseFieldReturn<T> {
@@ -9,13 +9,14 @@ interface UseFieldReturn<T> {
 }
 
 interface Props<T> extends BaseFieldPropsWithDom<T> {
-  focusRef: RefObject<HTMLElement>;
+  focusRef: RefObject<HTMLElement | null>;
 }
 export function useField<T>(props: Props<T>): UseFieldReturn<T> {
   const {
     focusRef,
     labelElementType = 'label',
     label,
+    labelClassName,
     labelSuffix,
     labelSuffixPosition,
     autoFocus,
@@ -44,6 +45,7 @@ export function useField<T>(props: Props<T>): UseFieldReturn<T> {
     inputShadow,
     inputRing,
     inputFontSize,
+    labelDisplay,
     ...inputDomProps
   } = props;
 
@@ -113,6 +115,7 @@ export function useField<T>(props: Props<T>): UseFieldReturn<T> {
       label,
       labelSuffix,
       labelSuffixPosition,
+      labelClassName,
       autoFocus,
       autoSelectText,
       labelPosition,

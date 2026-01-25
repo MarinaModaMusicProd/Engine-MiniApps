@@ -1,5 +1,5 @@
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
-import {Link, To} from 'react-router-dom';
+import {Link, To} from 'react-router';
 import {AnimatePresence, m} from 'framer-motion';
 import {TaskAltIcon} from '@ui/icons/material/TaskAlt';
 import {ErrorIcon} from '@ui/icons/material/Error';

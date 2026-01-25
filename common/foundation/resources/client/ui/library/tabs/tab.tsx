@@ -1,8 +1,8 @@
-import React, {JSXElementConstructor, ReactNode, useContext} from 'react';
-import clsx from 'clsx';
 import {useFocusManager} from '@react-aria/focus';
-import {LinkProps} from 'react-router-dom';
 import {TabContext} from '@ui/tabs/tabs-context';
+import clsx from 'clsx';
+import React, {JSXElementConstructor, ReactNode, useContext} from 'react';
+import {Link, LinkProps} from 'react-router';
 
 export interface TabProps {
   className?: string;
@@ -23,7 +23,7 @@ export function Tab({
   isDisabled,
   children,
   padding: paddingProp,
-  elementType = 'button',
+  elementType,
   to,
   relative,
   width = 'min-w-min',
@@ -69,7 +69,7 @@ export function Tab({
   };
 
   const tabIndex = isSelected ? 0 : -1;
-  const Element = elementType;
+  const Element = to ? Link : (elementType ?? 'button');
 
   return (
     <Element

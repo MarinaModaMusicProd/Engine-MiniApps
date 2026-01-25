@@ -1,9 +1,10 @@
-import {QueryClient} from '@tanstack/react-query';
-import axios, {AxiosRequestConfig} from 'axios';
-import {getActiveWorkspaceId} from '../workspace/active-workspace-id';
-import {isAbsoluteUrl} from '@ui/utils/urls/is-absolute-url';
+import {getSettingsPreviewMode} from '@common/admin/settings/preview/use-settings-preview-mode';
 import {errorStatusIs} from '@common/http/error-status-is';
 import {getEchoSocketId} from '@common/http/get-echo-socket-id';
+import {QueryClient} from '@tanstack/react-query';
+import {isAbsoluteUrl} from '@ui/utils/urls/is-absolute-url';
+import axios, {AxiosRequestConfig} from 'axios';
+import {getActiveWorkspaceId} from '../workspace/active-workspace-id';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,6 +21,14 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+const globalHeaders: Record<string, string> = {};
+export function addGlobalHeaderToApiClient(header: string, value: string) {
+  globalHeaders[header.trim()] = value.trim();
+}
+export function getApiClientGlobalHeaders() {
+  return globalHeaders;
+}
 
 export const apiClient = axios.create();
 apiClient.defaults.withCredentials = true;
@@ -59,12 +68,19 @@ apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
   if (workspaceId) {
     const method = config.method?.toLowerCase();
     if (
-      ['get', 'post', 'put'].includes(method!) &&
+      ['get', 'post', 'put', 'delete'].includes(method!) &&
       config.params?.workspaceId == null
     ) {
       config.params = {...config.params, workspaceId};
     }
   }
+
+  Object.entries(globalHeaders).forEach(([key, value]) => {
+    config.headers = {
+      ...config.headers,
+      [key]: value,
+    };
+  });
 
   const echoSocketId = getEchoSocketId();
   if (echoSocketId) {
@@ -72,6 +88,14 @@ apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
       ...config.headers,
       // @ts-ignore
       'X-Socket-ID': echoSocketId,
+    };
+  }
+
+  const settingsPreviewMode = getSettingsPreviewMode();
+  if (settingsPreviewMode.isInsideSettingsPreview) {
+    config.headers = {
+      ...config.headers,
+      'X-Settings-Preview': 'true',
     };
   }
 
@@ -85,13 +109,6 @@ apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
     config.params = {
       ...config.params,
       _method: method,
-    };
-  }
-
-  if (import.meta.env.SSR) {
-    config.headers = {
-      ...config.headers,
-      referer: 'http://localhost',
     };
   }
 

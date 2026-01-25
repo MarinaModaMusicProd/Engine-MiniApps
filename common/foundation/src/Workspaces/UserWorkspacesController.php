@@ -2,7 +2,7 @@
 
 namespace Common\Workspaces;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Core\BaseController;
 use Common\Workspaces\Workspace;
 

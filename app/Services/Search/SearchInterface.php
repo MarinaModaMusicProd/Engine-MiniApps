@@ -11,12 +11,12 @@ interface SearchInterface
         int $perPage,
         array $modelTypes,
     ): Collection;
-    public function artists(): Paginator;
-    public function albums(): Paginator;
-    public function tracks(): Paginator;
-    public function playlists(): Paginator;
-    public function users(): Paginator;
-    public function channels(): Paginator;
-    public function genres(): Paginator;
-    public function tags(): Paginator;
+    public function artists(): array;
+    public function albums(): array;
+    public function tracks(): array;
+    public function playlists(): array;
+    public function users(): array;
+    public function channels(): array;
+    public function genres(): array;
+    public function tags(): array;
 }

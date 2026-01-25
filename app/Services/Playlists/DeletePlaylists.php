@@ -3,8 +3,8 @@
 namespace App\Services\Playlists;
 
 use App\Models\Playlist;
+use Common\Files\Actions\Deletion\DeleteEntries;
 use Illuminate\Support\Collection;
-use Storage;
 
 class DeletePlaylists
 {
@@ -14,8 +14,10 @@ class DeletePlaylists
     public function execute($playlists)
     {
         foreach ($playlists as $playlist) {
-            if ($playlist->image) {
-                Storage::disk('public')->delete('playlist-images/' . pathinfo($playlist->image, PATHINFO_FILENAME));
+            if ($uploadedImages = $playlist->uploadedImage->isNotEmpty()) {
+                (new DeleteEntries())->execute([
+                    'entryIds' => $uploadedImages->pluck('id')->toArray(),
+                ]);
             }
 
             $playlist->tracks()->detach();

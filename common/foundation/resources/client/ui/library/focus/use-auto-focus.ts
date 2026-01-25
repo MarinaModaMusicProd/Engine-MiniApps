@@ -1,4 +1,4 @@
-import {RefObject, useEffect, useRef} from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 
 export interface AutoFocusProps {
   autoFocus?: boolean;
@@ -7,7 +7,7 @@ export interface AutoFocusProps {
 }
 export function useAutoFocus(
   {autoFocus, autoSelectText}: AutoFocusProps,
-  ref: RefObject<HTMLElement>
+  ref: RefObject<HTMLElement | null>
 ) {
   const autoFocusRef = useRef(autoFocus);
 

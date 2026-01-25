@@ -1,56 +1,65 @@
 <?php namespace Common\Admin\Analytics;
 
 use Carbon\CarbonImmutable;
-use Common\Admin\Analytics\Actions\BuildAnalyticsReport;
+use Common\Admin\Analytics\Actions\BuildDemoAnalyticsReport;
+use Common\Admin\Analytics\Actions\BuildGoogleAnalyticsReport;
 use Common\Admin\Analytics\Actions\BuildNullAnalyticsReport;
 use Common\Admin\Analytics\Actions\GetAnalyticsHeaderDataAction;
 use Common\Core\BaseController;
 use Common\Database\Metrics\MetricDateRange;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class AnalyticsController extends BaseController
 {
-    public function __construct(
-        protected Request $request,
-        protected BuildAnalyticsReport $getDataAction,
-        protected GetAnalyticsHeaderDataAction $getHeaderDataAction,
-    ) {
-    }
-
     public function report()
     {
-        $this->authorize('index', 'ReportPolicy');
+        if (
+            !auth()->user()?->hasPermission('admin.access') &&
+            !auth()->user()?->hasPermission('reports.view')
+        ) {
+            abort(403);
+        }
 
-        $types = explode(',', $this->request->get('types', 'visitors,header'));
-        $dateRange = $this->getDateRange();
-        $cacheKey = sprintf(
-            '%s-%s',
-            $dateRange->getCacheKey(),
-            implode(',', $types),
+        $types = explode(',', request('types', 'visitors,header'));
+        $cacheKey = json_encode(
+            request()->only(
+                'startDate',
+                'endDate',
+                'compareStartDate',
+                'compareEndDate',
+                'timezone',
+                'types',
+            ),
         );
 
         $response = [];
-        $reportParams = ['dateRange' => $dateRange];
         if (in_array('visitors', $types)) {
             try {
+                $builder = config('app.demo')
+                    ? BuildDemoAnalyticsReport::class
+                    : BuildGoogleAnalyticsReport::class;
                 $response['visitorsReport'] = Cache::remember(
                     "adminReport.main.$cacheKey",
                     CarbonImmutable::now()->addDay(),
-                    fn() => $this->getDataAction->execute($reportParams),
+                    fn() => (new $builder(request()->all()))->execute(),
                 );
             } catch (Exception $e) {
-                $response['visitorsReport'] = app(
-                    BuildNullAnalyticsReport::class,
-                )->execute($reportParams);
+                $response['visitorsReport'] = (new BuildNullAnalyticsReport(
+                    request()->all(),
+                ))->execute();
             }
         }
         if (in_array('header', $types)) {
             $response['headerReport'] = Cache::remember(
                 "adminReport.header.$cacheKey",
                 CarbonImmutable::now()->addDay(),
-                fn() => $this->getHeaderDataAction->execute($reportParams),
+                function () {
+                    $headerDataAction = app()->get(
+                        GetAnalyticsHeaderDataAction::class,
+                    );
+                    return $headerDataAction->execute(request()->all());
+                },
             );
         }
 
@@ -59,9 +68,9 @@ class AnalyticsController extends BaseController
 
     protected function getDateRange(): MetricDateRange
     {
-        $startDate = $this->request->get('startDate');
-        $endDate = $this->request->get('endDate');
-        $timezone = $this->request->get('timezone', config('app.timezone'));
+        $startDate = request('startDate');
+        $endDate = request('endDate');
+        $timezone = request('timezone', config('app.timezone'));
 
         return new MetricDateRange(
             start: $startDate,

@@ -23,21 +23,6 @@
     ]
   },
   {
-    "name": "Popular albums",
-    "slug": "popular-albums",
-    "presetDescription": "Lists all albums in the database, sorted by popularity",
-    "config": {
-      "contentType": "listAll",
-      "contentModel": "album",
-      "contentOrder": "popularity:desc",
-      "layout": "grid",
-      "nestedLayout": "carousel",
-      "seoTitle": "Popular Albums",
-      "seoDescription": "Most popular albums from hottest artists today.",
-      "presetId": "popularAlbums"
-    }
-  },
-  {
     "name": "Genres",
     "slug": "genres",
     "presetDescription": "Lists all genres currently in the database",
@@ -45,9 +30,9 @@
     "config": {
       "contentType": "listAll",
       "contentModel": "genre",
-      "contentOrder": "popularity:desc",
-      "layout": "grid",
-      "nestedLayout": "grid",
+      "contentOrder": "id:desc",
+      "layout": "compactGrid",
+      "nestedLayout": "compactGrid",
       "seoTitle": "Popular Genres",
       "seo_description": "Browse popular genres to discover new music.",
       "presetId": "genres"

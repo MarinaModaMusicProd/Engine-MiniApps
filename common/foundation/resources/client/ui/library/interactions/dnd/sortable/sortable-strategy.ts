@@ -2,12 +2,12 @@ import type {
   DropPosition,
   SortSession,
 } from '@ui/interactions/dnd/sortable/use-sortable';
-import {DragEvent, RefObject} from 'react';
-import {DraggableId} from '@ui/interactions/dnd/use-draggable';
+import { DraggableId } from '@ui/interactions/dnd/use-draggable';
+import { DragEvent, RefObject } from 'react';
 
 interface OnDragOverProps {
   e: DragEvent<HTMLElement>;
-  ref: RefObject<HTMLElement>;
+  ref: RefObject<HTMLElement | null>;
   item: DraggableId;
   sortSession: SortSession;
   onDropPositionChange?: (dropPosition: DropPosition) => void;

@@ -9,7 +9,6 @@ import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import clsx from 'clsx';
 import {ChannelsDocsLink} from '@common/admin/channels/channels-docs-link';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
-import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 interface AutoUpdateProvider {
   label: MessageDescriptor;
@@ -41,7 +40,7 @@ export function ChannelAutoUpdateField({config, className, providers}: Props) {
         className="flex-auto"
         selectionMode="single"
         name="config.autoUpdateMethod"
-        onSelectionChange={(value: PrimitiveValue) => {
+        onSelectionChange={value => {
           setValue(
             'config.autoUpdateProvider',
             config.autoUpdateMethods[value].providers[0],

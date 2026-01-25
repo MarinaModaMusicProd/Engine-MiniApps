@@ -7,20 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Repost extends Model
 {
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     public function repostable(): BelongsTo
     {
-        return $this->morphTo()
-            ->withCount('likes', 'reposts');
+        return $this->morphTo();
     }
-
-//    public function getRepostableTypeAttribute($value)
-//    {
-//        if ($value === Album::class) {
-//            return AlbumWithTracks::class;
-//        } else {
-//            return $value;
-//        }
-//    }
 }

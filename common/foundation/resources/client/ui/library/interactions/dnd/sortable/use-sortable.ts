@@ -1,13 +1,13 @@
+import {getScrollParent, mergeProps} from '@react-aria/utils';
+import {sortableLineStrategy} from '@ui/interactions/dnd/sortable/sortable-line-strategy';
+import {sortableMoveNodeStrategy} from '@ui/interactions/dnd/sortable/sortable-move-node-strategy';
+import {SortableStrategy} from '@ui/interactions/dnd/sortable/sortable-strategy';
+import {sortableTransformStrategy} from '@ui/interactions/dnd/sortable/sortable-transform-strategy';
+import {updateRects} from '@ui/interactions/dnd/update-rects';
+import {RefObject, useEffect} from 'react';
+import {droppables} from '../drag-state';
 import {DraggableId, DragPreviewRenderer, useDraggable} from '../use-draggable';
 import {useDroppable} from '../use-droppable';
-import {RefObject, useEffect} from 'react';
-import {getScrollParent, mergeProps} from '@react-aria/utils';
-import {droppables} from '../drag-state';
-import {SortableStrategy} from '@ui/interactions/dnd/sortable/sortable-strategy';
-import {sortableLineStrategy} from '@ui/interactions/dnd/sortable/sortable-line-strategy';
-import {sortableTransformStrategy} from '@ui/interactions/dnd/sortable/sortable-transform-strategy';
-import {sortableMoveNodeStrategy} from '@ui/interactions/dnd/sortable/sortable-move-node-strategy';
-import {updateRects} from '@ui/interactions/dnd/update-rects';
 
 export interface SortSession {
   // items in this list will be moved when user is sorting
@@ -26,7 +26,8 @@ export interface SortSession {
   linePreviewEl?: HTMLElement;
   scrollParent?: Element;
   scrollListener: () => void;
-  ref: RefObject<HTMLElement>;
+  ref: RefObject<HTMLElement | null>;
+  type: string;
 }
 
 let sortSession: null | SortSession = null;
@@ -48,9 +49,9 @@ export interface UseSortableProps {
   onSortEnd?: (oldIndex: number, newIndex: number) => void;
   onDragEnd?: () => void;
   onDropPositionChange?: (dropPosition: DropPosition) => void;
-  ref: RefObject<HTMLElement>;
+  ref: RefObject<HTMLElement | null>;
   type: string;
-  preview?: RefObject<DragPreviewRenderer>;
+  preview?: RefObject<DragPreviewRenderer | null>;
   strategy?: StrategyName;
   disabled?: boolean;
 }
@@ -71,7 +72,11 @@ export function useSortable({
 
   // update sortables and active index, in case we lazy load more items while sorting
   useEffect(() => {
-    if (sortSession && sortSession.sortables.length !== items.length) {
+    if (
+      !disabled &&
+      sortSession?.type === type &&
+      sortSession.sortables.length !== items.length
+    ) {
       sortSession.sortables = [...items];
       sortSession.activeIndex = items.indexOf(item);
     }
@@ -85,6 +90,7 @@ export function useSortable({
     disabled,
     onDragStart: () => {
       sortSession = {
+        type,
         sortables: [...items],
         activeSortable: item,
         activeIndex: items.indexOf(item),
@@ -104,7 +110,7 @@ export function useSortable({
         sortSession.scrollListener,
       );
     },
-    onDragEnd: () => {
+    onDragEnd: e => {
       if (!sortSession) return;
 
       sortSession.dropPosition = null;

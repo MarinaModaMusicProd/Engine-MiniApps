@@ -41,16 +41,20 @@ use App\Http\Controllers\UserLibrary\UserLibraryAlbumsController;
 use App\Http\Controllers\UserLibrary\UserLibraryArtistsController;
 use App\Http\Controllers\UserLibrary\UserLibraryTracksController;
 use App\Http\Controllers\UserProfile\UserPlaylistsController;
-use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\UserProfile\UserProfileController;
 use App\Http\Controllers\WaveController;
 use App\Http\Controllers\YoutubeLogController;
-use Common\Auth\Controllers\UserFollowedUsersController;
-use Common\Auth\Controllers\UserFollowersController;
+use Common\Auth\Controllers\FollowedUsersController;
+use Common\Auth\Controllers\FollowersController;
 use Common\Channels\ChannelContentOrderController;
 use Common\Channels\ChannelController;
 use Common\Channels\ChannelItemController;
+use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'v1', 'middleware' => ['optionalAuth:sanctum', 'verified']], function() {
+    // LANDING
+    Route::get('landing-page-data', LandingPageController::class);
+
     // SEARCH
     Route::get('search/audio/{trackId}/{artistName}/{trackName}', [SearchController::class, 'searchAudio']);
     Route::get('search', [SearchController::class, 'index']);
@@ -64,11 +68,14 @@ Route::group(['prefix' => 'v1', 'middleware' => ['optionalAuth:sanctum', 'verifi
     Route::post('channel/{channel}/update-content', [ChannelController::class, 'updateContent']);
     Route::get('channel/search-for-addable-content', [ChannelController::class, 'searchForAddableContent']);
     Route::post('channel/apply-preset', [ChannelController::class, 'applyPreset']);
-    Route::apiResource('channel', '\Common\Channels\ChannelController')->except(['destroy']);
-    Route::delete('channel/{ids}', [ChannelController::class, 'destroy']);
     Route::post('channel/{channel}/add',  [ChannelItemController::class, 'add']);
     Route::post('channel/{channel}/remove', [ChannelItemController::class, 'remove']);
     Route::post('channel/{id}/reorder-content', [ChannelContentOrderController::class, 'changeOrder']);
+    Route::get('channel', [ChannelController::class, 'index']);
+    Route::get('channel/{channel}', [ChannelController::class, 'show']);
+    Route::post('channel', [ChannelController::class, 'store']);
+    Route::put('channel/{channel}', [ChannelController::class, 'update']);
+    Route::delete('channel/{ids}', [ChannelController::class, 'destroy']);
 
     // PLAYLISTS
     Route::get('playlists/{id}', [PlaylistController::class, 'show']);
@@ -134,24 +141,23 @@ Route::group(['prefix' => 'v1', 'middleware' => ['optionalAuth:sanctum', 'verifi
     Route::post('genres', [GenreController::class, 'store']);
     Route::put('genres/{id}', [GenreController::class, 'update']);
     Route::delete('genres/{ids}', [GenreController::class, 'destroy']);
-    Route::get('genres/{name}', [GenreController::class, 'show']);
 
-    // USER PROFILE
+    // USER PROFILE AND LIBRARY
     Route::get('user-profile/{user}', [UserProfileController::class, 'show'])->withoutMiddleware('verified');
     Route::get('users/{user}/minutes-left', MinutesLimitController::class);
     Route::get('users/{user}/liked-tracks', [UserLibraryTracksController::class, 'index']);
     Route::get('users/{user}/liked-albums', [UserLibraryAlbumsController::class, 'index']);
     Route::get('users/{user}/liked-artists', [UserLibraryArtistsController::class, 'index']);
     Route::get('users/{user}/playlists', [UserPlaylistsController::class, 'index']);
-    Route::get('users/{user}/followers', [UserFollowersController::class, 'index']);
-    Route::get('users/{user}/followed-users', [UserFollowedUsersController::class, 'index']);
+    Route::get('users/{user}/followers', [FollowersController::class, 'index']);
+    Route::get('users/{user}/followed-users', [FollowedUsersController::class, 'index']);
     Route::put('users/profile/update', [UserProfileController::class, 'update']);
     Route::post('users/me/add-to-library', [UserLibraryTracksController::class, 'addToLibrary']);
     Route::post('users/me/remove-from-library', [UserLibraryTracksController::class, 'removeFromLibrary']);
 
     // USER FOLLOWERS
-    Route::post('users/{id}/follow', [UserFollowersController::class, 'follow']);
-    Route::post('users/{id}/unfollow', [UserFollowersController::class, 'unfollow']);
+    Route::post('users/{id}/follow', [FollowersController::class, 'follow']);
+    Route::post('users/{id}/unfollow', [FollowersController::class, 'unfollow']);
 
     // REPOSTS
     Route::get('users/{user}/reposts', [RepostController::class, 'index']);
@@ -170,9 +176,6 @@ Route::group(['prefix' => 'v1', 'middleware' => ['optionalAuth:sanctum', 'verifi
 
     // IMPORT
     Route::post('import-media/single-item', [ImportMediaController::class, 'import']);
-
-    // LANDING
-    Route::get('landing/artists', [LandingPageController::class, 'artists']);
 });
 
 

@@ -1,41 +1,43 @@
-import React, {
+import {CheckboxColumnConfig} from '@common/ui/tables/checkbox-column-config';
+import {TableHeaderRow} from '@common/ui/tables/table-header-row';
+import {useInteractOutside} from '@react-aria/interactions';
+import {mergeProps, useObjectRef} from '@react-aria/utils';
+import {useControlledState} from '@react-stately/utils';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {isCtrlKeyPressed} from '@ui/utils/keybinds/is-ctrl-key-pressed';
+import clsx from 'clsx';
+import {
   cloneElement,
   ComponentPropsWithoutRef,
   Fragment,
   JSXElementConstructor,
-  MutableRefObject,
   ReactElement,
+  RefObject,
   useCallback,
   useContext,
   useMemo,
 } from 'react';
-import {useControlledState} from '@react-stately/utils';
-import {SortDescriptor} from './types/sort-descriptor';
+import {ColumnConfig} from '../../datatable/column-config';
 import {useGridNavigation} from './navigate-grid';
-import {RowElementProps, TableRow} from './table-row';
 import {
   TableContext,
   TableContextValue,
   TableSelectionStyle,
 } from './table-context';
-import {ColumnConfig} from '../../datatable/column-config';
+import {RowElementProps, TableRow} from './table-row';
+import {SortDescriptor} from './types/sort-descriptor';
 import {TableDataItem} from './types/table-data-item';
-import clsx from 'clsx';
-import {useInteractOutside} from '@react-aria/interactions';
-import {mergeProps, useObjectRef} from '@react-aria/utils';
-import {isCtrlKeyPressed} from '@ui/utils/keybinds/is-ctrl-key-pressed';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {CheckboxColumnConfig} from '@common/ui/tables/checkbox-column-config';
-import {TableHeaderRow} from '@common/ui/tables/table-header-row';
 
 export interface TableProps<T extends TableDataItem>
   extends ComponentPropsWithoutRef<'table'> {
   className?: string;
   columns: ColumnConfig<T>[];
+  activeColumns?: string[];
   hideHeaderRow?: boolean;
+  hideHeaderBorder?: boolean | null;
   data: T[];
   meta?: any;
-  tableRef?: MutableRefObject<HTMLTableElement>;
+  tableRef?: RefObject<HTMLTableElement>;
   selectedRows?: (number | string)[];
   defaultSelectedRows?: (number | string)[];
   onSelectionChange?: (keys: (number | string)[]) => void;
@@ -55,12 +57,17 @@ export interface TableProps<T extends TableDataItem>
   collapseOnMobile?: boolean;
   cellHeight?: string;
   headerCellHeight?: string;
+  headerRowBg?: string;
+  tableStyle?: 'flex' | 'html';
 }
 export function Table<T extends TableDataItem>({
   className,
   columns: userColumns,
+  activeColumns,
   collapseOnMobile = true,
   hideHeaderRow = false,
+  hideHeaderBorder = null,
+  headerRowBg,
   hideBorder = false,
   data,
   selectedRows: propsSelectedRows,
@@ -82,6 +89,7 @@ export function Table<T extends TableDataItem>({
   closeOnInteractOutside = false,
   cellHeight,
   headerCellHeight,
+  tableStyle = 'flex',
   ...domProps
 }: TableProps<T>) {
   const isMobile = useIsMobileMediaQuery();
@@ -134,6 +142,10 @@ export function Table<T extends TableDataItem>({
   // add checkbox columns to config, if selection is enabled
   const columns = useMemo(() => {
     const filteredColumns = userColumns.filter(c => {
+      if (activeColumns && !activeColumns.includes(c.key)) {
+        return false;
+      }
+
       const visibleInMode = c.visibleInMode || 'regular';
       if (visibleInMode === 'all') {
         return true;
@@ -145,18 +157,37 @@ export function Table<T extends TableDataItem>({
         return true;
       }
     });
+
+    // sort columns by Columns
+    if (activeColumns) {
+      filteredColumns.sort((a, b) => {
+        const aIndex = activeColumns.indexOf(a.key);
+        const bIndex = activeColumns.indexOf(b.key);
+        return aIndex - bIndex;
+      });
+    }
+
     const showCheckboxCell =
       enableSelection && selectionStyle !== 'highlight' && !isMobile;
     if (showCheckboxCell) {
       filteredColumns.unshift(CheckboxColumnConfig);
     }
     return filteredColumns;
-  }, [isMobile, userColumns, enableSelection, selectionStyle, isCollapsedMode]);
+  }, [
+    isMobile,
+    userColumns,
+    enableSelection,
+    selectionStyle,
+    isCollapsedMode,
+    activeColumns,
+  ]);
 
   const contextValue: TableContextValue<T> = {
     isCollapsedMode,
     cellHeight,
     headerCellHeight,
+    hideHeaderBorder,
+    headerRowBg,
     hideBorder,
     hideHeaderRow,
     selectedRows,
@@ -174,6 +205,7 @@ export function Table<T extends TableDataItem>({
     selectRowOnContextMenu,
     meta,
     collapseOnMobile,
+    tableStyle,
   };
 
   const navProps = useGridNavigation({
@@ -208,9 +240,11 @@ export function Table<T extends TableDataItem>({
     },
   });
 
+  const TableEl = tableStyle === 'html' ? 'table' : 'div';
+
   return (
     <TableContext.Provider value={contextValue as any}>
-      <div
+      <TableEl
         {...mergeProps(domProps, navProps, {
           onKeyDown: (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -236,8 +270,8 @@ export function Table<T extends TableDataItem>({
             }
           },
         })}
-        role="grid"
         tabIndex={0}
+        role="grid"
         aria-rowcount={data.length + 1}
         aria-colcount={columns.length + 1}
         ref={tableRef}
@@ -245,12 +279,12 @@ export function Table<T extends TableDataItem>({
         aria-labelledby={ariaLabelledBy}
         className={clsx(
           className,
-          'isolate select-none text-sm outline-none focus-visible:ring-2',
+          'isolate w-full select-none text-sm outline-none focus-visible:ring-2',
         )}
       >
         {!hideHeaderRow && <TableHeaderRow />}
         {tableBody}
-      </div>
+      </TableEl>
     </TableContext.Provider>
   );
 }
@@ -259,9 +293,10 @@ export interface TableBodyProps {
   renderRowAs?: TableProps<TableDataItem>['renderRowAs'];
 }
 function BasicTableBody({renderRowAs}: TableBodyProps) {
-  const {data} = useContext(TableContext);
+  const {data, tableStyle} = useContext(TableContext);
+  const BodyEl = tableStyle === 'html' ? 'tbody' : Fragment;
   return (
-    <Fragment>
+    <BodyEl>
       {data.map((item, rowIndex) => (
         <TableRow
           item={item}
@@ -270,6 +305,6 @@ function BasicTableBody({renderRowAs}: TableBodyProps) {
           renderAs={renderRowAs}
         />
       ))}
-    </Fragment>
+    </BodyEl>
   );
 }

@@ -5,7 +5,7 @@ import {useMutation} from '@tanstack/react-query';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
 import {message} from '@ui/i18n/message';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate} from 'react-router';
 
 interface Response extends BackendResponse {
   //

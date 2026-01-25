@@ -7,6 +7,8 @@ use Exception;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Mail\Events\MessageSent;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 use ZBateson\MailMimeParser\Message;
 
 class OutgoingEmailLogSubscriber
@@ -32,14 +34,19 @@ class OutgoingEmailLogSubscriber
             }
         }
 
-        $logItem = OutgoingEmailLogItem::create([
-            'message_id' => $headers->get('Message-ID')->getBodyAsString(),
-            'from' => $headers->get('From')->getBodyAsString(),
-            'to' => $headers->get('To')->getBodyAsString(),
-            'subject' => $headers->get('Subject')->getBodyAsString(),
-            'mime' => utf8_encode((string) $parsedMessage),
-            'status' => 'not-sent',
-        ]);
+        try {
+            $logItem = OutgoingEmailLogItem::create([
+                'message_id' => $headers->get('Message-ID')->getBodyAsString(),
+                'from' => $headers->get('From')->getBodyAsString(),
+                'to' => $headers->get('To')->getBodyAsString(),
+                'subject' => $headers->get('Subject')->getBodyAsString(),
+                'mime' => utf8_encode((string) $parsedMessage),
+                'status' => 'not-sent',
+            ]);
+        } catch (Throwable $e) {
+            Log::error($e);
+            return;
+        }
 
         $event->message
             ->getHeaders()
@@ -51,14 +58,19 @@ class OutgoingEmailLogSubscriber
         $logId = $event->message
             ->getHeaders()
             ->get('X-BE-LOG-ID')
-            ->getBodyAsString();
+            ?->getBodyAsString();
 
-        OutgoingEmailLogItem::where('id', $logId)->update([
-            'status' => 'sent',
-            'message_id' => $event->sent
-                ->getSymfonySentMessage()
-                ->getMessageId(),
-        ]);
+        try {
+            OutgoingEmailLogItem::where('id', $logId)->update([
+                'status' => 'sent',
+                'message_id' => $event->sent
+                    ->getSymfonySentMessage()
+                    ->getMessageId(),
+            ]);
+        } catch (Throwable $e) {
+            Log::error($e);
+            return;
+        }
     }
 
     public function subscribe(Dispatcher $events): array

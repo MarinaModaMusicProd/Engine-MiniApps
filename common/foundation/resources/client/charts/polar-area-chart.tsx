@@ -6,7 +6,6 @@ import {useMemo} from 'react';
 import {formatReportData} from './data/format-report-data';
 import {DatasetItem, ReportMetric} from '../admin/analytics/report-metric';
 import {FormattedDatasetItem} from './data/formatted-dataset-item';
-import clsx from 'clsx';
 
 const PolarAreaChartOptions: ChartOptions<'polarArea'> = {
   parsing: {
@@ -47,7 +46,7 @@ export function PolarAreaChart({
       type="polarArea"
       data={formattedData}
       options={PolarAreaChartOptions}
-      className={clsx(className, 'min-w-500')}
+      className={className}
       {...props}
     />
   );

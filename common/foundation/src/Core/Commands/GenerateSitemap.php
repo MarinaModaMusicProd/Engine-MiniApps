@@ -11,8 +11,8 @@ class GenerateSitemap extends Command
 
     public function handle()
     {
-        $sitemap = class_exists('App\Services\SitemapGenerator')
-            ? app('App\Services\SitemapGenerator')
+        $sitemap = class_exists('App\Core\SitemapGenerator')
+            ? app('App\Core\SitemapGenerator')
             : app(BaseSitemapGenerator::class);
         $sitemap->generate();
         $this->info('Sitemap generated successfully');

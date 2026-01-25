@@ -1,22 +1,22 @@
 import {useDeleteComments} from '@common/comments/requests/use-delete-comments';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {queryClient} from '@common/http/query-client';
 import {Button} from '@ui/buttons/button';
+import {ButtonSize} from '@ui/buttons/button-size';
+import {ButtonVariant} from '@ui/buttons/get-shared-button-style';
 import {Trans} from '@ui/i18n/trans';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import React from 'react';
-import {ButtonVariant} from '@ui/buttons/get-shared-button-style';
-import {ButtonSize} from '@ui/buttons/button-size';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 
 interface DeleteCommentsButtonProps {
   commentIds: number[];
   variant?: ButtonVariant;
   size?: ButtonSize;
+  onDelete: () => void;
 }
 export function DeleteCommentsButton({
   commentIds,
   variant = 'outline',
   size = 'xs',
+  onDelete,
 }: DeleteCommentsButtonProps) {
   const deleteComments = useDeleteComments();
   return (
@@ -24,14 +24,7 @@ export function DeleteCommentsButton({
       type="modal"
       onClose={isConfirmed => {
         if (isConfirmed) {
-          deleteComments.mutate(
-            {commentIds},
-            {
-              onSuccess: () => {
-                queryClient.invalidateQueries({queryKey: ['comment']});
-              },
-            },
-          );
+          deleteComments.mutate({commentIds}, {onSuccess: () => onDelete()});
         }
       }}
     >

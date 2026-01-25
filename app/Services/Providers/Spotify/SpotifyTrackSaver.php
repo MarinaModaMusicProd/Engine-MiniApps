@@ -4,13 +4,13 @@ namespace App\Services\Providers\Spotify;
 
 use App\Models\Artist;
 use App\Models\Track;
-use App\Services\Providers\SaveOrUpdate;
+use App\Services\Providers\UpsertsDataIntoDB;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class SpotifyTrackSaver
 {
-    use SaveOrUpdate;
+    use UpsertsDataIntoDB;
 
     public function save(Collection $spotifyAlbums, Collection $savedAlbums)
     {
@@ -33,7 +33,7 @@ class SpotifyTrackSaver
             })
             ->flatten(1);
 
-        $this->saveOrUpdate($spotifyTracks, 'tracks');
+        $this->upsert($spotifyTracks, 'tracks');
 
         // attach artists to tracks
         $artists = collect($spotifyTracks)
@@ -41,7 +41,7 @@ class SpotifyTrackSaver
             ->flatten(1)
             ->unique('spotify_id');
 
-        $this->saveOrUpdate($artists, 'artists');
+        $this->upsert($artists, 'artists');
         $savedArtists = app(Artist::class)
             ->whereIn('spotify_id', $artists->pluck('spotify_id'))
             ->get(['spotify_id', 'id', 'name'])
@@ -93,6 +93,6 @@ class SpotifyTrackSaver
             })
             ->flatten(1);
 
-        $this->saveOrUpdate($pivots, 'artist_track');
+        $this->upsert($pivots, 'artist_track');
     }
 }

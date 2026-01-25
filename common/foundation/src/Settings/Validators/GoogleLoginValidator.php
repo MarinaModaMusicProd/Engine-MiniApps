@@ -5,10 +5,10 @@ namespace Common\Settings\Validators;
 use Common\Auth\Oauth;
 use Common\Core\HttpClient;
 use Common\Settings\Validators\SettingsValidator;
-use Config;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Arr;
-use Socialite;
+use Illuminate\Support\Facades\Config;
+use Laravel\Socialite\Facades\Socialite;
 
 class GoogleLoginValidator implements SettingsValidator
 {
@@ -61,10 +61,7 @@ class GoogleLoginValidator implements SettingsValidator
     private function getErrorMessage(ClientException $e)
     {
         $errResponse = json_decode(
-            $e
-                ->getResponse()
-                ->getBody()
-                ->getContents(),
+            $e->getResponse()->getBody()->getContents(),
             true,
         );
 

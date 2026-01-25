@@ -1,26 +1,28 @@
-import {useUser} from '@common/auth/ui/use-user';
-import {Trans} from '@ui/i18n/trans';
-import {Button} from '@ui/buttons/button';
-import {useResendVerificationEmail} from '@common/auth/requests/use-resend-verification-email';
-import {useIsDarkMode} from '@ui/themes/use-is-dark-mode';
-import {useSettings} from '@ui/settings/use-settings';
 import {useLogout} from '@common/auth/requests/logout';
-import {Form} from '@ui/forms/form';
-import {useForm} from 'react-hook-form';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {useTrans} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
-import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
+import {useResendVerificationEmail} from '@common/auth/requests/use-resend-verification-email';
 import {
   useValidateEmailVerificationOtp,
   ValidateEmailVerificationOtpPayload,
 } from '@common/auth/requests/use-validate-email-verification-otp';
-import {createBrowserRouter} from 'react-router-dom';
+import {useUser} from '@common/auth/ui/use-user';
+import {Button} from '@ui/buttons/button';
+import {Form} from '@ui/forms/form';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
+import {FullPageLoader} from '@ui/progress/full-page-loader';
+import {useSettings} from '@ui/settings/use-settings';
+import {useIsDarkMode} from '@ui/themes/use-is-dark-mode';
+import {useForm} from 'react-hook-form';
+import {createBrowserRouter} from 'react-router';
 
 export const verifyEmailRouter = createBrowserRouter([
   {
     path: '*',
     element: <EmailVerificationPage />,
+    hydrateFallbackElement: <FullPageLoader screen />,
   },
 ]);
 

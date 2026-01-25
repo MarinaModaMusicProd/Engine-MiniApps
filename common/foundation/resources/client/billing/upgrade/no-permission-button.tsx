@@ -1,13 +1,13 @@
-import {LockIcon} from '@ui/icons/material/Lock';
-import {Trans} from '@ui/i18n/trans';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {ReactNode} from 'react';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {useSettings} from '@ui/settings/use-settings';
 import {FeatureLockedDialog} from '@common/billing/upgrade/feature-locked-dialog';
-import clsx from 'clsx';
-import {IconButton} from '@ui/buttons/icon-button';
 import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
+import {LockIcon} from '@ui/icons/material/Lock';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useSettings} from '@ui/settings/use-settings';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import clsx from 'clsx';
+import {ReactNode} from 'react';
 
 interface UpgradeButtonProps {
   message?: ReactNode;

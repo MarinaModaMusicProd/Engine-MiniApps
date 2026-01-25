@@ -1,24 +1,28 @@
 <?php namespace Common\Core\Policies;
 
 use App\Models\User;
-use Common\Core\Policies\BasePolicy;
 
 class UserPolicy extends BasePolicy
 {
     public function index(?User $user)
     {
-        return $this->hasPermission($user, 'users.view');
+        return $this->hasPermission($user, 'users.view') ||
+            $this->hasPermission($user, 'users.update');
     }
 
     public function show(?User $current, User $requested)
     {
+        if ($this->hasPermission($current, 'users.update')) {
+            return true;
+        }
+
         return $this->hasPermission($current, 'users.view') ||
             $current->id === $requested->id;
     }
 
     public function store(User $user)
     {
-        return $this->hasPermission($user, 'users.create');
+        return $this->hasPermission($user, 'users.update');
     }
 
     public function update(User $current, User $toUpdate = null)
@@ -47,11 +51,12 @@ class UserPolicy extends BasePolicy
     public function destroy(User $user, array $userIds)
     {
         $deletingOwnAccount = collect($userIds)->every(function (
-            int $userId
+            int $userId,
         ) use ($user) {
             return $userId === $user->id;
         });
 
-        return $deletingOwnAccount || $this->hasPermission($user, 'users.delete');
+        return $deletingOwnAccount ||
+            $this->hasPermission($user, 'users.update');
     }
 }

@@ -1,16 +1,17 @@
-import {useContext} from 'react';
-import {SiteConfigContext} from '@common/core/settings/site-config-context';
-import {LearnMoreLink} from '@common/admin/settings/form/learn-more-link';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {DocsLink} from '@common/admin/settings/layout/settings-links';
 
 interface Props {
   className?: string;
   hash?: string;
+  variant?: 'link' | 'button';
 }
-export function ChannelsDocsLink({className, hash}: Props) {
-  const {admin} = useContext(SiteConfigContext);
-  if (!admin?.channelsDocsLink) return null;
+export function ChannelsDocsLink({className, hash, variant}: Props) {
+  if (!AdminDocsUrls.pages.channels) return null;
   const link = hash
-    ? `${admin.channelsDocsLink}#${hash}`
-    : admin.channelsDocsLink;
-  return <LearnMoreLink link={link} className={className} />;
+    ? `${AdminDocsUrls.pages.channels}#${hash}`
+    : AdminDocsUrls.pages.channels;
+  return (
+    <DocsLink link={link} className={className} variant={variant} size="xs" />
+  );
 }

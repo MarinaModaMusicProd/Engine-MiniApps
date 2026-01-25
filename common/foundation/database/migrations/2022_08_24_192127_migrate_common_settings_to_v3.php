@@ -1,7 +1,7 @@
 <?php
 
-use Common\Admin\Appearance\Themes\CssTheme;
-use Common\Settings\Setting;
+use Common\Settings\Models\Setting;
+use Common\Settings\Themes\CssTheme;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -84,18 +84,24 @@ return new class extends Migration {
         }
 
         // migrate cta actions
-        if (isset($value['actions']['cta1']) && is_string($value['actions']['cta1'])) {
+        if (
+            isset($value['actions']['cta1']) &&
+            is_string($value['actions']['cta1'])
+        ) {
             $value['actions']['cta1'] = [
                 'type' => 'route',
                 'label' => $value['actions']['cta1'],
-                'action' => '/login'
+                'action' => '/login',
             ];
         }
-        if (isset($value['actions']['cta2']) && is_string($value['actions']['cta2'])) {
+        if (
+            isset($value['actions']['cta2']) &&
+            is_string($value['actions']['cta2'])
+        ) {
             $value['actions']['cta2'] = [
                 'type' => 'link',
                 'label' => $value['actions']['cta2'],
-                'action' => '#secondary-features'
+                'action' => '#secondary-features',
             ];
         }
 
@@ -160,7 +166,7 @@ return new class extends Migration {
 
                 if ($item['action'] === '/mailbox/tickets') {
                     $menus[$menuKey]['items'][$itemKey]['action'] =
-                        '/agent/tickets';
+                        '/dashboard/tickets';
                     $menus[$menuKey]['items'][$itemKey]['roles'] = [3];
                 }
 
@@ -169,7 +175,7 @@ return new class extends Migration {
                     $item['label'] === 'Agent mailbox'
                 ) {
                     $menus[$menuKey]['items'][$itemKey]['action'] =
-                        '/agent/tickets';
+                        '/dashboard/tickets';
                     $menus[$menuKey]['items'][$itemKey]['roles'] = [3];
                 }
 
@@ -468,8 +474,8 @@ return new class extends Migration {
             $newColors = [];
             $oldColors = json_decode($theme->getRawOriginal('colors'), true);
             $defaultColors = $theme->is_dark
-                ? config('common.themes.dark')
-                : config('common.themes.light');
+                ? config('themes.dark')
+                : config('themes.light');
 
             // theme was already migrated
             if (isset($oldColors['--be-disabled-bg-opacity'])) {

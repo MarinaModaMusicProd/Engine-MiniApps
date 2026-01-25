@@ -1,11 +1,16 @@
 import {useSettings} from '@ui/settings/use-settings';
 
-export function useAllSocialLoginsDisabled(): boolean {
+interface Props {
+  isUsingInvite?: boolean;
+}
+export function useAllSocialLoginsDisabled({
+  isUsingInvite,
+}: Props = {}): boolean {
   const {social} = useSettings();
   return (
     !social?.google?.enable &&
     !social?.facebook?.enable &&
     !social?.twitter?.enable &&
-    !social?.envato?.enable
+    (!social?.envato?.enable || !!isUsingInvite)
   );
 }

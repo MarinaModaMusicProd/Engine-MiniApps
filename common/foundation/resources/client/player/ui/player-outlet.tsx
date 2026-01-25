@@ -1,9 +1,12 @@
-import React, {memo, Suspense, useContext, useEffect} from 'react';
-import {PlayerStoreContext} from '@common/player/player-context';
-import {YoutubeProvider} from '@common/player/providers/youtube/youtube-provider';
 import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import {HtmlVideoProvider} from '@common/player/providers/html-video-provider';
+import {PlayerStoreContext} from '@common/player/player-context';
 import {HtmlAudioProvider} from '@common/player/providers/html-audio-provider';
+import {HtmlVideoProvider} from '@common/player/providers/html-video-provider';
+import {YoutubeProvider} from '@common/player/providers/youtube/youtube-provider';
+import {Trans} from '@ui/i18n/trans';
+import {IllustratedMessage} from '@ui/images/illustrated-message';
+import React, {memo, Suspense, useContext, useEffect} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
 
 const HlsProvider = React.lazy(
   () => import('@common/player/providers/hls-provider'),
@@ -25,7 +28,9 @@ export const PlayerOutlet = memo(({className}: Props) => {
 
   return (
     <div className={className}>
-      <Provider />
+      <ErrorBoundary fallback={<ErrorFallback />}>
+        <Provider />
+      </ErrorBoundary>
     </div>
   );
 });
@@ -54,4 +59,13 @@ function Provider() {
     default:
       return null;
   }
+}
+
+function ErrorFallback() {
+  return (
+    <IllustratedMessage
+      title={<Trans message="There was an issue loading the player" />}
+      description={<Trans message="Please try again later" />}
+    />
+  );
 }

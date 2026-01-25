@@ -13,13 +13,15 @@ class CreateCommentsTable extends Migration
      */
     public function up()
     {
-        if (Schema::hasTable('comments')) return;
+        if (Schema::hasTable('comments')) {
+            return;
+        }
 
         Schema::create('comments', function (Blueprint $table) {
             $table->increments('id');
             $table->text('content');
             $table->integer('parent_id')->unsigned()->nullable()->index();
-            $table->string('path')->index();
+            $table->string('path')->nullable()->index();
             $table->integer('user_id')->unsigned()->index();
             $table->integer('commentable_id')->unsigned()->index();
             $table->string('commentable_type', 30)->index();

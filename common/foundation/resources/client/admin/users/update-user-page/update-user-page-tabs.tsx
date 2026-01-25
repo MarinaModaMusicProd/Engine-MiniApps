@@ -1,17 +1,17 @@
-import {Tabs} from '@ui/tabs/tabs';
-import {TabList} from '@ui/tabs/tab-list';
-import {Tab} from '@ui/tabs/tab';
-import {Link, Outlet} from 'react-router-dom';
-import {Trans} from '@ui/i18n/trans';
-import React, {useMemo} from 'react';
-import {User} from '@ui/types/user';
+import {UpdateUserPageUser} from '@common/admin/users/update-user-page/update-user-page-user';
+import {useAuth} from '@common/auth/use-auth';
 import {
   UrlBackedTabConfig,
   useUrlBackedTabs,
 } from '@common/http/use-url-backed-tabs';
 import {message} from '@ui/i18n/message';
-import {useAuth} from '@common/auth/use-auth';
+import {Trans} from '@ui/i18n/trans';
 import {useSettings} from '@ui/settings/use-settings';
+import {Tab} from '@ui/tabs/tab';
+import {TabList} from '@ui/tabs/tab-list';
+import {Tabs} from '@ui/tabs/tabs';
+import {useMemo} from 'react';
+import {Link, Outlet} from 'react-router';
 
 export const updateUserPageTabs: UrlBackedTabConfig[] = [
   {uri: 'details', label: message('Details')},
@@ -23,7 +23,7 @@ export const updateUserPageTabs: UrlBackedTabConfig[] = [
 
 interface Props {
   tabs: UrlBackedTabConfig[];
-  user: User;
+  user: UpdateUserPageUser;
 }
 export function UpdateUserPageTabs({user, tabs}: Props) {
   const {user: authUser, hasPermission} = useAuth();

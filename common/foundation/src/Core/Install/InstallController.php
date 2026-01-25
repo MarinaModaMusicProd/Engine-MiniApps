@@ -3,10 +3,10 @@
 namespace Common\Core\Install;
 
 use App\Models\User;
-use Common\Admin\Appearance\GenerateFavicon;
 use Common\Auth\Permissions\Permission;
 use Common\Database\MigrateAndSeed;
 use Common\Settings\DotEnvEditor;
+use Common\Settings\GenerateFavicon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -18,7 +18,7 @@ class InstallController
 {
     public function __construct()
     {
-        if (config('common.site.installed')) {
+        if (config('app.installed')) {
             abort(404);
         }
     }
@@ -88,6 +88,12 @@ class InstallController
             rename(base_path('env.example'), base_path('.env'));
         }
 
+        // need to change app key in the step before migration/seeding, otherwise it will use old key
+        $appKey = 'base64:' . base64_encode(random_bytes(32));
+        $this->getEnvWriter()->write(['APP_KEY' => $appKey]);
+        config(['app.key' => $appKey]);
+        Cache::flush();
+
         return redirect('install/admin');
     }
 
@@ -112,10 +118,6 @@ class InstallController
             return redirect('install/admin');
         }
 
-        // app key
-        $appKey = 'base64:' . base64_encode(random_bytes(32));
-        $this->getEnvWriter()->write(['APP_KEY' => $appKey]);
-
         // clear cache
         Cache::flush();
         Schema::defaultStringLength(191);
@@ -131,6 +133,7 @@ class InstallController
             $user = app(User::class)->firstOrNew([
                 'email' => $credentials['email'],
             ]);
+            $user->type = config('app.admin_user_type') ?? 'user';
             $user->password = $credentials['password'];
             $user->email_verified_at = now();
             $user->save();
@@ -154,8 +157,15 @@ class InstallController
             'app_url' => $appUrl,
             'app_env' => 'production',
             'app_debug' => false,
-            'cache_driver' => 'file',
+            'cache_store' => 'file',
             'installed' => true,
+        ]);
+        config([
+            'app.url' => $appUrl,
+            'app.env' => 'production',
+            'app.debug' => false,
+            'cache.default' => 'file',
+            'app.installed' => true,
         ]);
 
         // move default favicons

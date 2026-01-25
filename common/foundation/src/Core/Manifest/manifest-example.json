@@ -3,7 +3,8 @@
   "short_name": "DUMMY_SHORT_NAME",
   "theme_color": "DUMMY_THEME_COLOR",
   "background_color": "DUMMY_BACKGROUND_COLOR",
-  "display": "standalone",
+  "orientation": "portrait",
+  "display": "minimal-ui",
   "scope": "DUMMY_START_URL",
   "start_url": "DUMMY_START_URL",
   "icons": [

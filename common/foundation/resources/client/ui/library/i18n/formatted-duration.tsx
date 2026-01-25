@@ -1,8 +1,8 @@
-import {Fragment, memo, useEffect, useMemo, useRef, useState} from 'react';
-import {useTrans, UseTransReturn} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
 import {parseAbsoluteToLocal} from '@internationalized/date';
+import {message} from '@ui/i18n/message';
 import {getCurrentDateTime} from '@ui/i18n/use-current-date-time';
+import {useTrans, UseTransReturn} from '@ui/i18n/use-trans';
+import {Fragment, memo, useEffect, useMemo, useRef, useState} from 'react';
 
 interface ParsedMS {
   days: number;
@@ -12,7 +12,7 @@ interface ParsedMS {
 }
 
 interface FormattedDurationProps {
-  ms?: number;
+  ms?: number | null;
   minutes?: number;
   seconds?: number;
   startDate?: string;

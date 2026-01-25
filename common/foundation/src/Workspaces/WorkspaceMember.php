@@ -2,7 +2,7 @@
 
 namespace Common\Workspaces;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Auth\Permissions\Permission;
 use Common\Auth\Roles\Role;
 use Common\Auth\Traits\HasAvatarAttribute;
@@ -16,7 +16,7 @@ class WorkspaceMember extends Model
 
     protected $table = 'workspace_user';
     protected $guarded = ['id'];
-    protected $appends = ['name', 'model_type'];
+    protected $appends = ['model_type'];
     protected $casts = ['is_owner' => 'boolean'];
 
     public function permissions()
@@ -29,11 +29,7 @@ class WorkspaceMember extends Model
             'role_id',
         )
             ->where('permissionable_type', Role::MODEL_TYPE)
-            ->select([
-                'permissions.id',
-                'permissions.name',
-                'permissions.restrictions',
-            ]);
+            ->select(['permissions.id', 'permissions.name']);
     }
 
     public function workspace()

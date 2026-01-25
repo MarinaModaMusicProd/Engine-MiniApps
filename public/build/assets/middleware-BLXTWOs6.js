@@ -1,0 +1,1 @@
+const d=n=>(u,b,t)=>{const S=t.subscribe;return t.subscribe=((c,l,i)=>{let r=c;if(l){const a=(i==null?void 0:i.equalityFn)||Object.is;let e=c(t.getState());r=f=>{const s=c(f);if(!a(e,s)){const o=e;l(e=s,o)}},i!=null&&i.fireImmediately&&l(e,e)}return S(r)}),n(u,b,t)},v=d;export{v as s};

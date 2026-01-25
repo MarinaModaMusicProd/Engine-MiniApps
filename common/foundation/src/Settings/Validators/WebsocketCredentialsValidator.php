@@ -9,7 +9,7 @@ use Throwable;
 class WebsocketCredentialsValidator
 {
     const KEYS = [
-        'broadcast_driver',
+        'broadcast_connection',
 
         // pusher
         'PUSHER_APP_ID',
@@ -37,7 +37,7 @@ class WebsocketCredentialsValidator
 
         $driver = Arr::get(
             $settings,
-            'broadcast_driver',
+            'broadcast_connection',
             config('broadcasting.default'),
         );
         try {
@@ -52,7 +52,7 @@ class WebsocketCredentialsValidator
     private function setConfigDynamically($settings): void
     {
         foreach ($settings as $key => $value) {
-            if ($key === 'broadcast_driver') {
+            if ($key === 'broadcast_connection') {
                 config(['broadcasting.default' => $value]);
                 continue;
             }
@@ -64,14 +64,32 @@ class WebsocketCredentialsValidator
             $key = str_contains($key, 'app_id')
                 ? $key
                 : str_replace('app_', '', $key);
-            config(["broadcasting.connections.$group.$key" => $value]);
+
+            if ($key === 'cluster') {
+                $prevCluster = config(
+                    "broadcasting.connections.$group.options.$key",
+                );
+                $prevHost = config(
+                    "broadcasting.connections.$group.options.host",
+                );
+                config([
+                    "broadcasting.connections.$group.options.$key" => $value,
+                    "broadcasting.connections.$group.options.host" => str_replace(
+                        $prevCluster,
+                        $value,
+                        $prevHost,
+                    ),
+                ]);
+            } else {
+                config(["broadcasting.connections.$group.$key" => $value]);
+            }
         }
     }
 
     private function getErrorMessage(Throwable $e, string $driver): array
     {
         return [
-            'queue_group' => "Could not change websockets driver to <strong>$driver</strong>.<br> {$e->getMessage()}",
+            'websockets_group' => "Could not change websockets driver to <strong>$driver</strong>.<br> {$e->getMessage()}",
         ];
     }
 }

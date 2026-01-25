@@ -1,3 +1,5 @@
+import {useControlledState} from '@react-stately/utils';
+import clsx from 'clsx';
 import {
   Children,
   cloneElement,
@@ -7,10 +9,8 @@ import {
   useRef,
 } from 'react';
 import {RadioGroupProps} from '../radio-group/radio-group';
-import {SegmentedRadioProps} from './segmented-radio';
 import {ActiveIndicator} from './active-indicator';
-import {useControlledState} from '@react-stately/utils';
-import clsx from 'clsx';
+import {SegmentedRadioProps} from './segmented-radio';
 
 export interface SegmentedRadioGroupProps
   extends Omit<RadioGroupProps, 'orientation'> {
@@ -37,7 +37,7 @@ export const SegmentedRadioGroup = forwardRef<
 
   return (
     <fieldset ref={ref} className={clsx(className, props.width ?? 'w-min')}>
-      <div className="relative isolate flex rounded bg-chip p-4">
+      <div className="relative isolate flex rounded-button bg-chip p-4">
         <ActiveIndicator selectedValue={selectedValue} labelsRef={labelsRef} />
         {Children.map(children, (child, index) => {
           if (isValidElement<SegmentedRadioProps>(child)) {

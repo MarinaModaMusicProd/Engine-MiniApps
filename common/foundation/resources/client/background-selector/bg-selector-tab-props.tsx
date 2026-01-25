@@ -1,3 +1,4 @@
+import {UploadType} from '@app/site-config';
 import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
 
 export interface BgSelectorTabProps<T extends BackgroundSelectorConfig> {
@@ -6,5 +7,5 @@ export interface BgSelectorTabProps<T extends BackgroundSelectorConfig> {
   className?: string;
   isInsideDialog?: boolean;
   positionSelector?: 'simple' | 'advanced';
-  diskPrefix?: string;
+  uploadType?: keyof typeof UploadType;
 }

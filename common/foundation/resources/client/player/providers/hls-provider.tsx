@@ -1,12 +1,12 @@
-import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {PlayerStoreContext} from '@common/player/player-context';
 import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import Hls, {LevelLoadedData} from 'hls.js';
-import {useHtmlMediaInternalState} from '@common/player/providers/html-media/use-html-media-internal-state';
-import {useHtmlMediaEvents} from '@common/player/providers/html-media/use-html-media-events';
-import {useHtmlMediaApi} from '@common/player/providers/html-media/use-html-media-api';
 import {HlsMediaItem} from '@common/player/media-item';
+import {PlayerStoreContext} from '@common/player/player-context';
+import {useHtmlMediaApi} from '@common/player/providers/html-media/use-html-media-api';
+import {useHtmlMediaEvents} from '@common/player/providers/html-media/use-html-media-events';
+import {useHtmlMediaInternalState} from '@common/player/providers/html-media/use-html-media-internal-state';
 import {AudioTrack} from '@common/player/state/player-state';
+import Hls, {LevelLoadedData} from 'hls.js';
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
 
 export default function HlsProvider() {
   const store = useContext(PlayerStoreContext);
@@ -19,12 +19,12 @@ export default function HlsProvider() {
   const htmlMediaApi = useHtmlMediaApi(htmlMediaState);
 
   // need both so we can "loadSource" when hls is ready, while keeping other callbacks stable
-  const hls = useRef<Hls | undefined>();
+  const hls = useRef<Hls | undefined>(undefined);
   const [hlsReady, setHlsReady] = useState(false);
 
   const destroyHls = useCallback(() => {
-    if (hls) {
-      hls.current?.destroy();
+    if (hls.current) {
+      hls.current.destroy();
       hls.current = undefined;
       setHlsReady(false);
     }
@@ -156,7 +156,7 @@ export default function HlsProvider() {
       className="h-full w-full"
       ref={videoRef}
       playsInline
-      poster={cuedMedia?.poster}
+      poster={cuedMedia?.poster ?? undefined}
       {...htmlMediaEvents}
     />
   );

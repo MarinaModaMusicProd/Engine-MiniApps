@@ -1,6 +1,6 @@
-import {UploadedFile} from '@ui/utils/files/uploaded-file';
 import {createUploadInput} from '@ui/utils/files/create-upload-input';
 import {FileInputConfig} from '@ui/utils/files/file-input-config';
+import {UploadedFile} from '@ui/utils/files/uploaded-file';
 
 /**
  * Open browser dialog for uploading files and

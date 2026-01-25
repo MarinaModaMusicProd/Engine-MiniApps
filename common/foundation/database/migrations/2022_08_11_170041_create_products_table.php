@@ -14,23 +14,10 @@ class CreateProductsTable extends Migration
             $table->text('description')->nullable();
             $table->uuid();
             $table->text('feature_list')->nullable();
-            $table
-                ->smallInteger('position')
-                ->index()
-                ->default(0);
+            $table->smallInteger('position')->index()->default(0);
             $table->boolean('recommended')->default(0);
-            $table
-                ->boolean('free')
-                ->index()
-                ->default(0);
-            $table
-                ->boolean('hidden')
-                ->index()
-                ->default(0);
-            $table
-                ->bigInteger('available_space')
-                ->nullable()
-                ->unsigned();
+            $table->boolean('free')->index()->default(0);
+            $table->boolean('hidden')->index()->default(0);
             $table->timestamps();
         });
     }

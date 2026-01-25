@@ -1,30 +1,31 @@
-import {Track} from '@app/web-player/tracks/track';
-import {Table, TableProps} from '@common/ui/tables/table';
-import {ColumnConfig} from '@common/datatable/column-config';
-import {Trans} from '@ui/i18n/trans';
-import React, {useMemo} from 'react';
 import {AlbumLink} from '@app/web-player/albums/album-link';
-import {ScheduleIcon} from '@ui/icons/material/Schedule';
-import {FormattedDuration} from '@ui/i18n/formatted-duration';
-import {ArtistLinks} from '@app/web-player/artists/artist-links';
-import {TogglePlaybackColumn} from '@app/web-player/tracks/track-table/toggle-playback-column';
-import {TrackNameColumn} from '@app/web-player/tracks/track-table/track-name-column';
-import {TrackTableMeta} from '@app/web-player/tracks/track-table/use-track-table-meta';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {NameWithAvatarPlaceholder} from '@common/datatable/column-templates/name-with-avatar';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {RowElementProps} from '@common/ui/tables/table-row';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
 import {TableTrackContextDialog} from '@app/web-player/tracks/context-dialog/table-track-context-dialog';
-import {TrendingUpIcon} from '@ui/icons/material/TrendingUp';
-import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
-import {trackToMediaItem} from '@app/web-player/tracks/utils/track-to-media-item';
-import {usePlayerActions} from '@common/player/hooks/use-player-actions';
+import {LibraryPageTrack, Track} from '@app/web-player/tracks/track';
+import {TogglePlaybackColumn} from '@app/web-player/tracks/track-table/toggle-playback-column';
+import {
+  TrackNameColumn,
+  TrackNameColumnPlaceholder,
+} from '@app/web-player/tracks/track-table/track-name-column';
 import {TrackOptionsColumn} from '@app/web-player/tracks/track-table/track-options-column';
+import {TrackTableMeta} from '@app/web-player/tracks/track-table/use-track-table-meta';
+import {tracksToMediaItems} from '@app/web-player/tracks/utils/track-to-media-item';
+import {ColumnConfig} from '@common/datatable/column-config';
+import {usePlayerActions} from '@common/player/hooks/use-player-actions';
+import {Table, TableProps} from '@common/ui/tables/table';
+import {RowElementProps} from '@common/ui/tables/table-row';
 import {TableDataItem} from '@common/ui/tables/types/table-data-item';
+import {FormattedDuration} from '@ui/i18n/formatted-duration';
+import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
+import {Trans} from '@ui/i18n/trans';
+import {ScheduleIcon} from '@ui/icons/material/Schedule';
+import {TrendingUpIcon} from '@ui/icons/material/TrendingUp';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Skeleton} from '@ui/skeleton/skeleton';
 import {useIsMobileDevice} from '@ui/utils/hooks/is-mobile-device';
-import {Playlist} from '@app/web-player/playlists/playlist';
+import {useMemo} from 'react';
 
-const columnConfig: ColumnConfig<Track>[] = [
+const columnConfig: ColumnConfig<Track | LibraryPageTrack>[] = [
   {
     key: 'index',
     header: () => <span>#</span>,
@@ -51,24 +52,13 @@ const columnConfig: ColumnConfig<Track>[] = [
     header: () => <Trans message="Title" />,
     body: (track, row) => {
       if (row.isPlaceholder) {
-        return <NameWithAvatarPlaceholder showDescription={false} />;
+        return <TrackNameColumnPlaceholder />;
       }
       return <TrackNameColumn track={track} />;
     },
   },
   {
-    key: 'artist',
-    header: () => <Trans message="Artist" />,
-    width: 'flex-2',
-    body: (track, row) => {
-      if (row.isPlaceholder) {
-        return <Skeleton className="max-w-4/5 leading-3" />;
-      }
-      return <ArtistLinks artists={track.artists} />;
-    },
-  },
-  {
-    key: 'album_name',
+    key: 'album_id',
     allowsSorting: true,
     width: 'flex-2',
     header: () => <Trans message="Album" />,
@@ -89,7 +79,9 @@ const columnConfig: ColumnConfig<Track>[] = [
       if (row.isPlaceholder) {
         return <Skeleton className="max-w-4/5 leading-3" />;
       }
-      return <FormattedRelativeTime date={track.added_at} />;
+      return (
+        <FormattedRelativeTime date={(track as LibraryPageTrack).added_at} />
+      );
     },
   },
   {
@@ -135,10 +127,10 @@ const columnConfig: ColumnConfig<Track>[] = [
         return <Skeleton className="leading-3" />;
       }
       return (
-        <div className="relative h-6 w-full bg-chip">
+        <div className="relative h-6 w-54 rounded-button bg-chip">
           <div
             style={{width: `${track.popularity || 50}%`}}
-            className="absolute left-0 top-0 h-full w-0 bg-black/30 dark:bg-white/30"
+            className="absolute left-0 top-0 h-6 w-0 rounded-button bg-black/30 dark:bg-white/30"
           />
         </div>
       );
@@ -148,14 +140,13 @@ const columnConfig: ColumnConfig<Track>[] = [
 
 export interface TrackTableProps {
   tracks: Track[] | TableDataItem[]; // might be passing in placeholder items for skeletons
-  hideArtist?: boolean;
   hideAlbum?: boolean;
   hideTrackImage?: boolean;
   hidePopularity?: boolean;
   hideAddedAtColumn?: boolean;
   hideHeaderRow?: boolean;
   queueGroupId?: string | number;
-  playlist?: Playlist;
+  playlist?: PartialPlaylist;
   renderRowAs?: TableProps<Track>['renderRowAs'];
   sortDescriptor?: TableProps<Track>['sortDescriptor'];
   onSortChange?: TableProps<Track>['onSortChange'];
@@ -165,7 +156,6 @@ export interface TrackTableProps {
 }
 export function TrackTable({
   tracks,
-  hideArtist = false,
   hideAlbum = false,
   hideHeaderRow = false,
   hideTrackImage = false,
@@ -182,10 +172,7 @@ export function TrackTable({
 
   const filteredColumns = useMemo(() => {
     return columnConfig.filter(col => {
-      if (col.key === 'artist' && hideArtist) {
-        return false;
-      }
-      if (col.key === 'album_name' && hideAlbum) {
+      if (col.key === 'album_id' && hideAlbum) {
         return false;
       }
       if (col.key === 'popularity' && hidePopularity) {
@@ -196,7 +183,7 @@ export function TrackTable({
       }
       return true;
     });
-  }, [hideArtist, hideAlbum, hidePopularity, hideAddedAtColumn]);
+  }, [hideAlbum, hidePopularity, hideAddedAtColumn]);
 
   const meta: TrackTableMeta = useMemo(() => {
     return {queueGroupId: queueGroupId, hideTrackImage, playlist};
@@ -212,10 +199,13 @@ export function TrackTable({
       columns={filteredColumns}
       data={tracks as Track[]}
       meta={meta}
-      hideBorder={isMobile}
-      onAction={(track, index) => {
-        const newQueue = tracks.map(d =>
-          trackToMediaItem(d as Track, queueGroupId),
+      hideBorder={true}
+      hideHeaderBorder={hideHeaderRow}
+      cellHeight="h-56"
+      onAction={async (track, index) => {
+        const newQueue = await tracksToMediaItems(
+          tracks as Track[],
+          queueGroupId as string,
         );
         player.overrideQueueAndPlay(newQueue, index);
       }}

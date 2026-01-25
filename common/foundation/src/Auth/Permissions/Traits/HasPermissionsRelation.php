@@ -11,7 +11,7 @@ trait HasPermissionsRelation
     {
         return $this->morphToMany(Permission::class, 'permissionable')
             ->withPivot('restrictions')
-            ->select('name', 'permissions.id', 'permissions.restrictions');
+            ->select('name', 'permissions.id');
     }
 
     public function hasPermission(string $name): bool

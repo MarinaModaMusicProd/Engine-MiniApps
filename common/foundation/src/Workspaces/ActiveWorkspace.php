@@ -3,9 +3,7 @@
 namespace Common\Workspaces;
 
 use App\Models\User;
-use Auth;
-use Common\Workspaces\Workspace;
-use Common\Workspaces\WorkspaceMember;
+use Illuminate\Support\Facades\Auth;
 
 class ActiveWorkspace
 {

@@ -1,4 +1,4 @@
-<?php namespace Common\Database\Seeds;
+<?php namespace Common\Database\Seeders;
 
 use App\Models\User;
 use Common\Auth\Permissions\Permission;
@@ -8,7 +8,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 
 class RolesTableSeeder extends Seeder
 {
@@ -22,100 +21,78 @@ class RolesTableSeeder extends Seeder
         protected User $user,
         protected Permission $permission,
         protected Filesystem $fs,
-    ) {
-    }
+    ) {}
 
     public function run(): void
     {
-        $this->commonConfig = File::getRequire(
-            app('path.common') . '/resources/defaults/permissions.php',
-        );
         $this->appConfig = File::getRequire(
             resource_path('defaults/permissions.php'),
         );
 
         foreach ($this->appConfig['roles'] as $appRole) {
-            if ($commonRoleName = Arr::get($appRole, 'extends')) {
-                $commonRole = $this->findRoleConfig($commonRoleName);
-                $appRole = array_merge($commonRole, $appRole);
-                $appRole['permissions'] = array_merge(
-                    $commonRole['permissions'],
-                    $appRole['permissions'],
-                );
-            }
-
-            // skip billing permissions if billing is not integrated
-            $appRole['permissions'] = array_filter(
-                $appRole['permissions'],
-                function ($permission) {
-                    if (is_array($permission)) {
-                        $permission = $permission['name'];
-                    }
-                    return config('common.site.billing_integrated') ||
-                        !Str::contains($permission, ['invoice.', 'plans.']);
-                },
-            );
-
             $this->createOrUpdateRole($appRole);
         }
     }
 
-    private function findRoleConfig(string $roleName): array
-    {
-        $roleConfig = Arr::first($this->commonConfig['roles'], function (
-            $role,
-        ) use ($roleName) {
-            return $role['name'] === $roleName;
-        });
-        if (!$roleConfig) {
-            $roleConfig = Arr::first($this->appConfig['roles'], function (
-                $role,
-            ) use ($roleName) {
-                return $role['name'] === $roleName;
-            });
-        }
-        return $roleConfig;
-    }
-
     private function createOrUpdateRole(array $appRole): Role
     {
-        $defaultPermissions = collect($appRole['permissions'])->map(
-            fn($permission) => is_string($permission)
-                ? ['name' => $permission]
-                : $permission,
+        $defaultPermissions = collect($appRole['permissions']);
+        $defaultPermissionsNames = $defaultPermissions->map(
+            fn($p) => is_array($p) ? $p['name'] : $p,
         );
 
-        $dbPermissions = Permission::whereIn(
-            'name',
-            $defaultPermissions->pluck('name'),
-        )->get();
-        $dbPermissions->map(function (Permission $permission) use (
-            $defaultPermissions,
-        ) {
-            $defaultPermission = $defaultPermissions
-                ->where('name', $permission['name'])
-                ->first();
-            $permission['restrictions'] =
-                Arr::get($defaultPermission, 'restrictions') ?: [];
-            return $permission;
-        });
+        $dbPermissions = Permission::whereIn('name', $defaultPermissionsNames)
+            ->get()
+            ->map(function (Permission $permission) use ($defaultPermissions) {
+                $restrictions =
+                    $defaultPermissions->first(
+                        fn($p) => is_array($p) &&
+                            $p['name'] === $permission->name,
+                    )['restrictions'] ?? [];
+                $permission['restrictions'] = $restrictions;
+                return $permission;
+            });
+        $permissionType =
+            $appRole['permission_type'] ?? ($appRole['type'] ?? 'users');
 
         if (Arr::get($appRole, 'default')) {
             $attributes = ['default' => true];
-            Role::where('name', $appRole['name'])->update(['default' => true]);
+            Role::where('name', $appRole['name'])->update([
+                'default' => true,
+                'internal' => true,
+                'type' => $appRole['type'],
+                'description' => $appRole['description'] ?? null,
+                'permission_type' => $permissionType,
+            ]);
         } elseif (Arr::get($appRole, 'guests')) {
             $attributes = ['guests' => true];
-            Role::where('name', $appRole['name'])->update(['guests' => true]);
+            Role::where('name', $appRole['name'])->update([
+                'guests' => true,
+                'internal' => true,
+                'type' => $appRole['type'],
+                'description' => $appRole['description'] ?? null,
+                'permission_type' => $permissionType,
+            ]);
         } else {
-            $attributes = ['name' => $appRole['name']];
+            $attributes = [
+                'name' => $appRole['name'],
+                'type' => $appRole['type'],
+                'permission_type' => $permissionType,
+            ];
         }
 
         if ($role = Role::where($attributes)->first()) {
             return $role;
         } else {
-            $role = $this->role->create(
-                Arr::except($appRole, ['permissions', 'extends']),
-            );
+            $role = $this->role->create([
+                'name' => $appRole['name'],
+                'type' => $appRole['type'],
+                'permission_type' => $permissionType,
+                'description' => $appRole['description'] ?? null,
+                'internal' => $appRole['internal'] ?? false,
+                'default' => $appRole['default'] ?? false,
+                'guests' => $appRole['guests'] ?? false,
+            ]);
             $this->syncPermissions(
                 $role,
                 $role->permissions->concat($dbPermissions),

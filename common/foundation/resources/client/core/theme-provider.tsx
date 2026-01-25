@@ -1,15 +1,15 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {applyThemeToDom} from '@ui/themes/utils/apply-theme-to-dom';
+import {useBootstrapDataStore} from '@ui/bootstrap-data/bootstrap-data-store';
+import {themeEl} from '@ui/root-el';
+import {useSettings} from '@ui/settings/use-settings';
 import {
   ThemeId,
   ThemeSelectorContext,
   ThemeSelectorContextValue,
 } from '@ui/themes/theme-selector-context';
-import {useSettings} from '@ui/settings/use-settings';
-import {useCookie} from '@ui/utils/hooks/use-cookie';
-import {useBootstrapDataStore} from '@ui/bootstrap-data/bootstrap-data-store';
 import {usePreferredColorScheme} from '@ui/themes/use-preferred-color-scheme';
-import {themeEl} from '@ui/root-el';
+import {applyThemeToDom} from '@ui/themes/utils/apply-theme-to-dom';
+import {useCookie} from '@ui/utils/hooks/use-cookie';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 
 const STORAGE_KEY = 'be-active-theme';
 

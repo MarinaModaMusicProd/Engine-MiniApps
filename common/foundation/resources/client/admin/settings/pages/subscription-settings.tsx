@@ -1,47 +1,25 @@
-import {
-  AdminSettingsForm,
-  AdminSettingsLayout,
-} from '@common/admin/settings/form/admin-settings-form';
-import {useTrans} from '@ui/i18n/use-trans';
-import {Trans} from '@ui/i18n/trans';
-import {Tabs} from '@ui/tabs/tabs';
-import {TabList} from '@ui/tabs/tab-list';
-import {Tab} from '@ui/tabs/tab';
-import {TabPanel, TabPanels} from '@ui/tabs/tab-panels';
-import {FormSwitch} from '@ui/forms/toggle/switch';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {useForm, useFormContext} from 'react-hook-form';
+import {AdminDocsUrls} from '@app/admin/admin-config';
 import {AdminSettings} from '@common/admin/settings/admin-settings';
-import {LearnMoreLink} from '@common/admin/settings/form/learn-more-link';
-import {SettingsErrorGroup} from '@common/admin/settings/form/settings-error-group';
-import React, {Fragment} from 'react';
-import {JsonChipField} from '@common/admin/settings/form/json-chip-field';
-import {SettingsSeparator} from '@common/admin/settings/form/settings-separator';
+import {SettingsErrorGroup} from '@common/admin/settings/layout/settings-error-group';
+import {AdminSettingsLayout} from '@common/admin/settings/layout/settings-layout';
+import {DocsLink} from '@common/admin/settings/layout/settings-links';
+import {SettingsPanel} from '@common/admin/settings/layout/settings-panel';
+import {useAdminSettings} from '@common/admin/settings/requests/use-admin-settings';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {FormSwitch} from '@ui/forms/toggle/switch';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {Fragment} from 'react';
+import {useForm, useFormContext} from 'react-hook-form';
 
-export function SubscriptionSettings() {
-  return (
-    <AdminSettingsLayout
-      title={<Trans message="Subscriptions" />}
-      description={
-        <Trans message="Configure gateway integration, accepted cards, invoices and other related settings." />
-      }
-    >
-      {data => <Form data={data} />}
-    </AdminSettingsLayout>
-  );
-}
-
-interface FormProps {
-  data: AdminSettings;
-}
-function Form({data}: FormProps) {
+export function Component() {
   const {trans} = useTrans();
+  const {data} = useAdminSettings();
   const form = useForm<AdminSettings>({
     defaultValues: {
       client: {
         billing: {
           enable: data.client.billing?.enable ?? false,
-          accepted_cards: data.client.billing?.accepted_cards ?? [],
           paypal_test_mode: data.client.billing?.paypal_test_mode ?? false,
           paypal: {
             enable: data.client.billing?.paypal?.enable ?? false,
@@ -67,57 +45,34 @@ function Form({data}: FormProps) {
   });
 
   return (
-    <AdminSettingsForm form={form}>
-      <Tabs>
-        <TabList>
-          <Tab>
-            <Trans message="General" />
-          </Tab>
-          <Tab>
-            <Trans message="Invoices" />
-          </Tab>
-        </TabList>
-        <TabPanels className="pt-30">
-          <TabPanel>
-            <FormSwitch
-              name="client.billing.enable"
-              description={
-                <Trans message="Enable or disable all subscription related functionality across the site." />
-              }
-            >
-              <Trans message="Enable subscriptions" />
-            </FormSwitch>
-            <SettingsSeparator />
-            <PaypalSection />
-            <StripeSection />
-            <SettingsSeparator />
-            <JsonChipField
-              label={<Trans message="Accepted cards" />}
-              name="client.billing.accepted_cards"
-              placeholder={trans({message: 'Add new card...'})}
-            />
-          </TabPanel>
-          <TabPanel>
-            <FormTextField
-              inputElementType="textarea"
-              rows={5}
-              label={<Trans message="Invoice address" />}
-              name="client.billing.invoice.address"
-              className="mb-30"
-            />
-            <FormTextField
-              inputElementType="textarea"
-              rows={5}
-              label={<Trans message="Invoice notes" />}
-              description={
-                <Trans message="Default notes to show under `notes` section of user invoice. Optional." />
-              }
-              name="client.billing.invoice.notes"
-            />
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
-    </AdminSettingsForm>
+    <AdminSettingsLayout form={form} title={<Trans message="Subscriptions" />}>
+      <GeneralSection />
+      <PaypalSection />
+      <StripeSection />
+      <InvoiceAddressSection />
+      <InvoiceNotesSection />
+    </AdminSettingsLayout>
+  );
+}
+
+function GeneralSection() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Subscriptions" />}
+      description={
+        <Trans message="Enable or disable subscription functionality across the site." />
+      }
+      link={
+        AdminDocsUrls.pages.subscriptions ? (
+          <DocsLink link={AdminDocsUrls.pages.subscriptions}></DocsLink>
+        ) : null
+      }
+    >
+      <FormSwitch name="client.billing.enable">
+        <Trans message="Enable subscriptions" />
+      </FormSwitch>
+    </SettingsPanel>
   );
 }
 
@@ -125,62 +80,65 @@ function PaypalSection() {
   const {watch} = useFormContext<AdminSettings>();
   const paypalIsEnabled = watch('client.billing.paypal.enable');
   return (
-    <div className="mb-30">
-      <FormSwitch
-        name="client.billing.paypal.enable"
-        description={
-          <div>
-            <Trans message="Enable PayPal payment gateway integration." />
-            <LearnMoreLink
-              className="mt-6"
-              link="https://support.MarinaModa.com/hc/articles/147/configuring-paypal"
-            />
-          </div>
-        }
-      >
-        <Trans message="PayPal gateway" />
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="PayPal Gateway" />}
+      description={
+        <Trans message="Configure PayPal payment gateway integration." />
+      }
+      link={
+        <DocsLink link="https://support.vebto.com/hc/articles/147/configuring-paypal">
+          <Trans message="How to set up PayPal" />
+        </DocsLink>
+      }
+    >
+      <FormSwitch name="client.billing.paypal.enable">
+        <Trans message="Enable PayPal" />
       </FormSwitch>
-      {paypalIsEnabled ? (
-        <SettingsErrorGroup name="paypal_group">
+      {paypalIsEnabled && (
+        <SettingsErrorGroup
+          name="paypal_group"
+          separatorTop={false}
+          separatorBottom={false}
+        >
           {isInvalid => (
             <Fragment>
               <FormTextField
+                size="sm"
                 name="server.paypal_client_id"
                 label={<Trans message="PayPal Client ID" />}
                 required
                 invalid={isInvalid}
-                className="mb-20"
+                className="mt-20"
               />
               <FormTextField
+                size="sm"
                 name="server.paypal_secret"
                 label={<Trans message="PayPal Secret" />}
                 required
                 invalid={isInvalid}
-                className="mb-20"
+                className="mt-20"
               />
               <FormTextField
+                size="sm"
                 name="server.paypal_webhook_id"
                 label={<Trans message="PayPal Webhook ID" />}
                 required
                 invalid={isInvalid}
-                className="mb-20"
+                className="mt-20"
               />
               <FormSwitch
                 name="client.billing.paypal_test_mode"
                 invalid={isInvalid}
-                description={
-                  <div>
-                    <Trans message="Allows testing PayPal payments with sandbox accounts." />
-                  </div>
-                }
+                className="mt-20"
               >
                 <Trans message="PayPal test mode" />
               </FormSwitch>
             </Fragment>
           )}
         </SettingsErrorGroup>
-      ) : null}
-    </div>
+      )}
+    </SettingsPanel>
   );
 }
 
@@ -188,49 +146,95 @@ function StripeSection() {
   const {watch} = useFormContext<AdminSettings>();
   const stripeEnabled = watch('client.billing.stripe.enable');
   return (
-    <Fragment>
-      <FormSwitch
-        name="client.billing.stripe.enable"
-        description={
-          <div>
-            <Trans message="Enable Stripe payment gateway integration." />
-            <LearnMoreLink
-              className="mt-6"
-              link="https://support.MarinaModa.com/hc/articles/148/configuring-stripe"
-            />
-          </div>
-        }
-      >
-        <Trans message="Stripe gateway" />
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Stripe Gateway" />}
+      description={
+        <Trans message="Configure Stripe payment gateway integration." />
+      }
+      link={
+        <DocsLink link="https://support.vebto.com/hc/articles/148/configuring-stripe">
+          <Trans message="How to set up Stripe" />
+        </DocsLink>
+      }
+    >
+      <FormSwitch name="client.billing.stripe.enable">
+        <Trans message="Enable Stripe" />
       </FormSwitch>
-      {stripeEnabled ? (
-        <SettingsErrorGroup name="stripe_group" separatorBottom={false}>
+      {stripeEnabled && (
+        <SettingsErrorGroup
+          name="stripe_group"
+          separatorTop={false}
+          separatorBottom={false}
+        >
           {isInvalid => (
             <Fragment>
               <FormTextField
+                size="sm"
                 name="server.stripe_key"
                 label={<Trans message="Stripe publishable key" />}
                 required
-                className="mb-20"
+                className="mt-20"
                 invalid={isInvalid}
               />
               <FormTextField
+                size="sm"
                 name="server.stripe_secret"
                 label={<Trans message="Stripe secret key" />}
                 required
-                className="mb-20"
+                className="mt-20"
                 invalid={isInvalid}
               />
               <FormTextField
+                size="sm"
                 name="server.stripe_webhook_secret"
                 label={<Trans message="Stripe webhook signing secret" />}
-                className="mb-20"
+                className="mt-20"
                 invalid={isInvalid}
               />
             </Fragment>
           )}
         </SettingsErrorGroup>
-      ) : null}
-    </Fragment>
+      )}
+    </SettingsPanel>
+  );
+}
+
+function InvoiceAddressSection() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Invoice Address" />}
+      description={
+        <Trans message="Set the address that will appear on customer invoices." />
+      }
+    >
+      <FormTextField
+        size="sm"
+        label={<Trans message="Address" />}
+        inputElementType="textarea"
+        rows={2}
+        name="client.billing.invoice.address"
+      />
+    </SettingsPanel>
+  );
+}
+
+function InvoiceNotesSection() {
+  return (
+    <SettingsPanel
+      title={<Trans message="Invoice Notes" />}
+      description={
+        <Trans message="Default notes to show under the notes section of customer invoices." />
+      }
+    >
+      <FormTextField
+        size="sm"
+        label={<Trans message="Notes" />}
+        inputElementType="textarea"
+        rows={2}
+        name="client.billing.invoice.notes"
+      />
+    </SettingsPanel>
   );
 }

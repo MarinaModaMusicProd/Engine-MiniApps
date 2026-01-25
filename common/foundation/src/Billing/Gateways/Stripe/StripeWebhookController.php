@@ -3,7 +3,6 @@
 use App\Models\User;
 use Common\Billing\Notifications\PaymentFailed;
 use Common\Billing\Subscription;
-use Common\Billing\Gateways\Stripe\Stripe;
 use Exception;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Routing\ResponseFactory;
@@ -20,8 +19,7 @@ class StripeWebhookController extends Controller
     public function __construct(
         protected Stripe $stripe,
         protected Subscription $subscription,
-    ) {
-    }
+    ) {}
 
     public function handleWebhook(Request $request): Response|JsonResponse
     {
@@ -44,6 +42,9 @@ class StripeWebhookController extends Controller
             'invoice.paid' => $this->handleInvoicePaid($event),
             // sync user payment methods with local database
             'customer.updated' => $this->handleCustomerUpdated($event),
+            'payment_method.attached' => $this->handlePaymentMethodAttached(
+                $event,
+            ),
             // user subscription ended and can't be resumed
             'customer.subscription.deleted' => $this->deleteSubscription(
                 $event,
@@ -73,11 +74,26 @@ class StripeWebhookController extends Controller
         if ($subscription) {
             $this->stripe->subscriptions->createOrUpdateInvoice(
                 $subscription,
-                $stripeInvoice['id'],
-                true,
+                $stripeInvoice,
             );
         }
 
+        return response('Webhook Handled', 200);
+    }
+
+    protected function handlePaymentMethodAttached(array $payload)
+    {
+        $stripePaymentMethod = $payload['data']['object'];
+        $user = User::where(
+            'stripe_id',
+            $stripePaymentMethod['customer'],
+        )->firstOrFail();
+        if (isset($stripePaymentMethod['card'])) {
+            $this->stripe->storeCardDetailsLocally(
+                $user,
+                $stripePaymentMethod['card'],
+            );
+        }
         return response('Webhook Handled', 200);
     }
 
@@ -91,7 +107,10 @@ class StripeWebhookController extends Controller
             ->allPaymentMethods($stripeCustomer['id'], ['type' => 'card'])
             ->toArray()['data'];
 
-        if (!empty($stripePaymentMethods)) {
+        if (
+            !empty($stripePaymentMethods) &&
+            isset($stripePaymentMethods[0]['card'])
+        ) {
             $card = $stripePaymentMethods[0]['card'];
             $this->stripe->storeCardDetailsLocally($user, $card);
         }

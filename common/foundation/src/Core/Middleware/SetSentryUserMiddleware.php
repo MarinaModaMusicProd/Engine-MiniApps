@@ -12,7 +12,7 @@ class SetSentryUserMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if ($user = Auth::user()) {
+        if ($user = $request->user('sanctum')) {
             configureScope(function (Scope $scope) use ($user) {
                 $scope->setUser(['email' => $user->email, 'id' => $user->id]);
             });

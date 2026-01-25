@@ -1,15 +1,14 @@
-import {useFieldArray} from 'react-hook-form';
+import {ProfileLink} from '@app/web-player/users/user-profile';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {Trans} from '@ui/i18n/trans';
-import {IconButton} from '@ui/buttons/icon-button';
-import {CloseIcon} from '@ui/icons/material/Close';
-import {Button} from '@ui/buttons/button';
 import {AddIcon} from '@ui/icons/material/Add';
-import React from 'react';
-import {UserLink} from '@app/web-player/user-profile/user-link';
+import {CloseIcon} from '@ui/icons/material/Close';
+import {useFieldArray} from 'react-hook-form';
 
 export function ProfileLinksForm() {
-  const {fields, append, remove} = useFieldArray<{links: UserLink[]}>({
+  const {fields, append, remove} = useFieldArray<{links: ProfileLink[]}>({
     name: 'links',
   });
   return (

@@ -1,19 +1,21 @@
-import {create} from 'zustand';
-import {immer} from 'zustand/middleware/immer';
-import {Draft, enableMapSet} from 'immer';
+import {UploadType} from '@app/site-config';
+import {DEFAULT_CHUNK_SIZE} from '@common/core/settings/base-backend-settings';
+import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {Settings} from '@ui/settings/settings';
 import {
   UploadedFile,
   UploadedFileFromEntry,
 } from '@ui/utils/files/uploaded-file';
-import {UploadStrategy, UploadStrategyConfig} from './strategy/upload-strategy';
-import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {Draft, enableMapSet} from 'immer';
+import {create} from 'zustand';
+import {immer} from 'zustand/middleware/immer';
 import {FileEntry} from '../file-entry';
-import {S3MultipartUpload} from './strategy/s3-multipart-upload';
-import {Settings} from '@ui/settings/settings';
-import {TusUpload} from './strategy/tus-upload';
+import {createUpload} from './create-file-upload';
 import {ProgressTimeout} from './progress-timeout';
 import {startUploading} from './start-uploading';
-import {createUpload} from './create-file-upload';
+import {S3MultipartUpload} from './strategy/s3-multipart-upload';
+import {TusUpload} from './strategy/tus-upload';
+import {UploadStrategy, UploadStrategyConfig} from './strategy/upload-strategy';
 
 enableMapSet();
 
@@ -30,46 +32,61 @@ export interface FileUpload {
   meta?: unknown;
 }
 
-interface State {
+interface FileUploadStoreState {
+  // If false, then we are showing file selection list UI where user can manage selected files.
+  uploadStarted: boolean;
   concurrency: number;
   fileUploads: Map<string, FileUpload>;
   // uploads with pending and inProgress status
   activeUploadsCount: number;
+  // uploads with inProgress status
+  inProgressUploadsCount: number;
+  pendingUploadsCount: number;
   completedUploadsCount: number;
 }
 
-const initialState: State = {
+const initialState: FileUploadStoreState = {
+  uploadStarted: false,
   concurrency: 3,
   fileUploads: new Map(),
   activeUploadsCount: 0,
+  inProgressUploadsCount: 0,
+  pendingUploadsCount: 0,
   completedUploadsCount: 0,
 };
 
-interface Actions {
+export interface FileUploadStoreActions {
   uploadMultiple: (
     files: (File | UploadedFile)[] | FileList,
-    options?: Omit<
+    strategyConfig: Omit<
       UploadStrategyConfig,
       // progress would be called for each upload simultaneously
-      'onProgress' | 'showToastOnRestrictionFail'
+      'onProgress'
     >,
+    options?: {
+      startUpload?: boolean;
+    },
   ) => string[];
   uploadSingle: (
     file: File | UploadedFile,
-    options?: UploadStrategyConfig,
+    options: UploadStrategyConfig,
   ) => string;
+  startUpload: () => void;
   removeUpload: (id: string) => void;
   clearInactive: () => void;
   abortUpload: (id: string) => void;
   updateFileUpload: (id: string, state: Partial<FileUpload>) => void;
-  addCompletedFileUpload: (entry: FileEntry) => void;
+  addCompletedFileUpload: (
+    entry: FileEntry,
+    uploadType: keyof typeof UploadType,
+  ) => void;
   getUpload: (id: string) => FileUpload | undefined;
   getCompletedFileEntries: () => FileEntry[];
   runQueue: () => Promise<void>;
   reset: () => void;
 }
 
-export type FileUploadState = State & Actions;
+export type FileUploadState = FileUploadStoreState & FileUploadStoreActions;
 
 export interface FileUploadStoreOptions {
   modifyUploadedFile?: (file: UploadedFile) => UploadedFile;
@@ -105,6 +122,7 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
                 state.fileUploads.delete(key);
               }
             });
+            updateTotals(state);
           });
           get().runQueue();
         },
@@ -113,8 +131,12 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
           const upload = get().fileUploads.get(id);
           if (upload) {
             upload.request?.abort();
-            get().updateFileUpload(id, {status: 'aborted', percentage: 0});
-            get().runQueue();
+            if (!get().uploadStarted) {
+              get().removeUpload(id);
+            } else {
+              get().updateFileUpload(id, {status: 'aborted', percentage: 0});
+              get().runQueue();
+            }
           }
         },
 
@@ -135,7 +157,7 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
           });
         },
 
-        addCompletedFileUpload: entry => {
+        addCompletedFileUpload: (entry, uploadType) => {
           set(state => {
             state.fileUploads.set(`${entry.id}`, {
               file: new UploadedFileFromEntry(entry),
@@ -143,7 +165,9 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
               entry,
               percentage: 100,
               bytesUploaded: entry.file_size || 0,
-              options: {},
+              options: {
+                uploadType,
+              },
             });
             updateTotals(state);
           });
@@ -157,6 +181,7 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
           set(state => {
             updateTotals(state);
             state.fileUploads = fileUploads;
+            state.uploadStarted = true;
           });
 
           get().runQueue();
@@ -171,7 +196,7 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
           });
         },
 
-        uploadMultiple: (files, strategyConfig) => {
+        uploadMultiple: (files, strategyConfig, {startUpload = true} = {}) => {
           // create file upload items from specified files
           const uploads = new Map<string, FileUpload>(get().fileUploads);
           [...files].forEach(file => {
@@ -181,15 +206,27 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
 
           // set state only once, there might be thousands of files, don't want to trigger a rerender for each one
           set(state => {
-            updateTotals(state);
+            state.uploadStarted = startUpload;
             state.fileUploads = uploads;
+            updateTotals(state);
           });
 
-          get().runQueue();
+          if (startUpload) {
+            get().runQueue();
+          }
+
           return [...uploads.keys()];
         },
 
+        startUpload: () => {
+          set(state => {
+            state.uploadStarted = true;
+          });
+          get().runQueue();
+        },
+
         runQueue: async () => {
+          if (get().uploadStarted === false) return;
           const uploads = [...get().fileUploads.values()];
           const activeUploads = uploads.filter(u => u.status === 'inProgress');
 
@@ -203,8 +240,8 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
                 activeUpload.request instanceof S3MultipartUpload ||
                 // only allow one tus upload if file is larger than chunk size, tus will have parallel uploads already in that case
                 (activeUpload.request instanceof TusUpload &&
-                  settings.uploads.chunk_size &&
-                  activeUpload.file.size > settings.uploads.chunk_size),
+                  activeUpload.file.size >
+                    (settings.uploading?.chunk_size ?? DEFAULT_CHUNK_SIZE)),
             ).length
           ) {
             concurrency = 1;
@@ -216,6 +253,10 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
             const next = uploads.find(u => u.status === 'pending');
             if (next) {
               await startUploading(next, get());
+            } else {
+              set(state => {
+                state.uploadStarted = false;
+              });
             }
           }
         },
@@ -224,10 +265,17 @@ export const createFileUploadStore = ({settings, options}: StoreProps) =>
   );
 
 const updateTotals = (state: Draft<FileUploadState>) => {
-  state.completedUploadsCount = [...state.fileUploads.values()].filter(
+  const uploads = [...state.fileUploads.values()];
+  state.completedUploadsCount = uploads.filter(
     u => u.status === 'completed',
   ).length;
-  state.activeUploadsCount = [...state.fileUploads.values()].filter(
+  state.inProgressUploadsCount = uploads.filter(
+    u => u.status === 'inProgress',
+  ).length;
+  state.pendingUploadsCount = uploads.filter(
+    u => u.status === 'pending',
+  ).length;
+  state.activeUploadsCount = uploads.filter(
     u => u.status === 'inProgress' || u.status === 'pending',
   ).length;
 };

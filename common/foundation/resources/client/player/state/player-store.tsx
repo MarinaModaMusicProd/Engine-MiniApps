@@ -1,28 +1,28 @@
-import {createStore} from 'zustand';
-import {immer} from 'zustand/middleware/immer';
-import {MediaItem} from '@common/player/media-item';
-import {setInLocalStorage as _setInLocalStorage} from '@ui/utils/hooks/local-storage';
-import {shuffleArray} from '@ui/utils/array/shuffle-array';
-import {PlayerStoreOptions} from '@common/player/state/player-store-options';
-import {getPlayerStateFromLocalStorage} from '@common/player/utils/player-local-storage';
-import {prependToArrayAtIndex} from '@ui/utils/array/prepend-to-array-at-index';
-import deepMerge from 'deepmerge';
-import {resetMediaSession} from '@common/player/utils/reset-media-session';
-import {playerQueue} from '@common/player/player-queue';
-import type {
-  PlayerState,
-  ProviderListeners,
-  RepeatMode,
-} from '@common/player/state/player-state';
 import {handlePlayerKeybinds} from '@common/player/handle-player-keybinds';
-import {initPlayerMediaSession} from '@common/player/utils/init-player-media-session';
-import {isSameMedia} from '@common/player/utils/is-same-media';
+import {MediaItem} from '@common/player/media-item';
+import {playerQueue} from '@common/player/player-queue';
 import {
   createFullscreenSlice,
   FullscreenSlice,
 } from '@common/player/state/fullscreen/fullscreen-slice';
 import {createPipSlice, PipSlice} from '@common/player/state/pip/pip-slice';
+import type {
+  PlayerState,
+  ProviderListeners,
+  RepeatMode,
+} from '@common/player/state/player-state';
+import {PlayerStoreOptions} from '@common/player/state/player-store-options';
+import {initPlayerMediaSession} from '@common/player/utils/init-player-media-session';
+import {isSameMedia} from '@common/player/utils/is-same-media';
+import {getPlayerStateFromLocalStorage} from '@common/player/utils/player-local-storage';
+import {resetMediaSession} from '@common/player/utils/reset-media-session';
+import {prependToArrayAtIndex} from '@ui/utils/array/prepend-to-array-at-index';
+import {shuffleArray} from '@ui/utils/array/shuffle-array';
+import {setInLocalStorage as _setInLocalStorage} from '@ui/utils/hooks/local-storage';
+import deepMerge from 'deepmerge';
+import {createStore} from 'zustand';
 import {subscribeWithSelector} from 'zustand/middleware';
+import {immer} from 'zustand/middleware/immer';
 
 export const createPlayerStore = (
   id: string | number,

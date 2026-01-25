@@ -8,13 +8,14 @@ interface Props {
 
 export function insertLinkIntoTextEditor(
   editor: Editor,
-  {text, target, href}: Props
+  {text, target, href}: Props,
 ) {
   // no selection, insert new link with specified text
   if (editor.state.selection.empty && text) {
     editor.commands.insertContent(
-      `<a href="${href}" target="${target}">${text}</a>`
+      `<a href="${href}" target="${target}">${text}</a>`,
     );
+    editor.commands.focus();
   } else if (!editor.state.selection.empty) {
     // no href provided, remove link from selection
     if (!href) {

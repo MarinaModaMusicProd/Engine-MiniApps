@@ -1,9 +1,12 @@
+import type { NumberFormatOptions } from '@internationalized/number';
 import {
   mergeProps,
   snapValueToStep,
   useGlobalListeners,
 } from '@react-aria/utils';
-import {useControlledState} from '@react-stately/utils';
+import { useControlledState } from '@react-stately/utils';
+import { useNumberFormatter } from '@ui/i18n/use-number-formatter';
+import { clamp } from '@ui/utils/number/clamp';
 import React, {
   HTMLAttributes,
   ReactNode,
@@ -12,10 +15,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {clamp} from '@ui/utils/number/clamp';
-import {usePointerEvents} from '../../interactions/use-pointer-events';
-import {useNumberFormatter} from '@ui/i18n/use-number-formatter';
-import type {NumberFormatOptions} from '@internationalized/number';
+import { usePointerEvents } from '../../interactions/use-pointer-events';
 
 export interface UseSliderProps<T = number[]> {
   formatOptions?: NumberFormatOptions;
@@ -45,7 +45,7 @@ export interface UseSliderProps<T = number[]> {
 
 export interface UseSliderReturn {
   domProps: HTMLAttributes<HTMLElement>;
-  trackRef: RefObject<HTMLDivElement>;
+  trackRef: RefObject<HTMLDivElement | null>;
   isPointerOver: boolean;
   showThumbOnHoverOnly?: boolean;
   thumbSize?: string;

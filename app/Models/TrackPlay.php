@@ -11,10 +11,11 @@ class TrackPlay extends Model
     use HasFactory;
 
     const UPDATED_AT = null;
-    protected $guarded = ['id'];
+    protected $guarded = [];
     protected $casts = ['user_id' => 'integer', 'track_id' => 'integer'];
 
-    public function track(): BelongsTo {
+    public function track(): BelongsTo
+    {
         return $this->belongsTo(Track::class);
     }
 }

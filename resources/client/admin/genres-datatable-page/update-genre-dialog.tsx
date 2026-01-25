@@ -1,32 +1,32 @@
-import {Genre} from '@app/web-player/genres/genre';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {useForm} from 'react-hook-form';
-import {Trans} from '@ui/i18n/trans';
-import {Button} from '@ui/buttons/button';
+import {CrupdateGenreFrom} from '@app/admin/genres-datatable-page/crupdate-genre-form';
+import {useImportGenreArtists} from '@app/admin/genres-datatable-page/requests/use-import-genre-artists';
 import {
   UpdateGenrePayload,
   useUpdateGenre,
 } from '@app/admin/genres-datatable-page/requests/use-update-genre';
-import {CrupdateGenreFrom} from '@app/admin/genres-datatable-page/crupdate-genre-form';
+import {Genre} from '@app/web-player/genres/genre';
+import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
 import {useSettings} from '@ui/settings/use-settings';
-import {useImportGenreArtists} from '@app/admin/genres-datatable-page/requests/use-import-genre-artists';
+import {useForm} from 'react-hook-form';
 
 interface Props {
   genre: Genre;
 }
 export function UpdateGenreDialog({genre}: Props) {
-  const {spotify_is_setup} = useSettings();
+  const {spotify_is_setup, spotify_use_deprecated_api} = useSettings();
   const {close, formId} = useDialogContext();
   const form = useForm<UpdateGenrePayload>({
     defaultValues: {
       id: genre.id,
       name: genre.name,
       display_name: genre.display_name,
-      image: genre.image,
+      image: genre.image ?? '',
     },
   });
   const updateGenre = useUpdateGenre(form);
@@ -52,7 +52,8 @@ export function UpdateGenreDialog({genre}: Props) {
       </DialogBody>
       <DialogFooter
         startAction={
-          spotify_is_setup && (
+          spotify_is_setup &&
+          spotify_use_deprecated_api && (
             <Button
               variant="outline"
               onClick={() =>

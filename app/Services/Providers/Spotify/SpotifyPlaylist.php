@@ -2,12 +2,12 @@
 
 namespace App\Services\Providers\Spotify;
 
-use App;
-use App\Services\Providers\SaveOrUpdate;
+use App\Services\Providers\UpsertsDataIntoDB;
+use Illuminate\Support\Facades\App;
 
 class SpotifyPlaylist
 {
-    use SaveOrUpdate;
+    use UpsertsDataIntoDB;
 
     /**
      * @var SpotifyHttpClient
@@ -30,9 +30,11 @@ class SpotifyPlaylist
     public function getContent(string $playlistId): ?array
     {
         $response = $this->httpClient->get("playlists/$playlistId");
-        if ( ! isset($response['tracks']['items'])) return null;
+        if (!isset($response['tracks']['items'])) {
+            return null;
+        }
 
-        $tracks = array_map(function($track) {
+        $tracks = array_map(function ($track) {
             return $track['track'];
         }, $response['tracks']['items']);
 

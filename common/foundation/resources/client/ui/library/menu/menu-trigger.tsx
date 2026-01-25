@@ -1,24 +1,25 @@
-import React, {cloneElement, forwardRef, ReactElement, useId} from 'react';
-import {useListbox} from '@ui/forms/listbox/use-listbox';
-import {Item} from '@ui/forms/listbox/item';
-import {Section} from '@ui/forms/listbox/section';
-import {Listbox} from '@ui/forms/listbox/listbox';
-import {useListboxKeyboardNavigation} from '@ui/forms/listbox/use-listbox-keyboard-navigation';
-import {createEventHandler} from '@ui/utils/dom/create-event-handler';
-import {useTypeSelect} from '@ui/forms/listbox/use-type-select';
-import {ListBoxChildren, ListboxProps} from '@ui/forms/listbox/types';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {SearchIcon} from '@ui/icons/material/Search';
 import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {Item} from '@ui/forms/listbox/item';
+import {Listbox} from '@ui/forms/listbox/listbox';
+import {Section} from '@ui/forms/listbox/section';
+import {ListBoxChildren, ListboxProps} from '@ui/forms/listbox/types';
+import {useListbox} from '@ui/forms/listbox/use-listbox';
+import {useListboxKeyboardNavigation} from '@ui/forms/listbox/use-listbox-keyboard-navigation';
+import {useTypeSelect} from '@ui/forms/listbox/use-type-select';
+import {SearchIcon} from '@ui/icons/material/Search';
+import {createEventHandler} from '@ui/utils/dom/create-event-handler';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import React, {cloneElement, forwardRef, ReactElement, useId} from 'react';
 
-type Props = ListboxProps & {
+export type MenuTriggerProps = ListboxProps & {
+  dontBindEventsToTrigger?: boolean;
   searchPlaceholder?: string;
   showSearchField?: boolean;
-  children: [ReactElement, ReactElement<ListBoxChildren<string | number>>];
+  children: [ReactElement<any>, ReactElement<ListBoxChildren<string | number>>];
   placement?: ListboxProps['placement'];
   offset?: ListboxProps['offset'];
 };
-export const MenuTrigger = forwardRef<HTMLButtonElement, Props>(
+export const MenuTrigger = forwardRef<HTMLButtonElement, MenuTriggerProps>(
   (props, ref) => {
     const {
       placement,
@@ -28,6 +29,7 @@ export const MenuTrigger = forwardRef<HTMLButtonElement, Props>(
       children: [menuTrigger, menu],
       floatingWidth = 'auto',
       isLoading,
+      dontBindEventsToTrigger,
     } = props;
 
     const id = useId();
@@ -116,11 +118,13 @@ export const MenuTrigger = forwardRef<HTMLButtonElement, Props>(
           'aria-haspopup': 'menu',
           'aria-controls': isOpen ? listboxId : undefined,
           ref: reference,
-          onKeyDown: handleTriggerKeyDown,
-          onClick: createEventHandler(e => {
-            menuTrigger.props?.onClick?.(e);
-            setIsOpen(!isOpen);
-          }),
+          onKeyDown: dontBindEventsToTrigger ? undefined : handleTriggerKeyDown,
+          onClick: dontBindEventsToTrigger
+            ? undefined
+            : createEventHandler(e => {
+                menuTrigger.props?.onClick?.(e);
+                setIsOpen(!isOpen);
+              }),
         })}
       </Listbox>
     );
@@ -131,5 +135,4 @@ export function Menu({children}: ListBoxChildren<string | number>) {
   return children as unknown as ReactElement;
 }
 
-export {Item as MenuItem};
-export {Section as MenuSection};
+export {Item as MenuItem, Section as MenuSection};

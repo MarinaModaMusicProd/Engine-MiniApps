@@ -4,7 +4,6 @@ namespace Common\Files\Response;
 
 use Carbon\Carbon;
 use Common\Files\FileEntry;
-use Common\Files\Response\FileResponseFactory;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use ZipStream\ZipStream;
@@ -18,8 +17,7 @@ class DownloadFilesResponse
 
     public function __construct(
         protected FileResponseFactory $fileResponseFactory,
-    ) {
-    }
+    ) {}
 
     /**
      * @param Collection|FileEntry[] $entries
@@ -168,7 +166,7 @@ class DownloadFilesResponse
             if ($id === $parent->id) {
                 return $parent->name;
             }
-            return $folders->find($id)->name;
+            return $folders->find($id)?->name ?? $id;
         }, $path);
 
         return implode('/', $path) . '/' . $entry->getNameWithExtension();

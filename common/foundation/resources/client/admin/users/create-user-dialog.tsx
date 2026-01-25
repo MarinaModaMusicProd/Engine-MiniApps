@@ -1,18 +1,18 @@
-import {useForm} from 'react-hook-form';
-import React from 'react';
-import {CreateUserPayload, useCreateUser} from './requests/create-user';
-import {FileUploadProvider} from '../../uploads/uploader/file-upload-provider';
-import {Trans} from '@ui/i18n/trans';
+import {UploadType} from '@app/site-config';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {FormImageSelector} from '@common/uploads/components/image-selector';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {Button} from '@ui/buttons/button';
 import {Form} from '@ui/forms/form';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {Trans} from '@ui/i18n/trans';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {Button} from '@ui/buttons/button';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {useForm} from 'react-hook-form';
+import {FileUploadProvider} from '../../uploads/uploader/file-upload-provider';
+import {CreateUserPayload, useCreateUser} from './requests/create-user';
 
 export function CreateUserDialog() {
   const form = useForm<CreateUserPayload>();
@@ -33,7 +33,7 @@ export function CreateUserDialog() {
             createUser.mutate(values, {
               onSuccess: r => {
                 close();
-                navigate(`${r.user.id}/details`, {replace: true});
+                navigate(`${r.user.id}`, {replace: true});
               },
             });
           }}
@@ -42,7 +42,7 @@ export function CreateUserDialog() {
             <FormImageSelector
               className="mb-24"
               name="image"
-              diskPrefix="avatars"
+              uploadType={UploadType.avatars}
               label={<Trans message="Avatar" />}
               showRemoveButton
             />
@@ -56,13 +56,8 @@ export function CreateUserDialog() {
           />
           <FormTextField
             className="mb-24"
-            name="first_name"
-            label={<Trans message="First name" />}
-          />
-          <FormTextField
-            className="mb-24"
-            name="last_name"
-            label={<Trans message="Last name" />}
+            name="name"
+            label={<Trans message="Name" />}
           />
           <FormTextField
             required

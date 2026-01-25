@@ -5,17 +5,17 @@ import {
   PaginationResponse,
   SimplePaginationResponse,
 } from '@common/http/backend-response/pagination-response';
-import {Button, ButtonProps} from '@ui/buttons/button';
-import memoize from 'nano-memoize';
-import {Link, useSearchParams} from 'react-router-dom';
-import clsx from 'clsx';
-import {Trans} from '@ui/i18n/trans';
-import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
-import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
 import {scrollToTop} from '@common/ui/navigation/use-scroll-to-top';
-import {useMemo, useRef} from 'react';
-import {FirstPageIcon} from '@ui/icons/material/FirstPage';
+import {Button, ButtonProps} from '@ui/buttons/button';
 import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {Trans} from '@ui/i18n/trans';
+import {FirstPageIcon} from '@ui/icons/material/FirstPage';
+import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
+import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
+import clsx from 'clsx';
+import memoize from 'nano-memoize';
+import {useMemo, useRef} from 'react';
+import {Link, useSearchParams} from 'react-router';
 
 export type PaginationControlsType = 'simple' | 'lengthAware';
 

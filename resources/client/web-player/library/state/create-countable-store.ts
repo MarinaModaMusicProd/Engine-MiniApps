@@ -1,10 +1,10 @@
-import {create} from 'zustand';
-import {immer} from 'zustand/middleware/immer';
-import {TRACK_MODEL} from '@app/web-player/tracks/track';
 import {ALBUM_MODEL} from '@app/web-player/albums/album';
 import {ARTIST_MODEL} from '@app/web-player/artists/artist';
-import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 import {Likeable} from '@app/web-player/library/likeable';
+import {TRACK_MODEL} from '@app/web-player/tracks/track';
+import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {create} from 'zustand';
+import {immer} from 'zustand/middleware/immer';
 
 interface State {
   [TRACK_MODEL]: Record<number, boolean>;
@@ -16,12 +16,13 @@ interface State {
 }
 
 export function createCountableStore(key: 'likes' | 'reposts') {
-  const items = getBootstrapData()[key];
+  const items =
+    key === 'reposts' ? getBootstrapData().reposts : getBootstrapData().likes;
   return create<State>()(
     immer((set, get) => ({
       track: items?.track || {},
       album: items?.album || {},
-      artist: (items && 'artist' in items && items?.artist) || {},
+      artist: (items as any)?.artist || {},
       has: item => {
         const items = Array.isArray(item) ? item : [item];
         return items.every(item => {

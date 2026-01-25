@@ -1,16 +1,16 @@
-import {useContext, useState} from 'react';
+import {useTableCellStyle} from '@common/ui/tables/style/use-table-cell-style';
+import {ArrowDownwardIcon} from '@ui/icons/material/ArrowDownward';
 import clsx from 'clsx';
 import {AnimatePresence, m} from 'framer-motion';
+import {useContext, useState} from 'react';
 import {TableContext} from './table-context';
 import {SortDescriptor} from './types/sort-descriptor';
-import {ArrowDownwardIcon} from '@ui/icons/material/ArrowDownward';
-import {useTableCellStyle} from '@common/ui/tables/style/use-table-cell-style';
 
 interface HeaderCellProps {
   index: number;
 }
 export function HeaderCell({index}: HeaderCellProps) {
-  const {columns, sortDescriptor, onSortChange, enableSorting} =
+  const {columns, sortDescriptor, onSortChange, enableSorting, tableStyle} =
     useContext(TableContext);
   const column = columns[index];
 
@@ -63,8 +63,10 @@ export function HeaderCell({index}: HeaderCellProps) {
     hidden: {opacity: 0, y: '-25%'},
   };
 
+  const CellEl = tableStyle === 'html' ? 'th' : 'div';
+
   return (
-    <div
+    <CellEl
       role="columnheader"
       tabIndex={-1}
       aria-colindex={index + 1}
@@ -117,6 +119,6 @@ export function HeaderCell({index}: HeaderCellProps) {
           </m.span>
         )}
       </AnimatePresence>
-    </div>
+    </CellEl>
   );
 }

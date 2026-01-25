@@ -1,30 +1,31 @@
 <?php namespace App\Http\Controllers;
 
 use App\Models\Playlist;
-use App\Services\Playlists\PlaylistTracksPaginator;
-use Auth;
+use App\Services\Playlists\PlaylistLoader;
 use Common\Core\BaseController;
-use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PlaylistTracksController extends BaseController
 {
     public function __construct(
         protected Request $request,
-        protected PlaylistTracksPaginator $paginator,
         protected Playlist $playlist,
-    ) {
-    }
+    ) {}
 
     public function index(int $playlistId)
     {
-        $pagination = $this->paginator->paginate($playlistId);
+        $pagination = (new PlaylistLoader())->paginateTracks(
+            $playlistId,
+            loader: 'playlistPage',
+        );
         return $this->success(['pagination' => $pagination]);
     }
 
     public function add(int $playlistId)
     {
-        $playlist = $this->playlist->findOrFail($playlistId);
+        $playlist = Playlist::findOrFail($playlistId);
 
         $this->authorize('modifyTracks', $playlist);
 
@@ -61,10 +62,7 @@ class PlaylistTracksController extends BaseController
     {
         if (
             !$playlist->image &&
-            ($firstTrack = $playlist
-                ->tracks()
-                ->with('album')
-                ->first())
+            ($firstTrack = $playlist->tracks()->with('album')->first())
         ) {
             if ($firstTrack->image) {
                 $playlist->image = $firstTrack->image;

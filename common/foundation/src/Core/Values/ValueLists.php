@@ -1,6 +1,6 @@
 <?php namespace Common\Core\Values;
 
-use Common\Admin\Appearance\Themes\CssTheme;
+use Common\Settings\Themes\CssTheme;
 use Common\Auth\Permissions\Permission;
 use Common\Auth\Roles\Role;
 use Common\Domains\CustomDomain;
@@ -21,9 +21,8 @@ class ValueLists
 {
     public function __construct(
         protected Filesystem $fs,
-        protected Localization $localization
-    ) {
-    }
+        protected Localization $localization,
+    ) {}
 
     public function get(string $names, array $params = []): Collection|array
     {
@@ -38,95 +37,14 @@ class ValueLists
             ->filter();
     }
 
-    public function permissions(): Collection
-    {
-        $query = app(Permission::class)->where('type', 'sitewide');
-
-        if (!config('common.site.enable_custom_domains')) {
-            $query->where('group', '!=', 'custom_domains');
-        }
-
-        if (!config('common.site.notifications_integrated')) {
-            $query->where('group', '!=', 'notifications');
-        }
-
-        // TODO: fetch and merge advanced and description from config files here
-        // instead of storing in db. Then can override workspace descriptions and
-        // advanced state easily here from separate config file
-
-        if (!config('common.site.workspaces_integrated')) {
-            $query
-                ->where('group', '!=', 'workspaces')
-                ->where('group', '!=', 'workspace_members');
-        }
-
-        if (!config('common.site.billing_integrated')) {
-            $query
-                ->where('group', '!=', 'plans')
-                ->where('group', '!=', 'invoices');
-        }
-
-        if (!Auth::user() || !Auth::user()->hasExactPermission('admin')) {
-            $query->where('name', '!=', 'admin');
-        }
-
-        return $query->get();
-    }
-
     public function roles(): Collection
     {
-        return app(Role::class)
-            ->where('type', 'sitewide')
-            ->get();
+        return app(Role::class)->where('type', 'users')->get();
     }
 
     public function workspaceRoles(): Collection
     {
-        return app(Role::class)
-            ->where('type', 'workspace')
-            ->get();
-    }
-
-    public function workspacePermissions($params = []): Collection
-    {
-        $filters = array_map(function ($resource) {
-            if (is_subclass_of($resource, FileEntry::class)) {
-                return 'files';
-            } elseif (is_subclass_of($resource, CustomDomain::class)) {
-                return 'custom_domains';
-            } else {
-                return Str::snake(Str::pluralStudly(class_basename($resource)));
-            }
-        }, WORKSPACED_RESOURCES);
-
-        return app(Permission::class)
-            ->where('type', 'workspace')
-            ->orWhere(function (Builder $builder) use ($filters) {
-                $builder->where('type', 'sitewide')->whereIn('group', $filters);
-            })
-            // don't return restrictions for workspace permissions so they
-            // are not shown when creating workspace role from admin area
-            ->get([
-                'id',
-                'name',
-                'display_name',
-                'description',
-                'group',
-                'type',
-            ])
-            ->map(function (Permission $permission) {
-                $permission->description = str_replace(
-                    'ALL',
-                    'all workspace',
-                    $permission->description,
-                );
-                $permission->description = str_replace(
-                    'creating new',
-                    'creating new workspace',
-                    $permission->description,
-                );
-                return $permission;
-            });
+        return app(Role::class)->where('type', 'workspace')->get();
     }
 
     public function currencies()
@@ -189,7 +107,7 @@ class ValueLists
             $category['items'] = app($category['itemsLoader'])->execute();
             unset($category['itemsLoader']);
             return $category;
-        }, config('common.menus'));
+        }, config('menus'));
     }
 
     public function pages($params = [])

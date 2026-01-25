@@ -1,23 +1,31 @@
-import {DynamicHomepage} from '@common/ui/other/dynamic-homepage';
-import {LandingPage} from '@app/landing-page/landing-page';
-import React from 'react';
-import {useSettings} from '@ui/settings/use-settings';
-import {useAuth} from '@common/auth/use-auth';
+import {Component as LandingPage} from '@app/landing-page/landing-page';
 import {WebPlayerLayout} from '@app/web-player/layout/web-player-layout';
-import {useMatches} from 'react-router-dom';
+import {useSettingsPreviewMode} from '@common/admin/settings/preview/use-settings-preview-mode';
 import {AuthRoute} from '@common/auth/guards/auth-route';
+import {useAuth} from '@common/auth/use-auth';
+import {useSettings} from '@ui/settings/use-settings';
+import {useMatches} from 'react-router';
 
-export function Homepage() {
+export function Component() {
+  const {isInsideSettingsPreview, settingsEditorParams} =
+    useSettingsPreviewMode();
   const {homepage} = useSettings();
   const {user} = useAuth();
   const matches = useMatches();
   const type = homepage?.type ?? '';
 
+  if (
+    isInsideSettingsPreview &&
+    settingsEditorParams.forceHomepage === 'landing'
+  ) {
+    return <LandingPage />;
+  }
+
   // if user is logged in or homepage is a channel, fallthrough to web player routing
   if (
     type.startsWith('channel') ||
     (type.startsWith('landing') && user) ||
-    ((type.startsWith('login') || type.startsWith('register')) && user) ||
+    (type.startsWith('login') && user) ||
     matches.at(-1)?.id !== 'webPlayerIndex'
   ) {
     return (
@@ -27,5 +35,5 @@ export function Homepage() {
     );
   }
 
-  return <DynamicHomepage homepageResolver={() => <LandingPage />} />;
+  return <LandingPage />;
 }

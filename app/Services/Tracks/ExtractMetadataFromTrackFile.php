@@ -3,12 +3,15 @@
 namespace App\Services\Tracks;
 
 use App\Models\Artist;
+use App\Services\Albums\AlbumLoader;
+use App\Services\Artists\ArtistLoader;
 use Carbon\Carbon;
 use Common\Files\Actions\CreateFileEntry;
 use Common\Files\Actions\StoreFile;
 use Common\Files\FileEntry;
 use Common\Files\FileEntryPayload;
 use Common\Files\Traits\GetsEntryTypeFromMime;
+use Common\Files\Uploads\UploadType;
 use Common\Settings\Settings;
 use getID3;
 use getid3_lib;
@@ -118,15 +121,30 @@ class ExtractMetadataFromTrackFile
         }
 
         if (isset($normalizedMetadata['date'])) {
-            $normalizedMetadata['release_date'] = Carbon::parse(
-                $normalizedMetadata['date'],
-            )->toISOString();
+            try {
+                $normalizedMetadata['release_date'] = Carbon::parse(
+                    $normalizedMetadata['date'],
+                )->toISOString();
+            } catch (\Exception $e) {
+            }
             unset($normalizedMetadata['date']);
         }
 
         if (!isset($normalizedMetadata['title'])) {
             $name = pathinfo($fileEntry->name, PATHINFO_FILENAME);
-            $normalizedMetadata['title'] = Str::title($name);
+            $normalizedMetadata['title'] = $name;
+        }
+
+        if (isset($normalizedMetadata['artist'])) {
+            $normalizedMetadata['artist'] = (new ArtistLoader())->toApiResource(
+                $normalizedMetadata['artist'],
+            );
+        }
+
+        if (isset($normalizedMetadata['album'])) {
+            $normalizedMetadata['album'] = (new AlbumLoader())->toApiResource(
+                $normalizedMetadata['album'],
+            );
         }
 
         return $normalizedMetadata;
@@ -136,8 +154,7 @@ class ExtractMetadataFromTrackFile
     {
         $mime = $normalizedMetadata['picture']['image_mime'];
         $payload = new FileEntryPayload([
-            'disk' => 'public',
-            'diskPrefix' => 'track_image_media',
+            'uploadType' => 'artwork',
             'clientName' => 'thumbnail.png',
             'clientMime' => $mime,
             'clientSize' =>
@@ -145,10 +162,10 @@ class ExtractMetadataFromTrackFile
                 strlen($normalizedMetadata['picture']['data']),
         ]);
 
-        app(StoreFile::class)->execute($payload, [
+        (new StoreFile())->execute($payload, [
             'contents' => $normalizedMetadata['picture']['data'],
         ]);
-        $fileEntry = app(CreateFileEntry::class)->execute($payload);
+        $fileEntry = (new CreateFileEntry())->execute($payload);
         unset($normalizedMetadata['picture']);
         $normalizedMetadata['image'] = $fileEntry;
         return $normalizedMetadata;

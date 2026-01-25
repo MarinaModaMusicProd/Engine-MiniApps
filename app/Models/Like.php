@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 class Like extends Model
 {
     const UPDATED_AT = null;
-    protected $guarded = ['id'];
+    protected $guarded = [];
     protected $casts = ['user_id' => 'int', 'likeable_id' => 'int'];
 
     public function track(): MorphOne

@@ -1,11 +1,11 @@
 import {IconButton} from '@ui/buttons/icon-button';
-import {InfoDialogTriggerIcon} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger-icon';
 import {Dialog, DialogSize} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
 import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import React, {ReactNode} from 'react';
+import {InfoDialogTriggerIcon} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger-icon';
 import clsx from 'clsx';
+import {ReactNode} from 'react';
 
 interface Props {
   title?: ReactNode;

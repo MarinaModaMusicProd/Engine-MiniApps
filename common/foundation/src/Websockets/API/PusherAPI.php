@@ -8,23 +8,19 @@ class PusherAPI extends WebsocketProviderAPI
 {
     public function getAllChannels(): Collection
     {
-        $appId = config('broadcasting.connections.pusher.id');
+        $appId = config('broadcasting.connections.pusher.app_id');
         $response = $this->makePusherRequest("apps/$appId/channels");
         return collect($response['channels'] ?? []);
     }
 
     public function getActiveUsersInChannel(string $channel): Collection
     {
-        $appId = config('broadcasting.connections.pusher.id');
+        $appId = config('broadcasting.connections.pusher.app_id');
         $response = $this->makePusherRequest(
             "apps/$appId/channels/presence-$channel/users",
         );
 
-        return collect($response['users'] ?? [])->map(
-            fn($user) => ctype_digit($user['id'])
-                ? (int) $user['id']
-                : $user['id'],
-        );
+        return collect($response['users'] ?? []);
     }
 
     protected function makePusherRequest(string $path)
@@ -32,7 +28,7 @@ class PusherAPI extends WebsocketProviderAPI
         $cluster = config('broadcasting.connections.pusher.options.cluster');
         $method = 'GET';
         $params = [];
-        $params['auth_key'] = config('services.pusher.key');
+        $params['auth_key'] = config('broadcasting.connections.pusher.key');
         $params['auth_timestamp'] = time();
         $params['auth_version'] = '1.0';
 
@@ -48,7 +44,7 @@ class PusherAPI extends WebsocketProviderAPI
         $params['auth_signature'] = hash_hmac(
             'sha256',
             $string_to_sign,
-            config('services.pusher.secret'),
+            config('broadcasting.connections.pusher.secret'),
             false,
         );
 

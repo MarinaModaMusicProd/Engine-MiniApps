@@ -1,6 +1,7 @@
 <?php namespace Common\Core;
 
 use App\Models\User;
+use Common\Core\Demo\BlocksFunctionalityOnDemoSite;
 use Common\Core\Prerender\HandlesSeo;
 use Common\Core\Rendering\RendersClientSideApp;
 use Illuminate\Auth\Access\Response as AuthResponse;
@@ -21,7 +22,8 @@ class BaseController extends Controller
         DispatchesJobs,
         ValidatesRequests,
         HandlesSeo,
-        RendersClientSideApp;
+        RendersClientSideApp,
+        BlocksFunctionalityOnDemoSite;
 
     // todo: refactor bedrive and belink policies to use basePolicy permission check and remove guest fetching here
 
@@ -50,8 +52,6 @@ class BaseController extends Controller
 
     public function renderClientOrApi(array $options)
     {
-        $ssrEnabled =
-            config('common.site.ssr_enabled') && !Arr::get($options, 'noSSR');
         $data = Arr::get($options, 'data', []);
         $pageName = Arr::get($options, 'pageName');
         if ($pageName) {
@@ -69,10 +69,9 @@ class BaseController extends Controller
             return response()->json($data);
         }
 
-        // if it's a web request and SSR is disabled, prerender a simple blade page for crawlers
+        // if it's a web request, prerender a simple blade page for crawlers
         if (
             !Arr::get($options, 'noPrerender') &&
-            !$ssrEnabled &&
             isCrawler() &&
             $pageName &&
             View::exists("seo.$pageName.prerender")
@@ -83,12 +82,10 @@ class BaseController extends Controller
             ]);
         }
 
-        // finally render the full react app with optional SSR
+        // finally render the full react app
         return $this->renderClientSideApp([
-            'pageName' => $pageName,
             'pageData' => $data,
             'seoTagsView' => $seoTagsView ?? null,
-            'noSSR' => !$ssrEnabled,
         ]);
     }
 
@@ -133,5 +130,16 @@ class BaseController extends Controller
             'errors' => $errors ?: [],
         ]);
         return response()->json($data, $status);
+    }
+
+    public function stream(callable $callback)
+    {
+        return response()->stream($callback, 200, [
+            'Cache-Control' => 'no-cache',
+            'Connection' => 'keep-alive',
+            'X-Accel-Buffering' => 'no',
+            'Content-Type' => 'text/event-stream',
+            'Content-Encoding' => 'disabled',
+        ]);
     }
 }

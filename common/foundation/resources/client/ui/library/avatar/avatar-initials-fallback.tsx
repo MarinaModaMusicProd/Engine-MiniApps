@@ -1,6 +1,6 @@
-import clsx from 'clsx';
-import React, {forwardRef, useMemo} from 'react';
 import {AvatarProps} from '@ui/avatar/avatar';
+import clsx from 'clsx';
+import {forwardRef, useMemo} from 'react';
 
 const colors = [
   '#3b82f6',
@@ -24,11 +24,11 @@ export const AvatarInitialsFallback = forwardRef<HTMLDivElement, Props>(
   ({size, label, labelForBackground, color}, ref) => {
     const {initial, bgColor} = useMemo(() => {
       const bgLabel = labelForBackground || label || '';
-      const hash = bgLabel
+      const hash = `${bgLabel}`
         .split('')
         .reduce((accum, val) => val.charCodeAt(0) + accum, bgLabel.length);
       return {
-        initial: label.slice(0, 1).toUpperCase(),
+        initial: getInitial(`${label}`),
         bgColor: colors[hash % colors.length],
       };
     }, [label, labelForBackground]);
@@ -61,4 +61,13 @@ function getTextFallbackFontSize(size: AvatarProps['size']) {
     default:
       return '';
   }
+}
+
+function getInitial(string: string) {
+  string = `${string}`.replace(/\s+/g, '');
+  let initial = string.slice(0, 1);
+  if (!initial.match(/[a-z]/i)) {
+    initial = string.slice(1, 2);
+  }
+  return initial.toUpperCase();
 }

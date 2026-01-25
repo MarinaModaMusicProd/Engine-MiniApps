@@ -1,5 +1,5 @@
-import React, {ReactNode} from 'react';
 import clsx from 'clsx';
+import {ReactNode} from 'react';
 import {DialogSize} from './dialog';
 
 interface DialogFooterProps {
@@ -19,7 +19,7 @@ export function DialogFooter(props: DialogFooterProps) {
         className,
         dividerTop && 'border-t',
         getPadding(props),
-        'flex items-center gap-10 flex-shrink-0'
+        'flex flex-shrink-0 items-center gap-10',
       )}
     >
       <div>{startAction}</div>
@@ -38,6 +38,6 @@ function getPadding({padding, size}: DialogFooterProps) {
     case 'sm':
       return 'p-18';
     default:
-      return 'px-24 py-20';
+      return 'px-24 py-16';
   }
 }

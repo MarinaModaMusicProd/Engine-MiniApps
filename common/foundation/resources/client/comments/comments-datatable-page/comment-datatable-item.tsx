@@ -1,28 +1,34 @@
-import {User} from '@ui/types/user';
+import {UserAvatar} from '@common/auth/user-avatar';
 import {Comment} from '@common/comments/comment';
-import React, {Fragment, useContext, useState} from 'react';
+import {DeleteCommentsButton} from '@common/comments/comments-datatable-page/delete-comments-button';
+import {RestoreCommentsButton} from '@common/comments/comments-datatable-page/restore-comments-button';
+import {useUpdateComment} from '@common/comments/requests/use-update-comment';
+import {SiteConfigContext} from '@common/core/settings/site-config-context';
+import {queryClient} from '@common/http/query-client';
+import {Avatar} from '@ui/avatar/avatar';
+import {Button} from '@ui/buttons/button';
+import {LinkStyle} from '@ui/buttons/external-link';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
 import {Checkbox} from '@ui/forms/toggle/checkbox';
 import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
-import {queryClient} from '@common/http/query-client';
-import {DeleteCommentsButton} from '@common/comments/comments-datatable-page/delete-comments-button';
-import {Button} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
-import {useUpdateComment} from '@common/comments/requests/use-update-comment';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {SiteConfigContext} from '@common/core/settings/site-config-context';
-import {Link} from 'react-router-dom';
-import {LinkStyle} from '@ui/buttons/external-link';
-import clsx from 'clsx';
-import {RestoreCommentsButton} from '@common/comments/comments-datatable-page/restore-comments-button';
 import {NormalizedModel} from '@ui/types/normalized-model';
-import {UserAvatar} from '@common/auth/user-avatar';
+import clsx from 'clsx';
+import {Fragment, useContext, useState} from 'react';
+import {Link} from 'react-router';
 
 interface Props {
   comment: Comment;
   isSelected: boolean;
   onToggle: () => void;
+  onDelete: () => void;
 }
-export function CommentDatatableItem({comment, isSelected, onToggle}: Props) {
+export function CommentDatatableItem({
+  comment,
+  isSelected,
+  onToggle,
+  onDelete,
+}: Props) {
   const [isEditing, setIsEditing] = useState(false);
   return (
     <div className={clsx('border-b p-14', comment.deleted && 'bg-danger/6')}>
@@ -34,7 +40,11 @@ export function CommentDatatableItem({comment, isSelected, onToggle}: Props) {
         />
       )}
       <div className="flex items-start gap-10 pt-14 md:pl-20">
-        <UserAvatar className="flex-shrink-0" user={comment.user} size="md" />
+        {comment.user ? (
+          <UserAvatar className="flex-shrink-0" user={comment.user} size="md" />
+        ) : (
+          <Avatar className="flex-shrink-0" label="User" />
+        )}
         <div className="flex-auto">
           <CommentHeader comment={comment} />
           {isEditing ? (
@@ -55,7 +65,10 @@ export function CommentDatatableItem({comment, isSelected, onToggle}: Props) {
                   {comment.deleted ? (
                     <RestoreCommentsButton commentIds={[comment.id]} />
                   ) : (
-                    <DeleteCommentsButton commentIds={[comment.id]} />
+                    <DeleteCommentsButton
+                      commentIds={[comment.id]}
+                      onDelete={onDelete}
+                    />
                   )}
                   <Button
                     variant="outline"
@@ -181,12 +194,16 @@ function EditCommentForm({comment, onClose}: EditCommentFormProps) {
 }
 
 interface UserDisplayNameProps {
-  user: User;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
   show: 'name' | 'email';
 }
 function UserDisplayName({user, show}: UserDisplayNameProps) {
   const {auth} = useContext(SiteConfigContext);
-  if (auth.getUserProfileLink) {
+  if (auth?.getUserProfileLink) {
     return (
       <Link
         to={auth.getUserProfileLink(user)}

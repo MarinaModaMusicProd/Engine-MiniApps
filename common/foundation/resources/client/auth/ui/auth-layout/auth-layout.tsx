@@ -1,10 +1,10 @@
-import {Link} from 'react-router-dom';
-import {ReactNode} from 'react';
-import {AuthLayoutFooter} from './auth-layout-footer';
-import {useIsDarkMode} from '@ui/themes/use-is-dark-mode';
-import authBgSvg from './auth-bg.svg';
 import {useTrans} from '@ui/i18n/use-trans';
 import {useSettings} from '@ui/settings/use-settings';
+import {useIsDarkMode} from '@ui/themes/use-is-dark-mode';
+import {ReactNode} from 'react';
+import {Link} from 'react-router';
+import authBgSvg from './auth-bg.svg';
+import {AuthLayoutFooter} from './auth-layout-footer';
 
 interface AuthPageProps {
   heading?: ReactNode;
@@ -18,7 +18,7 @@ export function AuthLayout({heading, children, message}: AuthPageProps) {
 
   return (
     <main
-      className="flex h-screen flex-col items-center overflow-y-auto bg-alt px-14 pt-70 dark:bg-none md:px-10vw"
+      className="flex h-screen flex-col items-center overflow-y-auto bg-alt px-14 pt-70 md:px-10vw"
       style={{backgroundImage: isDarkMode ? undefined : `url("${authBgSvg}")`}}
     >
       <Link
@@ -32,7 +32,7 @@ export function AuthLayout({heading, children, message}: AuthPageProps) {
           alt=""
         />
       </Link>
-      <div className="mx-auto w-full max-w-440 rounded-lg bg px-40 pb-32 pt-40 shadow md:shadow-xl">
+      <div className="mx-auto w-full max-w-440 rounded-panel bg-elevated px-40 pb-32 pt-40 shadow md:shadow-xl">
         {heading && <h1 className="mb-20 text-xl">{heading}</h1>}
         {children}
       </div>

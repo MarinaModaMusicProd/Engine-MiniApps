@@ -13,12 +13,13 @@ interface Response extends BackendResponse {
 }
 
 export function useDeleteSelectedRows() {
-  const {endpoint, selectedRows, setSelectedRows} = useDataTable();
+  const {endpoint, selectedRows, setSelectedRows, baseQueryKey} =
+    useDataTable();
   return useMutation({
     mutationFn: () => deleteSelectedRows(endpoint, selectedRows),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: DatatableDataQueryKey(endpoint),
+        queryKey: DatatableDataQueryKey(endpoint, undefined, baseQueryKey),
       });
       toast(
         message('Deleted [one 1 record|other :count records]', {

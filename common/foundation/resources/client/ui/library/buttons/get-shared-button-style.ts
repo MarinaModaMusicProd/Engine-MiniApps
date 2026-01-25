@@ -10,7 +10,7 @@ export type ButtonColor =
   | 'primary'
   | 'danger'
   | 'positive'
-  | 'paper'
+  | 'elevated'
   | 'chip'
   | 'white';
 
@@ -76,8 +76,8 @@ function outline({color, border}: SharedButtonStyleProps) {
         'hover:bg-positive/4 hover:border-positive',
         disabled,
       ];
-    case 'paper':
-      return [`text bg-paper ${border}`, 'hover:bg-hover', disabled];
+    case 'elevated':
+      return [`text bg-elevated ${border}`, 'hover:bg-hover', disabled];
     case 'white':
       return [
         'text-white bg-transparent border border-white',
@@ -148,16 +148,22 @@ function contained({color, border}: SharedButtonStyleProps) {
         'hover:bg-danger/90 hover:border-danger/90',
         disabled,
       ];
+    case 'positive':
+      return [
+        `text-white bg-positive ${border} border-positive`,
+        'hover:bg-positive-darker hover:border-positive-darker',
+        disabled,
+      ];
     case 'chip':
       return [
         `text-main bg-chip ${border} border-chip`,
         'hover:bg-chip/90 hover:border-chip/90',
         disabled,
       ];
-    case 'paper':
+    case 'elevated':
       return [
-        `text-main bg-paper ${border} border-paper`,
-        'hover:bg-paper/90 hover:border-paper/90',
+        `text-main bg-elevated ${border} border-elevated`,
+        'hover:bg-elevated/90 hover:border-elevated/90',
         disabled,
       ];
     case 'white':

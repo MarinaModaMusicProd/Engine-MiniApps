@@ -1,16 +1,21 @@
-import {UploadStrategy, UploadStrategyConfig} from './strategy/upload-strategy';
+import {UploadType} from '@app/site-config';
+import {PartialUploadType} from '@common/core/base-backend-bootstrap-data';
+import {DEFAULT_CHUNK_SIZE} from '@common/core/settings/base-backend-settings';
+import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
 import {UploadedFile} from '@ui/utils/files/uploaded-file';
-import {Disk} from './backend-metadata';
+import {validateFile} from '@ui/utils/files/validate-file';
+import {FileUpload, FileUploadState} from './file-upload-store';
+import {ProgressTimeout} from './progress-timeout';
+import {AxiosUpload} from './strategy/axios-upload';
 import {S3MultipartUpload} from './strategy/s3-multipart-upload';
 import {S3Upload} from './strategy/s3-upload';
 import {TusUpload} from './strategy/tus-upload';
-import {AxiosUpload} from './strategy/axios-upload';
-import {FileUpload, FileUploadState} from './file-upload-store';
-import {validateFile} from '@ui/utils/files/validate-file';
-import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
-import {toast} from '@ui/toast/toast';
-import {ProgressTimeout} from './progress-timeout';
-import {message} from '@ui/i18n/message';
+import {
+  UploadStrategy,
+  UploadStrategyConfigWithBackend,
+} from './strategy/upload-strategy';
 
 export async function startUploading(
   upload: FileUpload,
@@ -40,16 +45,23 @@ export async function startUploading(
     }
   }
 
+  const backend = chooseBackend(options.uploadType);
+
+  if (!backend) {
+    throw new Error('No backend found for upload type ' + options.uploadType);
+  }
+
   // prepare config for file upload strategy
   const timer = new ProgressTimeout();
-  const config: UploadStrategyConfig = {
+  const config: UploadStrategyConfigWithBackend = {
+    uploadType: options?.uploadType,
+    backendId: backend.id,
     metadata: {
       ...options?.metadata,
       relativePath: file.relativePath,
-      disk: options?.metadata?.disk || Disk.uploads,
       parentId: options?.metadata?.parentId || '',
     },
-    chunkSize: settings.uploads.chunk_size,
+    chunkSize: settings.uploading?.chunk_size ?? DEFAULT_CHUNK_SIZE,
     baseUrl: settings.base_url,
     onError: errorMessage => {
       state.updateFileUpload(file.id, {
@@ -84,7 +96,7 @@ export async function startUploading(
   };
 
   // choose and create upload strategy, based on file size and settings
-  const strategy = chooseUploadStrategy(file, config);
+  const strategy = chooseUploadStrategy(file, backend);
   const request = await strategy.create(file, config);
 
   // add handler for when upload times out (no progress for 30+ seconds)
@@ -112,21 +124,27 @@ const HundredMB = 100 * OneMB;
 
 const chooseUploadStrategy = (
   file: UploadedFile,
-  config: UploadStrategyConfig,
+  backend: PartialUploadType['backends'][number],
 ) => {
-  const settings = getBootstrapData().settings;
-  const disk = config.metadata?.disk || Disk.uploads;
-  const driver =
-    disk === Disk.uploads
-      ? settings.uploads.uploads_driver
-      : settings.uploads.public_driver;
-
-  if (driver?.endsWith('s3') && settings.uploads.s3_direct_upload) {
+  if (backend.driver === 's3' && backend.direct_upload) {
     return file.size >= HundredMB ? S3MultipartUpload : S3Upload;
   } else {
     // 4MB = Axios, otherwise Tus
-    return file.size >= FourMB && !settings.uploads.disable_tus
+    return file.size >= FourMB &&
+      !getBootstrapData().settings.uploading?.disable_tus
       ? TusUpload
       : AxiosUpload;
   }
 };
+
+function chooseBackend(uploadType: keyof typeof UploadType) {
+  const uploadingTypes = getBootstrapData().uploading_types;
+  if (uploadingTypes && uploadType) {
+    const uploadTypeConfig = uploadingTypes[uploadType];
+    // pick random backend
+    return uploadTypeConfig.backends[
+      Math.floor(Math.random() * uploadTypeConfig.backends.length)
+    ];
+  }
+  return null;
+}

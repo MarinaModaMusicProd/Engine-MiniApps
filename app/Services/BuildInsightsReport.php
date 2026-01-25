@@ -7,6 +7,10 @@ use App\Models\Artist;
 use App\Models\Track;
 use App\Models\TrackPlay;
 use App\Models\User;
+use App\Services\Albums\AlbumLoader;
+use App\Services\Artists\ArtistLoader;
+use App\Services\Tracks\TrackLoader;
+use App\Services\Users\UserProfileLoader;
 use Common\Core\Values\ValueLists;
 use Common\Database\Metrics\MetricDateRange;
 use Common\Database\Metrics\Partition;
@@ -129,13 +133,13 @@ class BuildInsightsReport
             limit: 30,
         ))->count();
 
-        $tracks = Track::with('album', 'artists')
+        $tracks = Track::with('album.artists', 'artists')
             ->whereIn('id', Arr::pluck($data, 'label'))
             ->get();
 
         $data = array_map(function ($item) use ($tracks) {
             $track = $tracks->firstWhere('id', $item['label']);
-            $item['model'] = $track;
+            $item['model'] = (new TrackLoader())->toApiResource($track);
             $item['label'] = $track->name;
             return $item;
         }, $data);
@@ -173,7 +177,7 @@ class BuildInsightsReport
             if (!$artist) {
                 return null;
             }
-            $item['model'] = $artist;
+            $item['model'] = (new ArtistLoader())->toApiResource($artist);
             $item['label'] = $artist->name;
             return $item;
         }, $data);
@@ -209,7 +213,7 @@ class BuildInsightsReport
             ->map(function ($item) use ($albums) {
                 $album = $albums->firstWhere('id', $item['label']);
                 if ($album) {
-                    $item['model'] = $album;
+                    $item['model'] = (new AlbumLoader())->toApiResource($album);
                     $item['label'] = $album->name;
                     return $item;
                 }
@@ -238,17 +242,14 @@ class BuildInsightsReport
             limit: 30,
         ))->count();
 
-        $userIds = collect($data)
-            ->pluck('label')
-            ->filter()
-            ->unique();
+        $userIds = collect($data)->pluck('label')->filter()->unique();
         $users = User::whereIn('id', $userIds)->get();
 
         $data = array_map(function ($item) use ($users) {
             $user =
                 $users->firstWhere('id', $item['label']) ??
-                new User(['first_name' => __('Guest user')]);
-            $item['model'] = $user;
+                new User(['name' => __('Guest user')]);
+            $item['model'] = (new UserProfileLoader())->toApiResource($user);
             $item['label'] = $user->name;
             return $item;
         }, $data);

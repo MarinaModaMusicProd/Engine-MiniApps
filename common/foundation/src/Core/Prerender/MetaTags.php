@@ -2,12 +2,12 @@
 
 namespace Common\Core\Prerender;
 
-use Arr;
+use Illuminate\Support\Arr;
 use Common\Core\Contracts\AppUrlGenerator;
 use Common\Core\Prerender\Actions\ReplacePlaceholders;
 use Common\Settings\Settings;
 use Illuminate\Contracts\Support\Arrayable;
-use Str;
+use Illuminate\Support\Str;
 
 class MetaTags implements Arrayable
 {

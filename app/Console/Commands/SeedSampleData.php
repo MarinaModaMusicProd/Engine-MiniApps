@@ -9,34 +9,30 @@ use App\Models\ProfileLink;
 use App\Models\Track;
 use App\Models\TrackPlay;
 use App\Models\User;
-use App\Models\UserProfile;
-use App\Services\Providers\SaveOrUpdate;
-use Artisan;
+use App\Models\ProfileDetails;
+use App\Services\Providers\UpsertsDataIntoDB;
 use Carbon\Carbon;
 use Common\Auth\Permissions\Permission;
 use Common\Auth\Roles\Role;
 use Common\Channels\UpdateAllChannelsContent;
 use Common\Comments\Comment;
-use Common\Core\Install\CreateDefaultCustomPages;
-use Common\Core\Install\CreateDefaultMenus;
-use Common\Core\Install\InsertDefaultSettings;
-use Common\Database\MigrateAndSeed;
+use Common\Core\Install\UpdateActions;
 use Common\Files\Traits\HandlesEntryPaths;
 use Common\Search\ImportRecordsIntoScout;
 use Common\Settings\Settings;
 use Common\Tags\Tag;
-use DB;
-use File;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Storage;
 
 class SeedSampleData extends Command
 {
-    use SaveOrUpdate, ConfirmableTrait, HandlesEntryPaths;
+    use UpsertsDataIntoDB, ConfirmableTrait, HandlesEntryPaths;
 
     protected $signature = 'music:sample {--force : Force the operation to run when in production.}';
     protected $description = 'Seed site with sample music data.';
@@ -56,7 +52,6 @@ class SeedSampleData extends Command
     private array $albumTempIds;
     private Collection|array $tags;
     private Collection $artists;
-    private array $trackDurations;
 
     public function handle()
     {
@@ -64,25 +59,21 @@ class SeedSampleData extends Command
             return;
         }
 
+        Artisan::call('optimize:clear');
         Artisan::call('down');
 
-        ini_set('memory_limit', '-1');
-        set_time_limit(0);
+        @ini_set('memory_limit', '-1');
+        @set_time_limit(0);
 
         $originalScoutDriver = config('scout.driver');
         config()->set('scout.driver', 'null');
 
-        Artisan::call('music:truncate', ['--force' => true]);
+        $originalCacheDriver = config('cache.default');
+        config()->set('cache.default', 'null');
 
-        (new InsertDefaultSettings())->execute();
-        (new CreateDefaultMenus())->execute();
-        (new CreateDefaultCustomPages())->execute();
-
-        // run common migrations and seeders
-        (new MigrateAndSeed())->execute();
+        $this->recreateDatabase();
 
         app(Settings::class)->save([
-            'uploads.max_size' => 20971520,
             'billing.enable' => true,
             'billing.paypal.enable' => true,
             'billing.stripe.enable' => true,
@@ -93,14 +84,15 @@ class SeedSampleData extends Command
             'player.show_upload_btn' => true,
             'player.enable_repost' => true,
             'player.hide_lyrics' => true,
+            'player.enable_offlining' => true,
             'player.show_become_artist_btn' => true,
             'player.seekbar_type' => 'waveform',
             'player.track_comments' => true,
             'artistPage.showDescription' => true,
             'artistPage.showFollowers' => false,
-            'player.hide_video_button' => true,
             'player.hide_radio_button' => true,
             'player.hide_video' => true,
+            'player.hide_video_button' => false,
             'player.sort_method' => 'local',
             'artistPage.tabs' => json_encode([
                 ['id' => 4, 'active' => true],
@@ -115,11 +107,11 @@ class SeedSampleData extends Command
         $this->createAdminAccount();
         $this->loadSampleData();
 
-        $this->artists = $this->createArtists();
-        $this->attachGenresToModels($this->artists, Artist::MODEL_TYPE);
-
         $this->commentUsers = $this->createUsers();
         $this->createFollows();
+
+        $this->artists = $this->createArtists();
+        $this->attachGenresToModels($this->artists, Artist::MODEL_TYPE);
 
         $this->info('Decorating artists');
         $bar = $this->output->createProgressBar(count($this->artists));
@@ -132,64 +124,61 @@ class SeedSampleData extends Command
 
         $this->info('Decorating albums');
         $bar = $this->output->createProgressBar(
-            app(Album::class)
-                ->whereIn('temp_id', $this->albumTempIds)
-                ->count() / 100,
+            Album::whereIn('temp_id', $this->albumTempIds)->count() / 100,
         );
 
-        app(Album::class)
-            ->whereIn('temp_id', $this->albumTempIds)
-            ->chunkById(100, function (Collection $albums) use ($bar) {
+        Album::whereIn('temp_id', $this->albumTempIds)->chunkById(
+            100,
+            function (Collection $albums) use ($bar) {
                 $this->createLikesAndReposts($albums);
                 $this->attachGenresToModels($albums, Album::MODEL_TYPE);
                 $this->createModelComments($albums);
                 $bar->advance();
-            });
+            },
+        );
         $bar->finish();
         $this->output->newLine();
 
         $this->info('Decorating tracks');
         $bar = $this->output->createProgressBar(
-            app(Track::class)
-                ->whereIn('temp_id', $this->trackTempIds)
-                ->count() / 100,
+            Track::whereIn('temp_id', $this->trackTempIds)->count() / 100,
         );
 
-        app(Track::class)
-            ->whereIn('temp_id', $this->trackTempIds)
-            ->chunkById(100, function (Collection $tracks) use ($bar) {
+        Track::whereIn('temp_id', $this->trackTempIds)->chunkById(
+            100,
+            function (Collection $tracks) use ($bar) {
                 $this->createModelComments($tracks);
                 $this->createTrackPlays($tracks);
                 $this->createLikesAndReposts($tracks);
                 $this->attachGenresToModels($tracks, Track::MODEL_TYPE);
                 $this->attachTagsToTracks($tracks);
                 $bar->advance();
-            });
+            },
+        );
         $bar->finish();
         $this->output->newLine();
 
-        // move sample tracks
-        File::deleteDirectory(public_path('storage/samples'));
-        File::copyDirectory(
-            base_path('samples/tracks'),
-            public_path('storage/samples'),
-        );
-
-        // move sample waves
-        File::deleteDirectory(storage_path('app/waves'));
-        File::copyDirectory(
-            base_path('samples/waves'),
-            storage_path('app/waves'),
-        );
-
         Artisan::call(UpdateAllChannelsContent::class);
 
-        (new ImportRecordsIntoScout())->execute();
-
-        Artisan::call('cache:clear');
+        config()->set('cache.default', $originalCacheDriver);
         config()->set('scout.driver', $originalScoutDriver);
 
+        (new ImportRecordsIntoScout())->execute('*');
+
         Artisan::call('up');
+
+        if (config('app.env') === 'production') {
+            Artisan::call('optimize');
+            // demo site is missing logo and some other settings without this
+            Artisan::call('cache:clear');
+        }
+    }
+
+    protected function recreateDatabase()
+    {
+        Schema::dropAllTables();
+
+        (new UpdateActions())->execute();
     }
 
     private function createTrackPlays(Collection $createdTracks)
@@ -201,16 +190,21 @@ class SeedSampleData extends Command
                     ->make([
                         'user_id' => $this->commentUsers->random()->id,
                         'track_id' => $track['id'],
-                    ])
-                    ->each->setHidden([]);
+                    ]);
             })
             ->flatten(1);
         $plays->chunk(200)->each(function ($chunk) {
-            DB::table('track_plays')->insert($chunk->toArray());
+            $chunk = array_map(function ($play) {
+                $play['created_at'] = Carbon::parse(
+                    $play['created_at'],
+                )->startOfDay();
+                return $play;
+            }, $chunk->toArray());
+            DB::table('track_plays')->insert($chunk);
         });
     }
 
-    private function seedArtistData(Artist $artist)
+    protected function seedArtistData(Artist $artist)
     {
         $trackTempId = Str::random(8);
         $this->trackTempIds[] = $trackTempId;
@@ -223,22 +217,23 @@ class SeedSampleData extends Command
                     'likeable_type' => Artist::MODEL_TYPE,
                     'likeable_id' => $artist->id,
                     'user_id' => $user->id,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
+                    'created_at' => Carbon::now()->startOfDay(),
+                    'updated_at' => Carbon::now()->startOfDay(),
                 ];
             });
         DB::table('likes')->insert($likes->toArray());
 
         // create tracks without album
         $tracks = $this->makeTracks(rand(20, 45), $trackTempId);
-        app(Track::class)->insert($tracks);
+        Track::insert($tracks);
 
         // create and load albums
         $albums = $this->makeAlbums();
-        app(Album::class)->insert($albums);
-        $createdAlbumIds = app(Album::class)
-            ->where('temp_id', $albums[0]['temp_id'])
-            ->pluck('id');
+        Album::insert($albums);
+        $createdAlbumIds = Album::where(
+            'temp_id',
+            $albums[0]['temp_id'],
+        )->pluck('id');
 
         // create album tracks
         $albumTracks = $createdAlbumIds
@@ -246,7 +241,7 @@ class SeedSampleData extends Command
                 return $this->makeTracks(rand(3, 7), $trackTempId, $albumId);
             })
             ->flatten(1);
-        app(Track::class)->insert($albumTracks->toArray());
+        Track::insert($albumTracks->toArray());
 
         $createdTrackIds = app(Track::class)
             ->where('temp_id', $trackTempId)
@@ -259,7 +254,7 @@ class SeedSampleData extends Command
             ->attach($createdAlbumIds->toArray(), ['primary' => true]);
     }
 
-    private function createFollows()
+    protected function createFollows()
     {
         $follows = $this->commentUsers
             ->take(25)
@@ -296,10 +291,10 @@ class SeedSampleData extends Command
             })
             ->flatten(1);
 
-        $this->saveOrUpdate($followers->merge($follows)->toArray(), 'follows');
+        $this->upsert($followers->merge($follows)->toArray(), 'follows');
     }
 
-    private function createLikesAndReposts($likeables)
+    protected function createLikesAndReposts($likeables)
     {
         $likes = collect($likeables)
             ->map(function ($likeable) {
@@ -315,6 +310,7 @@ class SeedSampleData extends Command
                 });
             })
             ->flatten(1);
+
         DB::table('likes')->insert($likes->toArray());
 
         $reposts = collect($likeables)
@@ -334,35 +330,31 @@ class SeedSampleData extends Command
         DB::table('reposts')->insert($reposts->toArray());
     }
 
-    private function loadSampleData()
+    protected function loadSampleData()
     {
         $this->trackNames = explode(
             PHP_EOL,
-            file_get_contents(base_path('samples/track-names.txt')),
-        );
-        $this->trackDurations = json_decode(
-            file_get_contents(base_path('samples/tracks/durations.json')),
-            true,
+            file_get_contents(resource_path('defaults/demo/track-names.txt')),
         );
         $this->albumNames = explode(
             PHP_EOL,
-            file_get_contents(base_path('samples/album-names.txt')),
+            file_get_contents(resource_path('defaults/demo/album-names.txt')),
         );
         $this->artistNames = explode(
             PHP_EOL,
-            file_get_contents(base_path('samples/artist-names.txt')),
+            file_get_contents(resource_path('defaults/demo/artist-names.txt')),
         );
         $this->albumImages = explode(
             PHP_EOL,
-            file_get_contents(base_path('samples/album-images.txt')),
+            file_get_contents(resource_path('defaults/demo/album-images.txt')),
         );
         $this->artistImages = explode(
             PHP_EOL,
-            file_get_contents(base_path('samples/artist-images.txt')),
+            file_get_contents(resource_path('defaults/demo/artist-images.txt')),
         );
         $this->comments = explode(
             PHP_EOL,
-            file_get_contents(base_path('samples/comments.txt')),
+            file_get_contents(resource_path('defaults/demo/comments.txt')),
         );
 
         $genres = collect([
@@ -407,33 +399,31 @@ class SeedSampleData extends Command
         $this->tags = app(Tag::class)->insertOrRetrieve($tags);
     }
 
-    private function createArtists()
+    protected function createArtists()
     {
-        $artists = Artist::factory()
-            ->count(50)
-            ->make()
-            ->each->setHidden([''])
-            ->toArray();
+        $artists = Artist::factory()->count(50)->make()->toArray();
         $artists = array_map(function ($artist) {
             unset($artist['model_type']);
             $artist['image_small'] = Arr::random($this->artistImages);
             $artist['name'] = Arr::random($this->artistNames);
+            $artist['updated_at'] = Carbon::parse(
+                $artist['updated_at'],
+            )->startOfDay();
+            $artist['created_at'] = Carbon::parse(
+                $artist['created_at'],
+            )->startOfDay();
             return $artist;
         }, $artists);
-        app(Artist::class)->insert($artists);
+        Artist::insert($artists);
 
-        $artists = app(Artist::class)
-            ->whereIn('name', Arr::pluck($artists, 'name'))
-            ->get();
+        $artists = Artist::whereIn('name', Arr::pluck($artists, 'name'))->get();
 
         $artistProfiles = $artists->map(function (Artist $artist) {
-            $profile = UserProfile::factory()
-                ->make()
-                ->setHidden([]);
+            $profile = ProfileDetails::factory()->make();
             $profile['artist_id'] = $artist->id;
             return $profile;
         });
-        DB::table('user_profiles')->insert($artistProfiles->toArray());
+        DB::table('profile_details')->insert($artistProfiles->toArray());
 
         $userLinks = $artists
             ->map(function (Artist $artist) {
@@ -459,11 +449,11 @@ class SeedSampleData extends Command
                 ];
             })
             ->flatten(1);
-        app(ProfileLink::class)->insert($userLinks->toArray());
+        ProfileLink::insert($userLinks->toArray());
         return $artists;
     }
 
-    private function createUsers()
+    protected function createUsers()
     {
         $users = User::factory()
             ->count(50)
@@ -473,30 +463,27 @@ class SeedSampleData extends Command
         $users = array_map(function ($user) {
             unset($user['name'], $user['has_password'], $user['model_type']);
 
-            $name = Str::random();
-            $rand = rand(1, 100);
-            Storage::disk('public')->put(
-                "avatars/$name.jpg",
-                file_get_contents(base_path("samples/avatars/$rand.jpg")),
-            );
-            $user['image'] = "avatars/$name.jpg";
+            $rand = rand(1, 10);
+            $user['image'] = "images/avatars/{$user['gender']}-$rand.webp";
+            $user['email_verified_at'] = Carbon::parse(
+                $user['email_verified_at'],
+            )->startOfDay();
 
             return $user;
         }, $users);
-        app(User::class)->insert($users);
+        User::insert($users);
 
-        $users = app(User::class)
-            ->whereIn('username', Arr::pluck($users, 'username'))
-            ->get();
+        $users = User::whereIn(
+            'username',
+            Arr::pluck($users, 'username'),
+        )->get();
 
         $userProfiles = $users->map(function (User $user) {
-            $profile = UserProfile::factory()
-                ->make()
-                ->setHidden([]);
+            $profile = ProfileDetails::factory()->make();
             $profile['user_id'] = $user->id;
             return $profile;
         });
-        DB::table('user_profiles')->insert($userProfiles->toArray());
+        DB::table('profile_details')->insert($userProfiles->toArray());
 
         $userLinks = $users
             ->map(function (User $user) {
@@ -522,7 +509,7 @@ class SeedSampleData extends Command
                 ];
             })
             ->flatten(1);
-        app(ProfileLink::class)->insert($userLinks->toArray());
+        ProfileLink::insert($userLinks->toArray());
 
         return $users;
     }
@@ -540,7 +527,7 @@ class SeedSampleData extends Command
 
                 $comment['id'] = $this->lastCommentId + 1;
                 $comment['path'] = $this->encodePath($comment['id']);
-                $comment['position'] = $percentage;
+                $comment['position'] = $percentage ?? 0;
                 $comment['content'] = Arr::random($this->comments);
                 $comment['user_id'] = $this->commentUsers->random()->id;
                 $comment['created_at'] = Carbon::now()
@@ -563,16 +550,19 @@ class SeedSampleData extends Command
     private function makeTracks(
         int $count,
         string $tempId,
-        int $albumId = null,
+        int|null $albumId = null,
     ): array {
-        $tracks = Track::factory()
-            ->count($count)
-            ->make()
-            ->each->setHidden([]);
+        $tracks = Track::factory()->count($count)->make();
         return array_map(function ($track) use ($tempId, $albumId) {
             unset($track['model_type'], $track['created_at_relative']);
             $track['name'] = trim(Arr::random($this->trackNames));
             $track['image'] = Arr::random($this->albumImages);
+            $track['updated_at'] = Carbon::parse(
+                $track['updated_at'],
+            )->startOfDay();
+            $track['created_at'] = Carbon::parse(
+                $track['created_at'],
+            )->startOfDay();
             $track['temp_id'] = $tempId;
             if ($albumId) {
                 $track['album_id'] = $albumId;
@@ -583,26 +573,26 @@ class SeedSampleData extends Command
 
     private function makeAlbums(): array
     {
-        $albums = Album::factory()
-            ->count(30)
-            ->make()
-            ->each->setHidden([])
-            ->toArray();
+        $albums = Album::factory()->count(30)->make()->toArray();
         $tempId = Str::random(8);
         $this->albumTempIds[] = $tempId;
         $albums = array_map(function ($album) use ($tempId) {
             unset($album['model_type'], $album['created_at_relative']);
             $album['name'] = trim(Arr::random($this->albumNames));
             $album['image'] = Arr::random($this->albumImages);
+            $album['updated_at'] = Carbon::parse(
+                $album['updated_at'],
+            )->startOfDay();
+            $album['created_at'] = Carbon::parse(
+                $album['created_at'],
+            )->startOfDay();
             $album['temp_id'] = $tempId;
             return $album;
         }, $albums);
-        return collect($albums)
-            ->unique('name')
-            ->toArray();
+        return collect($albums)->unique('name')->toArray();
     }
 
-    public function attachGenresToModels($genreables, $genreableType)
+    protected function attachGenresToModels($genreables, $genreableType)
     {
         $pivots = collect($genreables)
             ->map(function ($genreable) use ($genreableType) {
@@ -617,27 +607,27 @@ class SeedSampleData extends Command
                     });
             })
             ->flatten(1);
-        $this->saveOrUpdate($pivots, 'genreables');
+        $this->upsert($pivots, 'genreables');
     }
 
-    public function createAdminAccount()
+    protected function createAdminAccount()
     {
-        $demoAdmin = app(User::class)->firstOrNew(
+        $demoAdmin = User::firstOrNew(
             [
                 'email' => 'admin@admin.com',
             ],
             ['email_verified_at' => now()],
         );
+        $demoAdmin->name = 'admin';
         $demoAdmin->username = 'admin';
+        $demoAdmin->image = null;
         $demoAdmin->password = 'admin';
         $demoAdmin->save();
-        $adminPermission = app(Permission::class)->firstOrCreate(
+        $adminPermission = Permission::firstOrCreate(
             ['name' => 'admin'],
             [
                 'name' => 'admin',
                 'group' => 'admin',
-                'display_name' => 'Super Admin',
-                'description' => 'Give all permissions to user.',
             ],
         );
         $demoAdmin->permissions()->attach($adminPermission->id);
@@ -646,8 +636,8 @@ class SeedSampleData extends Command
         $demoAdmin->roles()->attach($userRole->id);
 
         $admin = User::create([
-            'email' => 'Ic0OdCIodqz8q1r@demo.com',
-            'password' => env('DEMO_ADMIN_PASSWORD'),
+            'email' => config('app.demo_email'),
+            'password' => config('app.demo_password'),
         ]);
         $admin->permissions()->attach($adminPermission->id);
         $admin->roles()->attach($userRole->id);
@@ -666,6 +656,6 @@ class SeedSampleData extends Command
                 });
             })
             ->flatten(1);
-        $this->saveOrUpdate($pivots, 'taggables');
+        $this->upsert($pivots, 'taggables');
     }
 }

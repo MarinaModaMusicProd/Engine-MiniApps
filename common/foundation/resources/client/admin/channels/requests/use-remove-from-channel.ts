@@ -1,8 +1,8 @@
-import {useMutation} from '@tanstack/react-query';
+import {channelQueries} from '@common/channels/channel-queries';
 import {apiClient, queryClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {useMutation} from '@tanstack/react-query';
 import {NormalizedModel} from '@ui/types/normalized-model';
-import {channelQueryKey} from '@common/channels/requests/use-channel';
 
 interface Payload {
   channelId: number | string;
@@ -12,9 +12,9 @@ interface Payload {
 export function useRemoveFromChannel() {
   return useMutation({
     mutationFn: (payload: Payload) => removeFromChannel(payload),
-    onSuccess: async (_, payload) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: channelQueryKey(payload.channelId),
+        queryKey: channelQueries.invalidateKey,
       });
     },
     onError: r => showHttpErrorToast(r),

@@ -1,12 +1,10 @@
 <?php namespace Common\Files;
 
 use App\Models\User;
-use Arr;
-use Auth;
 use Common\Core\BaseModel;
 use Common\Files\Traits\HandlesEntryPaths;
 use Common\Files\Traits\HashesId;
-use Common\Tags\HandlesTags;
+use Common\Files\Uploads\Uploads;
 use Common\Tags\Tag;
 use Common\Tags\Taggable;
 use Common\Workspaces\Traits\BelongsToWorkspace;
@@ -15,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class FileEntry extends BaseModel
 {
@@ -33,6 +31,7 @@ class FileEntry extends BaseModel
         'thumbnail' => 'boolean',
         'public' => 'boolean',
         'workspace_id' => 'integer',
+        'backend_id' => 'string',
     ];
 
     public function users(): BelongsToMany
@@ -44,15 +43,9 @@ class FileEntry extends BaseModel
             'file_entry_id',
             'model_id',
         )
+            ->where('relation_type', 'access')
             ->using(FileEntryPivot::class)
-            ->select(
-                'first_name',
-                'last_name',
-                'email',
-                'users.id',
-                'image',
-                'model_type',
-            )
+            ->select('name', 'email', 'users.id', 'image', 'model_type')
             ->withPivot('owner', 'permissions')
             ->withTimestamps()
             ->orderBy('file_entry_models.created_at');
@@ -78,11 +71,12 @@ class FileEntry extends BaseModel
         );
     }
 
-    public function getUrlAttribute(string $value = null): ?string
+    public function getUrlAttribute(?string $value = null): ?string
     {
         if ($value) {
             return $value;
         }
+
         if (
             !isset($this->attributes['type']) ||
             $this->attributes['type'] === 'folder'
@@ -90,19 +84,17 @@ class FileEntry extends BaseModel
             return null;
         }
 
-        $endpoint = config('common.site.file_preview_endpoint');
-
-        if (Arr::get($this->attributes, 'public')) {
-            $publicPath = "$this->disk_prefix/$this->file_name";
-            if ($endpoint) {
-                return "$endpoint/storage/$publicPath";
-            }
-            return Storage::disk('public')->url($publicPath);
-        } elseif ($endpoint) {
-            return "$endpoint/uploads/{$this->file_name}/{$this->file_name}";
-        } else {
-            return "api/v1/file-entries/{$this->attributes['id']}";
+        if ($this->upload_type) {
+            return $this->public
+                ? Uploads::type($this->upload_type)->url($this)
+                : "api/v1/file-entries/$this->id";
         }
+
+        // legacy
+        if ($this->public) {
+            return trim($this->getDisk()->url($this->file_name), '/');
+        }
+        return "api/v1/file-entries/$this->id";
     }
 
     public function getStoragePath(bool $useThumbnail = false): string
@@ -120,17 +112,14 @@ class FileEntry extends BaseModel
 
     public function getDisk()
     {
-        if ($this->public) {
-            return Storage::drive('public');
-        } else {
-            return Storage::drive('uploads');
+        if ($this->upload_type) {
+            return Uploads::disk($this->upload_type, $this->backend_id);
         }
+
+        // legacy
+        return Uploads::buildLegacyDisk($this);
     }
 
-    /**
-     * @param Builder $query
-     * @return Builder
-     */
     public function scopeWhereRootOrParentNotTrashed(Builder $query)
     {
         return $query
@@ -196,11 +185,7 @@ class FileEntry extends BaseModel
         return $entry ? $entry->getRawOriginal('path') : '';
     }
 
-    /**
-     * Return file entry name with extension.
-     * @return string
-     */
-    public function getNameWithExtension()
+    public function getNameWithExtension(): string
     {
         if (!$this->exists) {
             return '';
@@ -226,9 +211,7 @@ class FileEntry extends BaseModel
 
     public function resolveRouteBinding($value, $field = null): ?self
     {
-        return $this->byIdOrHash($value)
-            ->withTrashed()
-            ->firstOrFail();
+        return $this->byIdOrHash($value)->withTrashed()->firstOrFail();
     }
 
     /**

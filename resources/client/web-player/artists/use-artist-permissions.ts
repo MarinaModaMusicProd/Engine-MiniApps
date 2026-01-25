@@ -1,8 +1,8 @@
-import {useMemo} from 'react';
+import {PartialArtist} from '@app/web-player/artists/artist';
 import {useAuth} from '@common/auth/use-auth';
-import {Artist} from '@app/web-player/artists/artist';
+import {useMemo} from 'react';
 
-export function useArtistPermissions(artist: Artist) {
+export function useArtistPermissions(artist: PartialArtist) {
   const {user, hasPermission} = useAuth();
   return useMemo(() => {
     const permissions = {

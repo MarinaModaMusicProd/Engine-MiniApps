@@ -1,26 +1,28 @@
-import {useAuthUserPlaylists} from '@app/web-player/playlists/requests/use-auth-user-playlists';
-import {m} from 'framer-motion';
-import {Button} from '@ui/buttons/button';
-import {KeyboardBackspaceIcon} from '@ui/icons/material/KeyboardBackspace';
-import {Trans} from '@ui/i18n/trans';
+import {appQueries} from '@app/app-queries';
 import {
   ContextMenuButton,
   ContextMenuLayoutState,
 } from '@app/web-player/context-dialog/context-dialog-layout';
+import {CreatePlaylistDialog} from '@app/web-player/playlists/crupdate-dialog/create-playlist-dialog';
+import {useAddTracksToPlaylist} from '@app/web-player/playlists/requests/use-add-tracks-to-playlist';
+import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
+import {useIsOffline} from '@app/web-player/use-is-offline';
+import {useAuth} from '@common/auth/use-auth';
+import {useQuery} from '@tanstack/react-query';
+import {Button} from '@ui/buttons/button';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
 import {AddIcon} from '@ui/icons/material/Add';
 import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
-import {useContext, useMemo} from 'react';
-import {useAddTracksToPlaylist} from '@app/web-player/playlists/requests/use-add-tracks-to-playlist';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {openDialog} from '@ui/overlays/store/dialog-store';
-import {CreatePlaylistDialog} from '@app/web-player/playlists/crupdate-dialog/create-playlist-dialog';
+import {KeyboardBackspaceIcon} from '@ui/icons/material/KeyboardBackspace';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {useAuth} from '@common/auth/use-auth';
-import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
+import {openDialog} from '@ui/overlays/store/dialog-store';
+import {toast} from '@ui/toast/toast';
+import {m} from 'framer-motion';
+import {useContext, useMemo} from 'react';
 
 export function PlaylistPanel() {
-  const {data} = useAuthUserPlaylists();
+  const {data} = useQuery(appQueries.playlists.compactAuthUserPlaylists());
   const {user} = useAuth();
   const {close: closeMenu} = useDialogContext();
   const {loadTracks, setPlaylistPanelIsActive} = useContext(
@@ -30,9 +32,7 @@ export function PlaylistPanel() {
 
   // only show playlists user created or ones that are collaborative
   const playlists = useMemo(() => {
-    return data.playlists.filter(
-      p => p.owner_id === user?.id || p.collaborative,
-    );
+    return data.filter(p => p.owner_id === user?.id || p.collaborative);
   }, [data, user]);
 
   return (
@@ -99,8 +99,10 @@ export function PlaylistPanelButton() {
   const {playlistPanelIsActive, setPlaylistPanelIsActive} = useContext(
     ContextMenuLayoutState,
   );
+  const isOffline = useIsOffline();
   return (
     <ContextMenuButton
+      disabled={isOffline}
       endIcon={<KeyboardArrowRightIcon />}
       onClickCapture={authHandler}
       onClick={() => {

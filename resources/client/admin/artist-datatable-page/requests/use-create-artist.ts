@@ -1,18 +1,18 @@
-import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {toast} from '@ui/toast/toast';
+import {FullArtist, PartialArtist} from '@app/web-player/artists/artist';
 import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
-import {useTrans} from '@ui/i18n/use-trans';
 import {onFormQueryError} from '@common/errors/on-form-query-error';
-import {message} from '@ui/i18n/message';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Artist} from '@app/web-player/artists/artist';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
+import {UseFormReturn} from 'react-hook-form';
 
 const endpoint = 'artists';
 
 interface Response extends BackendResponse {
-  artist: Artist;
+  artist: PartialArtist;
 }
 
 export interface CreateArtistPayload {
@@ -20,10 +20,14 @@ export interface CreateArtistPayload {
   image_small?: string;
   verified?: boolean;
   spotify_id?: string;
-  genres?: Artist['genres'];
-  links?: Artist['links'];
-  profile?: Artist['profile'];
-  profile_images?: Artist['profile_images'];
+  genres?: FullArtist['genres'];
+  links?: FullArtist['links'];
+  profile?: FullArtist['profile'];
+  profile_images?: {
+    url: string;
+    id?: number;
+  }[];
+  disabled?: boolean;
 }
 
 export function useCreateArtist(form: UseFormReturn<CreateArtistPayload>) {

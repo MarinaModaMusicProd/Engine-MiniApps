@@ -14,8 +14,8 @@ class LocalAndSpotifySearch extends SpotifySearch
     public function search(
         string $q,
         int $page,
-        int $perPage,
-        $modelTypes,
+        ?int $perPage = null,
+        array $modelTypes,
     ): Collection {
         $spotifyResults = parent::search($q, $page, $perPage, $modelTypes);
 
@@ -36,15 +36,19 @@ class LocalAndSpotifySearch extends SpotifySearch
 
         foreach ($spotifyResults as $type => $results) {
             if (
-                isset($localResults[$type]) &&
-                count($localResults[$type]->items())
+                isset($localResults[$type]['data']) &&
+                count($localResults[$type]['data'])
             ) {
-                $mergedResults = $results
-                    ->getCollection()
-                    ->merge($localResults[$type]->getCollection())
-                    ->unique('id')
-                    ->take($perPage);
-                $results->setCollection($mergedResults);
+                foreach ($localResults[$type]['data'] as $localResult) {
+                    if (
+                        !array_find(
+                            $results['data'],
+                            fn($result) => $result['id'] === $localResult['id'],
+                        )
+                    ) {
+                        $results['data'][] = $localResult;
+                    }
+                }
             }
         }
 

@@ -8,7 +8,7 @@ import {SvgImage} from '@ui/images/svg-image';
 import upgradeSvg from '@common/billing/upgrade/upgrade.svg';
 import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
 import {Button} from '@ui/buttons/button';
-import {Link} from 'react-router-dom';
+import {Link} from 'react-router';
 
 interface UpgradeDialogProps {
   message?: ReactNode;

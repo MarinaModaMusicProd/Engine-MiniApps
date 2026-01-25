@@ -1,13 +1,13 @@
 <?php namespace Common\Auth\Controllers;
 
 use App\Models\User;
-use Auth;
 use Common\Auth\Actions\CreateUser;
 use Common\Auth\Actions\DeleteUsers;
 use Common\Auth\Actions\PaginateUsers;
 use Common\Auth\Actions\UpdateUser;
 use Common\Auth\Requests\CrupdateUserRequest;
 use Common\Core\BaseController;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends BaseController
 {
@@ -20,7 +20,13 @@ class UserController extends BaseController
     {
         $this->authorize('index', User::class);
 
-        $pagination = (new PaginateUsers())->execute(request()->all());
+        $pagination = (new PaginateUsers())
+            ->execute(request()->all())
+            ->toArray();
+
+        if (config('app.demo')) {
+            $pagination['data'] = $this->redactEmails($pagination['data']);
+        }
 
         return $this->success(['pagination' => $pagination]);
     }
@@ -31,7 +37,7 @@ class UserController extends BaseController
         $relations = array_merge(['roles', 'social_profiles'], $relations);
 
         if (settings('envato.enable')) {
-            $relations[] = 'purchase_codes';
+            $relations[] = 'purchaseCodes';
         }
 
         if (Auth::id() === $user->id) {
@@ -56,6 +62,7 @@ class UserController extends BaseController
     public function store(CrupdateUserRequest $request)
     {
         $this->authorize('store', User::class);
+        $this->blockOnDemoSite();
 
         $user = (new CreateUser())->execute($request->validated());
 
@@ -65,6 +72,7 @@ class UserController extends BaseController
     public function update(User $user, CrupdateUserRequest $request)
     {
         $this->authorize('update', $user);
+        $this->blockOnDemoSite();
 
         $user = (new UpdateUser())->execute($user, $request->validated());
 
@@ -75,7 +83,9 @@ class UserController extends BaseController
     {
         $userIds = explode(',', $ids);
         $shouldDeleteCurrentUser = request('deleteCurrentUser');
+
         $this->authorize('destroy', [User::class, $userIds]);
+        $this->blockOnDemoSite();
 
         $users = User::whereIn('id', $userIds)->get();
 

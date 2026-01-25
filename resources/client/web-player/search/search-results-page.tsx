@@ -1,68 +1,56 @@
+import {appQueries} from '@app/app-queries';
+import {PlayerPageSuspense} from '@app/web-player/layout/player-page-suspsense';
+import {SearchResponse} from '@app/web-player/search/search-response';
 import {
-  SearchResponse,
-  useSearchResults,
-} from '@app/web-player/search/requests/use-search-results';
-import {Link, useParams} from 'react-router-dom';
-import {PageStatus} from '@common/http/page-status';
-import React, {
-  Fragment,
-  ReactNode,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {Tabs} from '@ui/tabs/tabs';
-import {TabList} from '@ui/tabs/tab-list';
-import {Tab} from '@ui/tabs/tab';
-import {Trans} from '@ui/i18n/trans';
-import {TabPanel, TabPanels} from '@ui/tabs/tab-panels';
-import {Track, TRACK_MODEL} from '@app/web-player/tracks/track';
-import {TrackTable} from '@app/web-player/tracks/track-table/track-table';
-import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
-import {ContentGrid} from '@app/web-player/playable-item/content-grid';
-import {ArtistGridItem} from '@app/web-player/artists/artist-grid-item';
-import {AlbumGridItem} from '@app/web-player/albums/album-grid-item';
-import {PlaylistGridItem} from '@app/web-player/playlists/playlist-grid-item';
-import {UserGridItem} from '@app/web-player/users/user-grid-item';
-import {Artist, ARTIST_MODEL} from '@app/web-player/artists/artist';
-import {Album, ALBUM_MODEL} from '@app/web-player/albums/album';
-import {Playlist, PLAYLIST_MODEL} from '@app/web-player/playlists/playlist';
-import {User, USER_MODEL} from '@ui/types/user';
-import {IllustratedMessage} from '@ui/images/illustrated-message';
-import {SearchIcon} from '@ui/icons/material/Search';
-import {useSettings} from '@ui/settings/use-settings';
-import {UseQueryResult} from '@tanstack/react-query';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {useTrans} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
+  searchResultsTab,
+  searchResultsTabNames,
+} from '@app/web-player/search/search-results-tab';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {SimplePaginationResponse} from '@common/http/backend-response/pagination-response';
-import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
-import {useInfiniteSearchResults} from '@app/web-player/search/requests/use-infinite-search-results';
-import {getScrollParent} from '@react-aria/utils';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {SearchIcon} from '@ui/icons/material/Search';
+import {IllustratedMessage} from '@ui/images/illustrated-message';
+import {useSettings} from '@ui/settings/use-settings';
+import {Tab} from '@ui/tabs/tab';
+import {TabList} from '@ui/tabs/tab-list';
+import {Tabs} from '@ui/tabs/tabs';
 import {useMediaQuery} from '@ui/utils/hooks/use-media-query';
+import debounce from 'just-debounce-it';
+import {Fragment, useCallback, useMemo} from 'react';
+import {Link, Outlet, useParams} from 'react-router';
 
-export function SearchResultsPage() {
+export function Component() {
   const {searchQuery} = useParams();
-  const query = useSearchResults({
-    loader: 'searchPage',
-    query: searchQuery,
-  });
-
   return (
     <Fragment>
       <MobileSearchBar />
-      <PageContent query={query} />
+      {searchQuery ? (
+        <PlayerPageSuspense resetSuspenseOnNavigate={false}>
+          <SearchResults searchQuery={searchQuery} />
+        </PlayerPageSuspense>
+      ) : (
+        <IdleFallback />
+      )}
     </Fragment>
   );
 }
 
 function MobileSearchBar() {
-  const {searchQuery = ''} = useParams();
+  const params = useParams();
   const navigate = useNavigate();
   const {trans} = useTrans();
   const isMobile = useMediaQuery('(max-width: 1024px)');
+
+  const debouncedNavigate = useCallback(
+    debounce(
+      (query: string) => navigate(`/search/${query}`, {replace: true}),
+      300,
+    ),
+    [navigate],
+  );
 
   if (!isMobile) {
     return null;
@@ -70,10 +58,8 @@ function MobileSearchBar() {
 
   return (
     <TextField
-      defaultValue={searchQuery}
-      onChange={e => {
-        navigate(`/search/${e.target.value}`, {replace: true});
-      }}
+      defaultValue={params.searchQuery || ''}
+      onChange={e => debouncedNavigate(e.target.value)}
       autoFocus
       className="w-full"
       size="lg"
@@ -82,68 +68,50 @@ function MobileSearchBar() {
   );
 }
 
-interface PageContentProps {
-  query: UseQueryResult<SearchResponse>;
-}
-function PageContent({query}: PageContentProps) {
+function IdleFallback() {
   const {branding} = useSettings();
-
-  if (query.data) {
-    return <SearchResults results={query.data?.results} />;
-  }
-
-  if (query.fetchStatus === 'idle') {
-    return (
-      <IllustratedMessage
-        className="mt-40"
-        image={<SearchIcon size="xl" />}
-        imageHeight="h-auto"
-        imageMargin="mb-12"
-        title={
-          <Trans
-            message="Search :siteName"
-            values={{siteName: branding.site_name}}
-          />
-        }
-        description={
-          <Trans message="Find songs, artists, albums, playlists and more." />
-        }
-      />
-    );
-  }
-
   return (
-    <PageStatus
-      query={query}
-      loaderIsScreen={false}
-      loaderClassName="absolute inset-0 m-auto"
+    <IllustratedMessage
+      className="mt-40"
+      image={<SearchIcon size="xl" />}
+      imageHeight="h-auto"
+      imageMargin="mb-12"
+      title={
+        <Trans
+          message="Search :siteName"
+          values={{siteName: branding.site_name}}
+        />
+      }
+      description={
+        <Trans message="Find songs, artists, albums, playlists and more." />
+      }
     />
   );
 }
 
 interface SearchResultsProps {
-  results: SearchResponse['results'];
+  searchQuery: string;
 }
-function SearchResults({results}: SearchResultsProps) {
-  const {tabName = 'all', searchQuery} = useParams();
-  const tabNames = useMemo(() => {
-    const names = ['tracks', 'artists', 'albums', 'playlists', 'users'].filter(
+function SearchResults({searchQuery}: SearchResultsProps) {
+  const params = useParams();
+  const query = useSuspenseQuery(
+    appQueries.search.results('searchPage', searchQuery),
+  );
+  const results = query.data.results;
+
+  const activeTabName = (params.tabName ?? 'home') as searchResultsTab;
+  const visibleTabNames = useMemo(() => {
+    return searchResultsTabNames.filter(
       tabName =>
+        tabName === 'home' ||
         results[tabName as keyof SearchResponse['results']]?.data.length,
     );
-    return ['all', ...names];
   }, [results]);
 
-  const tabIndex = tabNames.indexOf(tabName as any);
-
-  const [selectedTab, setSelectedTab] = useState(tabIndex > -1 ? tabIndex : 0);
-
-  // change tab when url changes
-  useEffect(() => {
-    if (tabIndex !== selectedTab) {
-      setSelectedTab(tabIndex);
-    }
-  }, [tabIndex, selectedTab]);
+  const tabIndex =
+    visibleTabNames.indexOf(activeTabName) > -1
+      ? visibleTabNames.indexOf(activeTabName)
+      : 0;
 
   const tabLink = (tabName?: string) => {
     let base = `/search/${searchQuery}`;
@@ -153,9 +121,11 @@ function SearchResults({results}: SearchResultsProps) {
     return base;
   };
 
-  const haveResults = Object.entries(results).some(([, r]) => r?.data.length);
+  const haveAnyResults = Object.entries(results).some(
+    ([, r]) => r?.data.length,
+  );
 
-  if (!haveResults) {
+  if (!haveAnyResults) {
     return (
       <IllustratedMessage
         className="mt-40"
@@ -173,7 +143,7 @@ function SearchResults({results}: SearchResultsProps) {
   }
 
   return (
-    <Tabs selectedTab={selectedTab} onTabChange={setSelectedTab}>
+    <Tabs selectedTab={tabIndex}>
       <TabList>
         <Tab elementType={Link} to={tabLink()}>
           <Trans message="Top results" />
@@ -204,240 +174,9 @@ function SearchResults({results}: SearchResultsProps) {
           </Tab>
         ) : null}
       </TabList>
-      <TabPanels className="pt-8">
-        <TabPanel>
-          <TopResultsPanel results={results} />
-        </TabPanel>
-        {results.tracks?.data.length ? (
-          <TabPanel>
-            <PaginatedTrackResults data={results.tracks!} />
-          </TabPanel>
-        ) : null}
-        {results.artists?.data.length ? (
-          <TabPanel>
-            <PaginatedArtistResults data={results.artists!} />
-          </TabPanel>
-        ) : null}
-        {results.albums?.data.length ? (
-          <TabPanel>
-            <PaginatedAlbumResults data={results.albums!} />
-          </TabPanel>
-        ) : null}
-        {results.playlists?.data.length ? (
-          <TabPanel>
-            <PaginatedPlaylistResults data={results.playlists!} />
-          </TabPanel>
-        ) : null}
-        {results.users?.data.length ? (
-          <TabPanel>
-            <PaginatedProfileResults data={results.users!} />
-          </TabPanel>
-        ) : null}
-      </TabPanels>
+      <div className="pt-8">
+        <Outlet context={results} />
+      </div>
     </Tabs>
-  );
-}
-
-function TopResultsPanel({
-  results: {artists, albums, tracks, playlists, users},
-}: SearchResultsProps) {
-  return (
-    <Fragment>
-      {tracks?.data.length ? (
-        <TrackResults data={tracks.data.slice(0, 5)} showMore />
-      ) : null}
-      {artists?.data.length ? (
-        <ArtistResults data={artists.data.slice(0, 5)} showMore />
-      ) : null}
-      {albums?.data.length ? (
-        <AlbumResults data={albums.data.slice(0, 5)} showMore />
-      ) : null}
-      {playlists?.data.length ? (
-        <PlaylistResults data={playlists.data.slice(0, 5)} showMore />
-      ) : null}
-      {users?.data.length ? (
-        <ProfileResults data={users.data.slice(0, 5)} showMore />
-      ) : null}
-    </Fragment>
-  );
-}
-
-interface ResultPanelProps<T> {
-  data: T[];
-  showMore?: boolean;
-  children?: ReactNode;
-}
-
-interface PaginatedResultPanelProps<T> {
-  data: SimplePaginationResponse<T>;
-  showMore?: boolean;
-}
-
-function TrackResults({data, showMore, children}: ResultPanelProps<Track>) {
-  return (
-    <div className="py-24">
-      <PanelTitle to={showMore ? 'tracks' : undefined}>
-        <Trans message="Tracks" />
-      </PanelTitle>
-      <TrackTable tracks={data} />
-      {children}
-    </div>
-  );
-}
-
-function PaginatedTrackResults({
-  data,
-  showMore,
-}: PaginatedResultPanelProps<Track>) {
-  const query = useInfiniteSearchResults<Track>(TRACK_MODEL, data);
-  return (
-    <TrackResults data={query.items} showMore={showMore}>
-      <InfiniteScrollSentinel query={query} />
-    </TrackResults>
-  );
-}
-
-function PaginatedArtistResults({
-  data,
-  showMore,
-}: PaginatedResultPanelProps<Artist>) {
-  const query = useInfiniteSearchResults<Artist>(ARTIST_MODEL, data);
-  return (
-    <ArtistResults data={query.items} showMore={showMore}>
-      <InfiniteScrollSentinel query={query} />
-    </ArtistResults>
-  );
-}
-
-function ArtistResults({data, showMore, children}: ResultPanelProps<Artist>) {
-  return (
-    <div className="py-24">
-      <PanelTitle to={showMore ? 'artists' : undefined}>
-        <Trans message="Artists" />
-      </PanelTitle>
-      <ContentGrid>
-        {data.map(artist => (
-          <ArtistGridItem key={artist.id} artist={artist} />
-        ))}
-      </ContentGrid>
-      {children}
-    </div>
-  );
-}
-
-function AlbumResults({data, showMore, children}: ResultPanelProps<Album>) {
-  return (
-    <div className="py-24">
-      <PanelTitle to={showMore ? 'albums' : undefined}>
-        <Trans message="Albums" />
-      </PanelTitle>
-      <ContentGrid>
-        {data.map(album => (
-          <AlbumGridItem key={album.id} album={album} />
-        ))}
-      </ContentGrid>
-      {children}
-    </div>
-  );
-}
-
-function PaginatedAlbumResults({
-  data,
-  showMore,
-}: PaginatedResultPanelProps<Album>) {
-  const query = useInfiniteSearchResults<Album>(ALBUM_MODEL, data);
-  return (
-    <AlbumResults data={query.items} showMore={showMore}>
-      <InfiniteScrollSentinel query={query} />
-    </AlbumResults>
-  );
-}
-
-function PlaylistResults({
-  data,
-  showMore,
-  children,
-}: ResultPanelProps<Playlist>) {
-  return (
-    <div className="py-24">
-      <PanelTitle to={showMore ? 'playlists' : undefined}>
-        <Trans message="Playlists" />
-      </PanelTitle>
-      <ContentGrid>
-        {data.map(playlist => (
-          <PlaylistGridItem key={playlist.id} playlist={playlist} />
-        ))}
-      </ContentGrid>
-      {children}
-    </div>
-  );
-}
-
-function PaginatedPlaylistResults({
-  data,
-  showMore,
-}: PaginatedResultPanelProps<Playlist>) {
-  const query = useInfiniteSearchResults<Playlist>(PLAYLIST_MODEL, data);
-  return (
-    <PlaylistResults data={query.items} showMore={showMore}>
-      <InfiniteScrollSentinel query={query} />
-    </PlaylistResults>
-  );
-}
-
-function ProfileResults({data, showMore, children}: ResultPanelProps<User>) {
-  return (
-    <div className="py-24">
-      <PanelTitle to={showMore ? 'users' : undefined}>
-        <Trans message="Profiles" />
-      </PanelTitle>
-      <ContentGrid>
-        {data.map(user => (
-          <UserGridItem key={user.id} user={user} />
-        ))}
-      </ContentGrid>
-      {children}
-    </div>
-  );
-}
-
-function PaginatedProfileResults({
-  data,
-  showMore,
-}: PaginatedResultPanelProps<User>) {
-  const query = useInfiniteSearchResults<User>(USER_MODEL, data);
-  return (
-    <ProfileResults data={query.items} showMore={showMore}>
-      <InfiniteScrollSentinel query={query} />
-    </ProfileResults>
-  );
-}
-
-interface PanelTitleProps {
-  children: ReactNode;
-  to?: string;
-}
-function PanelTitle({children, to}: PanelTitleProps) {
-  const ref = useRef<HTMLHeadingElement>(null!);
-  return (
-    <h2 className="mb-24 w-max text-2xl font-medium" ref={ref}>
-      {to ? (
-        <Link
-          to={to}
-          className="flex items-center gap-2 hover:text-primary"
-          onClick={() => {
-            const scrollParent = getScrollParent(ref.current);
-            if (scrollParent) {
-              scrollParent.scrollTo({top: 0});
-            }
-          }}
-        >
-          {children}
-          <KeyboardArrowRightIcon className="mt-4" />
-        </Link>
-      ) : (
-        children
-      )}
-    </h2>
   );
 }

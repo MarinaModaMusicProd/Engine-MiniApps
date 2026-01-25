@@ -6,7 +6,6 @@ import {FormattedDatasetItem} from './data/formatted-dataset-item';
 import {useMemo} from 'react';
 import {formatReportData} from './data/format-report-data';
 import {DatasetItem, ReportMetric} from '../admin/analytics/report-metric';
-import clsx from 'clsx';
 
 interface BarChartProps extends Omit<BaseChartProps<'bar'>, 'type' | 'data'> {
   direction?: 'horizontal' | 'vertical';
@@ -51,7 +50,7 @@ export function BarChart({
   return (
     <BaseChart
       type="bar"
-      className={clsx(className, 'min-w-500')}
+      className={className}
       data={formattedData}
       options={options}
       {...props}

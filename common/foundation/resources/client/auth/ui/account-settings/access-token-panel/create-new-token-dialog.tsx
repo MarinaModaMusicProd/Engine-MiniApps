@@ -1,24 +1,24 @@
-import {useForm} from 'react-hook-form';
-import {useState} from 'react';
-import useClipboard from 'react-use-clipboard';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {Form} from '@ui/forms/form';
+import { queryClient } from '@common/http/query-client';
+import { Button } from '@ui/buttons/button';
+import { Form } from '@ui/forms/form';
 import {
   FormTextField,
   TextField,
 } from '@ui/forms/input-field/text-field/text-field';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
+import { Trans } from '@ui/i18n/trans';
+import { ErrorIcon } from '@ui/icons/material/Error';
+import { Dialog } from '@ui/overlays/dialog/dialog';
+import { DialogBody } from '@ui/overlays/dialog/dialog-body';
+import { useDialogContext } from '@ui/overlays/dialog/dialog-context';
+import { DialogFooter } from '@ui/overlays/dialog/dialog-footer';
+import { DialogHeader } from '@ui/overlays/dialog/dialog-header';
+import useClipboard from '@ui/utils/hooks/use-clipboard';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   CreateAccessTokenPayload,
   useCreateAccessToken,
 } from './create-new-token';
-import {ErrorIcon} from '@ui/icons/material/Error';
-import {Trans} from '@ui/i18n/trans';
-import {queryClient} from '@common/http/query-client';
 
 export function CreateNewTokenDialog() {
   const form = useForm<CreateAccessTokenPayload>();

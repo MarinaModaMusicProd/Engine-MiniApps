@@ -1,23 +1,23 @@
-import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {toast} from '@ui/toast/toast';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
-import {useTrans} from '@ui/i18n/use-trans';
-import {onFormQueryError} from '@common/errors/on-form-query-error';
-import {message} from '@ui/i18n/message';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {NormalizedModel} from '@ui/types/normalized-model';
-import {Album} from '@app/web-player/albums/album';
 import {
   CreateTrackPayload,
   prepareTrackPayload,
 } from '@app/admin/tracks-datatable-page/requests/use-create-track';
+import {FullAlbum, PartialAlbum} from '@app/web-player/albums/album';
+import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
+import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
+import {NormalizedModel} from '@ui/types/normalized-model';
+import {UseFormReturn} from 'react-hook-form';
 
 const endpoint = 'albums';
 
 interface Response extends BackendResponse {
-  album: Album;
+  album: FullAlbum;
 }
 
 export type CreateAlbumPayloadTrack = Omit<
@@ -27,8 +27,12 @@ export type CreateAlbumPayloadTrack = Omit<
   uploadId: string;
 };
 
-export interface CreateAlbumPayload
-  extends Omit<Album, 'genres' | 'tags' | 'tracks' | 'artists'> {
+export interface CreateAlbumPayload extends Omit<
+  PartialAlbum,
+  'genres' | 'tags' | 'tracks' | 'artists'
+> {
+  description?: string | null;
+  spotify_id?: string | null;
   artists: NormalizedModel[];
   genres?: NormalizedModel[] | string[];
   tags?: NormalizedModel[];

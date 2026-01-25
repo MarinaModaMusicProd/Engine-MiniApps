@@ -1,12 +1,12 @@
-import {AccountSettingsPanel} from '../account-settings-panel';
-import {Button} from '@ui/buttons/button';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import {useDeleteAccount} from './delete-account';
-import {Trans} from '@ui/i18n/trans';
 import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
-import React, {useState} from 'react';
 import {usePasswordConfirmedAction} from '@common/auth/ui/confirm-password/use-password-confirmed-action';
+import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useState} from 'react';
+import {AccountSettingsPanel} from '../account-settings-panel';
+import {useDeleteAccount} from './delete-account';
 
 export function DangerZonePanel() {
   const deleteAccount = useDeleteAccount();

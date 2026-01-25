@@ -2,12 +2,11 @@
 
 namespace Common\Database;
 
-use Common\Admin\Appearance\GenerateFavicon;
 use Common\Core\Manifest\BuildManifestFile;
+use Common\Settings\GenerateFavicon;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 
 class MigrateAndSeed
 {
@@ -44,16 +43,34 @@ class MigrateAndSeed
 
     public function runCommonSeeders(): void
     {
-        foreach (File::directories(base_path() . '/common') as $directory) {
-            $seedersDir = "$directory/src/Seeders";
-            if (File::exists($seedersDir)) {
-                foreach (File::files($seedersDir) as $fileInfo) {
-                    $namespace =
-                        Str::title(basename($directory)) .
-                        '\\Seeders\\' .
-                        $fileInfo->getBasename('.php');
-                    if (class_exists($namespace)) {
-                        app($namespace)->execute();
+        $paths = [base_path() . '/common', base_path() . '/modules'];
+        foreach ($paths as $directory) {
+            if (!File::exists($directory)) {
+                continue;
+            }
+            foreach (File::directories($directory) as $moduleDir) {
+                $seedersDir = "$moduleDir/database/seeders";
+                if (File::exists($seedersDir)) {
+                    foreach (File::files($seedersDir) as $fileInfo) {
+                        $content = file_get_contents($fileInfo->getPathname());
+
+                        // Extract namespace from file content
+                        if (
+                            preg_match(
+                                '/namespace\s+([^;\s]+)/m',
+                                $content,
+                                $matches,
+                            )
+                        ) {
+                            $namespace =
+                                trim($matches[1]) .
+                                '\\' .
+                                $fileInfo->getBasename('.php');
+
+                            if (class_exists($namespace)) {
+                                app($namespace)->run();
+                            }
+                        }
                     }
                 }
             }

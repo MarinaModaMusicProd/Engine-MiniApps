@@ -1,18 +1,18 @@
-import {useContext, useMemo} from 'react';
-import {PlayerStoreContext} from '@common/player/player-context';
 import {MediaItem} from '@common/player/media-item';
+import {PlayerStoreContext} from '@common/player/player-context';
+import {use, useMemo} from 'react';
 
 export type PlayerActions = ReturnType<typeof usePlayerActions>;
 
 export function usePlayerActions() {
-  const store = useContext(PlayerStoreContext);
+  const store = use(PlayerStoreContext);
 
   return useMemo(() => {
     const s = store.getState();
 
     const overrideQueueAndPlay = async (
       mediaItems: MediaItem[],
-      queuePointer?: number
+      queuePointer?: number,
     ) => {
       s.stop();
       await s.overrideQueue(mediaItems, queuePointer);

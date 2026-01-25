@@ -45,7 +45,7 @@ class PlaylistPolicy extends BasePolicy
 
     public function destroy(User $user, Collection $playlists)
     {
-        if ($user->hasPermission('playlists.delete')) {
+        if ($this->hasPermission($user, 'playlists.delete')) {
             return true;
         }
 

@@ -1,21 +1,20 @@
-import {useSettings} from '@ui/settings/use-settings';
+import {CreateTrackPayload} from '@app/admin/tracks-datatable-page/requests/use-create-track';
 import {
   ExtractedTrackMetadata,
   useExtractTackFileMetadata,
 } from '@app/admin/tracks-datatable-page/requests/use-extract-track-file-metadata';
-import {UploadStrategyConfig} from '@common/uploads/uploader/strategy/upload-strategy';
-import {useCallback, useMemo, useRef} from 'react';
-import {FileEntry} from '@common/uploads/file-entry';
-import {toast} from '@ui/toast/toast';
-import {useFileUploadStore} from '@common/uploads/uploader/file-upload-provider';
-import {openUploadWindow} from '@ui/utils/files/open-upload-window';
+import {UploadType} from '@app/site-config';
 import {generateWaveformData} from '@app/web-player/tracks/waveform/generate-waveform-data';
-import {UploadedFile} from '@ui/utils/files/uploaded-file';
-import {CreateTrackPayload} from '@app/admin/tracks-datatable-page/requests/use-create-track';
+import {FileEntry} from '@common/uploads/file-entry';
+import {restrictionsFromConfig} from '@common/uploads/uploader/create-file-upload';
+import {useFileUploadStore} from '@common/uploads/uploader/file-upload-provider';
+import {UploadStrategyConfig} from '@common/uploads/uploader/strategy/upload-strategy';
 import {message} from '@ui/i18n/message';
-import {FileInputType} from '@ui/utils/files/file-input-config';
-import {Disk} from '@common/uploads/uploader/backend-metadata';
+import {toast} from '@ui/toast/toast';
+import {openUploadWindow} from '@ui/utils/files/open-upload-window';
+import {UploadedFile} from '@ui/utils/files/uploaded-file';
 import {validateFile} from '@ui/utils/files/validate-file';
+import {useCallback, useMemo, useRef} from 'react';
 
 const FiftyMB = 50 * 1024 * 1024;
 
@@ -35,15 +34,6 @@ interface Options {
   ) => void;
 }
 export function useTrackUploader(options: Options) {
-  const {uploads} = useSettings();
-  const restrictions = useMemo(
-    () => ({
-      allowedFileTypes: [FileInputType.audio, FileInputType.video],
-      maxFileSize: uploads.max_size || FiftyMB,
-    }),
-    [uploads.max_size],
-  );
-
   const extractMetadata = useExtractTackFileMetadata();
   const optionsRef = useRef<Options>(options);
   optionsRef.current = options;
@@ -64,14 +54,11 @@ export function useTrackUploader(options: Options) {
     [updateFileUpload, getUpload],
   );
 
-  // todo: playback source is not set if extract metadata request errors out
+  const restrictions = restrictionsFromConfig({uploadType: UploadType.media});
   const uploadOptions: UploadStrategyConfig = useMemo(() => {
     return {
-      metadata: {
-        diskPrefix: 'track_media',
-        disk: Disk.public,
-      },
       restrictions,
+      uploadType: UploadType.media,
       onSuccess: (entry: FileEntry, file) => {
         updateUpload(file.id, {isExtractingMetadata: true});
         extractMetadata.mutate(
@@ -146,7 +133,7 @@ export function useTrackUploader(options: Options) {
   const openFilePicker = useCallback(async () => {
     const files = await openUploadWindow({
       multiple: true,
-      types: restrictions.allowedFileTypes,
+      types: restrictions?.allowedFileTypes,
     });
     await uploadTracks(files);
   }, [uploadTracks, restrictions]);

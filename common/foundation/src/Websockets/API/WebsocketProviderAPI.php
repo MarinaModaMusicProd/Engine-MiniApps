@@ -10,9 +10,7 @@ abstract class WebsocketProviderAPI
 {
     protected array $cache = [];
 
-    public function __construct(protected array $options = [])
-    {
-    }
+    public function __construct(protected array $options = []) {}
 
     abstract public function getAllChannels(): Collection;
 
@@ -22,7 +20,9 @@ abstract class WebsocketProviderAPI
 
     protected function getClient(): PendingRequest
     {
-        return Http::throwIf($this->options['throw'] ?? false);
+        return Http::withOptions([
+            'verify' => false,
+        ])->throwIf($this->options['throw'] ?? false);
     }
 
     protected function makeRequestWithCaching(string $path, array $params = [])
@@ -33,9 +33,7 @@ abstract class WebsocketProviderAPI
             return $this->cache[$cacheKey];
         }
 
-        $response = $this->getClient()
-            ->get($path, $params)
-            ->json();
+        $response = $this->getClient()->get($path, $params)->json();
 
         $this->cache[$cacheKey] = $response;
 

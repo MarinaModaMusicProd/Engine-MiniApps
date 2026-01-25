@@ -13,6 +13,7 @@ class ChannelContentOrderController extends BaseController
         $channel = Channel::findOrFail($channelId);
 
         $this->authorize('update', $channel);
+        $this->blockOnDemoSite();
 
         $data = request()->validate([
             'ids' => 'array|min:1',

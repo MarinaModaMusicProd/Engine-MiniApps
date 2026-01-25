@@ -1,0 +1,1 @@
+import{M as s}from"./main-BEfQELxr.js";import{a as t}from"./track-form-DaFc8iaY.js";function u({onTrackCreated:e,defaultValues:o}={}){const r=s({defaultValues:o}),a=t(r,{onSuccess:e});return{form:r,createTrack:a}}export{u};

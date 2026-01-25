@@ -3,17 +3,14 @@
 namespace Common\Core\Install;
 
 use Carbon\Carbon;
-use Common\Settings\Setting;
+use Common\Settings\LoadDefaultSettings;
+use Common\Settings\Models\Setting;
 
 class InsertDefaultSettings
 {
     public function execute(): void
     {
-        if (Setting::count() > 0) {
-            return;
-        }
-
-        $defaultSettings = config('common.default-settings');
+        $defaultSettings = (new LoadDefaultSettings())->execute();
 
         $names = [];
 
@@ -45,7 +42,14 @@ class InsertDefaultSettings
 
             return $setting;
         }, $defaultSettings);
+        $defaultSettings = array_filter($defaultSettings);
 
-        Setting::insert(array_filter($defaultSettings));
+        $existing = Setting::get()->pluck('name')->toArray();
+
+        $toInsert = array_filter(
+            $defaultSettings,
+            fn($setting) => !in_array($setting['name'], $existing),
+        );
+        Setting::insert($toInsert);
     }
 }

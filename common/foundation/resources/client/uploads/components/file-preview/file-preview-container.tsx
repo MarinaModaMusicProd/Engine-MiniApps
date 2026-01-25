@@ -1,27 +1,27 @@
-import {AnimatePresence, m} from 'framer-motion';
-import {Fragment, ReactNode, useContext, useMemo} from 'react';
-import clsx from 'clsx';
-import {getPreviewForEntry} from './available-previews';
-import {FileEntry} from '../../file-entry';
-import {FilePreviewContext} from './file-preview-context';
-import {IconButton} from '@ui/buttons/icon-button';
-import {ChevronLeftIcon} from '@ui/icons/material/ChevronLeft';
-import {ChevronRightIcon} from '@ui/icons/material/ChevronRight';
-import {FileDownloadIcon} from '@ui/icons/material/FileDownload';
-import {downloadFileFromUrl} from '@ui/utils/files/download-file-from-url';
-import {useFileEntryUrls} from '../../file-entry-urls';
-import {Trans} from '@ui/i18n/trans';
-import {Button} from '@ui/buttons/button';
-import {CloseIcon} from '@ui/icons/material/Close';
+import {FilePreviewEntry} from '@common/uploads/components/file-preview/file-preview-entry';
 import {FileThumbnail} from '@common/uploads/components/file-type-icon/file-thumbnail';
-import {useMediaQuery} from '@ui/utils/hooks/use-media-query';
-import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
-import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
 import {useControlledState} from '@react-stately/utils';
 import {opacityAnimation} from '@ui/animation/opacity-animation';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
+import {ChevronLeftIcon} from '@ui/icons/material/ChevronLeft';
+import {ChevronRightIcon} from '@ui/icons/material/ChevronRight';
+import {CloseIcon} from '@ui/icons/material/Close';
+import {FileDownloadIcon} from '@ui/icons/material/FileDownload';
+import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
+import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
+import {downloadFileFromUrl} from '@ui/utils/files/download-file-from-url';
+import {useMediaQuery} from '@ui/utils/hooks/use-media-query';
+import clsx from 'clsx';
+import {AnimatePresence, m} from 'framer-motion';
+import {Fragment, ReactNode, useContext, useMemo} from 'react';
+import {useFileEntryUrls} from '../../file-entry-urls';
+import {getPreviewForEntry} from './available-previews';
+import {FilePreviewContext} from './file-preview-context';
 
 export interface FilePreviewContainerProps {
-  entries: FileEntry[];
+  entries: FilePreviewEntry[];
   activeIndex?: number;
   defaultActiveIndex?: number;
   onActiveIndexChange?: (index: number) => void;
@@ -170,7 +170,7 @@ function Header({
     : desktopDownloadButton;
 
   return (
-    <div className="flex min-h-50 flex-shrink-0 items-center justify-between gap-20 border-b bg-paper px-10 text-sm text-muted">
+    <div className="flex min-h-50 flex-shrink-0 items-center justify-between gap-20 border-b bg-elevated px-10 text-sm text-muted">
       <div className="flex w-1/3 items-center justify-start gap-4">
         {actionsLeft}
         {allowDownload ? downloadButton : undefined}

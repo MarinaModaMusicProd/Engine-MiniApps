@@ -5,15 +5,17 @@
 @endsection
 
 @section('body')
-    <h1>{{ $playlist->name }}</h1>
+    <h1>{{ $playlist['name'] }}</h1>
 
-    <p>{{$playlist->description}}</p>
+    <p>{{ $playlist['description'] }}</p>
 
-    @if ($image = $playlist->image)
-        <img src="{{urls()->image($image)}}" alt="">
+    @if (isset($playlist['image']))
+        <img src="{{ urls()->image($playlist['image']) }}" alt="" />
     @endif
 
-    @foreach($tracks as $track)
-        <li><a href="{{ urls()->track($track) }}">{{ $track['name'] }}</a></li>
+    @foreach ($tracks['data'] as $track)
+        <li>
+            <a href="{{ urls()->track($track) }}">{{ $track['name'] }}</a>
+        </li>
     @endforeach
 @endsection

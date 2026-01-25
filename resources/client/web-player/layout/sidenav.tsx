@@ -1,24 +1,26 @@
-import {useSettings} from '@ui/settings/use-settings';
-import {Link, NavLink} from 'react-router-dom';
-import {useTrans} from '@ui/i18n/use-trans';
-import {useIsDarkMode} from '@ui/themes/use-is-dark-mode';
-import {CustomMenu} from '@common/menus/custom-menu';
-import {Trans} from '@ui/i18n/trans';
-import {IconButton} from '@ui/buttons/icon-button';
-import {PlaylistAddIcon} from '@ui/icons/material/PlaylistAdd';
-import {ReactNode} from 'react';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {appQueries} from '@app/app-queries';
+import {useCanOffline} from '@app/offline/use-can-offline';
+import {webPlayerSidebarIcons} from '@app/web-player/layout/web-player-sidebar-icons';
 import {CreatePlaylistDialog} from '@app/web-player/playlists/crupdate-dialog/create-playlist-dialog';
-import {useAuthUserPlaylists} from '@app/web-player/playlists/requests/use-auth-user-playlists';
 import {getPlaylistLink} from '@app/web-player/playlists/playlist-link';
-import clsx from 'clsx';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
+import {useAuth} from '@common/auth/use-auth';
+import {CustomMenu, CustomMenuItem} from '@common/menus/custom-menu';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {useQuery} from '@tanstack/react-query';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
+import {PlaylistAddIcon} from '@ui/icons/material/PlaylistAdd';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useSettings} from '@ui/settings/use-settings';
+import clsx from 'clsx';
+import {ReactNode} from 'react';
+import {NavLink} from 'react-router';
 
 const menuItemClassName = (isActive: boolean): string => {
   return clsx(
-    'h-44 px-12 mx-12 hover:bg-hover rounded-button',
-    isActive && 'text-primary',
+    'h-44 px-12 mx-12 rounded-panel transition-button',
+    isActive ? 'bg-selected font-semibold' : 'hover:bg-hover',
   );
 };
 
@@ -26,29 +28,51 @@ interface Props {
   className?: string;
 }
 export function Sidenav({className}: Props) {
+  const canOffline = useCanOffline();
+  const {homepage} = useSettings();
+  const {isLoggedIn} = useAuth();
   return (
-    <div className={clsx('overflow-y-auto border-r bg-alt py-12', className)}>
-      <Logo />
+    <div className={clsx('overflow-y-auto py-12', className)}>
       <CustomMenu
-        className="mt-24 items-stretch"
+        className="items-stretch"
         menu="sidebar-primary"
         orientation="vertical"
         gap="gap-none"
-        iconClassName="text-muted"
         itemClassName={({isActive}) => menuItemClassName(isActive)}
-      />
+        defaultIcons={webPlayerSidebarIcons}
+      >
+        {(_, {item, ...props}) => {
+          // make sure "home" menu item leads to homepage channel and not landing page,
+          // when homepage is set to landing page and user is not logged in.
+          if (
+            item.action === '/' &&
+            homepage?.type === 'landingPage' &&
+            !isLoggedIn
+          ) {
+            item.action = '/discover';
+          }
+          return <CustomMenuItem key={item.id} item={item} {...props} />;
+        }}
+      </CustomMenu>
       <div className="mt-48">
         <SectionTitle>
-          <Trans message="Your Music" />
+          <Trans message="Library" />
         </SectionTitle>
         <CustomMenu
-          className="mt-12 items-stretch text-sm"
+          className="mt-12 items-stretch"
           menu="sidebar-secondary"
           orientation="vertical"
           gap="gap-none"
-          iconClassName="text-muted"
           itemClassName={({isActive}) => menuItemClassName(isActive)}
-        />
+          defaultIcons={webPlayerSidebarIcons}
+        >
+          {(item, props) => {
+            return item.action === '/library/downloads' &&
+              !canOffline ? null : (
+              <CustomMenuItem key={item.id} {...props} />
+            );
+          }}
+        </CustomMenu>
         <PlaylistSection />
       </div>
     </div>
@@ -66,29 +90,8 @@ function SectionTitle({children}: SectionTitleProps) {
   );
 }
 
-function Logo() {
-  const {branding} = useSettings();
-  const {trans} = useTrans();
-  const isDarkMode = useIsDarkMode();
-  const logoUrl = isDarkMode ? branding.logo_light : branding.logo_dark;
-
-  return (
-    <Link
-      to="/"
-      className="mx-18 block flex-shrink-0"
-      aria-label={trans({message: 'Go to homepage'})}
-    >
-      <img
-        className="block h-56 w-auto max-w-[188px] object-contain"
-        src={logoUrl}
-        alt={trans({message: 'Site logo'})}
-      />
-    </Link>
-  );
-}
-
 function PlaylistSection() {
-  const {data} = useAuthUserPlaylists();
+  const {data} = useQuery(appQueries.playlists.compactAuthUserPlaylists());
   const navigate = useNavigate();
   const authHandler = useAuthClickCapture();
 
@@ -115,12 +118,12 @@ function PlaylistSection() {
           <CreatePlaylistDialog />
         </DialogTrigger>
       </div>
-      {data?.playlists?.map(playlist => (
+      {data?.map(playlist => (
         <NavLink
           to={getPlaylistLink(playlist)}
           key={playlist.id}
           className={({isActive}) =>
-            clsx(menuItemClassName(isActive), 'flex items-center text-sm')
+            clsx(menuItemClassName(isActive), 'flex items-center')
           }
         >
           <div className="overflow-hidden overflow-ellipsis">

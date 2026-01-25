@@ -1,7 +1,7 @@
 import React, {ComponentPropsWithoutRef, forwardRef, Ref} from 'react';
-import type {TextFieldProps} from './text-field';
 import {Field} from '../field';
 import {getInputFieldClassNames} from '../get-input-field-class-names';
+import type {TextFieldProps} from './text-field';
 
 interface Props extends TextFieldProps {
   labelProps?: ComponentPropsWithoutRef<'label'>;
@@ -25,6 +25,7 @@ export const TextFieldBase = forwardRef<HTMLDivElement, Props>((props, ref) => {
     errorMessage,
     description,
     labelProps,
+    labelClassName,
     inputProps,
     inputRef,
     descriptionProps,
@@ -46,6 +47,7 @@ export const TextFieldBase = forwardRef<HTMLDivElement, Props>((props, ref) => {
       ref={ref}
       label={label}
       labelProps={labelProps}
+      labelClassName={labelClassName}
       startAdornment={startAdornment}
       endAdornment={endAdornment}
       startAppend={startAppend}

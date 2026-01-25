@@ -1,11 +1,11 @@
-import React, {ReactElement, useEffect} from 'react';
-import {VirtualElement} from '@floating-ui/react-dom';
-import {ListBoxChildren, ListboxProps} from '@ui/forms/listbox/types';
-import {useListbox} from '@ui/forms/listbox/use-listbox';
-import {Menu} from '@ui/menu/menu-trigger';
-import {useListboxKeyboardNavigation} from '@ui/forms/listbox/use-listbox-keyboard-navigation';
-import {useTypeSelect} from '@ui/forms/listbox/use-type-select';
-import {Listbox} from '@ui/forms/listbox/listbox';
+import { VirtualElement } from '@floating-ui/react-dom';
+import { Listbox } from '@ui/forms/listbox/listbox';
+import { ListBoxChildren, ListboxProps } from '@ui/forms/listbox/types';
+import { useListbox } from '@ui/forms/listbox/use-listbox';
+import { useListboxKeyboardNavigation } from '@ui/forms/listbox/use-listbox-keyboard-navigation';
+import { useTypeSelect } from '@ui/forms/listbox/use-type-select';
+import { Menu } from '@ui/menu/menu-trigger';
+import { ReactElement, useEffect } from 'react';
 
 const preventContextOnMenu = (e: MouseEvent) => {
   e.preventDefault();
@@ -26,7 +26,7 @@ export function ContextMenu({position, children, ...props}: Props) {
     focusLoopingMode: 'loop',
     children:
       (children as ReactElement)?.type === Menu
-        ? (children as ReactElement).props.children
+        ? (children as ReactElement<ListBoxChildren<any>>).props.children
         : children,
   });
   const {

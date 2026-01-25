@@ -20,7 +20,11 @@ class AnalyticsCredentialsValidator
         $this->setConfigDynamically($settings);
 
         try {
-            app(BuildGoogleAnalyticsReport::class)->execute([]);
+            (new BuildGoogleAnalyticsReport([
+                'startDate' => now()->subMonth(),
+                'endDate' => now(),
+                'timezone' => config('app.timezone'),
+            ]))->execute();
         } catch (Exception $e) {
             return [
                 'analytics_group' => "Invalid credentials: {$e->getMessage()}",

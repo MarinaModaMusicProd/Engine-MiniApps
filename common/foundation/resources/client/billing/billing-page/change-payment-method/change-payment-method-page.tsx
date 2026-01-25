@@ -1,18 +1,19 @@
-import {Trans} from '@ui/i18n/trans';
 import {Button} from '@ui/buttons/button';
-import {Link} from 'react-router-dom';
-import {StripeElementsForm} from '../../checkout/stripe/stripe-elements-form';
+import {Trans} from '@ui/i18n/trans';
 import {useSettings} from '@ui/settings/use-settings';
+import {Link} from 'react-router';
+import {StripeElementsForm} from '../../checkout/stripe/stripe-elements-form';
 
 const previousUrl = '/billing';
 
-export function ChangePaymentMethodPage() {
+export function Component() {
   const {base_url} = useSettings();
 
   return (
     <div className="max-w-[464px]">
       <StripeElementsForm
-        type="setupIntent"
+        confirmType="confirmSetup"
+        createType="setupIntent"
         submitLabel={<Trans message="Change" />}
         returnUrl={`${base_url}/billing/change-payment-method/done`}
       />

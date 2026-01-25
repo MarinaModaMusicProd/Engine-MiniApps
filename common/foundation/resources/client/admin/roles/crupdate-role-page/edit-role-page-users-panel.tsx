@@ -1,52 +1,50 @@
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
+import {validateUserIndexSearch} from '@common/admin/users/validate-user-index-search';
 import {Role} from '@common/auth/role';
+import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
 import {ColumnConfig} from '@common/datatable/column-config';
-import {User} from '@ui/types/user';
-import {Trans} from '@ui/i18n/trans';
 import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import React from 'react';
-import teamSvg from '../team.svg';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {Button} from '@ui/buttons/button';
-import {SelectUserDialog} from '@common/users/select-user-dialog';
-import {queryClient} from '@common/http/query-client';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
+import {DataTableHeader} from '@common/datatable/data-table-header';
+import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
+import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
 import {DataTableEmptyStateMessage} from '@common/datatable/page/data-table-emty-state-message';
-import {useDataTable} from '@common/datatable/page/data-table-context';
+import {DatatablePageScrollContainer} from '@common/datatable/page/datatable-page-with-header-layout';
+import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
+import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
+import {queryClient} from '@common/http/query-client';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
+import {Table} from '@common/ui/tables/table';
+import {SelectUserDialog} from '@common/users/select-user-dialog';
+import {keepPreviousData, useSuspenseQuery} from '@tanstack/react-query';
+import {Button} from '@ui/buttons/button';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {Trans} from '@ui/i18n/trans';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import {useRemoveUsersFromRole} from '../requests/use-remove-users-from-role';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {User} from '@ui/types/user';
+import {useState} from 'react';
 import {useAddUsersToRole} from '../requests/use-add-users-to-role';
-import {DataTable} from '@common/datatable/data-table';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {useRemoveUsersFromRole} from '../requests/use-remove-users-from-role';
+import teamSvg from '../team.svg';
 
-const userColumn: ColumnConfig<User> = {
-  key: 'name',
-  allowsSorting: true,
-  sortingKey: 'email',
-  header: () => <Trans message="User" />,
-  body: user => (
-    <NameWithAvatar
-      image={user.image}
-      label={user.name}
-      description={user.email}
-    />
-  ),
-  width: 'col-w-3',
-};
-
-const desktopColumns: ColumnConfig<User>[] = [
-  userColumn,
+const columns: ColumnConfig<User>[] = [
   {
-    key: 'first_name',
+    key: 'email',
     allowsSorting: true,
-    header: () => <Trans message="First name" />,
-    body: user => user.first_name,
-  },
-  {
-    key: 'last_name',
-    allowsSorting: true,
-    header: () => <Trans message="Last name" />,
-    body: user => user.last_name,
+    sortingKey: 'email',
+    visibleInMode: 'all',
+    header: () => <Trans message="User" />,
+    body: user => {
+      return (
+        <NameWithAvatar
+          image={user.image}
+          label={user.name ?? <Trans message="Visitor" />}
+          description={user.email}
+          alwaysShowAvatar
+          avatarLabel="Visitor"
+        />
+      );
+    },
   },
   {
     key: 'created_at',
@@ -56,17 +54,11 @@ const desktopColumns: ColumnConfig<User>[] = [
   },
 ];
 
-const mobileColumns: ColumnConfig<User>[] = [userColumn];
+export function Component() {
+  const {roleId} = useRequiredParams(['roleId']);
+  const roleQuery = useSuspenseQuery(commonAdminQueries.roles.get(roleId));
 
-interface CrupdateRolePageUsersPanelProps {
-  role: Role;
-}
-export function EditRolePageUsersPanel({
-  role,
-}: CrupdateRolePageUsersPanelProps) {
-  const isMobile = useIsMobileMediaQuery();
-
-  if (role.guests || role.type === 'workspace') {
+  if (roleQuery.data.role.guests || roleQuery.data.role.type === 'workspace') {
     return (
       <div className="pb-10 pt-30">
         <DataTableEmptyStateMessage
@@ -77,23 +69,66 @@ export function EditRolePageUsersPanel({
     );
   }
 
+  return <UsersTable role={roleQuery.data.role} />;
+}
+
+interface UsersTableProps {
+  role: Role;
+}
+function UsersTable({role}: UsersTableProps) {
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const {
+    searchParams,
+    sortDescriptor,
+    mergeIntoSearchParams,
+    setSearchQuery,
+    isFiltering,
+  } = useDatatableSearchParams(validateUserIndexSearch);
+
+  const query = useDatatableQuery({
+    ...commonAdminQueries.users.index({...searchParams, roleId: `${role.id}`}),
+    placeholderData: keepPreviousData,
+  });
+
   return (
-    <DataTable
-      endpoint="users"
-      columns={isMobile ? mobileColumns : desktopColumns}
-      queryParams={{roleId: `${role.id}`}}
-      actions={<AssignUserAction role={role} />}
-      selectedActions={<RemoveUsersAction role={role} />}
-      emptyStateMessage={
-        <DataTableEmptyStateMessage
-          image={teamSvg}
-          title={
-            <Trans message="No users have been assigned to this role yet" />
-          }
-          filteringTitle={<Trans message="No matching users" />}
+    <div>
+      <GlobalLoadingProgress query={query} />
+      <DataTableHeader
+        searchValue={searchParams.query}
+        onSearchChange={setSearchQuery}
+        actions={<AssignUserAction role={role} />}
+        selectedItems={selectedIds}
+        selectedActions={
+          <RemoveUsersAction role={role} selectedIds={selectedIds} />
+        }
+      />
+      <DatatablePageScrollContainer>
+        <Table
+          columns={columns}
+          data={query.items}
+          sortDescriptor={sortDescriptor}
+          onSortChange={mergeIntoSearchParams}
+          enableSelection
+          selectedRows={selectedIds}
+          onSelectionChange={ids => setSelectedIds(ids as number[])}
         />
-      }
-    />
+        {query.isEmpty ? (
+          <DataTableEmptyStateMessage
+            image={teamSvg}
+            isFiltering={isFiltering}
+            title={
+              <Trans message="No users have been assigned to this role yet" />
+            }
+            filteringTitle={<Trans message="No matching users" />}
+          />
+        ) : null}
+        <DataTablePaginationFooter
+          query={query}
+          onPageChange={page => mergeIntoSearchParams({page})}
+          onPerPageChange={perPage => mergeIntoSearchParams({perPage})}
+        />
+      </DatatablePageScrollContainer>
+    </div>
   );
 }
 
@@ -132,10 +167,10 @@ function AssignUserAction({role}: AssignUserActionProps) {
 
 type RemoveUsersActionProps = {
   role: Role;
+  selectedIds: number[];
 };
-export function RemoveUsersAction({role}: RemoveUsersActionProps) {
+export function RemoveUsersAction({role, selectedIds}: RemoveUsersActionProps) {
   const removeUsers = useRemoveUsersFromRole(role);
-  const {selectedRows} = useDataTable();
 
   return (
     <DialogTrigger
@@ -143,13 +178,11 @@ export function RemoveUsersAction({role}: RemoveUsersActionProps) {
       onClose={isConfirmed => {
         if (isConfirmed) {
           removeUsers.mutate(
-            {userIds: selectedRows as number[]},
+            {userIds: selectedIds},
             {
               onSuccess: () => {
                 queryClient.invalidateQueries({
-                  queryKey: DatatableDataQueryKey('users', {
-                    roleId: `${role.id}`,
-                  }),
+                  queryKey: commonAdminQueries.users.invalidateKey,
                 });
               },
             },
@@ -161,13 +194,10 @@ export function RemoveUsersAction({role}: RemoveUsersActionProps) {
         <Trans message="Remove users" />
       </Button>
       <ConfirmationDialog
-        title={
-          <Trans
-            message="Remove [one 1 user|other :count users] from “:name“ role?"
-            values={{count: selectedRows.length, name: role.name}}
-          />
+        title={<Trans message="Remove users from role?" />}
+        body={
+          <Trans message="This will permanently remove the users from this role." />
         }
-        body={<Trans message="This will permanently remove the users." />}
         confirm={<Trans message="Remove" />}
         isDanger
       />

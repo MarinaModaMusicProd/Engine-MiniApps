@@ -2,7 +2,7 @@
 
 namespace Common\Csv;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Common\Core\BaseController;
 use Common\Csv\BaseCsvExportJob;

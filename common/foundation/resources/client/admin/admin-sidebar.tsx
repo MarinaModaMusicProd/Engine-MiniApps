@@ -1,47 +1,100 @@
-import clsx from 'clsx';
-import React from 'react';
-import {CustomMenu} from '../menus/custom-menu';
+import {AdminSidebarIcons} from '@app/admin/admin-config';
+import {useAuth} from '@common/auth/use-auth';
+import {UserAvatar, UserAvatarProps} from '@common/auth/user-avatar';
+import {NotificationsDialog} from '@common/notifications/dialog/notification-dialog-trigger';
+import {DashboardLayoutContext} from '@common/ui/dashboard-layout/dashboard-layout-context';
+import {
+  DashboardLeftSidebar,
+  DashboardLeftSidebarItem,
+} from '@common/ui/dashboard-layout/dashboard-left-sidebar';
+import {DashboardSidenavChildrenProps} from '@common/ui/dashboard-layout/dashboard-sidenav';
+import {NavbarAuthMenu} from '@common/ui/navigation/navbar/navbar-auth-menu';
+import {Badge} from '@ui/badge/badge';
 import {Trans} from '@ui/i18n/trans';
-import {useSettings} from '@ui/settings/use-settings';
+import {KeyboardArrowUpIcon} from '@ui/icons/material/KeyboardArrowUp';
+import {NotificationsIcon} from '@ui/icons/material/Notifications';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Fragment, JSXElementConstructor, useContext} from 'react';
 
-interface Props {
-  className?: string;
-  isCompactMode?: boolean;
-}
-export function AdminSidebar({className, isCompactMode}: Props) {
-  const {version} = useSettings();
+export function AdminSidebar(props: DashboardSidenavChildrenProps) {
+  const {isMobileMode, leftSidenavStatus} = useContext(DashboardLayoutContext);
+  const isCompactMode = !isMobileMode && leftSidenavStatus === 'compact';
+
+  const bottomContent = (
+    <Fragment>
+      <AdminSidebarNotificationsItem isCompact={isCompactMode} />
+      <AdminSidebarAuthUserItem isCompact={isCompactMode} />
+    </Fragment>
+  );
+
   return (
-    <div
-      className={clsx(
-        className,
-        isCompactMode ? 'p-6' : 'px-12 pb-16 pt-26',
-        'hidden-scrollbar relative flex flex-col gap-20 overflow-y-auto border-r bg-alt text-sm font-medium text-muted',
+    <DashboardLeftSidebar
+      {...props}
+      defaultIcons={AdminSidebarIcons}
+      matchDescendants={to => to === '/admin'}
+      menuName="admin-sidebar"
+      bottomContent={bottomContent}
+      showToggleSidebarButton={false}
+    />
+  );
+}
+
+interface AdminSidebarNotificationsItemProps {
+  isCompact: boolean;
+}
+export function AdminSidebarNotificationsItem({
+  isCompact,
+}: AdminSidebarNotificationsItemProps) {
+  const {user} = useAuth();
+  const hasUnread = !!user?.unread_notifications_count;
+  return (
+    <DialogTrigger type="popover" placement="top">
+      <DashboardLeftSidebarItem isCompact={isCompact} className="relative">
+        <NotificationsIcon />
+        <Trans message="Notifications" />
+        {hasUnread ? (
+          <Badge>{user?.unread_notifications_count}</Badge>
+        ) : undefined}
+      </DashboardLeftSidebarItem>
+      <NotificationsDialog settingsLink={null} />
+    </DialogTrigger>
+  );
+}
+
+interface AuthUserItemProps {
+  isCompact: boolean;
+  avatar?: JSXElementConstructor<UserAvatarProps>;
+  accountSettingsLink?: string;
+}
+export function AdminSidebarAuthUserItem({
+  isCompact,
+  avatar: propsAvatar,
+  accountSettingsLink,
+}: AuthUserItemProps) {
+  const {user} = useAuth();
+  if (!user) return null;
+
+  const ItemAvatar = propsAvatar || UserAvatar;
+  const avatar = <ItemAvatar user={user} size="w-32 h-32" />;
+
+  return (
+    <NavbarAuthMenu placement="top" accountSettingsLink={accountSettingsLink}>
+      {isCompact ? (
+        <button
+          aria-label="toggle authentication menu"
+          className="flex h-48 w-48 items-center justify-center rounded-panel hover:bg-hover"
+        >
+          {avatar}
+        </button>
+      ) : (
+        <button className="flex w-full items-center rounded-panel px-12 py-8 hover:bg-hover">
+          {avatar}
+          <span className="ml-8 block min-w-0 overflow-x-hidden overflow-ellipsis whitespace-nowrap text-sm">
+            {user.name}
+          </span>
+          <KeyboardArrowUpIcon size="xs" className="ml-auto block" />
+        </button>
       )}
-    >
-      <CustomMenu
-        matchDescendants={to => to === '/admin'}
-        menu="admin-sidebar"
-        orientation="vertical"
-        onlyShowIcons={isCompactMode}
-        iconSize={isCompactMode ? 'md' : 'sm'}
-        itemClassName={({isActive}) =>
-          clsx(
-            'w-full rounded-button',
-            isCompactMode
-              ? 'w-48 h-48 items-center justify-center'
-              : 'py-12 px-16 block',
-            isActive
-              ? 'bg-primary/6 text-primary font-semibold'
-              : 'hover:bg-hover',
-          )
-        }
-        gap={isCompactMode ? 'gap-2' : 'gap-8'}
-      />
-      {!isCompactMode && (
-        <div className="mt-auto gap-14 px-16 text-xs">
-          <Trans message="Version: :number" values={{number: version}} />
-        </div>
-      )}
-    </div>
+    </NavbarAuthMenu>
   );
 }

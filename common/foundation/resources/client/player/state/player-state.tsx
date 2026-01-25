@@ -1,7 +1,7 @@
 import {MediaItem} from '@common/player/media-item';
-import type {createPlayerStore} from '@common/player/state/player-store';
 import {PlayerEvents} from '@common/player/state/player-events';
 import {PlayerProviderApi} from '@common/player/state/player-provider-api';
+import type {createPlayerStore} from '@common/player/state/player-store';
 import {PlayerStoreOptions} from '@common/player/state/player-store-options';
 
 export type RepeatMode = 'one' | 'all' | false;
@@ -75,7 +75,7 @@ export interface PlayerState {
   shuffling: boolean;
   toggleShuffling: () => void;
 
-  posterUrl?: string;
+  posterUrl?: string | null;
 
   textTrackIsVisible: boolean;
   setTextTrackVisibility: (isVisible: boolean) => void;
@@ -100,7 +100,7 @@ export interface PlayerState {
   seek: (time: number | string) => void;
   overrideQueue: (
     mediaItems: MediaItem[],
-    queuePointer?: number
+    queuePointer?: number,
   ) => Promise<void>;
   appendToQueue: (mediaItems: MediaItem[], afterCuedMedia?: boolean) => void;
   removeFromQueue: (mediaItems: MediaItem[]) => void;

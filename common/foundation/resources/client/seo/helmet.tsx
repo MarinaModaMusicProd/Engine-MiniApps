@@ -1,9 +1,8 @@
-import {Children, memo, ReactElement} from 'react';
-import {shallowEqual} from '@ui/utils/shallow-equal';
-import {MetaTag} from './meta-tag';
-import {TitleMetaTagChildren} from './static-page-title';
-import {useTrans, UseTransReturn} from '@ui/i18n/use-trans';
-import {isSsr} from '@ui/utils/dom/is-ssr';
+import { useTrans, UseTransReturn } from '@ui/i18n/use-trans';
+import { shallowEqual } from '@ui/utils/shallow-equal';
+import { Children, memo, ReactElement } from 'react';
+import { MetaTag } from './meta-tag';
+import { TitleMetaTagChildren } from './static-page-title';
 
 const rafPolyfill = (() => {
   let clock = Date.now();
@@ -22,15 +21,9 @@ const rafPolyfill = (() => {
   };
 })();
 
-const cafPolyfill = (id: string | number) => clearTimeout(id);
+const requestAnimationFrame = window.requestAnimationFrame;
 
-const requestAnimationFrame = !isSsr()
-  ? window.requestAnimationFrame
-  : global.requestAnimationFrame || rafPolyfill;
-
-const cancelAnimationFrame = !isSsr()
-  ? window.cancelAnimationFrame
-  : global.cancelAnimationFrame || cafPolyfill;
+const cancelAnimationFrame = window.cancelAnimationFrame;
 
 export const helmetAttribute = 'data-be-helmet';
 let rafId: number | null;
@@ -41,8 +34,6 @@ interface HelmetProps {
 }
 export const Helmet = memo(({children, tags}: HelmetProps) => {
   const {trans} = useTrans();
-
-  if (isSsr()) return null;
 
   if (!tags && children) {
     tags = mapChildrenToTags(children, trans);
@@ -58,14 +49,15 @@ function mapChildrenToTags(
   trans: UseTransReturn['trans'],
 ): MetaTag[] {
   return Children.map(children, child => {
+    const childProps = child.props as any;
     switch (child.type) {
       case 'title':
         return {
           nodeName: 'title',
-          _text: titleTagChildrenToString(child.props.children, trans),
+          _text: titleTagChildrenToString(childProps.children, trans),
         };
       case 'meta':
-        return {...child.props, nodeName: 'meta'};
+        return {...childProps, nodeName: 'meta'};
     }
   });
 }
@@ -86,7 +78,6 @@ function titleTagChildrenToString(
 }
 
 function removeOldTags() {
-  if (isSsr()) return;
   document.head
     .querySelectorAll(
       'meta:not([data-keep]), script[type="application/ld+json"]:not([data-keep]), title, link[rel="canonical"]',

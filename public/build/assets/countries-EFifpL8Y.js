@@ -1,0 +1,1 @@
+import{aD as a}from"./main-BEfQELxr.js";const d=a((s="en")=>{const c=new Intl.DisplayNames([s],{type:"region"}),n=[];for(let o=65;o<=90;++o)for(let e=65;e<=90;++e){const t=String.fromCharCode(o)+String.fromCharCode(e),r=c.of(t);t!==r&&r&&n.push({code:t.toLowerCase(),name:r})}return n});export{d as g};

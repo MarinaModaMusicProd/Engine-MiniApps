@@ -5,10 +5,13 @@
 
 <!DOCTYPE html>
 <html
-    lang="{{ $bootstrapData->get('language') }}"
+    lang="{{ $bootstrapData->get('i18n.active') }}"
     style="{{ $bootstrapData->initialTheme->getCssVariables() }}"
     data-theme-id="{{ $bootstrapData->initialTheme['id'] }}"
-    @class(['dark' => $bootstrapData->initialTheme['is_dark']])
+    @class([
+        'dark' => $bootstrapData->initialTheme['is_dark'],
+        'is-settings-preview' => $bootstrapData->get('is_settings_preview'),
+    ])
 >
     <head>
         <base href="{{ $htmlBaseUri }}" />
@@ -21,6 +24,21 @@
             <title>{{ settings('branding.site_name') }}</title>
         @endif
 
+        @if (config('app.service_worker_integrated'))
+            <script>
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register(
+                            '{{ url('sw.js') }}',
+                            {
+                                scope: '/',
+                            },
+                        );
+                    });
+                }
+            </script>
+        @endif
+
         <meta
             name="viewport"
             content="width=device-width, initial-scale=1, maximum-scale=5"
@@ -29,15 +47,20 @@
         <link
             rel="icon"
             type="image/x-icon"
-            href="{{url('favicon/icon-144x144.png')}}"
+            href="{{ url('favicon/icon-144x144.png') }}"
             data-keep="true"
         />
         <link
             rel="apple-touch-icon"
-            href="{{url('favicon/icon-192x192.png')}}"
+            href="{{ url('favicon/icon-192x192.png') }}"
             data-keep="true"
         />
-        <link rel="manifest" href="{{url('manifest.json')}}" data-keep="true" />
+        <link
+            rel="manifest"
+            href="{{ url('manifest.json') }}"
+            data-keep="true"
+        />
+
         <meta
             name="theme-color"
             content="rgb({{ $bootstrapData->initialTheme->getHtmlThemeColor() }})"
@@ -45,10 +68,17 @@
         />
 
         @if ($fontFamily = $bootstrapData->initialTheme->getFontFamily())
-            @if($bootstrapData->initialTheme->isGoogleFont())
-                <link rel="preconnect" href="https://fonts.googleapis.com">
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                <link href="https://fonts.googleapis.com/css2?family={{$fontFamily}}:wght@400;500;600;700&display=swap" rel="stylesheet">
+            @if ($bootstrapData->initialTheme->isGoogleFont())
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link
+                    rel="preconnect"
+                    href="https://fonts.gstatic.com"
+                    crossorigin
+                />
+                <link
+                    href="https://fonts.googleapis.com/css2?family={{ $fontFamily }}:wght@400;500;600;700&display=swap"
+                    rel="stylesheet"
+                />
             @endif
         @endif
 
@@ -85,9 +115,11 @@
             ></script>
             <script>
                 window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
+                function gtag() {
+                    dataLayer.push(arguments);
+                }
                 gtag('js', new Date());
-                gtag('config', "{{ settings('analytics.tracking_code') }}");
+                gtag('config', '{{ settings('analytics.tracking_code') }}');
             </script>
         @endif
 
@@ -97,20 +129,41 @@
     <body>
         <div id="root">
             <div class="flex h-screen w-screen items-center justify-center">
-                <svg viewBox="0 0 32 32" fill="none" stroke-width="3" class="progress-circle indeterminate overflow-hidden w-40 h-40">
-                    <circle cx="16" cy="16" r="13" role="presentation" stroke-dasharray="81.68140899333463 81.68140899333463" stroke-dashoffset="0" transform="rotate(-90 16 16)"  class="progress-circle-track"></circle>
-                    <circle cx="16" cy="16" r="13" role="presentation" stroke-dasharray="81.68140899333463 81.68140899333463" stroke-dashoffset="61.26105674500097" transform="rotate(-90 16 16)"  class="progress-circle-fill"></circle>
+                <svg
+                    viewBox="0 0 32 32"
+                    fill="none"
+                    stroke-width="3"
+                    class="progress-circle indeterminate h-40 w-40 overflow-hidden"
+                >
+                    <circle
+                        cx="16"
+                        cy="16"
+                        r="13"
+                        role="presentation"
+                        stroke-dasharray="81.68140899333463 81.68140899333463"
+                        stroke-dashoffset="0"
+                        transform="rotate(-90 16 16)"
+                        class="progress-circle-track"
+                    ></circle>
+                    <circle
+                        cx="16"
+                        cy="16"
+                        r="13"
+                        role="presentation"
+                        stroke-dasharray="81.68140899333463 81.68140899333463"
+                        stroke-dashoffset="61.26105674500097"
+                        transform="rotate(-90 16 16)"
+                        class="progress-circle-fill"
+                    ></circle>
                 </svg>
             </div>
         </div>
 
-        @if (! isset($ssrContent))
-            <noscript>
-                You need to have javascript enabled in order to use
-                <strong>{{ config('app.name') }}</strong>
-                .
-            </noscript>
-        @endif
+        <noscript>
+            You need to have javascript enabled in order to use
+            <strong>{{ config('app.name') }}</strong>
+            .
+        </noscript>
 
         @yield('body-end')
     </body>

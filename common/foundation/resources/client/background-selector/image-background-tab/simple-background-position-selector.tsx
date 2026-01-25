@@ -1,9 +1,9 @@
-import {RadioGroup} from '@ui/forms/radio-group/radio-group';
-import {Radio} from '@ui/forms/radio-group/radio';
-import {Trans} from '@ui/i18n/trans';
-import {MessageDescriptor} from '@ui/i18n/message-descriptor';
-import {message} from '@ui/i18n/message';
 import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {Radio} from '@ui/forms/radio-group/radio';
+import {RadioGroup} from '@ui/forms/radio-group/radio-group';
+import {message} from '@ui/i18n/message';
+import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {Trans} from '@ui/i18n/trans';
 
 const BackgroundPositions: Record<
   'cover' | 'contain' | 'repeat',
@@ -59,22 +59,26 @@ export function SimpleBackgroundPositionSelector<
   const selectedPosition = positionKeyFromValue(imageBgValue);
   return (
     <div className={className}>
-      <RadioGroup size="sm" disabled={!imageBgValue}>
+      <RadioGroup
+        size="sm"
+        disabled={!imageBgValue}
+        value={selectedPosition}
+        onChange={value => {
+          if (imageBgValue) {
+            onChange?.({
+              ...imageBgValue,
+              ...BackgroundPositions[value as keyof typeof BackgroundPositions]
+                .bgConfig,
+            });
+          }
+        }}
+      >
         {Object.entries(BackgroundPositions).map(([key, position]) => (
           <Radio
             key={key}
             disabled={disabled}
             name="background-position"
             value={key}
-            checked={key === selectedPosition}
-            onChange={e => {
-              if (imageBgValue) {
-                onChange?.({
-                  ...imageBgValue,
-                  ...position.bgConfig,
-                });
-              }
-            }}
           >
             {compactLabels ? (
               <Trans {...(position.compactLabel ?? position.label)} />

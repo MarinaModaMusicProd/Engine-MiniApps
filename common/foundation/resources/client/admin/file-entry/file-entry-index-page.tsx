@@ -1,23 +1,46 @@
-import React, {Fragment} from 'react';
-import {DataTablePage} from '../../datatable/page/data-table-page';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
+import {DocsLink} from '@common/admin/settings/layout/settings-links';
+import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
+import {DataTableHeader} from '@common/datatable/data-table-header';
+import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
+import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
+import {validateDatatableSearch} from '@common/datatable/filters/utils/validate-datatable-search';
+import {DatatableFilters} from '@common/datatable/page/datatable-filters';
+import {
+  DatatablePageHeaderBar,
+  DatatablePageScrollContainer,
+  DatatablePageWithHeaderBody,
+  DatatablePageWithHeaderLayout,
+} from '@common/datatable/page/datatable-page-with-header-layout';
+import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {Table} from '@common/ui/tables/table';
+import {FilePreviewDialog} from '@common/uploads/components/file-preview/file-preview-dialog';
+import {FileTypeIcon} from '@common/uploads/components/file-type-icon/file-type-icon';
+import {useMutation} from '@tanstack/react-query';
+import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
+import {FormattedBytes} from '@ui/i18n/formatted-bytes';
 import {FormattedDate} from '@ui/i18n/formatted-date';
-import {ColumnConfig} from '../../datatable/column-config';
+import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
-import {DeleteSelectedItemsAction} from '../../datatable/page/delete-selected-items-action';
-import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {FileEntry} from '../../uploads/file-entry';
-import {NameWithAvatar} from '../../datatable/column-templates/name-with-avatar';
 import {CheckIcon} from '@ui/icons/material/Check';
 import {CloseIcon} from '@ui/icons/material/Close';
-import {FormattedBytes} from '@ui/i18n/formatted-bytes';
 import {VisibilityIcon} from '@ui/icons/material/Visibility';
-import uploadSvg from './upload.svg';
-import {FilePreviewDialog} from '@common/uploads/components/file-preview/file-preview-dialog';
-import {FILE_ENTRY_INDEX_FILTERS} from './file-entry-index-filters';
-import {FileTypeIcon} from '@common/uploads/components/file-type-icon/file-type-icon';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {toast} from '@ui/toast/toast';
 import {User} from '@ui/types/user';
+import {Fragment, useState} from 'react';
+import {ColumnConfig} from '../../datatable/column-config';
+import {NameWithAvatar} from '../../datatable/column-templates/name-with-avatar';
+import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
+import {FileEntry} from '../../uploads/file-entry';
+import {FILE_ENTRY_INDEX_FILTERS} from './file-entry-index-filters';
+import uploadSvg from './upload.svg';
 
 const columnConfig: ColumnConfig<FileEntry>[] = [
   {
@@ -111,21 +134,118 @@ const columnConfig: ColumnConfig<FileEntry>[] = [
   },
 ];
 
-export function FileEntryIndexPage() {
+export function Component() {
+  const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
+  const {
+    searchParams,
+    sortDescriptor,
+    mergeIntoSearchParams,
+    setSearchQuery,
+    isFiltering,
+  } = useDatatableSearchParams(validateDatatableSearch);
+
+  const query = useDatatableQuery(
+    commonAdminQueries.fileEntries.index(searchParams),
+  );
+
+  const selectedActions = (
+    <DialogTrigger type="modal">
+      <Button variant="flat" color="danger">
+        <Trans message="Delete" />
+      </Button>
+      <DeleteEntriesDialog
+        selectedIds={selectedIds}
+        onDelete={() => setSelectedIds([])}
+      />
+    </DialogTrigger>
+  );
+
   return (
-    <DataTablePage
-      endpoint="file-entries"
-      title={<Trans message="Uploaded files and folders" />}
-      columns={columnConfig}
-      filters={FILE_ENTRY_INDEX_FILTERS}
-      selectedActions={<DeleteSelectedItemsAction />}
-      emptyStateMessage={
-        <DataTableEmptyStateMessage
-          image={uploadSvg}
-          title={<Trans message="Nothing has been uploaded yet" />}
-          filteringTitle={<Trans message="No matching files or folders" />}
+    <DatatablePageWithHeaderLayout>
+      <GlobalLoadingProgress query={query} />
+      <DatatablePageHeaderBar
+        title={<Trans message="Uploaded files and folders" />}
+        showSidebarToggleButton
+        rightContent={
+          <DocsLink
+            variant="button"
+            link={AdminDocsUrls.pages.files}
+            size="xs"
+          />
+        }
+      />
+      <DatatablePageWithHeaderBody>
+        <DataTableHeader
+          searchValue={searchParams.query}
+          onSearchChange={setSearchQuery}
+          selectedItems={selectedIds}
+          selectedActions={selectedActions}
+          filters={FILE_ENTRY_INDEX_FILTERS}
+        />
+        <DatatableFilters filters={FILE_ENTRY_INDEX_FILTERS} />
+        <DatatablePageScrollContainer>
+          <Table
+            columns={columnConfig}
+            data={query.items}
+            sortDescriptor={sortDescriptor}
+            onSortChange={mergeIntoSearchParams}
+            enableSelection
+            selectedRows={selectedIds}
+            onSelectionChange={setSelectedIds}
+          />
+          {query.isEmpty && (
+            <DataTableEmptyStateMessage
+              isFiltering={isFiltering}
+              image={uploadSvg}
+              title={<Trans message="Nothing has been uploaded yet" />}
+              filteringTitle={<Trans message="No matching files or folders" />}
+            />
+          )}
+          <DataTablePaginationFooter
+            query={query}
+            onPageChange={page => mergeIntoSearchParams({page})}
+            onPerPageChange={perPage => mergeIntoSearchParams({perPage})}
+          />
+        </DatatablePageScrollContainer>
+      </DatatablePageWithHeaderBody>
+    </DatatablePageWithHeaderLayout>
+  );
+}
+
+interface DeleteEntriesDialogProps {
+  selectedIds: (number | string)[];
+  onDelete: () => void;
+}
+function DeleteEntriesDialog({
+  selectedIds,
+  onDelete,
+}: DeleteEntriesDialogProps) {
+  const {close} = useDialogContext();
+  const deleteSelectedEntries = useMutation({
+    mutationFn: () => apiClient.delete(`file-entries/${selectedIds.join(',')}`),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: commonAdminQueries.fileEntries.invalidateKey,
+      });
+      toast(message('File entries deleted'));
+      onDelete();
+      close();
+    },
+    onError: err => showHttpErrorToast(err),
+  });
+  return (
+    <ConfirmationDialog
+      isDanger
+      isLoading={deleteSelectedEntries.isPending}
+      title={<Trans message="Delete file entries" />}
+      body={
+        <Trans
+          message="Are you sure you want to delete selected file entries?"
+          values={{count: selectedIds.length}}
         />
       }
+      confirm={<Trans message="Delete" />}
+      onConfirm={() => deleteSelectedEntries.mutate()}
     />
   );
 }

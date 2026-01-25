@@ -1,35 +1,35 @@
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {UseFormReturn} from 'react-hook-form';
-import {useMutation} from '@tanstack/react-query';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {apiClient, queryClient} from '@common/http/query-client';
+import {appQueries} from '@app/app-queries';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
 import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
+import {UseFormReturn} from 'react-hook-form';
 
 interface Response extends BackendResponse {
-  playlist: Playlist;
+  playlist: PartialPlaylist;
 }
 
 export interface CreatePlaylistPayload {
   name: string;
   public: boolean;
   collaborative: boolean;
-  image: string;
+  image: string | null;
   description: string;
 }
 
 export function useCreatePlaylist(form: UseFormReturn<CreatePlaylistPayload>) {
   return useMutation({
-    mutationFn: (props: CreatePlaylistPayload) => createPlaylist(props),
+    mutationFn: (payload: CreatePlaylistPayload) =>
+      apiClient.post<Response>('playlists', payload).then(r => r.data),
     onSuccess: () => {
       toast(message('Playlist created'));
-      queryClient.invalidateQueries({queryKey: ['playlists']});
+      queryClient.invalidateQueries({
+        queryKey: appQueries.playlists.invalidateKey,
+      });
     },
     onError: r => onFormQueryError(r, form),
   });
-}
-
-function createPlaylist(payload: CreatePlaylistPayload): Promise<Response> {
-  return apiClient.post('playlists', payload).then(r => r.data);
 }

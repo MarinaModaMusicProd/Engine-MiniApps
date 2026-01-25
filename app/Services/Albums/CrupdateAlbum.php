@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Models\Track;
 use App\Notifications\ArtistUploadedMedia;
 use App\Services\Tracks\CrupdateTrack;
+use Common\Files\Actions\SyncFileEntryModels;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -16,15 +17,20 @@ use Illuminate\Support\Facades\Notification;
 
 class CrupdateAlbum
 {
-    public function __construct(protected CrupdateTrack $crupdateTrack)
-    {
-    }
+    public function __construct(protected CrupdateTrack $crupdateTrack) {}
 
-    public function execute(array $data, Album $initialAlbum = null): Album
+    public function execute(array $data, Album|null $initialAlbum = null): array
     {
         $album = $initialAlbum ?? app(Album::class)->newInstance();
+        $initialImage = $album->image;
 
-        $inlineData = Arr::except($data, ['tracks', 'tags', 'genres']);
+        $inlineData = Arr::only($data, [
+            'name',
+            'release_date',
+            'image',
+            'description',
+            'spotify_id',
+        ]);
         $inlineData['spotify_id'] =
             $inlineData['spotify_id'] ?? Arr::get($initialAlbum, 'spotify_id');
 
@@ -66,22 +72,16 @@ class CrupdateAlbum
                 ];
             });
 
-            DB::table('artist_album')
-                ->where('album_id', $album->id)
-                ->delete();
+            DB::table('artist_album')->where('album_id', $album->id)->delete();
             DB::table('artist_album')->insert($pivots->toArray());
         }
 
         $tags = Arr::get($data, 'tags', []);
-        $tagIds = app(Tag::class)
-            ->insertOrRetrieve($tags)
-            ->pluck('id');
+        $tagIds = app(Tag::class)->insertOrRetrieve($tags)->pluck('id');
         $album->tags()->sync($tagIds);
 
         $genres = Arr::get($data, 'genres', []);
-        $genreIds = app(Genre::class)
-            ->insertOrRetrieve($genres)
-            ->pluck('id');
+        $genreIds = app(Genre::class)->insertOrRetrieve($genres)->pluck('id');
         $album->genres()->sync($genreIds);
 
         $this->saveTracks($data, $album);
@@ -105,7 +105,14 @@ class CrupdateAlbum
                 });
         }
 
-        return $album;
+        if ($initialImage !== $album->image) {
+            (new SyncFileEntryModels())->fromUrl(
+                $album->image,
+                $album->uploadedImage(),
+            );
+        }
+
+        return (new AlbumLoader())->toApiResource($album, 'editAlbumPage');
     }
 
     private function saveTracks($albumData, Album $album): void
@@ -116,10 +123,7 @@ class CrupdateAlbum
         $tracks = collect(Arr::get($albumData, 'tracks', []));
 
         $trackIds = $tracks->pluck('id')->filter();
-        $savedTracks = $album
-            ->tracks()
-            ->with('artists')
-            ->get();
+        $savedTracks = $album->tracks()->with('artists')->get();
         $tracksToDetach = $savedTracks
             ->pluck('id')
             ->filter(fn($trackId) => !$trackIds->contains($trackId));

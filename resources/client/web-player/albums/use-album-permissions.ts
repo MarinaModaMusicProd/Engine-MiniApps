@@ -1,8 +1,8 @@
-import {Album} from '@app/web-player/albums/album';
-import {useMemo} from 'react';
+import {PartialAlbum} from '@app/web-player/albums/album';
 import {useAuth} from '@common/auth/use-auth';
+import {useMemo} from 'react';
 
-export function useAlbumPermissions(album?: Album) {
+export function useAlbumPermissions(album?: PartialAlbum) {
   const {user, hasPermission} = useAuth();
   return useMemo(() => {
     const permissions = {

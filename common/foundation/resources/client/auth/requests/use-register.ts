@@ -1,12 +1,12 @@
 import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {BackendResponse} from '../../http/backend-response/backend-response';
-import {onFormQueryError} from '../../errors/on-form-query-error';
-import {useNavigate} from '../../ui/navigation/use-navigate';
-import {apiClient} from '../../http/query-client';
-import {useAuth} from '../use-auth';
 import {setBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
-import {useParams} from 'react-router-dom';
+import {UseFormReturn} from 'react-hook-form';
+import {useParams} from 'react-router';
+import {onFormQueryError} from '../../errors/on-form-query-error';
+import {BackendResponse} from '../../http/backend-response/backend-response';
+import {apiClient} from '../../http/query-client';
+import {useNavigate} from '../../ui/navigation/use-navigate';
+import {useAuth} from '../use-auth';
 
 interface Response extends BackendResponse {
   bootstrapData?: string;
@@ -20,6 +20,7 @@ export interface RegisterPayload {
   password_confirmation: string;
   invite_id?: string;
   invite_type?: string;
+  captcha_token: string | null;
 }
 
 export function useRegister(form: UseFormReturn<RegisterPayload>) {

@@ -1,17 +1,11 @@
-import React, {
-  forwardRef,
-  RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-} from 'react';
-import {m} from 'framer-motion';
-import {mergeProps, useObjectRef} from '@react-aria/utils';
-import {FocusScope} from '@react-aria/focus';
 import {VirtualElement} from '@floating-ui/react-dom';
-import {useOverlayViewport} from '@ui/overlays/use-overlay-viewport';
+import {FocusScope} from '@react-aria/focus';
+import {mergeProps, useObjectRef} from '@react-aria/utils';
 import {OverlayProps} from '@ui/overlays/overlay-props';
 import {PopoverAnimation} from '@ui/overlays/popover-animation';
+import {useOverlayViewport} from '@ui/overlays/use-overlay-viewport';
+import {m} from 'framer-motion';
+import {forwardRef, RefObject, useCallback, useEffect, useRef} from 'react';
 
 export const Popover = forwardRef<HTMLDivElement, OverlayProps>(
   (
@@ -68,7 +62,7 @@ export const Popover = forwardRef<HTMLDivElement, OverlayProps>(
 );
 
 // this should only be rendered when overlay is open
-const visibleOverlays: RefObject<Element>[] = [];
+const visibleOverlays: RefObject<Element | null>[] = [];
 interface useCloseOnInteractOutsideProps {
   isOpen: boolean;
   onClose: () => void;
@@ -83,7 +77,7 @@ function useCloseOnInteractOutside(
     triggerRef,
     isContextMenu = false,
   }: useCloseOnInteractOutsideProps,
-  ref: RefObject<Element>,
+  ref: RefObject<Element | null>,
 ) {
   const stateRef = useRef({
     isPointerDown: false,

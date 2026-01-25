@@ -126,10 +126,9 @@ class Oauth
 
         //create a new user if one does not exist with specified email
         if (!$user) {
-            $img = str_replace('http://', 'https://', $profile->avatar);
             $user = (new CreateUser())->execute([
                 'email' => $profile->email,
-                'image' => $img,
+                'image' => $this->normalizeImageUrl($profile->avatar),
                 'email_verified_at' => now(),
             ]);
         }
@@ -191,9 +190,7 @@ class Oauth
         }
 
         $response = [
-            'bootstrapData' => app(BootstrapData::class)
-                ->init()
-                ->getEncoded(),
+            'bootstrapData' => app(BootstrapData::class)->init()->getEncoded(),
         ];
 
         event(new SocialConnected($user, $service));
@@ -228,7 +225,7 @@ class Oauth
             'id' => $externalProfile->id,
             'name' => $externalProfile->name,
             'email' => $externalProfile->email,
-            'image' => $externalProfile->avatar,
+            'image' => $this->normalizeImageUrl($externalProfile->avatar),
             'profileUrl' => $externalProfile->profileUrl,
         ];
 
@@ -340,5 +337,18 @@ class Oauth
         }
 
         return $view;
+    }
+
+    protected function normalizeImageUrl(string|null $originalUrl)
+    {
+        if (!$originalUrl) {
+            return null;
+        }
+
+        $newUrl = str_replace('http://', 'https://', $originalUrl);
+        $newUrl = str_replace('.jpg?sz=50', '.jpg?sz=90', $newUrl);
+        $newUrl = str_replace('_normal.jpg', '.jpg', $newUrl);
+
+        return $newUrl;
     }
 }

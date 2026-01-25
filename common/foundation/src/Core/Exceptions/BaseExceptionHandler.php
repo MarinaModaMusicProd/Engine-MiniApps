@@ -2,8 +2,9 @@
 
 namespace Common\Core\Exceptions;
 
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Contracts\Container\Container;
 use Common\Billing\Models\Product;
-use ErrorException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Exceptions\Handler;
 use Illuminate\Support\Arr;
@@ -18,6 +19,16 @@ use function Sentry\configureScope;
 
 class BaseExceptionHandler extends Handler
 {
+    public function __construct(Container $container)
+    {
+        $this->internalDontReport = array_filter(
+            $this->internalDontReport,
+            fn($class) => $class !== TokenMismatchException::class,
+        );
+
+        parent::__construct($container);
+    }
+
     public function render($request, Throwable $e)
     {
         $isAuthException =
@@ -67,17 +78,6 @@ class BaseExceptionHandler extends Handler
             return;
         }
 
-        $this->renderable(function (ErrorException $e) {
-            if (
-                Str::contains($e->getMessage(), [
-                    'failed to open stream: Permission denied',
-                    'mkdir(): Permission denied',
-                ])
-            ) {
-                return $this->filePermissionResponse($e);
-            }
-        });
-
         configureScope(function (Scope $scope): void {
             $scope->setContext('app_name', ['value' => config('app.name')]);
         });
@@ -100,7 +100,7 @@ class BaseExceptionHandler extends Handler
 
         if (
             config('app.debug') &&
-            !config('common.site.demo') &&
+            !config('app.demo') &&
             !$isValidationException &&
             false
         ) {
@@ -126,21 +126,6 @@ class BaseExceptionHandler extends Handler
         }
 
         return $array;
-    }
-
-    protected function filePermissionResponse(ErrorException $e)
-    {
-        if (request()->expectsJson()) {
-            return response()->json(['message' => 'test']);
-        } else {
-            preg_match('/\((.+?)\):/', $e->getMessage(), $matches);
-            $path = $matches[1] ?? null;
-            // should not return a view here, in case laravel views folder is not readable as well
-            return response(
-                "<div style='text-align:center'><h1>Could not access a file or folder</h1> <br> Location: <b>$path</b><br>" .
-                    '<p>See the article here for possible solutions: <a target="_blank" href="https://support.MarinaModa.com/hc/articles/21/25/207/changing-file-permissions">https://support.MarinaModa.com/hc/articles/207/changing-file-permissions</a></p></div>',
-            );
-        }
     }
 
     protected function ignitionReportFromThrowable(Throwable $e): array
@@ -199,7 +184,16 @@ class BaseExceptionHandler extends Handler
             'trace' => $groupedTrace,
             'totalVendorGroups' => $totalVendorGroups,
             'phpVersion' => $report['language_version'],
-            'appVersion' => config('common.site.version'),
+            'appVersion' => config('app.version'),
         ];
+    }
+
+    protected function shouldReturnJson($request, Throwable $e)
+    {
+        if (str_starts_with($request->path(), 'api/')) {
+            return true;
+        }
+
+        return parent::shouldReturnJson($request, $e);
     }
 }

@@ -1,6 +1,7 @@
-import {useQuery} from '@tanstack/react-query';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
 import {apiClient} from '@common/http/query-client';
+import {useQuery} from '@tanstack/react-query';
+import {useSettings} from '@ui/settings/use-settings';
 
 interface Response extends BackendResponse {
   failedJobs: number;
@@ -18,9 +19,15 @@ interface Response extends BackendResponse {
 }
 
 export function useQueueStats() {
+  const {site} = useSettings();
   return useQuery({
     queryKey: ['queue-stats'],
-    queryFn: () => fetchStats(),
+    queryFn: () =>
+      site.demo
+        ? Promise.resolve({
+            status: 'running',
+          })
+        : fetchStats(),
     refetchInterval: 5000, // Poll every 5s
   });
 }

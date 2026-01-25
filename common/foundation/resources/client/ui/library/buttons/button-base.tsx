@@ -1,16 +1,12 @@
-import React, {
-  ComponentPropsWithRef,
-  forwardRef,
-  JSXElementConstructor,
-} from 'react';
+import {createEventHandler} from '@ui/utils/dom/create-event-handler';
 import clsx from 'clsx';
-import type {RelativeRoutingType, To} from 'react-router-dom';
+import {ComponentPropsWithRef, forwardRef, JSXElementConstructor} from 'react';
+import type {RelativeRoutingType, To} from 'react-router';
 import {
   ButtonColor,
   ButtonVariant,
   getSharedButtonStyle,
 } from './get-shared-button-style';
-import {createEventHandler} from '@ui/utils/dom/create-event-handler';
 
 export interface ButtonBaseProps
   extends Omit<ComponentPropsWithRef<'button'>, 'color'> {
@@ -19,12 +15,13 @@ export interface ButtonBaseProps
   value?: any;
   justify?: string;
   display?: string;
-  radius?: string;
+  radius?: string | null;
   shadow?: string;
   border?: string;
   whitespace?: string;
   form?: string;
   to?: To;
+  state?: any;
   relative?: RelativeRoutingType;
   href?: string;
   target?: '_blank';
@@ -53,6 +50,7 @@ export const ButtonBase = forwardRef<
     border,
     elementType,
     to,
+    state,
     relative,
     replace,
     end,
@@ -73,6 +71,7 @@ export const ButtonBase = forwardRef<
       form={isLink ? undefined : form}
       href={href}
       to={to}
+      state={state}
       relative={relative}
       type={isLink ? undefined : type}
       replace={replace}
@@ -82,7 +81,10 @@ export const ButtonBase = forwardRef<
       onClick={createEventHandler(onClick)}
       onKeyDown={createEventHandler(onKeyDown)}
       className={clsx(
-        'focus-visible:ring',
+        'focus-visible:ring-2 focus-visible:ring-inset',
+        color === 'primary'
+          ? 'focus-visible:ring-primary-dark/90'
+          : 'focus-visible:ring-primary/90',
         getSharedButtonStyle({
           variant,
           color,

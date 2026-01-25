@@ -1,26 +1,26 @@
-import {useParams} from 'react-router-dom';
-import {BackstageInsightsLayout} from '@app/web-player/backstage/insights/backstage-insights-layout';
 import {InsightsReportCharts} from '@app/admin/reports/insights-report-charts';
-import React from 'react';
-import {useAlbum} from '@app/web-player/albums/requests/use-album';
-import {BackstageInsightsTitle} from '@app/web-player/backstage/insights/backstage-insights-title';
-import {ArtistLinks} from '@app/web-player/artists/artist-links';
+import {appQueries} from '@app/app-queries';
 import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
 import {AlbumLink} from '@app/web-player/albums/album-link';
+import {ArtistLinks} from '@app/web-player/artists/artist-links';
+import {BackstageInsightsLayout} from '@app/web-player/backstage/insights/backstage-insights-layout';
+import {BackstageInsightsTitle} from '@app/web-player/backstage/insights/backstage-insights-title';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
+import {useQuery} from '@tanstack/react-query';
 
 interface Props {
   isNested?: boolean;
 }
 export function BackstageAlbumInsights({isNested}: Props) {
-  const {albumId} = useParams();
-  const {data} = useAlbum({loader: 'album'});
+  const {albumId} = useRequiredParams(['albumId']);
+  const {data} = useQuery(appQueries.albums.get(albumId!, 'album'));
   return (
     <BackstageInsightsLayout
       reportModel={`album=${albumId}`}
       title={
         data?.album && (
           <BackstageInsightsTitle
-            image={<AlbumImage album={data.album} />}
+            image={<AlbumImage size="w-38 h-38" album={data.album} />}
             name={<AlbumLink album={data.album} />}
             description={<ArtistLinks artists={data.album.artists} />}
           />

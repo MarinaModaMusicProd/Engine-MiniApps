@@ -16,12 +16,10 @@ class User extends BaseUser
 
     const MODEL_TYPE = 'user';
 
-    protected $appends = ['name', 'has_password', 'model_type'];
-
     protected $casts = [
         'id' => 'integer',
-        'available_space' => 'integer',
         'email_verified_at' => 'datetime',
+        'unread_notifications_count' => 'integer',
         'artist_id' => 'integer',
     ];
 
@@ -45,9 +43,7 @@ class User extends BaseUser
 
     public function primaryArtist(): ?Artist
     {
-        return $this->artists()
-            ->wherePivot('role', 'artist')
-            ->first();
+        return $this->artists()->wherePivot('role', 'artist')->first();
     }
 
     public function artists(): BelongsToMany
@@ -59,7 +55,7 @@ class User extends BaseUser
 
     public function profile(): HasOne
     {
-        return $this->hasOne(UserProfile::class);
+        return $this->hasOne(ProfileDetails::class);
     }
 
     /**

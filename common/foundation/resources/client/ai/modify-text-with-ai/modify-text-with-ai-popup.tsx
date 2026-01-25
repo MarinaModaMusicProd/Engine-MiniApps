@@ -1,35 +1,35 @@
-import React, {useState} from 'react';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {
+  EnhanceTextWithAiInstruction,
+  EnhanceTextWithAiPayload,
+  EnhanceTextWithAiTone,
+  useEnhanceTextWithAi,
+} from '@common/ai/modify-text-with-ai/use-enhance-text-with-ai';
+import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
-import {MediationIcon} from '@ui/icons/material/Mediation';
-import {Tooltip} from '@ui/tooltip/tooltip';
+import {Item} from '@ui/forms/listbox/item';
 import {Trans} from '@ui/i18n/trans';
+import {CloseFullscreenIcon} from '@ui/icons/material/CloseFullscreen';
+import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
+import {MediationIcon} from '@ui/icons/material/Mediation';
+import {OpenInFullIcon} from '@ui/icons/material/OpenInFull';
 import {SpellcheckIcon} from '@ui/icons/material/Spellcheck';
 import {Menu, MenuTrigger} from '@ui/menu/menu-trigger';
-import {Button} from '@ui/buttons/button';
-import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
-import {Item} from '@ui/forms/listbox/item';
-import {useValueLists} from '@common/http/value-lists';
-import {ProgressBar} from '@ui/progress/progress-bar';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {OpenInFullIcon} from '@ui/icons/material/OpenInFull';
-import {CloseFullscreenIcon} from '@ui/icons/material/CloseFullscreen';
-import {
-  ModifyTextWithAiInstruction,
-  ModifyTextWithAiPayload,
-  ModifyTextWithAiTone,
-  useModifyTextWithAi,
-} from '@common/ai/modify-text-with-ai/use-modify-text-with-ai';
+import {ProgressBar} from '@ui/progress/progress-bar';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import {getLanguageList} from '@ui/utils/intl/languages';
+import {useState} from 'react';
 
 interface Props {
   onModify: (handler: (text: string) => Promise<string>) => void;
 }
 export function ModifyTextWithAiPopup({onModify}: Props) {
   const {close} = useDialogContext();
-  const modifyText = useModifyTextWithAi();
+  const modifyText = useEnhanceTextWithAi();
 
-  const handleModifyText = (payload: ModifyTextWithAiPayload) => {
+  const handleModifyText = (payload: EnhanceTextWithAiPayload) => {
     return new Promise<string>((resolve, reject) => {
       modifyText.mutate(payload, {
         onSettled: (data, error) => {
@@ -44,7 +44,7 @@ export function ModifyTextWithAiPopup({onModify}: Props) {
     });
   };
 
-  const refine = (instruction: ModifyTextWithAiInstruction) => {
+  const refine = (instruction: EnhanceTextWithAiInstruction) => {
     onModify((text: string) => handleModifyText({instruction, text}));
   };
 
@@ -58,12 +58,12 @@ export function ModifyTextWithAiPopup({onModify}: Props) {
             size="xs"
           />
         )}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 overflow-x-auto">
           <Tooltip label={<Trans message="Simplify text" />}>
             <IconButton
               disabled={modifyText.isPending}
               size="sm"
-              onClick={() => refine(ModifyTextWithAiInstruction.Simplify)}
+              onClick={() => refine(EnhanceTextWithAiInstruction.Simplify)}
             >
               <MediationIcon />
             </IconButton>
@@ -72,7 +72,7 @@ export function ModifyTextWithAiPopup({onModify}: Props) {
             <IconButton
               disabled={modifyText.isPending}
               size="sm"
-              onClick={() => refine(ModifyTextWithAiInstruction.Shorten)}
+              onClick={() => refine(EnhanceTextWithAiInstruction.Shorten)}
             >
               <CloseFullscreenIcon />
             </IconButton>
@@ -82,7 +82,7 @@ export function ModifyTextWithAiPopup({onModify}: Props) {
               disabled={modifyText.isPending}
               size="sm"
               iconSize="md"
-              onClick={() => refine(ModifyTextWithAiInstruction.Lengthen)}
+              onClick={() => refine(EnhanceTextWithAiInstruction.Lengthen)}
             >
               <OpenInFullIcon />
             </IconButton>
@@ -91,7 +91,7 @@ export function ModifyTextWithAiPopup({onModify}: Props) {
             <IconButton
               disabled={modifyText.isPending}
               size="sm"
-              onClick={() => refine(ModifyTextWithAiInstruction.FixSpelling)}
+              onClick={() => refine(EnhanceTextWithAiInstruction.FixSpelling)}
             >
               <SpellcheckIcon />
             </IconButton>
@@ -101,7 +101,7 @@ export function ModifyTextWithAiPopup({onModify}: Props) {
             onSelected={tone => {
               onModify((text: string) =>
                 handleModifyText({
-                  instruction: ModifyTextWithAiInstruction.ChangeTone,
+                  instruction: EnhanceTextWithAiInstruction.ChangeTone,
                   tone,
                   text,
                 }),
@@ -113,7 +113,7 @@ export function ModifyTextWithAiPopup({onModify}: Props) {
             onSelected={language => {
               onModify((text: string) =>
                 handleModifyText({
-                  instruction: ModifyTextWithAiInstruction.Translate,
+                  instruction: EnhanceTextWithAiInstruction.Translate,
                   language,
                   text,
                 }),
@@ -127,17 +127,17 @@ export function ModifyTextWithAiPopup({onModify}: Props) {
 }
 
 interface ChangeToneDropdownProps {
-  onSelected: (tone: ModifyTextWithAiTone) => void;
+  onSelected: (tone: EnhanceTextWithAiTone) => void;
   disabled: boolean;
 }
 function ChangeToneDropdown({onSelected, disabled}: ChangeToneDropdownProps) {
-  const [value, setValue] = useState<ModifyTextWithAiTone | ''>('');
+  const [value, setValue] = useState<EnhanceTextWithAiTone | ''>('');
   return (
     <MenuTrigger
-      onItemSelected={value => onSelected(value as ModifyTextWithAiTone)}
+      onItemSelected={value => onSelected(value as EnhanceTextWithAiTone)}
       selectedValue={value}
       selectionMode="single"
-      onSelectionChange={value => setValue(value as ModifyTextWithAiTone)}
+      onSelectionChange={value => setValue(value as EnhanceTextWithAiTone)}
     >
       <Button
         disabled={disabled}
@@ -149,7 +149,7 @@ function ChangeToneDropdown({onSelected, disabled}: ChangeToneDropdownProps) {
         <Trans message="Change tone" />
       </Button>
       <Menu>
-        {Object.values(ModifyTextWithAiTone).map(tone => (
+        {Object.values(EnhanceTextWithAiTone).map(tone => (
           <Item value={tone} key={tone} capitalizeFirst>
             <Trans message={tone} />
           </Item>
@@ -164,7 +164,7 @@ interface TranslateDropdownProps {
   disabled: boolean;
 }
 function TranslateDropdown({onSelected, disabled}: TranslateDropdownProps) {
-  const {data} = useValueLists(['languages']);
+  const languages = getLanguageList();
   return (
     <MenuTrigger
       onItemSelected={value => onSelected(value as string)}
@@ -180,7 +180,7 @@ function TranslateDropdown({onSelected, disabled}: TranslateDropdownProps) {
         <Trans message="Translate" />
       </Button>
       <Menu>
-        {data?.languages?.map(language => (
+        {languages.map(language => (
           <Item value={language.code} key={language.code}>
             {language.name}
           </Item>

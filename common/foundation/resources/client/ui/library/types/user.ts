@@ -8,13 +8,3 @@ export interface User {
   timezone?: string;
   country?: string;
 }
-
-export interface CompactUser {
-  id: number;
-  name: string;
-  image?: string;
-}
-
-export interface CompactUserWithEmail extends CompactUser {
-  email: string;
-}

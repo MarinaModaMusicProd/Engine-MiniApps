@@ -1,27 +1,28 @@
+import {ActiveTrialBanner} from '@common/billing/billing-page/active-trial-banner';
+import {billingQueries} from '@common/billing/billing-queries';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {opacityAnimation} from '@ui/animation/opacity-animation';
 import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
 import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
+import {Button} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
+import {CheckIcon} from '@ui/icons/material/Check';
+import {Skeleton} from '@ui/skeleton/skeleton';
+import {AnimatePresence, m} from 'framer-motion';
+import {Fragment, useState} from 'react';
+import {Link} from 'react-router';
 import {useNavigate} from '../../ui/navigation/use-navigate';
-import {BillingPlanPanel} from './billing-plan-panel';
-import {Product} from '../product';
+import {FormattedPrice} from '../formatted-price';
+import {Price} from '../price';
+import {BillingCycleRadio} from '../pricing-table/billing-cycle-radio';
 import {
   findBestPrice,
   UpsellBillingCycle,
 } from '../pricing-table/find-best-price';
-import {Fragment, useState} from 'react';
-import {FormattedPrice} from '../formatted-price';
-import {Button} from '@ui/buttons/button';
-import {Link} from 'react-router-dom';
-import {useProducts} from '../pricing-table/use-products';
-import {Price} from '../price';
-import {useBillingUser} from './use-billing-user';
-import {CheckIcon} from '@ui/icons/material/Check';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {AnimatePresence, m} from 'framer-motion';
-import {BillingCycleRadio} from '../pricing-table/billing-cycle-radio';
-import {opacityAnimation} from '@ui/animation/opacity-animation';
+import {Product} from '../product';
+import {BillingPlanPanel} from './billing-plan-panel';
 
-export function ChangePlanPage() {
+export function Component() {
   const navigate = useNavigate();
   return (
     <Fragment>
@@ -33,6 +34,7 @@ export function ChangePlanPage() {
           <Trans message="Plans" />
         </BreadcrumbItem>
       </Breadcrumb>
+      <ActiveTrialBanner className="mb-24" />
       <h1 className="my-32 text-3xl font-bold md:my-64">
         <Trans message="Change your plan" />
       </h1>
@@ -46,7 +48,7 @@ export function ChangePlanPage() {
 }
 
 function PlanList() {
-  const query = useProducts();
+  const query = useSuspenseQuery(billingQueries.products.index());
   const [selectedCycle, setSelectedCycle] =
     useState<UpsellBillingCycle>('monthly');
 
@@ -111,12 +113,11 @@ interface ContinueButtonProps {
   price: Price;
 }
 function ContinueButton({product, price}: ContinueButtonProps) {
-  const {subscription} = useBillingUser();
-  if (!subscription?.price || !subscription?.product) return null;
+  const query = useSuspenseQuery(billingQueries.user());
 
   if (
-    subscription.product_id === product.id &&
-    subscription.price_id === price.id
+    query.data.subscription.product_id === product.id &&
+    query.data.subscription.price_id === price.id
   ) {
     return (
       <div className="flex w-[168px] items-center justify-center gap-10 text-muted">

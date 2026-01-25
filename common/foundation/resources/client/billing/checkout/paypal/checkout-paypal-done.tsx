@@ -1,15 +1,15 @@
-import {CheckoutLayout} from '../checkout-layout';
-import {useParams, useSearchParams} from 'react-router-dom';
-import {useEffect, useRef, useState} from 'react';
+import {apiClient} from '@common/http/query-client';
 import {message} from '@ui/i18n/message';
-import {CheckoutProductSummary} from '../checkout-product-summary';
+import {useEffect, useRef, useState} from 'react';
+import {useParams, useSearchParams} from 'react-router';
 import {
   BillingRedirectMessage,
   BillingRedirectMessageConfig,
 } from '../../billing-redirect-message';
-import {apiClient} from '@common/http/query-client';
+import {CheckoutLayout} from '../checkout-layout';
+import {CheckoutProductSummary} from '../checkout-product-summary';
 
-export function CheckoutPaypalDone() {
+export function Component() {
   const {productId, priceId} = useParams();
   const [params] = useSearchParams();
   const alreadyStoredLocally = useRef(false);

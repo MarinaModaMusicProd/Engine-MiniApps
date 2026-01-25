@@ -1,15 +1,15 @@
-import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {toast} from '@ui/toast/toast';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
-import {useTrans} from '@ui/i18n/use-trans';
-import {onFormQueryError} from '@common/errors/on-form-query-error';
-import {message} from '@ui/i18n/message';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Track} from '@app/web-player/tracks/track';
-import {NormalizedModel} from '@ui/types/normalized-model';
 import {TrackUploadPayload} from '@app/web-player/backstage/upload-page/use-track-uploader';
+import {Track} from '@app/web-player/tracks/track';
+import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
+import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
+import {NormalizedModel} from '@ui/types/normalized-model';
+import {UseFormReturn} from 'react-hook-form';
 
 const endpoint = 'tracks';
 
@@ -17,16 +17,18 @@ export interface CreateTrackResponse extends BackendResponse {
   track: Track;
 }
 
-export interface CreateTrackPayload
-  extends Omit<
-    Track,
-    'genres' | 'artists' | 'tags' | 'id' | 'model_type' | 'album' | 'lyric'
-  > {
+export interface CreateTrackPayload {
+  name: string;
+  description?: string;
+  duration?: number | null;
+  image?: string | null;
+  src?: string | null;
+  spotify_id?: string;
   album_id?: number;
   artists?: NormalizedModel[];
-  waveData?: number[][];
   genres?: NormalizedModel[] | string[];
   tags?: NormalizedModel[];
+  waveData?: number[][];
   lyric?: string;
 }
 

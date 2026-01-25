@@ -31,7 +31,7 @@ class GenerateChannelsFromConfig
                     'type' => 'channel',
                     'public' => true,
                     'internal' => $config['internal'] ?? false,
-                    'user_id' => app(User::class)->findAdmin()?->id,
+                    'user_id' => app(User::class)->findAdmin()?->id ?? 1,
                 ]),
             );
             $createdChannels[] = [

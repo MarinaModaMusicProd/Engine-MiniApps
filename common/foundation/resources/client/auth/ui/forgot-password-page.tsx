@@ -1,19 +1,20 @@
-import {Link, useSearchParams} from 'react-router-dom';
-import {useForm} from 'react-hook-form';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {GuestRoute} from '@common/auth/guards/guest-route';
 import {Button} from '@ui/buttons/button';
-import {Form} from '@ui/forms/form';
 import {LinkStyle} from '@ui/buttons/external-link';
-import {AuthLayout} from './auth-layout/auth-layout';
+import {Form} from '@ui/forms/form';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {Trans} from '@ui/i18n/trans';
+import {useSettings} from '@ui/settings/use-settings';
+import {useForm} from 'react-hook-form';
+import {Link, useSearchParams} from 'react-router';
+import {StaticPageTitle} from '../../seo/static-page-title';
 import {
   SendPasswordResetEmailPayload,
   useSendPasswordResetEmail,
 } from '../requests/send-reset-password-email';
-import {Trans} from '@ui/i18n/trans';
-import {StaticPageTitle} from '../../seo/static-page-title';
-import {useSettings} from '@ui/settings/use-settings';
+import {AuthLayout} from './auth-layout/auth-layout';
 
-export function ForgotPasswordPage() {
+export function Component() {
   const {registration} = useSettings();
 
   const [searchParams] = useSearchParams();
@@ -38,41 +39,43 @@ export function ForgotPasswordPage() {
   );
 
   return (
-    <AuthLayout message={message}>
-      <StaticPageTitle>
-        <Trans message="Forgot Password" />
-      </StaticPageTitle>
-      <Form
-        form={form}
-        onSubmit={payload => {
-          sendEmail.mutate(payload);
-        }}
-      >
-        <div className="mb-32 text-sm">
-          <Trans message="Enter your email address below and we will send you a link to reset or create your password." />
-        </div>
-        <FormTextField
-          disabled={!!searchParamsEmail}
-          className="mb-32"
-          name="email"
-          type="email"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck="false"
-          label={<Trans message="Email" />}
-          required
-        />
-        <Button
-          className="block w-full"
-          type="submit"
-          variant="flat"
-          color="primary"
-          size="md"
-          disabled={sendEmail.isPending}
+    <GuestRoute>
+      <AuthLayout message={message}>
+        <StaticPageTitle>
+          <Trans message="Forgot Password" />
+        </StaticPageTitle>
+        <Form
+          form={form}
+          onSubmit={payload => {
+            sendEmail.mutate(payload);
+          }}
         >
-          <Trans message="Continue" />
-        </Button>
-      </Form>
-    </AuthLayout>
+          <div className="mb-32 text-sm">
+            <Trans message="Enter your email address below and we will send you a link to reset or create your password." />
+          </div>
+          <FormTextField
+            disabled={!!searchParamsEmail}
+            className="mb-32"
+            name="email"
+            type="email"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
+            label={<Trans message="Email" />}
+            required
+          />
+          <Button
+            className="block w-full"
+            type="submit"
+            variant="flat"
+            color="primary"
+            size="md"
+            disabled={sendEmail.isPending}
+          >
+            <Trans message="Continue" />
+          </Button>
+        </Form>
+      </AuthLayout>
+    </GuestRoute>
   );
 }

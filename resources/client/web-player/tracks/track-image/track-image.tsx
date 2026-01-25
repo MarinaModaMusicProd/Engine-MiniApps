@@ -1,11 +1,13 @@
-import {Track} from '@app/web-player/tracks/track';
-import {useTrans} from '@ui/i18n/use-trans';
 import {message} from '@ui/i18n/message';
-import clsx from 'clsx';
+import {useTrans} from '@ui/i18n/use-trans';
 import {MusicNoteIcon} from '@ui/icons/material/MusicNote';
+import clsx from 'clsx';
 
 interface TrackImageProps {
-  track: Track;
+  track: {
+    image?: string | null;
+    name: string;
+  };
   className?: string;
   size?: string;
   background?: string;
@@ -17,20 +19,19 @@ export function TrackImage({
   background = 'bg-fg-base/4',
 }: TrackImageProps) {
   const {trans} = useTrans();
-  const src = getTrackImageSrc(track);
   const imgClassName = clsx(
     className,
     size,
     background,
     'object-cover',
-    !src ? 'flex items-center justify-center' : 'block',
+    !track.image ? 'flex items-center justify-center' : 'block',
   );
-  return src ? (
+  return track.image ? (
     <img
       className={imgClassName}
       draggable={false}
       loading="lazy"
-      src={src}
+      src={track.image}
       alt={trans(message('Image for :name', {values: {name: track.name}}))}
     />
   ) : (
@@ -38,12 +39,4 @@ export function TrackImage({
       <MusicNoteIcon className="max-w-[60%] text-divider" size="text-9xl" />
     </span>
   );
-}
-
-export function getTrackImageSrc(track: Track) {
-  if (track.image) {
-    return track.image;
-  } else if (track.album?.image) {
-    return track.album.image;
-  }
 }

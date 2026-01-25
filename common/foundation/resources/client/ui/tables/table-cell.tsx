@@ -1,8 +1,8 @@
+import {RowContext} from '@common/datatable/column-config';
+import {useTableCellStyle} from '@common/ui/tables/style/use-table-cell-style';
 import {useContext, useMemo} from 'react';
 import {TableContext} from './table-context';
 import {TableDataItem} from './types/table-data-item';
-import {RowContext} from '@common/datatable/column-config';
-import {useTableCellStyle} from '@common/ui/tables/style/use-table-cell-style';
 
 interface TableCellProps {
   rowIsHovered: boolean;
@@ -18,7 +18,7 @@ export function TableCell({
   item,
   id,
 }: TableCellProps) {
-  const {columns} = useContext(TableContext);
+  const {columns, tableStyle} = useContext(TableContext);
   const column = columns[index];
 
   const rowContext: RowContext = useMemo(() => {
@@ -34,17 +34,26 @@ export function TableCell({
     isHeader: false,
   });
 
+  const CellEl = tableStyle === 'html' ? 'td' : 'div';
+
+  let body = column.body(item, rowContext);
+
+  // wrap with extra element to support overflow ellipsis, not needed for placeholders
+  if (!rowContext.isPlaceholder) {
+    body = (
+      <div className="min-w-0 overflow-hidden overflow-ellipsis">{body}</div>
+    );
+  }
+
   return (
-    <div
+    <CellEl
       tabIndex={-1}
       role="gridcell"
       aria-colindex={index + 1}
       id={id}
       className={style}
     >
-      <div className="w-full min-w-0 overflow-hidden overflow-ellipsis">
-        {column.body(item, rowContext)}
-      </div>
-    </div>
+      {body}
+    </CellEl>
   );
 }

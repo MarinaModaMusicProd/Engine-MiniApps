@@ -1,3 +1,12 @@
+import {GetDatatableDataParams} from '@common/datatable/requests/paginated-resources';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {
+  getNextPageParam,
+  PaginationResponse,
+} from '@common/http/backend-response/pagination-response';
+import {apiClient} from '@common/http/query-client';
+import {SortDescriptor} from '@common/ui/tables/types/sort-descriptor';
+import {QueryKey} from '@tanstack/query-core/src/types';
 import {
   hashKey,
   InfiniteData,
@@ -5,16 +14,7 @@ import {
   useInfiniteQuery,
   UseInfiniteQueryResult,
 } from '@tanstack/react-query';
-import {apiClient} from '@common/http/query-client';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {
-  hasNextPage,
-  PaginationResponse,
-} from '@common/http/backend-response/pagination-response';
 import {useMemo, useRef, useState} from 'react';
-import {SortDescriptor} from '@common/ui/tables/types/sort-descriptor';
-import {GetDatatableDataParams} from '@common/datatable/requests/paginated-resources';
-import {QueryKey} from '@tanstack/query-core/src/types';
 
 export type UseInfiniteDataResult<
   T,
@@ -129,15 +129,7 @@ export function useInfiniteData<
       return fetchData<T>(endpoint, params, transformResponse, signal);
     },
     initialPageParam: paginate === 'cursor' ? '' : 1,
-    getNextPageParam: lastResponse => {
-      if (!hasNextPage(lastResponse.pagination)) {
-        return null;
-      }
-      if ('next_cursor' in lastResponse.pagination) {
-        return lastResponse.pagination.next_cursor;
-      }
-      return lastResponse.pagination.current_page + 1;
-    },
+    getNextPageParam: getNextPageParam,
     initialData: () => {
       // initial data will be for initial query key only, remove
       // initial data if query key changes, so query is reset
@@ -175,13 +167,15 @@ export function useInfiniteData<
     items,
     totalItems,
     noResults: query.data?.pages?.[0].pagination.data.length === 0,
+    // can't use "isRefetching", it's true for some reason when changing sorting or filters
     isReloading:
-        query.isFetching && !query.isFetchingNextPage && query.isPlaceholderData,
+      query.isFetching && !query.isFetchingNextPage && query.isPlaceholderData,
     sortDescriptor,
     setSortDescriptor,
     searchQuery,
     setSearchQuery,
-  } as unknown as UseInfiniteDataResult<T, E, S>;}
+  } as unknown as UseInfiniteDataResult<T, E, S>;
+}
 
 async function fetchData<T>(
   endpoint: string,

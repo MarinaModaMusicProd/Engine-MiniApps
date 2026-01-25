@@ -13,7 +13,9 @@ class CreatePermissionablesTable extends Migration
      */
     public function up()
     {
-        if (Schema::hasTable('permissionables')) return;
+        if (Schema::hasTable('permissionables')) {
+            return;
+        }
 
         Schema::create('permissionables', function (Blueprint $table) {
             $table->increments('id');
@@ -22,7 +24,10 @@ class CreatePermissionablesTable extends Migration
             $table->string('permissionable_type', 40)->index();
             $table->text('restrictions')->nullable();
 
-            $table->unique(['permission_id', 'permissionable_id', 'permissionable_type'], 'permissionable_unique');
+            $table->unique(
+                ['permission_id', 'permissionable_id', 'permissionable_type'],
+                'permissionable_unique',
+            );
         });
     }
 

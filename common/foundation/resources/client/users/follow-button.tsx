@@ -1,14 +1,16 @@
-import {Button, ButtonProps} from '@ui/buttons/button';
 import {useAuth} from '@common/auth/use-auth';
-import {User} from '@ui/types/user';
-import {useIsUserFollowing} from '@common/users/queries/use-followed-users';
 import {useFollowUser} from '@common/users/queries/use-follow-user';
+import {useIsUserFollowing} from '@common/users/queries/use-followed-users';
 import {useUnfollowUser} from '@common/users/queries/use-unfollow-user';
+import {Button, ButtonProps} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
 import clsx from 'clsx';
 
 interface Props extends Omit<ButtonProps, 'onClick' | 'disabled'> {
-  user: User;
+  user: {
+    id: number;
+    name: string;
+  };
   minWidth?: string | null;
 }
 export function FollowButton({
@@ -18,7 +20,7 @@ export function FollowButton({
   ...buttonProps
 }: Props) {
   const {user: currentUser} = useAuth();
-  const {isFollowing, isLoading} = useIsUserFollowing(user);
+  const {isFollowing, isLoading} = useIsUserFollowing(user.id);
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
 

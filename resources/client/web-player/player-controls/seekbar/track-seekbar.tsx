@@ -1,7 +1,7 @@
-import {Slider} from '@ui/forms/slider/slider';
-import {FormattedDuration} from '@ui/i18n/formatted-duration';
 import {useTrackSeekbar} from '@app/web-player/player-controls/seekbar/use-track-seekbar';
 import {Track} from '@app/web-player/tracks/track';
+import {Slider} from '@ui/forms/slider/slider';
+import {FormattedDuration} from '@ui/i18n/formatted-duration';
 import clsx from 'clsx';
 
 interface TrackSeekbarProps {

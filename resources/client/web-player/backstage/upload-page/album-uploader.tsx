@@ -1,25 +1,25 @@
-import {forwardRef, useImperativeHandle, useState} from 'react';
-import {useForm} from 'react-hook-form';
+import {AlbumForm} from '@app/admin/albums-datatable-page/album-form/album-form';
 import {
   CreateAlbumPayload,
   useCreateAlbum,
 } from '@app/admin/albums-datatable-page/requests/use-create-album';
-import {useFileUploadStore} from '@common/uploads/uploader/file-upload-provider';
-import {useTrackUploader} from '@app/web-player/backstage/upload-page/use-track-uploader';
 import {
   hydrateAlbumForm,
   mergeTrackFormValues,
 } from '@app/admin/tracks-datatable-page/requests/use-extract-track-file-metadata';
-import {Form} from '@ui/forms/form';
-import {AlbumForm} from '@app/admin/albums-datatable-page/album-form/album-form';
-import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
 import type {
   UploaderActions,
   UploaderProps,
 } from '@app/web-player/backstage/upload-page/upload-page';
+import {useTrackUploader} from '@app/web-player/backstage/upload-page/use-track-uploader';
 import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
+import {useFileUploadStore} from '@common/uploads/uploader/file-upload-provider';
+import {Button} from '@ui/buttons/button';
+import {Form} from '@ui/forms/form';
+import {Trans} from '@ui/i18n/trans';
 import {useCurrentDateTime} from '@ui/i18n/use-current-date-time';
+import {forwardRef, useImperativeHandle, useState} from 'react';
+import {useForm} from 'react-hook-form';
 
 export const AlbumUploader = forwardRef<UploaderActions, UploaderProps>(
   ({onUploadStart, onCancel, onCreate}, ref) => {
@@ -69,7 +69,7 @@ export const AlbumUploader = forwardRef<UploaderActions, UploaderProps>(
     const createAlbum = useCreateAlbum(form);
     return isVisible ? (
       <Form
-        className="mb-30 rounded border bg-paper p-14 md:p-24"
+        className="mb-30 rounded-panel border bg-elevated p-14 md:p-24"
         form={form}
         onSubmit={newValues =>
           createAlbum.mutate(newValues, {

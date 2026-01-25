@@ -1,22 +1,32 @@
-import {User} from '@ui/types/user';
 import {Track} from '@app/web-player/tracks/track';
 
 export const PLAYLIST_MODEL = 'playlist';
 
-export interface Playlist {
+export type FullPlaylist = PartialPlaylist & {
+  tracks_count?: number;
+  tracks?: Track[];
+  updated_at: string;
+  views: number;
+  description: string;
+  owner?: {
+    id: number;
+    name: string;
+    email: string;
+    image: string | null;
+  };
+};
+
+export type PartialPlaylist = {
   id: number;
   name: string;
   public: boolean;
   collaborative: boolean;
-  image: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-  owner_id: number;
-  owner?: User;
-  editors?: User[];
-  tracks_count?: number;
-  tracks?: Track[];
+  image: string | null;
+  owner_id: number | null;
+  editors: {
+    id: number;
+    name: string;
+    image: string | null;
+  }[];
   model_type: typeof PLAYLIST_MODEL;
-  views: number;
-}
+};

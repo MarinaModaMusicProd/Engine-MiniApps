@@ -13,7 +13,7 @@ use Common\Billing\Models\Product;
 use Common\Core\BaseModel;
 use Common\Files\FileEntry;
 use Common\Files\FileEntryPivot;
-use Common\Files\Traits\SetsAvailableSpaceAttribute;
+use Common\Files\Traits\HasAttachedFileEntries;
 use Common\Notifications\NotificationSubscription;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\MustVerifyEmail;
@@ -22,6 +22,7 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -33,6 +34,7 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -42,13 +44,14 @@ abstract class BaseUser extends BaseModel implements
     HasLocalePreference,
     AuthenticatableContract,
     AuthorizableContract,
-    CanResetPasswordContract
+    CanResetPasswordContract,
+    MustVerifyEmailContract
 {
     use Searchable,
         Notifiable,
         Billable,
         TwoFactorAuthenticatable,
-        SetsAvailableSpaceAttribute,
+        HasAttachedFileEntries,
         HasPermissionsRelation,
         HasAvatarAttribute,
         HasDisplayNameAttribute,
@@ -60,7 +63,7 @@ abstract class BaseUser extends BaseModel implements
 
     const MODEL_TYPE = 'user';
 
-    protected $guarded = ['id'];
+    protected $guarded = [];
     protected $hidden = [
         'password',
         'remember_token',
@@ -72,14 +75,11 @@ abstract class BaseUser extends BaseModel implements
     ];
     protected $casts = [
         'id' => 'integer',
-        'available_space' => 'integer',
         'email_verified_at' => 'datetime',
         'unread_notifications_count' => 'integer',
     ];
-    protected $appends = ['name', 'has_password', 'model_type'];
+    protected $appends = ['has_password', 'model_type'];
     protected bool $billingEnabled = true;
-    protected bool $gravatarEnabled = true;
-    protected $gravatarSize;
 
     public function preferredLocale()
     {
@@ -100,8 +100,6 @@ abstract class BaseUser extends BaseModel implements
                 !Auth::user()?->hasPermission('users.update'))
         ) {
             $this->hidden = array_merge($this->hidden, [
-                'first_name',
-                'last_name',
                 'gender',
                 'email',
                 'card_brand',
@@ -113,7 +111,6 @@ abstract class BaseUser extends BaseModel implements
                 'card_last_four',
                 'created_at',
                 'updated_at',
-                'available_space',
                 'email_verified_at',
                 'timezone',
                 'confirmation_code',
@@ -126,15 +123,12 @@ abstract class BaseUser extends BaseModel implements
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_role')->orderBy(
-            'order',
-            'desc',
-        );
+        return $this->belongsToMany(Role::class, 'user_role');
     }
 
     public function routeNotificationForSlack()
     {
-        return config('services.slack.webhook_url');
+        return config('services.slack.notifications.channel');
     }
 
     public function scopeWhereNeedsNotificationFor(
@@ -182,16 +176,29 @@ abstract class BaseUser extends BaseModel implements
             ->orderBy('file_entry_models.created_at', 'asc');
     }
 
-    public function activeSessions(): HasMany
+    public function avatars()
     {
-        return $this->hasMany(ActiveSession::class);
+        return $this->attachedFileEntriesRelation('avatar');
     }
 
-    public function lastLogin(): HasOne
+    public function userSessions(): HasMany
     {
-        return $this->hasOne(ActiveSession::class)
-            ->latest()
-            ->select(['id', 'user_id', 'session_id', 'created_at']);
+        return $this->hasMany(UserSession::class);
+    }
+
+    public function createOrTouchSession()
+    {
+        return UserSession::createNewOrTouchExisting($this);
+    }
+
+    public function touchLastActiveAt()
+    {
+        return UserSession::createNewOrTouchExisting($this);
+    }
+
+    public function latestUserSession(): HasOne
+    {
+        return $this->hasOne(UserSession::class)->orderBy('updated_at', 'desc');
     }
 
     public function followedUsers(): BelongsToMany
@@ -284,6 +291,12 @@ abstract class BaseUser extends BaseModel implements
 
     public function sendEmailVerificationNotification(): void
     {
+        // there's no easy way to disable laravel's default SendEmailVerificationNotification listener,
+        // so we just dont do anything here, if email confirmation is disabled
+        if (!settings('require_email_confirmation')) {
+            return;
+        }
+
         $otp = OtpCode::createForEmailVerification($this->id);
         $this->notify(new VerifyEmailWithOtp($otp->code));
     }
@@ -304,7 +317,7 @@ abstract class BaseUser extends BaseModel implements
             return $this;
         }
 
-        $query = Permission::join(
+        $query = Permission::where('permissions.type', 'users')->join(
             'permissionables',
             'permissions.id',
             'permissionables.permission_id',
@@ -312,31 +325,36 @@ abstract class BaseUser extends BaseModel implements
 
         // Might have a guest user. In this case user ID will be -1,
         // but we still want to load guest role permissions below
-        if ($this->exists) {
-            $query->where([
-                'permissionable_id' => $this->id,
-                'permissionable_type' => $this->getMorphClass(),
-            ]);
-        }
+        $query->where(function (Builder $query) {
+            if ($this->exists) {
+                $query->where([
+                    'permissionable_id' => $this->id,
+                    'permissionable_type' => $this->getMorphClass(),
+                ]);
+            }
 
-        if ($this->roles->pluck('id')->isNotEmpty()) {
-            $query->orWhere(function (Builder $builder) {
-                return $builder
-                    ->whereIn('permissionable_id', $this->roles->pluck('id'))
-                    ->where(
-                        'permissionable_type',
-                        $this->roles->first()->getMorphClass(),
-                    );
-            });
-        }
+            if ($this->roles->pluck('id')->isNotEmpty()) {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder
+                        ->whereIn(
+                            'permissionable_id',
+                            $this->roles->pluck('id'),
+                        )
+                        ->where(
+                            'permissionable_type',
+                            $this->roles->first()->getMorphClass(),
+                        );
+                });
+            }
 
-        if ($this->exists && ($plan = $this->getSubscriptionProduct())) {
-            $query->orWhere(function (Builder $builder) use ($plan) {
-                return $builder
-                    ->where('permissionable_id', $plan->id)
-                    ->where('permissionable_type', $plan->getMorphClass());
-            });
-        }
+            if ($this->exists && ($plan = $this->getSubscriptionProduct())) {
+                $query->orWhere(function (Builder $builder) use ($plan) {
+                    return $builder
+                        ->where('permissionable_id', $plan->id)
+                        ->where('permissionable_type', $plan->getMorphClass());
+                });
+            }
+        });
 
         $permissions = $query
             ->select([
@@ -383,7 +401,7 @@ abstract class BaseUser extends BaseModel implements
         $subscription = $this->subscriptions->first();
 
         if ($subscription && $subscription->valid()) {
-            return $subscription->product;
+            return $subscription->load('product')->product;
         } else {
             return Product::where('free', true)->first();
         }
@@ -391,13 +409,11 @@ abstract class BaseUser extends BaseModel implements
 
     public function scopeCompact(Builder $query): Builder
     {
-        $query->getModel()->makeHidden(['first_name']);
         return $query->select(
             'users.id',
             'users.image',
             'users.email',
-            'users.first_name',
-            'users.last_name',
+            'users.name',
             'users.username',
         );
     }
@@ -422,9 +438,7 @@ abstract class BaseUser extends BaseModel implements
 
     public function refreshApiToken($tokenName): string
     {
-        $this->tokens()
-            ->where('name', $tokenName)
-            ->delete();
+        $this->tokens()->where('name', $tokenName)->delete();
         $newToken = $this->createToken($tokenName);
         $this->withAccessToken($newToken->accessToken);
         return $newToken->plainTextToken;
@@ -438,22 +452,59 @@ abstract class BaseUser extends BaseModel implements
         return $this->where('id', $value)->firstOrFail();
     }
 
+    public function makeSearchableUsing(Collection $models)
+    {
+        return $models->load([
+            'userSessions' => fn($q) => $q->limit(1),
+        ]);
+    }
+
+    protected function makeAllSearchableUsing($query)
+    {
+        return $query->with(['userSessions' => fn($q) => $q->limit(1)]);
+    }
+
     public function toSearchableArray(): array
     {
+        $session = $this->userSessions->first();
         return [
             'id' => $this->id,
             'username' => $this->username,
-            'first_name' => $this->first_name,
-            'last_name' => $this->last_name,
+            'type' => $this->type,
+            'name' => $this->name,
             'email' => $this->email,
             'created_at' => $this->created_at->timestamp ?? '_null',
             'updated_at' => $this->updated_at->timestamp ?? '_null',
+            'email_verified_at' =>
+                $this->email_verified_at->timestamp ?? '_null',
+            'last_active_at' => $session->updated_at->timestamp ?? '_null',
+            'country' => $session->country ?? $this->country,
+            'city' => $session->city ?? null,
+            'timezone' => $this->timezone,
+            'language' => $this->language,
+            'browser' => $session->browser ?? null,
+            'platform' => $session->platform ?? null,
+            'device' => $session->device ?? null,
         ];
     }
 
     public static function filterableFields(): array
     {
-        return ['id', 'created_at', 'updated_at'];
+        return [
+            'id',
+            'type',
+            'created_at',
+            'updated_at',
+            'last_active_at',
+            'email_verified_at',
+            'country',
+            'city',
+            'timezone',
+            'language',
+            'browser',
+            'platform',
+            'device',
+        ];
     }
 
     public function toNormalizedArray(): array

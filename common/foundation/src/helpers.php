@@ -1,5 +1,6 @@
 <?php
 
+use App\Team\Models\Group;
 use Cocur\Slugify\Slugify;
 use Common\Auth\Roles\Role;
 use Common\Comments\Comment;
@@ -9,7 +10,6 @@ use Common\Core\Rendering\CrawlerDetector;
 use Common\Settings\Settings;
 use Common\Tags\Tag;
 use Common\Workspaces\Workspace;
-use Helpdesk\Models\Group;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Str;
 
@@ -69,10 +69,7 @@ if (!function_exists('modelTypeToNamespace')) {
             return $namespace;
         }
 
-        $modelName = Str::of($modelType)
-            ->camel()
-            ->singular()
-            ->ucfirst();
+        $modelName = Str::of($modelType)->camel()->singular()->ucfirst();
 
         return "App\\Models\\$modelName";
     }
@@ -151,5 +148,16 @@ if (!function_exists('isApiRequest')) {
     {
         return request()->route() &&
             in_array('api', request()->route()->computedMiddleware);
+    }
+}
+
+if (!function_exists('getMainCssFileUrl')) {
+    function getMainCssFileUrl(): string
+    {
+        $manifest = json_decode(
+            file_get_contents(public_path('build/manifest.json')),
+            true,
+        );
+        return url('build/' . $manifest['resources/client/main.tsx']['css'][0]);
     }
 }

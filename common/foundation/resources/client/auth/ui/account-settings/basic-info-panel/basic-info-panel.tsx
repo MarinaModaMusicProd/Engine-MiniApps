@@ -1,32 +1,34 @@
-import {useForm} from 'react-hook-form';
-import {useId} from 'react';
-import {User} from '@ui/types/user';
-import {AccountSettingsPanel} from '../account-settings-panel';
+import {UploadType} from '@app/site-config';
+import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
+import {apiClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {ImageSelector} from '@common/uploads/components/image-selector';
+import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {useMutation} from '@tanstack/react-query';
+import {Avatar} from '@ui/avatar/avatar';
 import {Button} from '@ui/buttons/button';
 import {Form} from '@ui/forms/form';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {useUpdateAccountDetails} from './update-account-details';
 import {Trans} from '@ui/i18n/trans';
-import {useUploadAvatar} from '../avatar/upload-avatar';
-import {useRemoveAvatar} from '../avatar/remove-avatar';
-import {FormImageSelector} from '@common/uploads/components/image-selector';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {AccountSettingsId} from '@common/auth/ui/account-settings/account-settings-sidenav';
+import {AlternateEmailIcon} from '@ui/icons/material/AlternateEmail';
+import {User} from '@ui/types/user';
+import {useId, useState} from 'react';
+import {useForm} from 'react-hook-form';
+import {AccountSettingsPanel} from '../account-settings-panel';
+import {useUpdateAccountDetails} from './update-account-details';
 
 interface Props {
   user: User;
 }
 export function BasicInfoPanel({user}: Props) {
-  const uploadAvatar = useUploadAvatar({user});
-  const removeAvatar = useRemoveAvatar({user});
   const formId = useId();
   const form = useForm<Partial<Omit<User, 'subscriptions'>>>({
     defaultValues: {
-      first_name: user.first_name || '',
-      last_name: user.last_name || '',
+      name: user.name || '',
       image: user.image,
     },
   });
+  const updateAvatar = useUpdateAvatar(user.id);
   const updateDetails = useUpdateAccountDetails(user.id, form);
 
   return (
@@ -39,7 +41,11 @@ export function BasicInfoPanel({user}: Props) {
           variant="flat"
           color="primary"
           form={formId}
-          disabled={updateDetails.isPending || !form.formState.isValid}
+          disabled={
+            updateDetails.isPending ||
+            !form.formState.isValid ||
+            !form.formState.isDirty
+          }
         >
           <Trans message="Save" />
         </Button>
@@ -47,42 +53,74 @@ export function BasicInfoPanel({user}: Props) {
     >
       <Form
         form={form}
-        className="flex flex-col items-center gap-40 md:flex-row md:gap-80"
+        className="flex flex-col items-center gap-40 md:flex-row md:gap-60"
         onSubmit={newDetails => {
-          updateDetails.mutate(newDetails);
+          updateDetails.mutate(newDetails, {
+            onSuccess: () => {
+              form.reset({
+                ...form.getValues(),
+                ...newDetails,
+              });
+            },
+          });
         }}
         id={formId}
       >
-        <div className="w-full flex-auto">
-          <FormTextField
-            className="mb-24"
-            name="first_name"
-            label={<Trans message="First name" />}
-          />
-          <FormTextField
-            name="last_name"
-            label={<Trans message="Last name" />}
-          />
-        </div>
         <FileUploadProvider>
-          <FormImageSelector
-            className="md:mr-80"
-            variant="avatar"
-            previewSize="w-90 h-90"
-            showRemoveButton
-            name="image"
-            diskPrefix="avatars"
-            label={<Trans message="Profile image" />}
-            onChange={url => {
-              if (url) {
-                uploadAvatar.mutate({url});
-              } else {
-                removeAvatar.mutate();
-              }
-            }}
-          />
+          <AvatarSelector user={user} />
         </FileUploadProvider>
+        <div className="w-full flex-auto">
+          <div className="mb-16 flex items-center gap-4 text-muted">
+            <AlternateEmailIcon size="sm" />
+            {user.email}
+          </div>
+          <FormTextField name="name" label={<Trans message="Name" />} />
+        </div>
       </Form>
     </AccountSettingsPanel>
   );
+}
+
+interface AvatarManagerProps {
+  user: {
+    id: User['id'];
+    image?: User['image'];
+    name: User['name'];
+  };
+}
+function AvatarSelector({user}: AvatarManagerProps) {
+  const [value, setValue] = useState(user.image);
+  const updateAvatar = useUpdateAvatar(user.id);
+  return (
+    <FileUploadProvider>
+      <ImageSelector
+        value={value}
+        uploadType={UploadType.avatars}
+        variant="avatar"
+        stretchPreview
+        previewSize="w-90 h-90"
+        placeholderIcon={
+          <Avatar label={user.name} size="w-full h-full text-2xl" circle />
+        }
+        showRemoveButton
+        onChange={(_, entry) => {
+          setValue(entry?.url);
+          updateAvatar.mutate({
+            image: entry?.url ?? null,
+            image_entry_id: entry?.id ?? null,
+          });
+        }}
+      />
+    </FileUploadProvider>
+  );
+}
+
+function useUpdateAvatar(userId: number) {
+  return useMutation({
+    mutationFn: (payload: {
+      image?: string | null;
+      image_entry_id?: number | null;
+    }) => apiClient.put(`users/${userId}`, payload).then(r => r.data),
+    onError: r => showHttpErrorToast(r),
+  });
 }

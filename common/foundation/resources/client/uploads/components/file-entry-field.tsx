@@ -1,4 +1,28 @@
-import React, {
+import {UploadType} from '@app/site-config';
+import {FileEntry} from '@common/uploads/file-entry';
+import {useFileEntryModel} from '@common/uploads/requests/use-file-entry-model';
+import {restrictionsFromConfig} from '@common/uploads/uploader/create-file-upload';
+import {UploadStrategyConfig} from '@common/uploads/uploader/strategy/upload-strategy';
+import {useActiveUpload} from '@common/uploads/uploader/use-active-upload';
+import {mergeProps} from '@react-aria/utils';
+import {opacityAnimation} from '@ui/animation/opacity-animation';
+import {Button} from '@ui/buttons/button';
+import {useAutoFocus} from '@ui/focus/use-auto-focus';
+import {Field} from '@ui/forms/input-field/field';
+import {
+  getInputFieldClassNames,
+  InputFieldStyle,
+} from '@ui/forms/input-field/get-input-field-class-names';
+import {Input} from '@ui/forms/input-field/input';
+import {Trans} from '@ui/i18n/trans';
+import {ProgressBar} from '@ui/progress/progress-bar';
+import {Skeleton} from '@ui/skeleton/skeleton';
+import {toast} from '@ui/toast/toast';
+import {UploadedFile} from '@ui/utils/files/uploaded-file';
+import {validateFile} from '@ui/utils/files/validate-file';
+import clsx from 'clsx';
+import {AnimatePresence, m} from 'framer-motion';
+import {
   cloneElement,
   ComponentPropsWithRef,
   ReactElement,
@@ -7,30 +31,7 @@ import React, {
   useId,
   useRef,
 } from 'react';
-import clsx from 'clsx';
-import {mergeProps} from '@react-aria/utils';
-import {toast} from '@ui/toast/toast';
-import {Field} from '@ui/forms/input-field/field';
-import {
-  getInputFieldClassNames,
-  InputFieldStyle,
-} from '@ui/forms/input-field/get-input-field-class-names';
-import {FileEntry} from '@common/uploads/file-entry';
-import {useAutoFocus} from '@ui/focus/use-auto-focus';
-import {UploadStrategyConfig} from '@common/uploads/uploader/strategy/upload-strategy';
-import {useActiveUpload} from '@common/uploads/uploader/use-active-upload';
-import {Disk} from '@common/uploads/uploader/backend-metadata';
-import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
-import {ProgressBar} from '@ui/progress/progress-bar';
-import {Input} from '@ui/forms/input-field/input';
 import {useController} from 'react-hook-form';
-import {useFileEntryModel} from '@common/uploads/requests/use-file-entry-model';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {AnimatePresence, m} from 'framer-motion';
-import {opacityAnimation} from '@ui/animation/opacity-animation';
-import {validateFile} from '@ui/utils/files/validate-file';
-import {UploadedFile} from '@ui/utils/files/uploaded-file';
 
 interface Props {
   className?: string;
@@ -42,10 +43,7 @@ interface Props {
   disabled?: boolean;
   value?: string;
   onChange?: (newValue: string) => void;
-  allowedFileTypes?: string[];
-  maxFileSize?: number;
-  diskPrefix: string;
-  disk?: Disk;
+  uploadType: keyof typeof UploadType;
   showRemoveButton?: boolean;
   autoFocus?: boolean;
 }
@@ -55,16 +53,13 @@ export function FileEntryField({
   description,
   value,
   onChange,
-  diskPrefix,
-  disk = Disk.uploads,
   showRemoveButton,
   invalid,
   errorMessage,
   required,
   autoFocus,
   disabled,
-  allowedFileTypes,
-  maxFileSize,
+  uploadType,
 }: Props) {
   const {
     uploadFile,
@@ -88,15 +83,8 @@ export function FileEntryField({
   const currentEntry = entry || data?.fileEntry;
 
   const uploadOptions: UploadStrategyConfig = {
+    uploadType,
     showToastOnRestrictionFail: true,
-    restrictions: {
-      allowedFileTypes,
-      maxFileSize,
-    },
-    metadata: {
-      diskPrefix,
-      disk,
-    },
     onSuccess: (entry: FileEntry) => onChange?.(entry.url),
     onError: message => {
       if (message) {
@@ -132,6 +120,8 @@ export function FileEntryField({
     inputRef.current?.click();
   }, []);
 
+  const restrictions = restrictionsFromConfig({uploadType});
+
   return (
     <div className={clsx('text-sm', className)}>
       {label && (
@@ -164,7 +154,7 @@ export function FileEntryField({
               // if file is already uploaded (from form or via props) set
               // required to false, otherwise farm validation will always fail
               required={currentValue ? false : required}
-              accept={allowedFileTypes?.join(',')}
+              accept={restrictions?.allowedFileTypes?.join(',')}
               type="file"
               disabled={uploadStatus === 'inProgress'}
               className="sr-only"
@@ -174,7 +164,7 @@ export function FileEntryField({
                   // because there's no easy way to listen for errors using "uploadFile"
                   const errorMessage = validateFile(
                     new UploadedFile(e.target.files[0]),
-                    uploadOptions.restrictions,
+                    restrictions,
                   );
                   if (errorMessage && inputRef.current) {
                     inputRef.current.value = '';

@@ -1,17 +1,23 @@
-import React, {forwardRef, Fragment, ReactElement, ReactNode} from 'react';
-import {NavLink} from 'react-router-dom';
-import clsx from 'clsx';
-import {Orientation} from '@ui/forms/orientation';
-import {useCustomMenu} from './use-custom-menu';
-import {Trans} from '@ui/i18n/trans';
-import {IconSize} from '@ui/icons/svg-icon';
 import {MenuConfig, MenuItemConfig} from '@common/menus/menu-config';
+import {Orientation} from '@ui/forms/orientation';
+import {Trans} from '@ui/i18n/trans';
 import {createSvgIconFromTree} from '@ui/icons/create-svg-icon';
+import {IconSize, SvgIconProps} from '@ui/icons/svg-icon';
 import {Tooltip} from '@ui/tooltip/tooltip';
+import clsx from 'clsx';
+import React, {
+  ComponentType,
+  forwardRef,
+  Fragment,
+  ReactElement,
+  ReactNode,
+} from 'react';
+import {NavLink} from 'react-router';
+import {useCustomMenu} from './use-custom-menu';
 
 type MatchDescendants = undefined | boolean | ((to: string) => boolean);
 
-interface CustomMenuProps {
+export interface CustomMenuProps {
   className?: string;
   matchDescendants?: MatchDescendants;
   iconClassName?: string;
@@ -27,10 +33,11 @@ interface CustomMenuProps {
   children?: (
     menuItem: MenuItemConfig,
     menuItemProps: MenuItemProps,
-  ) => ReactElement;
+  ) => ReactElement | null;
   orientation?: Orientation;
   onlyShowIcons?: boolean;
   unstyled?: boolean;
+  defaultIcons?: Record<string, ComponentType<SvgIconProps>>;
 }
 export function CustomMenu({
   className,
@@ -44,6 +51,7 @@ export function CustomMenu({
   onlyShowIcons,
   iconSize,
   unstyled = false,
+  defaultIcons,
 }: CustomMenuProps) {
   const menu = useCustomMenu(menuOrPosition);
   if (!menu) return null;
@@ -66,6 +74,7 @@ export function CustomMenu({
           matchDescendants,
           iconClassName,
           iconSize,
+          defaultIcons,
           className: props => {
             return typeof itemClassName === 'function'
               ? itemClassName({...props, item})
@@ -82,8 +91,10 @@ export function CustomMenu({
   );
 }
 
-interface MenuItemProps extends React.RefAttributes<HTMLAnchorElement> {
+export interface MenuItemProps extends React.RefAttributes<HTMLAnchorElement> {
   item: MenuItemConfig;
+  icon?: ReactElement<SvgIconProps> | null;
+  defaultIcons?: Record<string, ComponentType<SvgIconProps>>;
   iconClassName?: string;
   className?: (props: {isActive: boolean}) => string | undefined;
   matchDescendants?: MatchDescendants;
@@ -105,15 +116,25 @@ export const CustomMenuItem = forwardRef<HTMLAnchorElement, MenuItemProps>(
       iconSize = 'sm',
       extraContent,
       position = 'relative',
+      defaultIcons,
+      icon: propsIcon,
       ...linkProps
     },
     ref,
   ) => {
     const label = <Trans message={item.label} />;
-    const IconCmp = item.icon && createSvgIconFromTree(item.icon);
-    let icon = IconCmp ? (
-      <IconCmp size={iconSize} className={iconClassName} />
-    ) : null;
+    let icon: ReactElement<SvgIconProps> | null = null;
+
+    if (propsIcon) {
+      icon = propsIcon;
+    } else if (item.icon) {
+      const IconCmp = createSvgIconFromTree(item.icon);
+      icon = IconCmp && <IconCmp size={iconSize} className={iconClassName} />;
+    } else if (defaultIcons) {
+      const IconCmp = defaultIcons[item.action.split('?')[0]];
+      icon = IconCmp && <IconCmp size={iconSize} className={iconClassName} />;
+    }
+
     if (icon && onlyShowIcon && label) {
       icon = (
         <Tooltip label={label} placement="right">

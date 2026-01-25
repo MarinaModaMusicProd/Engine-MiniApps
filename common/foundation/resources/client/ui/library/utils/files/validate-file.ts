@@ -1,22 +1,21 @@
-import {UploadedFile} from '@ui/utils/files/uploaded-file';
 import {message} from '@ui/i18n/message';
-import {prettyBytes} from '@ui/utils/files/pretty-bytes';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {prettyBytes} from '@ui/utils/files/pretty-bytes';
+import {UploadedFile} from '@ui/utils/files/uploaded-file';
 import match from 'mime-match';
 
 export interface Restrictions {
   maxFileSize?: number;
   allowedFileTypes?: string[];
-  blockedFileTypes?: string[];
 }
 
 export function validateFile(
   file: UploadedFile,
-  restrictions?: Restrictions,
+  restrictions?: Restrictions | null,
 ): MessageDescriptor | void {
   if (!restrictions) return;
 
-  const {maxFileSize, allowedFileTypes, blockedFileTypes} = restrictions;
+  const {maxFileSize, allowedFileTypes} = restrictions;
 
   if (maxFileSize && file.size != null && file.size > maxFileSize) {
     return message('`:file` exceeds maximum allowed size of :size', {
@@ -26,12 +25,6 @@ export function validateFile(
 
   if (allowedFileTypes?.length) {
     if (!fileMatchesTypes(file, allowedFileTypes)) {
-      return message('This file type is not allowed');
-    }
-  }
-
-  if (blockedFileTypes?.length) {
-    if (fileMatchesTypes(file, blockedFileTypes)) {
       return message('This file type is not allowed');
     }
   }

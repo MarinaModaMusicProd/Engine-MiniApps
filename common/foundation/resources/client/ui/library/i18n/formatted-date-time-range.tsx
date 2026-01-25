@@ -1,10 +1,10 @@
 import {DateValue, parseAbsolute} from '@internationalized/date';
-import {Fragment, memo} from 'react';
+import {DateFormatPresets} from '@ui/i18n/formatted-date';
 import {useDateFormatter} from '@ui/i18n/use-date-formatter';
+import {useUserTimezone} from '@ui/i18n/use-user-timezone';
 import {useSettings} from '@ui/settings/use-settings';
 import {shallowEqual} from '@ui/utils/shallow-equal';
-import {useUserTimezone} from '@ui/i18n/use-user-timezone';
-import {DateFormatPresets} from '@ui/i18n/formatted-date';
+import {Fragment, memo} from 'react';
 
 interface FormattedDateTimeRangeProps {
   start?: string | DateValue | Date;
@@ -27,7 +27,7 @@ export const FormattedDateTimeRange = memo(
     const formatter = useDateFormatter(
       options ||
         (DateFormatPresets as Record<string, Intl.DateTimeFormatOptions>)[
-          preset || dates?.format
+          preset || dates?.format || 'short'
         ],
     );
 

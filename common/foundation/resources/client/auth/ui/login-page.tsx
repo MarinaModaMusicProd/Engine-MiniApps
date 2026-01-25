@@ -1,34 +1,35 @@
-import {Link, useLocation, useSearchParams} from 'react-router-dom';
-import {useForm} from 'react-hook-form';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {Button} from '@ui/buttons/button';
-import {Form} from '@ui/forms/form';
-import {LoginPayload, useLogin} from '../requests/use-login';
-import {FormCheckbox} from '@ui/forms/toggle/checkbox';
 import {LinkStyle} from '@ui/buttons/external-link';
-import {SocialAuthSection} from './social-auth-section';
-import {AuthLayout} from './auth-layout/auth-layout';
+import {Form} from '@ui/forms/form';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {FormCheckbox} from '@ui/forms/toggle/checkbox';
 import {Trans} from '@ui/i18n/trans';
-import {StaticPageTitle} from '../../seo/static-page-title';
-import React, {useContext} from 'react';
+import {useSettings} from '@ui/settings/use-settings';
+import {ReactNode, useContext} from 'react';
+import {useForm} from 'react-hook-form';
+import {Link, useLocation, useSearchParams} from 'react-router';
 import {
   SiteConfigContext,
   SiteConfigContextValue,
 } from '../../core/settings/site-config-context';
-import {useSettings} from '@ui/settings/use-settings';
-import {Web3AuthSection} from "@common/auth/ui/web3-auth-section";
+import {StaticPageTitle} from '../../seo/static-page-title';
+import {LoginPayload, useLogin} from '../requests/use-login';
+import {AuthLayout} from './auth-layout/auth-layout';
+import {SocialAuthSection} from './social-auth-section';
 
 interface Props {
   onTwoFactorChallenge: () => void;
+  bottomMessages?: ReactNode;
 }
-export function LoginPage({onTwoFactorChallenge}: Props) {
+export function LoginPage({onTwoFactorChallenge, bottomMessages}: Props) {
   const [searchParams] = useSearchParams();
   const {pathname} = useLocation();
 
   const isWorkspaceLogin = pathname.includes('workspace');
   const searchParamsEmail = searchParams.get('email') || undefined;
 
-  const {branding, registration, site, social, web3} = useSettings();
+  const {branding, registration, site, social} = useSettings();
+  const registrationEnabled = !registration?.disable;
   const siteConfig = useContext(SiteConfigContext);
 
   const demoDefaults =
@@ -47,23 +48,30 @@ export function LoginPage({onTwoFactorChallenge}: Props) {
     <Trans message="Sign in to your account" />
   );
 
-  const message = !registration?.disable && (
-    <Trans
-      values={{
-        a: parts => (
-          <Link className={LinkStyle} to="/register">
-            {parts}
-          </Link>
-        ),
-      }}
-      message="Don't have an account? <a>Sign up.</a>"
-    />
+  const messages = (registrationEnabled || bottomMessages) && (
+    <div className="space-y-8">
+      {registrationEnabled && (
+        <div>
+          <Trans
+            message="Don't have an account? <a>Sign up.</a>"
+            values={{
+              a: parts => (
+                <Link className={LinkStyle} to="/register">
+                  {parts}
+                </Link>
+              ),
+            }}
+          />
+        </div>
+      )}
+      {bottomMessages}
+    </div>
   );
 
   const isInvalid = !!Object.keys(form.formState.errors).length;
 
   return (
-    <AuthLayout heading={heading} message={message}>
+    <AuthLayout heading={heading} message={messages}>
       <StaticPageTitle>
         <Trans message="Login" />
       </StaticPageTitle>
@@ -86,6 +94,11 @@ export function LoginPage({onTwoFactorChallenge}: Props) {
           label={<Trans message="Email" />}
           disabled={!!searchParamsEmail}
           invalid={isInvalid}
+          errorMessage={
+            form.formState.errors.email?.message && (
+              <InvalidCredentialsMessage />
+            )
+          }
           required
         />
         <FormTextField
@@ -115,21 +128,10 @@ export function LoginPage({onTwoFactorChallenge}: Props) {
           <Trans message="Continue" />
         </Button>
       </Form>
-
       <SocialAuthSection
         dividerMessage={
           social?.compact_buttons ? (
-            <Trans message="Or sign in with social" />
-          ) : (
-            <Trans message="OR" />
-          )
-        }
-      />
-
-      <Web3AuthSection
-        dividerMessage={
-          web3?.compact_buttons ? (
-            <Trans message="Or sign in with web3" />
+            <Trans message="Or sign in with" />
           ) : (
             <Trans message="OR" />
           )
@@ -139,19 +141,28 @@ export function LoginPage({onTwoFactorChallenge}: Props) {
   );
 }
 
+function InvalidCredentialsMessage() {
+  return (
+    <Trans
+      message="These credentials do not match our records. Try again or <a>get a new password</a>."
+      values={{
+        a: text => (
+          <Link
+            className="font-semibold underline"
+            to="/forgot-password"
+            tabIndex={-1}
+          >
+            {text}
+          </Link>
+        ),
+      }}
+    />
+  );
+}
+
 function getDemoFormDefaults(siteConfig: SiteConfigContextValue) {
-  if (siteConfig.demo.loginPageDefaults === 'randomAccount') {
-    // random number between 0 and 100, padded to 3 digits
-    const number = Math.floor(Math.random() * 100) + 1;
-    const paddedNumber = String(number).padStart(3, '0');
-    return {
-      email: `admin@demo${paddedNumber}.com`,
-      password: 'admin',
-    };
-  } else {
-    return {
-      email: siteConfig.demo.email ?? 'admin@admin.com',
-      password: siteConfig.demo.password ?? 'admin',
-    };
-  }
+  return {
+    email: siteConfig.demo?.email ?? 'admin@admin.com',
+    password: siteConfig.demo?.password ?? 'admin',
+  };
 }

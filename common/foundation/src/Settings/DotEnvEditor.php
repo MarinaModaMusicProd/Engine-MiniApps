@@ -7,9 +7,7 @@ use Illuminate\Support\Str;
 
 class DotEnvEditor
 {
-    public function __construct(protected string $fileName = '.env')
-    {
-    }
+    public function __construct(protected string $fileName = '.env') {}
 
     public function load(): array
     {
@@ -47,10 +45,10 @@ class DotEnvEditor
             $key = strtoupper($key);
             $valueIsNull = $value === 'null';
 
-            // this key already exists in .env file
-            if (Str::contains($content, $key . '=')) {
-                preg_match("/($key=)(.*?)(\n|\Z)/msi", $content, $matches);
+            preg_match("/^($key=)(.*?)(\n|\Z)/msi", $content, $matches);
 
+            // this key already exists in .env file
+            if (!empty($matches)) {
                 // if value is null, remove the key from .env file
                 if ($valueIsNull) {
                     $content = str_replace($matches[0], '', $content);

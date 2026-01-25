@@ -2,14 +2,21 @@
 
 namespace App\Models;
 
+use App\Services\Albums\AlbumLoader;
 use App\Services\Albums\PaginateAlbums;
+use App\Services\Artists\ArtistLoader;
 use App\Services\Artists\PaginateArtists;
 use App\Services\Channels\FetchContentForChannelFromLastfm;
 use App\Services\Channels\FetchContentForChannelFromLocal;
 use App\Services\Channels\FetchContentForChannelFromSpotify;
+use App\Services\Genres\GenreToApiResource;
 use App\Services\Genres\PaginateGenres;
 use App\Services\Playlists\PaginatePlaylists;
+use App\Services\Playlists\PlaylistLoader;
 use App\Services\Tracks\PaginateTracks;
+use App\Services\Tracks\TrackLoader;
+use App\Services\Users\PaginateUserProfiles;
+use App\Services\Users\UserProfileLoader;
 use Common\Channels\BaseChannel;
 use Common\Database\Datasource\Datasource;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -35,16 +42,14 @@ class Channel extends BaseChannel
         if (!$builder && $this->restriction) {
             $builder = $this->restriction->artists();
         }
-        return (new PaginateArtists())->execute($params, $builder);
+        return (new PaginateArtists())->asPaginator($params, $builder);
     }
 
     public function albums(): MorphToMany
     {
-        return $this->morphedByMany(Album::class, 'channelable')->withPivot([
-            'id',
-            'channelable_id',
-            'order',
-        ]);
+        return $this->morphedByMany(Album::class, 'channelable')
+            ->releasedOnly()
+            ->withPivot(['id', 'channelable_id', 'order']);
     }
 
     public function allAlbums(array $params, $builder = null): AbstractPaginator
@@ -52,7 +57,11 @@ class Channel extends BaseChannel
         if (!$builder && $this->restriction) {
             $builder = $this->restriction->albums();
         }
-        return (new PaginateAlbums())->execute($params, $builder);
+        return (new PaginateAlbums())->asPaginator(
+            $params,
+            $builder,
+            includeTracks: $this->config['layout'] === 'list',
+        );
     }
 
     public function tracks(): MorphToMany
@@ -69,7 +78,7 @@ class Channel extends BaseChannel
         if (!$builder && $this->restriction) {
             $builder = $this->restriction->tracks();
         }
-        return (new PaginateTracks())->execute($params, $builder);
+        return (new PaginateTracks())->asPaginator($params, $builder);
     }
 
     public function users(): MorphToMany
@@ -86,17 +95,7 @@ class Channel extends BaseChannel
         mixed $builder = null,
     ): AbstractPaginator {
         $builder = $builder ?? User::query();
-        $builder
-            ->select([
-                'users.id',
-                'email',
-                'first_name',
-                'last_name',
-                'username',
-                'image',
-            ])
-            ->withCount(['followers']);
-        return (new Datasource($builder, $params))->paginate();
+        return (new PaginateUserProfiles())->asPaginator($params, $builder);
     }
 
     public function genres(): MorphToMany
@@ -110,7 +109,7 @@ class Channel extends BaseChannel
 
     public function allGenres(array $params, $builder = null): AbstractPaginator
     {
-        return (new PaginateGenres())->execute($params, $builder);
+        return (new PaginateGenres())->asPaginator($params, $builder);
     }
 
     public function playlists(): MorphToMany
@@ -128,17 +127,20 @@ class Channel extends BaseChannel
     ): AbstractPaginator {
         $builder = $builder ?? Playlist::query();
         $builder->where('public', true)->has('tracks');
-        $params['editors'] = true;
-        return (new PaginatePlaylists())->execute($params, $builder);
+        return (new PaginatePlaylists())->asPaginator($params, $builder);
     }
 
-    public function channels(): MorphToMany
+    public function contentItemToApiResource($item): array
     {
-        return $this->morphedByMany(Channel::class, 'channelable')->withPivot([
-            'id',
-            'channelable_id',
-            'order',
-        ]);
+        return match ($item->model_type) {
+            'artist' => (new ArtistLoader())->toApiResource($item),
+            'album' => (new AlbumLoader())->toApiResource($item),
+            'track' => (new TrackLoader())->toApiResource($item),
+            'playlist' => (new PlaylistLoader())->toApiResource($item),
+            'genre' => (new GenreToApiResource())->execute($item),
+            'user' => (new UserProfileLoader())->toApiResource($item),
+            'channel' => $item->toApiResource(true),
+        };
     }
 
     protected function loadContentFromExternal(
@@ -168,5 +170,17 @@ class Channel extends BaseChannel
             ),
             default => null,
         };
+    }
+
+    public function getNestedChannelPerPage(
+        array $params = [],
+        $parent = null,
+    ): int {
+        if ($this->config['nestedLayout'] === 'compactGrid') {
+            return 20;
+        } elseif ($this->config['nestedLayout'] === 'carousel') {
+            return 10;
+        }
+        return 15;
     }
 }

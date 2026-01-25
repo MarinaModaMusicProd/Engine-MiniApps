@@ -1,14 +1,15 @@
-import clsx from 'clsx';
-import {Trans} from '@ui/i18n/trans';
-import {ImageIcon} from '@ui/icons/material/Image';
-import {FormatColorFillIcon} from '@ui/icons/material/FormatColorFill';
-import {GradientIcon} from '@ui/icons/material/Gradient';
-import {ReactElement, ReactNode, useState} from 'react';
+import {UploadType} from '@app/site-config';
+import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
 import {BgSelectorTabProps} from '@common/background-selector/bg-selector-tab-props';
 import {ColorBackgroundTab} from '@common/background-selector/color-background-tab';
 import {GradientBackgroundTab} from '@common/background-selector/gradient-background-tab';
 import {ImageBackgroundTab} from '@common/background-selector/image-background-tab/image-background-tab';
-import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {Trans} from '@ui/i18n/trans';
+import {FormatColorFillIcon} from '@ui/icons/material/FormatColorFill';
+import {GradientIcon} from '@ui/icons/material/Gradient';
+import {ImageIcon} from '@ui/icons/material/Image';
+import clsx from 'clsx';
+import {ReactElement, ReactNode, useState} from 'react';
 
 const TabMap: Record<
   'color' | 'gradient' | 'image',
@@ -29,7 +30,7 @@ interface BackgroundSelectorProps {
   underTabs?: ReactNode;
   isInsideDialog?: boolean;
   positionSelector?: 'simple' | 'advanced';
-  diskPrefix?: string;
+  uploadType: keyof typeof UploadType;
 }
 export function BackgroundSelector({
   className,
@@ -38,9 +39,9 @@ export function BackgroundSelector({
   tabColWidth,
   isInsideDialog,
   positionSelector = 'simple',
-  diskPrefix,
   centerTabs,
   underTabs,
+  uploadType,
 }: BackgroundSelectorProps) {
   const [activeTab, setActiveTab] = useState<TabName>(() => {
     if (value?.type === 'image') return 'image';
@@ -63,7 +64,7 @@ export function BackgroundSelector({
         onChange={onChange}
         isInsideDialog={isInsideDialog}
         positionSelector={positionSelector}
-        diskPrefix={diskPrefix}
+        uploadType={uploadType}
         className={clsx(
           'grid items-start gap-14',
           tabColWidth || 'grid-cols-[repeat(auto-fill,minmax(90px,1fr))]',

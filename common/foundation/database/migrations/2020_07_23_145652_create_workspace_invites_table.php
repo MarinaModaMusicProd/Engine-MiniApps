@@ -13,10 +13,10 @@ class CreateWorkspaceInvitesTable extends Migration
      */
     public function up()
     {
-        if ( ! Schema::hasTable('workspace_invites')) {
+        if (!Schema::hasTable('workspace_invites')) {
             Schema::create('workspace_invites', function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                $table->string('avatar', 80)->nullable();
+                $table->text('avatar')->nullable();
                 $table->integer('workspace_id')->unsigned()->index();
                 $table->integer('user_id')->unsigned()->index()->nullable();
                 $table->string('email', 80)->index();

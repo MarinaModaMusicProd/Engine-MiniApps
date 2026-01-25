@@ -15,12 +15,11 @@ class ArtistController extends BaseController
     {
         $this->authorize('index', Artist::class);
 
-        $pagination = app(PaginateArtists::class)->execute(
+        $pagination = app(PaginateArtists::class)->asApiResponse(
             request()->all(),
-            Artist::withCount(['albums']),
+            builder: Artist::withCount(['albums']),
+            loader: 'editArtistDatatable',
         );
-
-        $pagination->makeVisible(['updated_at', 'views', 'plays', 'verified']);
 
         return $this->success(['pagination' => $pagination]);
     }
@@ -30,7 +29,7 @@ class ArtistController extends BaseController
         $this->authorize('show', $artist);
 
         $loader = request('loader', 'artistPage');
-        $data = (new ArtistLoader())->execute($artist, $loader);
+        $data = (new ArtistLoader())->load($artist, $loader);
 
         (new IncrementModelViews())->execute($artist->id, 'artist');
 
@@ -44,6 +43,8 @@ class ArtistController extends BaseController
     {
         $this->authorize('store', Artist::class);
 
+        $this->blockOnDemoSite();
+
         $artist = app(CrupdateArtist::class)->execute($request->all());
 
         return $this->success(['artist' => $artist]);
@@ -52,6 +53,8 @@ class ArtistController extends BaseController
     public function update(Artist $artist, ModifyArtists $request)
     {
         $this->authorize('update', $artist);
+
+        $this->blockOnDemoSite();
 
         $artist = app(CrupdateArtist::class)->execute($request->all(), $artist);
 
@@ -62,6 +65,8 @@ class ArtistController extends BaseController
     {
         $artistIds = explode(',', $ids);
         $this->authorize('destroy', [Artist::class, $artistIds]);
+
+        $this->blockOnDemoSite();
 
         $artists = Artist::whereIn('id', $artistIds)->get();
 

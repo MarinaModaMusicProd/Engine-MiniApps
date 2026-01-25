@@ -1,15 +1,15 @@
+import {PartialAlbum} from '@app/web-player/albums/album';
 import {ContextMenuButton} from '@app/web-player/context-dialog/context-dialog-layout';
+import {useRepostsStore} from '@app/web-player/library/state/reposts-store';
+import {useToggleRepost} from '@app/web-player/reposts/use-toggle-repost';
+import {Track} from '@app/web-player/tracks/track';
+import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
 import {Trans} from '@ui/i18n/trans';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {Track} from '@app/web-player/tracks/track';
-import {Album} from '@app/web-player/albums/album';
 import {useSettings} from '@ui/settings/use-settings';
-import {useToggleRepost} from '@app/web-player/reposts/use-toggle-repost';
-import {useRepostsStore} from '@app/web-player/library/state/reposts-store';
-import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
 
 interface Props {
-  item: Track | Album;
+  item: Track | PartialAlbum;
 }
 export function ToggleRepostMenuButton({item}: Props) {
   const authHandler = useAuthClickCapture();

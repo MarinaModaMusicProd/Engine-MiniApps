@@ -1,8 +1,8 @@
+import {FilePreviewEntry} from '@common/uploads/components/file-preview/file-preview-entry';
 import React from 'react';
-import {FileEntry} from '../../file-entry';
 
 export interface FilePreviewContextValue {
-  entries: FileEntry[];
+  entries: FilePreviewEntry[];
   activeIndex: number;
 }
 

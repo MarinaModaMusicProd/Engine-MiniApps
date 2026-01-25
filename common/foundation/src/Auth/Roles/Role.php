@@ -20,6 +20,7 @@ class Role extends BaseModel
         'default' => 'boolean',
         'guests' => 'boolean',
         'internal' => 'boolean',
+        'agents' => 'boolean',
     ];
 
     /**

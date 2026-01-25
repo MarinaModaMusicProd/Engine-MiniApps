@@ -1,7 +1,7 @@
-<?php namespace Common\Database\Seeds;
+<?php namespace Common\Database\Seeders;
 
 use App\Models\User;
-use Common\Admin\Appearance\Themes\CssTheme;
+use Common\Settings\Themes\CssTheme;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Seeder;
 
@@ -9,8 +9,8 @@ class CssThemesTableSeeder extends Seeder
 {
     public function run(): void
     {
-        $dark = config('common.themes.dark');
-        $light = config('common.themes.light');
+        $dark = config('themes.dark');
+        $light = config('themes.light');
 
         $admin = User::whereHas('permissions', function (Builder $builder) {
             $builder->where('name', 'admin');

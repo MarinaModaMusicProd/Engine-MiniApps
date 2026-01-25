@@ -1,11 +1,11 @@
-import {closeDialog, useDialogStore} from '@ui/overlays/store/dialog-store';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import React from 'react';
+import {closeDialog, useDialogStore} from '@ui/overlays/store/dialog-store';
 
 export function DialogStoreOutlet() {
-  const {dialog: DialogElement, data} = useDialogStore();
+  const {dialog: DialogElement, data, options} = useDialogStore();
   return (
     <DialogTrigger
+      {...options}
       type="modal"
       isOpen={DialogElement != null}
       onClose={value => {

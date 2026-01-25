@@ -16,10 +16,10 @@ import {
   RadialLinearScale,
   Tooltip,
 } from 'chart.js';
-import {useEffect, useRef} from 'react';
-import {BaseChartProps} from './base-chart';
-import {FormattedDatasetItem} from './data/formatted-dataset-item';
 import deepMerge from 'deepmerge';
+import { useEffect, useRef } from 'react';
+import { BaseChartProps } from './base-chart';
+import { FormattedDatasetItem } from './data/formatted-dataset-item';
 
 Chart.register([
   LineElement,
@@ -44,7 +44,7 @@ export default function LazyChart({
   hideLegend,
 }: Omit<BaseChartProps<any>, 'children'>) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const chartRef = useRef<Chart<ChartType, unknown>>();
+  const chartRef = useRef<Chart<ChartType, unknown>>(null);
 
   useEffect(() => {
     if (ref.current) {

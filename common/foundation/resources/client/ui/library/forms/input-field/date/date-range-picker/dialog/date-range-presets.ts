@@ -1,6 +1,3 @@
-import {DateRangeValue} from '../date-range-value';
-import {message} from '@ui/i18n/message';
-import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 import {
   endOfMonth,
   endOfWeek,
@@ -9,13 +6,16 @@ import {
   startOfWeek,
   startOfYear,
 } from '@internationalized/date';
-import {startOfDay} from '@ui/utils/date/start-of-day';
-import {endOfDay} from '@ui/utils/date/end-of-day';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {message} from '@ui/i18n/message';
+import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 import {getCurrentDateTime} from '@ui/i18n/use-current-date-time';
+import {endOfDay} from '@ui/utils/date/end-of-day';
+import {startOfDay} from '@ui/utils/date/start-of-day';
+import {DateRangeValue} from '../date-range-value';
 
 const Now = startOfDay(getCurrentDateTime());
-const locale = getBootstrapData()?.i18n?.language || 'en';
+const locale = getBootstrapData()?.i18n?.active || 'en';
 
 export interface DateRangePreset {
   key: number;
@@ -73,55 +73,55 @@ export const DateRangePresets: DateRangePreset[] = [
     }),
   },
   {
-    key: 6,
+    key: 5,
     label: message('Last 30 days'),
     getRangeValue: () => ({
-      preset: 6,
+      preset: 5,
       start: Now.subtract({days: 30}),
       end: endOfDay(Now),
     }),
   },
   {
-    key: 7,
+    key: 6,
     label: message('Last 3 months'),
     getRangeValue: () => ({
-      preset: 7,
+      preset: 6,
       start: Now.subtract({months: 3}),
       end: endOfDay(Now),
     }),
   },
   {
-    key: 8,
+    key: 7,
     label: message('Last 12 months'),
     getRangeValue: () => ({
-      preset: 8,
+      preset: 7,
       start: Now.subtract({months: 12}),
       end: endOfDay(Now),
     }),
   },
   {
-    key: 9,
+    key: 8,
     label: message('This month'),
     getRangeValue: () => ({
-      preset: 9,
+      preset: 8,
       start: startOfMonth(Now),
       end: endOfMonth(endOfDay(Now)),
     }),
   },
   {
-    key: 10,
+    key: 9,
     label: message('This year'),
     getRangeValue: () => ({
-      preset: 10,
+      preset: 9,
       start: startOfYear(Now),
       end: endOfYear(endOfDay(Now)),
     }),
   },
   {
-    key: 11,
+    key: 10,
     label: message('Last year'),
     getRangeValue: () => ({
-      preset: 11,
+      preset: 10,
       start: startOfYear(Now).subtract({years: 1}),
       end: endOfYear(endOfDay(Now)).subtract({years: 1}),
     }),

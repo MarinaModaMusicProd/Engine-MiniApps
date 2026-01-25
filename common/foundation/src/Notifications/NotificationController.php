@@ -2,7 +2,7 @@
 
 namespace Common\Notifications;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Core\BaseController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

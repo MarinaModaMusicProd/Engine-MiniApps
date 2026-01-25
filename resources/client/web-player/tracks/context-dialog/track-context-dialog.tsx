@@ -1,38 +1,43 @@
+import {
+  offlinedEntitiesStore,
+  useOfflineEntitiesStore,
+} from '@app/offline/offline-entities-store';
+import {useCanOffline} from '@app/offline/use-can-offline';
+import {getAlbumLink} from '@app/web-player/albums/album-link';
+import {getArtistLink} from '@app/web-player/artists/artist-link';
 import {ArtistLinks} from '@app/web-player/artists/artist-links';
-import {Trans} from '@ui/i18n/trans';
-import {Track} from '@app/web-player/tracks/track';
+import {AddToQueueButton} from '@app/web-player/context-dialog/add-to-queue-menu-button';
 import {
   ContextDialogLayout,
   ContextMenuButton,
   ContextMenuLayoutProps,
 } from '@app/web-player/context-dialog/context-dialog-layout';
-import {PlaylistPanelButton} from '@app/web-player/context-dialog/playlist-panel';
 import {CopyLinkMenuButton} from '@app/web-player/context-dialog/copy-link-menu-button';
-import {getTrackLink, TrackLink} from '@app/web-player/tracks/track-link';
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {useTrackPermissions} from '@app/web-player/tracks/hooks/use-track-permissions';
-import {AddToQueueButton} from '@app/web-player/context-dialog/add-to-queue-menu-button';
-import React, {Fragment, ReactNode, useCallback} from 'react';
+import {PlaylistPanelButton} from '@app/web-player/context-dialog/playlist-panel';
+import {ShareMediaButton} from '@app/web-player/context-dialog/share-media-button';
 import {ToggleInLibraryMenuButton} from '@app/web-player/context-dialog/toggle-in-library-menu-button';
 import {ToggleRepostMenuButton} from '@app/web-player/context-dialog/toggle-repost-menu-button';
 import {getRadioLink} from '@app/web-player/radio/get-radio-link';
 import {useShouldShowRadioButton} from '@app/web-player/tracks/context-dialog/use-should-show-radio-button';
+import {useTrackPermissions} from '@app/web-player/tracks/hooks/use-track-permissions';
+import {useDeleteTracks} from '@app/web-player/tracks/requests/use-delete-tracks';
+import {Track} from '@app/web-player/tracks/track';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {getTrackLink, TrackLink} from '@app/web-player/tracks/track-link';
+import {trackIsLocallyUploaded} from '@app/web-player/tracks/utils/track-is-locally-uploaded';
+import {trackToMediaItem} from '@app/web-player/tracks/utils/track-to-media-item';
+import {useAuth} from '@common/auth/use-auth';
+import {usePlayerActions} from '@common/player/hooks/use-player-actions';
+import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {Trans} from '@ui/i18n/trans';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {openDialog} from '@ui/overlays/store/dialog-store';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import {useDeleteTracks} from '@app/web-player/tracks/requests/use-delete-tracks';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {getArtistLink} from '@app/web-player/artists/artist-link';
-import {getAlbumLink} from '@app/web-player/albums/album-link';
-import {ShareMediaButton} from '@app/web-player/context-dialog/share-media-button';
 import {useSettings} from '@ui/settings/use-settings';
-import {trackIsLocallyUploaded} from '@app/web-player/tracks/utils/track-is-locally-uploaded';
-import {useAuth} from '@common/auth/use-auth';
 import {downloadFileFromUrl} from '@ui/utils/files/download-file-from-url';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import {usePlayerActions} from '@common/player/hooks/use-player-actions';
-import {trackToMediaItem} from '@app/web-player/tracks/utils/track-to-media-item';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {Fragment, ReactNode, useCallback} from 'react';
 
 export interface TrackContextDialogProps {
   tracks: Track[];
@@ -70,7 +75,7 @@ export function TrackContextDialog({
   return (
     <ContextDialogLayout {...headerProps} loadTracks={loadTracks}>
       {showAddToQueueButton && (
-        <AddToQueueButton item={tracks} loadTracks={loadTracks} />
+        <AddToQueueButton item={null} loadTracks={loadTracks} />
       )}
       <ToggleInLibraryMenuButton items={tracks} />
       {children?.(tracks)}
@@ -100,7 +105,11 @@ export function TrackContextDialog({
                   <Trans message="Go to album" />
                 </ContextMenuButton>
               )}
-              <ContextMenuButton type="link" to={getTrackLink(firstTrack)}>
+              <ContextMenuButton
+                type="link"
+                to={getTrackLink(firstTrack)}
+                enableWhileOffline
+              >
                 <Trans message="Go to track" />
               </ContextMenuButton>
             </Fragment>
@@ -110,7 +119,7 @@ export function TrackContextDialog({
               onClick={async () => {
                 close();
                 if (cuedTrack?.id !== firstTrack.id) {
-                  await play(trackToMediaItem(firstTrack));
+                  await play(await trackToMediaItem(firstTrack));
                 }
                 navigate('/lyrics');
               }}
@@ -125,6 +134,7 @@ export function TrackContextDialog({
               <Trans message="Copy song link" />
             </CopyLinkMenuButton>
           )}
+          <OfflineTracksButton tracks={tracks} />
           {tracks.length === 1 && <ShareMediaButton item={firstTrack} />}
           {tracks.length === 1 && <DownloadTrackButton track={firstTrack} />}
           {tracks.length === 1 ? (
@@ -150,6 +160,41 @@ export function TrackContextDialog({
       ) : null}
       {canDelete && !isMobile && <DeleteButton tracks={tracks} />}
     </ContextDialogLayout>
+  );
+}
+
+type DownloadOfflineButtonProps = {
+  tracks: Track[];
+};
+function OfflineTracksButton({tracks}: DownloadOfflineButtonProps) {
+  const {close: closeMenu} = useDialogContext();
+  const canOffline = useCanOffline();
+  const allTracksOfflined = useOfflineEntitiesStore(s =>
+    tracks.every(t => s.offlinedTrackIds.has(t.id)),
+  );
+
+  if (!canOffline) {
+    return null;
+  }
+
+  return (
+    <ContextMenuButton
+      enableWhileOffline
+      onClick={async () => {
+        closeMenu();
+        if (allTracksOfflined) {
+          offlinedEntitiesStore().deleteOfflinedTracks(tracks);
+        } else {
+          offlinedEntitiesStore().offlineTracks(tracks);
+        }
+      }}
+    >
+      {allTracksOfflined ? (
+        <Trans message="Remove from this device" />
+      ) : (
+        <Trans message="Make available offline" />
+      )}
+    </ContextMenuButton>
   );
 }
 

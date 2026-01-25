@@ -1,6 +1,6 @@
+import {ButtonSize, getButtonSizeStyle} from '@ui/buttons/button-size';
 import clsx from 'clsx';
 import {BaseFieldProps} from './base-field-props';
-import {ButtonSize, getButtonSizeStyle} from '@ui/buttons/button-size';
 
 export interface InputFieldStyle {
   label: string;
@@ -28,7 +28,10 @@ export function getInputFieldClassNames(
     endAppend,
     className,
     labelPosition,
+    labelClassName,
     labelDisplay = 'block',
+    inputDisplay = 'block',
+    wrapLabel = false,
     inputClassName,
     inputWrapperClassName,
     unstyled,
@@ -45,7 +48,7 @@ export function getInputFieldClassNames(
 
   if (unstyled) {
     return {
-      label: '',
+      label: labelClassName || '',
       input: inputClassName || '',
       wrapper: className || '',
       inputWrapper: inputWrapperClassName || '',
@@ -68,22 +71,26 @@ export function getInputFieldClassNames(
   const isInputGroup = startAppend || endAppend;
 
   const ringColor = invalid
-    ? 'focus:ring-danger/focus focus:border-danger/60'
-    : 'focus:ring-primary/focus focus:border-primary/60';
-  const ringClassName = inputRing || `focus:ring ${ringColor}`;
+    ? 'focus:ring-danger/90 focus:border-danger/90'
+    : 'focus:ring-primary/90 focus:border-primary/90';
+  const ringClassName =
+    inputRing || `focus:ring-1 focus:ring-inset ${ringColor}`;
 
   const radius = getRadius(props);
 
   return {
     label: clsx(
       labelDisplay,
-      'first-letter:capitalize text-left whitespace-nowrap',
+      labelClassName,
+      !wrapLabel && 'whitespace-nowrap overflow-hidden overflow-ellipsis',
+      'first-letter:capitalize text-left',
       disabled && 'text-disabled',
       sizeClass.font,
       labelSuffix ? '' : labelPosition === 'side' ? 'mr-16' : 'mb-4',
     ),
     input: clsx(
-      'block text-left relative w-full appearance-none transition-shadow text',
+      'text-left relative w-full appearance-none transition-[border-color,box-shadow] text hover:border-fg-base/25',
+      inputDisplay,
       background,
 
       // radius
@@ -109,6 +116,7 @@ export function getInputFieldClassNames(
       'isolate relative',
       inputWrapperClassName,
       isInputGroup && 'flex items-stretch',
+      labelPosition === 'side' && 'flex-auto',
     ),
     size: sizeClass,
     description: `text-muted ${
@@ -138,17 +146,7 @@ function getInputBorder({
   return `${borderColor} border-y border-l`;
 }
 
-function getInputPadding({
-  startAdornment,
-  endAdornment,
-  inputRadius,
-}: InputFieldStyleProps) {
-  if (inputRadius === 'rounded-full') {
-    return clsx(
-      startAdornment ? 'pl-54' : 'pl-28',
-      endAdornment ? 'pr-54' : 'pr-28',
-    );
-  }
+function getInputPadding({startAdornment, endAdornment}: InputFieldStyleProps) {
   return clsx(
     startAdornment ? 'pl-46' : 'pl-12',
     endAdornment ? 'pr-46' : 'pr-12',
@@ -202,7 +200,7 @@ function inputSizeClass({size, flexibleHeight}: BaseFieldProps) {
       return {font: 'text-sm', height: flexibleHeight ? 'min-h-36' : 'h-36'};
     case 'lg':
       return {
-        font: 'text-md md:text-lg',
+        font: 'text-md',
         height: flexibleHeight ? 'min-h-50' : 'h-50',
       };
     case 'xl':

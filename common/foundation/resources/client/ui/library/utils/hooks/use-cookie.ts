@@ -1,5 +1,4 @@
 import {useCallback, useEffect, useState} from 'react';
-import {isSsr} from '@ui/utils/dom/is-ssr';
 
 interface Options {
   days?: number;
@@ -16,7 +15,6 @@ const listenForCookieChange = (
   name: string,
   callback: (value: string) => void,
 ) => {
-  if (isSsr()) return () => {};
   const listener = {name, callback};
   listeners.add(listener);
   return () => {
@@ -42,8 +40,6 @@ export function stringifyOptions(options: Options) {
 }
 
 export const setCookie = (name: string, value: string, options?: Options) => {
-  if (isSsr()) return;
-
   const optionsWithDefaults = {
     days: 7,
     path: '/',
@@ -71,8 +67,7 @@ export const setCookie = (name: string, value: string, options?: Options) => {
 
 export function getCookie(name: string, initialValue = '') {
   return (
-    (!isSsr() &&
-      document.cookie &&
+    (document.cookie &&
       document.cookie.split('; ').reduce((r, v) => {
         const parts = v.split('=');
         return parts[0] === name ? decodeURIComponent(parts[1]) : r;

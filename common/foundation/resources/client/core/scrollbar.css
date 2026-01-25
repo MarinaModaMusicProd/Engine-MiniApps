@@ -1,49 +1,11 @@
-.dark ::-webkit-scrollbar,
-.dark::-webkit-scrollbar {
-  max-height: 10px;
-  max-width: 10px;
-  width: auto;
-}
-
-.dark ::-webkit-scrollbar-corner,
-.dark::-webkit-scrollbar-corner,
-.dark ::-webkit-scrollbar-track,
-.dark::-webkit-scrollbar-track {
-  background: #2a2a2a;
-}
-
-.dark ::-webkit-scrollbar-thumb,
-.dark::-webkit-scrollbar-thumb {
-  background: #5a5a5a;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-}
-
 .dark,
 .dark * {
   scrollbar-width: thin;
   scrollbar-color: #5a5a5a #2a2a2a;
 }
 
-.dark .compact-scrollbar::-webkit-scrollbar-thumb {
-  background: #5a5a5a;
-}
-
-.compact-scrollbar::-webkit-scrollbar {
-  max-height: 6px;
-  max-width: 6px;
-  width: auto;
-}
-
-.compact-scrollbar::-webkit-scrollbar-corner,
-.compact-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.compact-scrollbar::-webkit-scrollbar-thumb {
-  background: rgb(193 193 193);
-  border: none;
-  border-radius: 10px;
+.dark .compact-scrollbar {
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
 
 .compact-scrollbar {
@@ -52,12 +14,7 @@
 }
 
 .hidden-scrollbar {
-  -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-.hidden-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 
 .stable-scrollbar {

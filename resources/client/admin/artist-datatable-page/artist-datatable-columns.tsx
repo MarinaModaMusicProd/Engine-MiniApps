@@ -1,17 +1,17 @@
-import {ColumnConfig} from '@common/datatable/column-config';
-import {Trans} from '@ui/i18n/trans';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {Link} from 'react-router-dom';
-import {IconButton} from '@ui/buttons/icon-button';
-import {EditIcon} from '@ui/icons/material/Edit';
-import React from 'react';
+import {FullArtist} from '@app/web-player/artists/artist';
 import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
-import {FormattedNumber} from '@ui/i18n/formatted-number';
 import {ArtistLink} from '@app/web-player/artists/artist-link';
-import {Artist} from '@app/web-player/artists/artist';
+import {ColumnConfig} from '@common/datatable/column-config';
+import {IconButton} from '@ui/buttons/icon-button';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {Trans} from '@ui/i18n/trans';
 import {BarChartIcon} from '@ui/icons/material/BarChart';
+import {EditIcon} from '@ui/icons/material/Edit';
+import {VisibilityOffIcon} from '@ui/icons/material/VisibilityOff';
+import {Link} from 'react-router';
 
-export const ArtistDatatableColumns: ColumnConfig<Artist>[] = [
+export const ArtistDatatableColumns: ColumnConfig<FullArtist>[] = [
   {
     key: 'name',
     allowsSorting: true,
@@ -26,6 +26,9 @@ export const ArtistDatatableColumns: ColumnConfig<Artist>[] = [
           size="w-34 h-34 rounded"
         />
         <ArtistLink artist={artist} target="_blank" />
+        {artist.disabled ? (
+          <VisibilityOffIcon size="sm" className="text-muted" />
+        ) : null}
       </div>
     ),
   },

@@ -2,16 +2,18 @@
 
 namespace Common\Database\Datasource;
 
-use Auth;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class DatasourceFilters
 {
     private array $filters;
 
-    public function __construct(?string $encodedFilters = '')
+    public function __construct(string|array|null $filters = null)
     {
-        $this->filters = $this->decodeFilters($encodedFilters);
+        $this->filters = is_string($filters)
+            ? $this->decodeFilters($filters)
+            : $filters ?? [];
     }
 
     public function getAll(): array
@@ -24,7 +26,8 @@ class DatasourceFilters
         return empty($this->filters);
     }
 
-    public function has(string $key): bool {
+    public function has(string $key): bool
+    {
         foreach ($this->filters as $filter) {
             if ($filter['key'] === $key) {
                 return true;
@@ -38,22 +41,45 @@ class DatasourceFilters
         if ($value instanceof Collection) {
             $value = $value->toArray();
         }
-        $this->filters[] = [
-            'key' => $key,
-            'operator' => $operator,
-            'value' => $value,
+        $this->filters = [
+            ...$this->filters,
+            ...$this->normalizeFilter([
+                'key' => $key,
+                'operator' => $operator,
+                'value' => $value,
+            ]),
+        ];
+        return $this;
+    }
+
+    public function add(array $filter): self
+    {
+        $this->filters = [
+            ...$this->filters,
+            ...$this->normalizeFilter($filter),
         ];
         return $this;
     }
 
     public function getAndRemove(
-        string $key,
-        string $operator = null,
+        string|callable $key,
+        ?string $operator = null,
         $value = null,
     ): ?array {
-        // use func_get_args as "null" is a valid value, need
+        // use func_get_args because "null" is a valid value, need
         // to check whether if it was actually passed by user
         $args = func_get_args();
+
+        if (is_callable($args[0])) {
+            $removedFilters = [];
+            foreach ($this->filters as $key => $filter) {
+                if ($args[0]($filter)) {
+                    $removedFilters[] = $filter;
+                    unset($this->filters[$key]);
+                }
+            }
+            return $removedFilters;
+        }
 
         foreach ($this->filters as $key => $filter) {
             if (
@@ -67,6 +93,15 @@ class DatasourceFilters
         }
 
         return null;
+    }
+
+    public function transform(callable $callback): self
+    {
+        foreach ($this->filters as $key => $filter) {
+            $this->filters[$key] = $callback($filter);
+        }
+
+        return $this;
     }
 
     private function decodeFilters(?string $filterString): array
@@ -123,7 +158,7 @@ class DatasourceFilters
 
     private function replaceValuePlaceholders($value)
     {
-        if ($value === '{authId}') {
+        if ($value === '{authId}' || $value === 'currentUser') {
             return Auth::id();
         }
         return $value;

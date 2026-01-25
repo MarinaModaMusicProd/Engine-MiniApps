@@ -12,18 +12,13 @@ use Illuminate\Support\Facades\File;
 
 class TusFileEntryController extends BaseController
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     public function store()
     {
         $data = $this->validate(request(), [
             'uploadKey' => 'required|string',
         ]);
 
-        $tusData = app(TusCache::class)->get($data['uploadKey']);
+        $tusData = (new TusCache())->get($data['uploadKey']);
 
         if (!$tusData) {
             return $this->error();
@@ -39,14 +34,19 @@ class TusFileEntryController extends BaseController
 
         $this->authorize('store', [FileEntry::class, $payload->parentId]);
 
-        app(StoreFile::class)->execute($payload, [
+        (new StoreFile())->execute($payload, [
             'path' => $tusFilePath,
             'moveFile' => true,
         ]);
 
-        $fileEntry = app(CreateFileEntry::class)->execute($payload);
+        $fileEntry = (new CreateFileEntry())->execute($payload);
+
+        $fileEntry = $payload->uploadType->runHandler($fileEntry, $metadata);
+
         event(new FileUploaded($fileEntry));
+
         File::delete($tusFilePath);
+
         return $this->success(['fileEntry' => $fileEntry]);
     }
 }

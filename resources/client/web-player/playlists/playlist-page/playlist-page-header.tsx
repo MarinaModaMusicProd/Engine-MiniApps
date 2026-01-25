@@ -1,33 +1,32 @@
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {
-  getPlaylistImageSrc,
-  PlaylistImage,
-} from '@app/web-player/playlists/playlist-image';
-import {Trans} from '@ui/i18n/trans';
-import {FormattedDuration} from '@ui/i18n/formatted-duration';
-import React, {Fragment} from 'react';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {ImageSelector} from '@common/uploads/components/image-selector';
-import {ImageIcon} from '@ui/icons/material/Image';
-import {useUpdatePlaylist} from '@app/web-player/playlists/requests/use-update-playlist';
-import {usePlaylistPermissions} from '@app/web-player/playlists/hooks/use-playlist-permissions';
-import {Button} from '@ui/buttons/button';
-import {ArrowDropDownIcon} from '@ui/icons/material/ArrowDropDown';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {PlaylistContextDialog} from '@app/web-player/playlists/playlist-context-dialog';
-import {FollowPlaylistButton} from '@app/web-player/playlists/playlist-page/follow-playlist-button';
-import {AvatarGroup} from '@ui/avatar/avatar-group';
-import {Avatar} from '@ui/avatar/avatar';
-import {getUserProfileLink} from '@app/web-player/users/user-profile-link';
-import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
+import {OfflineMediaItemButton} from '@app/offline/offline-media-item-button';
+import {UploadType} from '@app/site-config';
+import {BulletSeparatedItems} from '@app/web-player/layout/bullet-separated-items';
 import {
   actionButtonClassName,
   MediaPageHeaderLayout,
 } from '@app/web-player/layout/media-page-header-layout';
-import {BulletSeparatedItems} from '@app/web-player/layout/bullet-separated-items';
+import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
+import {usePlaylistPermissions} from '@app/web-player/playlists/hooks/use-playlist-permissions';
+import {FullPlaylist} from '@app/web-player/playlists/playlist';
+import {PlaylistContextDialog} from '@app/web-player/playlists/playlist-context-dialog';
+import {PlaylistImage} from '@app/web-player/playlists/playlist-image';
+import {FollowPlaylistButton} from '@app/web-player/playlists/playlist-page/follow-playlist-button';
+import {useUpdatePlaylist} from '@app/web-player/playlists/requests/use-update-playlist';
+import {getUserProfileLink} from '@app/web-player/users/user-profile-link';
+import {ImageSelector} from '@common/uploads/components/image-selector';
+import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {Avatar} from '@ui/avatar/avatar';
+import {AvatarGroup} from '@ui/avatar/avatar-group';
+import {Button} from '@ui/buttons/button';
+import {FormattedDuration} from '@ui/i18n/formatted-duration';
+import {Trans} from '@ui/i18n/trans';
+import {ArrowDropDownIcon} from '@ui/icons/material/ArrowDropDown';
+import {MusicNoteIcon} from '@ui/icons/material/MusicNote';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Fragment} from 'react';
 
 interface PlaylistPageHeaderProps {
-  playlist: Playlist;
+  playlist: FullPlaylist;
   totalDuration: number;
   queueId: string;
 }
@@ -43,7 +42,7 @@ export function PlaylistPageHeader({
         title={playlist.name}
         subtitle={
           <AvatarGroup>
-            {playlist.editors?.map(editor => (
+            {playlist.editors.map(editor => (
               <Avatar
                 key={editor.id}
                 circle
@@ -69,7 +68,7 @@ export function PlaylistPageHeader({
             ) : null}
           </Fragment>
         }
-        actionButtons={
+        actionsBar={
           <ActionButtons
             playlist={playlist}
             hasTracks={totalDuration > 0}
@@ -82,7 +81,7 @@ export function PlaylistPageHeader({
 }
 
 interface ImageContainerProps {
-  playlist: Playlist;
+  playlist: FullPlaylist;
   size?: string;
   className?: string;
 }
@@ -93,7 +92,7 @@ function EditableImage({playlist, size, className}: ImageContainerProps) {
   if (!canEdit) {
     return (
       <PlaylistImage
-        className={`${size} ${className} rounded object-cover`}
+        className={`${size} ${className} rounded-panel object-cover`}
         playlist={playlist}
       />
     );
@@ -102,16 +101,16 @@ function EditableImage({playlist, size, className}: ImageContainerProps) {
   return (
     <FileUploadProvider>
       <ImageSelector
-        showEditButtonOnHover
-        diskPrefix="playlist_media"
+        uploadType={UploadType.artwork}
         variant="square"
         previewSize={size}
+        previewRadius="rounded-panel"
         className={className}
-        value={getPlaylistImageSrc(playlist)}
+        value={playlist.image}
         onChange={newValue => {
           updatePlaylist.mutate({image: newValue});
         }}
-        placeholderIcon={<ImageIcon />}
+        placeholderIcon={<MusicNoteIcon size="xl" />}
         stretchPreview
       />
     </FileUploadProvider>
@@ -119,7 +118,7 @@ function EditableImage({playlist, size, className}: ImageContainerProps) {
 }
 
 interface ActionButtonsProps {
-  playlist: Playlist;
+  playlist: FullPlaylist;
   hasTracks: boolean;
   queueId: string;
 }
@@ -131,6 +130,11 @@ function ActionButtons({playlist, hasTracks, queueId}: ActionButtonsProps) {
         buttonType="text"
         queueId={queueId}
         className={actionButtonClassName({isFirst: true})}
+      />
+      <OfflineMediaItemButton
+        className="mr-8"
+        item={playlist}
+        totalTracksCount={playlist.tracks_count ?? 0}
       />
       <FollowPlaylistButton
         buttonType="text"

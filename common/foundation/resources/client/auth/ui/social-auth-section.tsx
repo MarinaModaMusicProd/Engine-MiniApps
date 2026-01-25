@@ -1,36 +1,36 @@
-import {useForm} from 'react-hook-form';
-import {Fragment, ReactElement, ReactNode} from 'react';
-import {
-  ConnectSocialPayload,
-  useConnectSocialWithPassword,
-} from '../requests/connect-social-with-password';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
-import {IconButton} from '@ui/buttons/icon-button';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import clsx from 'clsx';
-import {EnvatoIcon} from '@ui/icons/social/envato';
-import {useAllSocialLoginsDisabled} from '@common/auth/ui/use-all-social-logins-disabled';
-import {useSettings} from '@ui/settings/use-settings';
-import {message} from '@ui/i18n/message';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {useAuth} from '@common/auth/use-auth';
 import {
   SocialService,
   useSocialLogin,
 } from '@common/auth/requests/use-social-login';
-import {GoogleIcon} from '@ui/icons/social/google';
-import {FacebookIcon} from '@ui/icons/social/facebook';
-import {TwitterIcon} from '@ui/icons/social/twitter';
-import {Trans} from '@ui/i18n/trans';
+import {useAllSocialLoginsDisabled} from '@common/auth/ui/use-all-social-logins-disabled';
+import {useAuth} from '@common/auth/use-auth';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
 import {Form} from '@ui/forms/form';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {message} from '@ui/i18n/message';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {Trans} from '@ui/i18n/trans';
 import {useTrans} from '@ui/i18n/use-trans';
+import {EnvatoIcon} from '@ui/icons/social/envato';
+import {FacebookIcon} from '@ui/icons/social/facebook';
+import {GoogleIcon} from '@ui/icons/social/google';
+import {TwitterIcon} from '@ui/icons/social/twitter';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useSettings} from '@ui/settings/use-settings';
+import clsx from 'clsx';
+import {Fragment, ReactElement, ReactNode} from 'react';
+import {useForm} from 'react-hook-form';
+import {
+  ConnectSocialPayload,
+  useConnectSocialWithPassword,
+} from '../requests/connect-social-with-password';
 
 const googleLabel = message('Continue with google');
 const facebookLabel = message('Continue with facebook');
@@ -39,15 +39,19 @@ const envatoLabel = message('Continue with envato');
 
 interface SocialAuthSectionProps {
   dividerMessage: ReactNode;
+  isUsingInvite?: boolean;
 }
-export function SocialAuthSection({dividerMessage}: SocialAuthSectionProps) {
+export function SocialAuthSection({
+  dividerMessage,
+  isUsingInvite,
+}: SocialAuthSectionProps) {
   const {social} = useSettings();
   const navigate = useNavigate();
   const {getRedirectUri} = useAuth();
   const {loginWithSocial, requestingPassword, setIsRequestingPassword} =
     useSocialLogin();
 
-  if (useAllSocialLoginsDisabled()) {
+  if (useAllSocialLoginsDisabled({isUsingInvite})) {
     return null;
   }
 
@@ -61,7 +65,7 @@ export function SocialAuthSection({dividerMessage}: SocialAuthSectionProps) {
   return (
     <Fragment>
       <div className="relative my-20 text-center before:absolute before:left-0 before:top-1/2 before:h-1 before:w-full before:-translate-y-1/2 before:bg-divider">
-        <span className="relative z-10 bg-paper px-10 text-sm text-muted">
+        <span className="relative z-10 bg-elevated px-10 text-sm text-muted">
           {dividerMessage}
         </span>
       </div>
@@ -92,7 +96,7 @@ export function SocialAuthSection({dividerMessage}: SocialAuthSectionProps) {
             onClick={() => handleSocialLogin('twitter')}
           />
         ) : null}
-        {social?.envato?.enable ? (
+        {social?.envato?.enable && !isUsingInvite ? (
           <SocialLoginButton
             label={envatoLabel}
             icon={<EnvatoIcon viewBox="0 0 50 50" className="text-envato" />}

@@ -1,4 +1,27 @@
-import React, {
+import {UploadType} from '@app/site-config';
+import {FileEntry} from '@common/uploads/file-entry';
+import {restrictionsFromConfig} from '@common/uploads/uploader/create-file-upload';
+import {UploadStrategyConfig} from '@common/uploads/uploader/strategy/upload-strategy';
+import {useActiveUpload} from '@common/uploads/uploader/use-active-upload';
+import {mergeProps} from '@react-aria/utils';
+import {AvatarPlaceholderIcon} from '@ui/avatar/avatar-placeholder-icon';
+import {Button} from '@ui/buttons/button';
+import {ButtonBaseProps} from '@ui/buttons/button-base';
+import {IconButton} from '@ui/buttons/icon-button';
+import {useAutoFocus} from '@ui/focus/use-auto-focus';
+import {Field} from '@ui/forms/input-field/field';
+import {
+  getInputFieldClassNames,
+  InputFieldStyle,
+} from '@ui/forms/input-field/get-input-field-class-names';
+import {Trans} from '@ui/i18n/trans';
+import {AddAPhotoIcon} from '@ui/icons/material/AddAPhoto';
+import {SvgIconProps} from '@ui/icons/svg-icon';
+import {ProgressBar} from '@ui/progress/progress-bar';
+import {toast} from '@ui/toast/toast';
+import {FileInputType} from '@ui/utils/files/file-input-config';
+import clsx from 'clsx';
+import {
   cloneElement,
   ComponentPropsWithRef,
   Fragment,
@@ -9,44 +32,22 @@ import React, {
   useId,
   useRef,
 } from 'react';
-import clsx from 'clsx';
-import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
-import {useActiveUpload} from '@common/uploads/uploader/use-active-upload';
 import {useController} from 'react-hook-form';
-import {mergeProps} from '@react-aria/utils';
-import {ProgressBar} from '@ui/progress/progress-bar';
-import {Disk} from '../uploader/backend-metadata';
-import {toast} from '@ui/toast/toast';
-import {Field} from '@ui/forms/input-field/field';
-import {
-  getInputFieldClassNames,
-  InputFieldStyle,
-} from '@ui/forms/input-field/get-input-field-class-names';
-import {FileEntry} from '@common/uploads/file-entry';
-import {useAutoFocus} from '@ui/focus/use-auto-focus';
-import {UploadStrategyConfig} from '@common/uploads/uploader/strategy/upload-strategy';
-import {SvgIconProps} from '@ui/icons/svg-icon';
-import {IconButton} from '@ui/buttons/icon-button';
-import {AddAPhotoIcon} from '@ui/icons/material/AddAPhoto';
-import {AvatarPlaceholderIcon} from '@ui/avatar/avatar-placeholder-icon';
-import {ButtonBaseProps} from '@ui/buttons/button-base';
-import {FileInputType} from '@ui/utils/files/file-input-config';
-
-const TwoMB = 2 * 1024 * 1024;
 
 interface ImageSelectorProps {
   className?: string;
   label?: ReactNode;
   description?: ReactNode;
+  descriptionPosition?: 'top' | 'bottom';
   invalid?: boolean;
   errorMessage?: ReactNode;
   required?: boolean;
   disabled?: boolean;
-  value?: string;
-  onChange?: (newValue: string) => void;
+  value?: string | null;
+  onChange?: (newValue: string, entry?: FileEntry) => void;
   defaultValue?: string;
-  diskPrefix: string;
+  uploadType: keyof typeof UploadType;
+  uploadMetadata?: Record<string, string>;
   showRemoveButton?: boolean;
   showEditButtonOnHover?: boolean;
   autoFocus?: boolean;
@@ -55,15 +56,17 @@ interface ImageSelectorProps {
   previewSize?: string;
   previewRadius?: string;
   stretchPreview?: boolean;
+  onFileSelected?: (file: File) => void;
 }
 export function ImageSelector({
   className,
   label,
   description,
+  descriptionPosition = 'top',
   value,
   onChange,
   defaultValue,
-  diskPrefix,
+  uploadMetadata,
   showRemoveButton,
   showEditButtonOnHover = false,
   invalid,
@@ -76,6 +79,8 @@ export function ImageSelector({
   stretchPreview = false,
   previewRadius,
   disabled,
+  uploadType,
+  onFileSelected,
 }: ImageSelectorProps) {
   const {
     uploadFile,
@@ -97,17 +102,14 @@ export function ImageSelector({
   const imageUrl = value || entry?.url;
 
   const uploadOptions: UploadStrategyConfig = {
+    uploadType,
     showToastOnRestrictionFail: true,
-    restrictions: {
-      allowedFileTypes: [FileInputType.image],
-      maxFileSize: TwoMB,
-    },
+    restrictions: restrictionsFromConfig({uploadType}),
     metadata: {
-      diskPrefix,
-      disk: Disk.public,
+      ...uploadMetadata,
     },
     onSuccess: (entry: FileEntry) => {
-      onChange?.(entry.url);
+      onChange?.(entry.url, entry);
     },
     onError: message => {
       if (message) {
@@ -118,7 +120,7 @@ export function ImageSelector({
 
   const inputFieldClassNames = getInputFieldClassNames({
     description,
-    descriptionPosition: 'top',
+    descriptionPosition,
     invalid,
   });
 
@@ -166,6 +168,10 @@ export function ImageSelector({
     inputRef.current?.click();
   }, []);
 
+  const descriptionElement = description ? (
+    <div className={inputFieldClassNames.description}>{description}</div>
+  ) : null;
+
   return (
     <div className={clsx('text-sm', className)}>
       {label && (
@@ -173,9 +179,7 @@ export function ImageSelector({
           {label}
         </div>
       )}
-      {description && (
-        <div className={inputFieldClassNames.description}>{description}</div>
-      )}
+      {descriptionPosition === 'top' && descriptionElement}
       <div aria-labelledby={labelId} aria-describedby={descriptionId}>
         <Field
           fieldClassNames={inputFieldClassNames}
@@ -210,6 +214,7 @@ export function ImageSelector({
               onChange={e => {
                 if (e.target.files?.length) {
                   uploadFile(e.target.files[0], uploadOptions);
+                  onFileSelected?.(e.target.files[0]);
                 }
               }}
             />
@@ -223,6 +228,7 @@ export function ImageSelector({
           )}
         </Field>
       </div>
+      {descriptionPosition === 'bottom' && descriptionElement}
     </div>
   );
 }
@@ -305,7 +311,7 @@ function SquareVariant({
   handleUpload,
   removeButton,
   useDefaultButton,
-  previewRadius = 'rounded',
+  previewRadius = 'rounded-panel',
   showEditButtonOnHover = false,
   disabled,
 }: VariantProps) {
@@ -315,7 +321,7 @@ function SquareVariant({
         className={clsx(
           previewSize,
           previewRadius,
-          !imageUrl && 'border',
+          !imageUrl && 'border border-divider-lighter',
           'group z-20 flex flex-col items-center justify-center gap-14 bg-fg-base/8 bg-center bg-no-repeat',
           stretchPreview ? 'bg-cover' : 'bg-contain p-6',
         )}
@@ -391,12 +397,13 @@ function AvatarVariant({
         ) : (
           placeholderIcon
         )}
-        <div className="absolute -bottom-6 -right-6 rounded-full bg-paper shadow-xl">
+        <div className="absolute -bottom-6 -right-6 rounded-full bg-elevated shadow-xl">
           <IconButton
             disabled={isLoading || disabled}
             type="button"
             variant="outline"
             size="sm"
+            iconSize="xs"
             color="primary"
             radius="rounded-full"
           >

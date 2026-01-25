@@ -1,19 +1,25 @@
-import {message} from '@ui/i18n/message';
-import {Channel, CHANNEL_MODEL} from '@common/channels/channel';
-import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
-import {GridViewIcon} from '@ui/icons/material/GridView';
-import {ViewWeekIcon} from '@ui/icons/material/ViewWeek';
-import {ViewListIcon} from '@ui/icons/material/ViewList';
-import {Artist, ARTIST_MODEL} from '@app/web-player/artists/artist';
-import {Album, ALBUM_MODEL} from '@app/web-player/albums/album';
-import {Track, TRACK_MODEL} from '@app/web-player/tracks/track';
-import {Playlist, PLAYLIST_MODEL} from '@app/web-player/playlists/playlist';
-import {User, USER_MODEL} from '@ui/types/user';
+import {ALBUM_MODEL, PartialAlbum} from '@app/web-player/albums/album';
+import {ARTIST_MODEL, PartialArtist} from '@app/web-player/artists/artist';
 import {Genre, GENRE_MODEL} from '@app/web-player/genres/genre';
+import {
+  PartialPlaylist,
+  PLAYLIST_MODEL,
+} from '@app/web-player/playlists/playlist';
+import {Track, TRACK_MODEL} from '@app/web-player/tracks/track';
+import {PartialUserProfile} from '@app/web-player/users/user-profile';
+import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
+import {Channel, CHANNEL_MODEL} from '@common/channels/channel';
+import {message} from '@ui/i18n/message';
+import {GridViewIcon} from '@ui/icons/material/GridView';
+import {ViewHeadlineIcon} from '@ui/icons/material/ViewHeadline';
+import {ViewListIcon} from '@ui/icons/material/ViewList';
+import {ViewWeekIcon} from '@ui/icons/material/ViewWeek';
+import {USER_MODEL} from '@ui/types/user';
 
 export enum Sort {
   popular = 'popularity:desc',
   recent = 'created_at:desc',
+  oldest = 'id:asc',
   releaseDate = 'release_date:desc',
   curated = 'channelables.order:asc',
   attachDate = 'channelables.created_at:desc',
@@ -23,11 +29,14 @@ export enum Layout {
   table = 'trackTable',
   list = 'list',
   carousel = 'carousel',
+  compactGrid = 'compactGrid',
 }
 
 enum Auto {
   topTracks = 'topTracks',
   newAlbums = 'newAlbums',
+  topAlbums = 'topAlbums',
+  topArtists = 'topArtists',
   playlistTracks = 'playlistTracks',
   topGenres = 'topGenres',
   nonEmptyGenres = 'nonEmptyGenres',
@@ -40,40 +49,51 @@ enum Restrictions {
 const contentModels: ChannelContentConfig['models'] = {
   [ARTIST_MODEL]: {
     label: message('Artists'),
-    sortMethods: [Sort.popular, Sort.recent],
-    layoutMethods: [Layout.grid, Layout.carousel],
-    autoUpdateMethods: [],
+    sortMethods: [Sort.popular, Sort.recent, Sort.oldest],
+    layoutMethods: [Layout.grid, Layout.compactGrid, Layout.carousel],
+    autoUpdateMethods: [Auto.topArtists],
     restrictions: [Restrictions.genre],
   },
   [ALBUM_MODEL]: {
     label: message('Albums'),
-    sortMethods: [Sort.popular, Sort.recent, Sort.releaseDate],
-    layoutMethods: [Layout.grid, Layout.carousel],
-    autoUpdateMethods: [Auto.newAlbums],
+    sortMethods: [Sort.popular, Sort.recent, Sort.releaseDate, Sort.oldest],
+    layoutMethods: [
+      Layout.grid,
+      Layout.compactGrid,
+      Layout.list,
+      Layout.carousel,
+    ],
+    autoUpdateMethods: [Auto.newAlbums, Auto.topAlbums],
     restrictions: [Restrictions.genre],
   },
   [TRACK_MODEL]: {
     label: message('Tracks'),
-    sortMethods: [Sort.popular, Sort.recent],
-    layoutMethods: [Layout.grid, Layout.table, Layout.list, Layout.carousel],
+    sortMethods: [Sort.popular, Sort.recent, Sort.oldest],
+    layoutMethods: [
+      Layout.grid,
+      Layout.compactGrid,
+      Layout.table,
+      Layout.list,
+      Layout.carousel,
+    ],
     autoUpdateMethods: [Auto.topTracks, Auto.playlistTracks],
     restrictions: [Restrictions.genre],
   },
   [PLAYLIST_MODEL]: {
     label: message('Playlists'),
-    sortMethods: [Sort.popular, Sort.recent],
-    layoutMethods: [Layout.grid, Layout.carousel],
+    sortMethods: [Sort.popular, Sort.recent, Sort.oldest],
+    layoutMethods: [Layout.grid, Layout.compactGrid, Layout.carousel],
   },
   [USER_MODEL]: {
     label: message('Users'),
-    sortMethods: [Sort.recent],
+    sortMethods: [Sort.recent, Sort.oldest],
     layoutMethods: [Layout.grid, Layout.carousel],
     autoUpdateMethods: [],
   },
   [GENRE_MODEL]: {
     label: message('Genres'),
-    sortMethods: [Sort.popular, Sort.recent],
-    layoutMethods: [Layout.grid, Layout.carousel],
+    sortMethods: [Sort.popular, Sort.recent, Sort.oldest],
+    layoutMethods: [Layout.grid, Layout.carousel, Layout.compactGrid],
     autoUpdateMethods: [Auto.topGenres, Auto.nonEmptyGenres],
   },
   [CHANNEL_MODEL]: {
@@ -93,12 +113,15 @@ const contentSortingMethods: Record<
   [Sort.recent]: {
     label: message('Recently added first'),
   },
+  [Sort.oldest]: {
+    label: message('Oldest first'),
+  },
   [Sort.curated]: {
     label: message('Curated (reorder below)'),
     contentTypes: ['manual'],
   },
   [Sort.attachDate]: {
-    label: message('Items recently added to channel first'),
+    label: message('Recently attached first'),
   },
   [Sort.releaseDate]: {
     label: message('Most recent first (by release date)'),
@@ -124,6 +147,10 @@ const contentLayoutMethods: Record<
   [Layout.carousel]: {
     label: message('Carousel'),
   },
+  [Layout.compactGrid]: {
+    label: message('Compact grid'),
+    icon: <ViewHeadlineIcon />,
+  },
 };
 
 const contentAutoUpdateMethods: Record<
@@ -136,6 +163,14 @@ const contentAutoUpdateMethods: Record<
   },
   [Auto.newAlbums]: {
     label: message('New releases'),
+    providers: ['spotify', 'local'],
+  },
+  [Auto.topAlbums]: {
+    label: message('Popular albums'),
+    providers: ['spotify', 'local'],
+  },
+  [Auto.topArtists]: {
+    label: message('Popular artists'),
     providers: ['spotify', 'local'],
   },
   [Auto.playlistTracks]: {
@@ -175,15 +210,11 @@ export const channelContentConfig: ChannelContentConfig = {
   restrictions: contentRestrictions,
 };
 
-export type ChannelContentModel = (
-  | Artist
-  | Album
+export type ChannelContentModel =
+  | PartialArtist
+  | PartialAlbum
   | Track
-  | Playlist
-  | User
+  | PartialPlaylist
+  | PartialUserProfile
   | Genre
-  | Channel
-) & {
-  channelable_id?: number;
-  channelable_order?: number;
-};
+  | Channel;

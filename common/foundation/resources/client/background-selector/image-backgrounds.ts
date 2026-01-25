@@ -1,22 +1,5 @@
-import angledFocus from './svg-bgs/Angled-Focus.svg';
-import circularFocus from './svg-bgs/Circular-Focus.svg';
-import farseeingEyeball from './svg-bgs/Farseeing-Eyeball.svg';
-import canyonFunnel from './svg-bgs/Canyon-Funnel.svg';
-import looneyLoops from './svg-bgs/Looney-Loops.svg';
-import hurricaneAperture from './svg-bgs/Hurricane-Aperture.svg';
-import icyExplosion from './svg-bgs/Icy-Explosion.svg';
-import protrudingSquares from './svg-bgs/Protruding-Squares.svg';
-import alternatingTriangles from './svg-bgs/Alternating-Triangles.svg';
-import monsteraPatch from './svg-bgs/Monstera-Patch.svg';
-import confettiDoodles from './svg-bgs/Confetti-Doodles.svg';
-import threadsAhead from './svg-bgs/Threads-Ahead.svg';
-import launchDay from './svg-bgs/Launch-Day.svg';
-import sprinkle from './svg-bgs/Sprinkle.svg';
-import circuitBoard from './svg-bgs/Circuit-Board.svg';
-import nuclearFocalPoint from './svg-bgs/Nuclear-Focalpoint.svg';
-import snow from './svg-bgs/Snow.svg';
-import {message} from '@ui/i18n/message';
 import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {message} from '@ui/i18n/message';
 
 export const BaseImageBg: BackgroundSelectorConfig = {
   type: 'image',
@@ -29,7 +12,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img0',
     backgroundColor: '#ee5522',
-    backgroundImage: `url(${protrudingSquares})`,
+    backgroundImage: `url(images/svg-bgs/Protruding-Squares.svg)`,
     backgroundRepeat: 'repeat',
     label: message('Protruding squares'),
     color: '#fff',
@@ -38,7 +21,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img1',
     backgroundColor: '#00bbff',
-    backgroundImage: `url(${launchDay})`,
+    backgroundImage: `url(images/svg-bgs/Launch-Day.svg)`,
     label: message('Launch day'),
     backgroundSize: 'contain',
     backgroundPosition: 'bottom',
@@ -49,7 +32,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img2',
     backgroundColor: '#fff',
-    backgroundImage: `url(${alternatingTriangles})`,
+    backgroundImage: `url(images/svg-bgs/Alternating-Triangles.svg)`,
     label: message('Alternating triangles'),
     color: '#000',
   },
@@ -57,7 +40,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img3',
     backgroundColor: '#002200',
-    backgroundImage: `url(${monsteraPatch})`,
+    backgroundImage: `url(images/svg-bgs/Monstera-Patch.svg)`,
     label: message('Monstera patch'),
     color: '#fff',
   },
@@ -65,7 +48,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img4',
     backgroundColor: '#aa3333',
-    backgroundImage: `url(${confettiDoodles})`,
+    backgroundImage: `url(images/svg-bgs/Confetti-Doodles.svg)`,
     label: message('Confetti doodles'),
     color: '#fff',
     backgroundRepeat: 'repeat',
@@ -76,7 +59,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img5',
     backgroundColor: '#070014',
-    backgroundImage: `url(${hurricaneAperture})`,
+    backgroundImage: `url(images/svg-bgs/Hurricane-Aperture.svg)`,
     label: message('Hurricane aperture'),
     backgroundSize: 'cover',
     backgroundRepeat: 'no-repeat',
@@ -87,7 +70,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img6',
     backgroundColor: '#11ddaa',
-    backgroundImage: `url(${looneyLoops})`,
+    backgroundImage: `url(images/svg-bgs/Looney-Loops.svg)`,
     label: message('Looney loops'),
     backgroundPosition: 'center center',
     backgroundSize: 'cover',
@@ -97,7 +80,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img7',
     backgroundColor: '#ccffff',
-    backgroundImage: `url(${icyExplosion})`,
+    backgroundImage: `url(images/svg-bgs/Icy-Explosion.svg)`,
     label: message('Icy explosion'),
     backgroundSize: 'cover',
     backgroundRepeat: 'no-repeat',
@@ -108,7 +91,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img8',
     backgroundColor: '#442233',
-    backgroundImage: `url(${nuclearFocalPoint})`,
+    backgroundImage: `url(images/svg-bgs/Nuclear-Focalpoint.svg)`,
     label: message('Nuclear point'),
     backgroundSize: 'cover',
     backgroundRepeat: 'no-repeat',
@@ -119,7 +102,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img9',
     backgroundColor: '#ffdd55',
-    backgroundImage: `url(${angledFocus})`,
+    backgroundImage: `url(images/svg-bgs/Angled-Focus.svg)`,
     label: message('Angled focus'),
     backgroundPosition: 'center center',
     backgroundSize: 'cover',
@@ -129,7 +112,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img10',
     backgroundColor: '#220044',
-    backgroundImage: `url(${circularFocus})`,
+    backgroundImage: `url(images/svg-bgs/Circular-Focus.svg)`,
     label: message('Circular focus'),
     backgroundPosition: 'center center',
     backgroundSize: 'cover',
@@ -139,7 +122,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img11',
     backgroundColor: '#000000',
-    backgroundImage: `url(${farseeingEyeball})`,
+    backgroundImage: `url(images/svg-bgs/Farseeing-Eyeball.svg)`,
     label: message('Farseeing eyeball'),
     backgroundPosition: 'center center',
     backgroundSize: 'cover',
@@ -149,7 +132,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img12',
     backgroundColor: '#ff0000',
-    backgroundImage: `url(${canyonFunnel})`,
+    backgroundImage: `url(images/svg-bgs/Canyon-Funnel.svg)`,
     label: message('Canyon funnel'),
     backgroundPosition: 'center center',
     backgroundSize: 'cover',
@@ -159,7 +142,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
     ...BaseImageBg,
     id: 'img13',
     backgroundColor: '#ffdd99',
-    backgroundImage: `url(${threadsAhead})`,
+    backgroundImage: `url(images/svg-bgs/Threads-Ahead.svg)`,
     label: message('Threads ahead'),
     color: '#000',
     backgroundRepeat: 'no-repeat',
@@ -168,7 +151,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
   {
     ...BaseImageBg,
     id: 'img14',
-    backgroundImage: `url(${sprinkle})`,
+    backgroundImage: `url(images/svg-bgs/Sprinkle.svg)`,
     label: message('Sprinkle'),
     backgroundRepeat: 'repeat',
     backgroundPosition: 'center center',
@@ -176,7 +159,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
   {
     ...BaseImageBg,
     id: 'img15',
-    backgroundImage: `url(${circuitBoard})`,
+    backgroundImage: `url(images/svg-bgs/Circuit-Board.svg)`,
     label: message('Circuit board'),
     backgroundRepeat: 'repeat',
     backgroundPosition: 'center center',
@@ -184,7 +167,7 @@ export const ImageBackgrounds: BackgroundSelectorConfig[] = [
   {
     ...BaseImageBg,
     id: 'img16',
-    backgroundImage: `url(${snow})`,
+    backgroundImage: `url(images/svg-bgs/Snow.svg)`,
     label: message('Snow'),
     backgroundRepeat: 'repeat',
     backgroundPosition: 'center center',

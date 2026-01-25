@@ -12,6 +12,9 @@
         @endif
     @endif
 
-    window.opener.postMessage({status: status, callbackData: data, type: 'social-auth'}, '*');
-    window.close();
+    const channel = new BroadcastChannel('social-auth');
+    channel.postMessage({status: status, callbackData: data, type: 'social-auth'});
+    setTimeout(() => {
+        window.close();
+    });
 </script>

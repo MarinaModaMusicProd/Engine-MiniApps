@@ -2,26 +2,20 @@
 
 use App\Traits\OrdersByPopularity;
 use Common\Core\BaseModel;
-use Illuminate\Database\Eloquent\Builder;
+use Common\Files\Actions\SyncFileEntryModels;
+use Common\Files\Traits\HasAttachedFileEntries;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Scout\Searchable;
-use Str;
 
 class Playlist extends BaseModel
 {
-    use OrdersByPopularity, Searchable;
+    use OrdersByPopularity, Searchable, HasAttachedFileEntries;
 
     const MODEL_TYPE = 'playlist';
 
-    protected $guarded = ['id', 'owner_id'];
-    protected $hidden = [
-        'pivot',
-        'updated_at',
-        'spotify_id',
-        'description',
-        'views',
-    ];
+    protected $guarded = [];
+
     protected $appends = ['model_type'];
 
     protected $casts = [
@@ -30,14 +24,6 @@ class Playlist extends BaseModel
         'public' => 'boolean',
         'collaborative' => 'boolean',
     ];
-
-    public function getImageAttribute($value)
-    {
-        if (!$value || Str::contains($value, 'images/default')) {
-            return null;
-        }
-        return $value;
-    }
 
     public function owner(): BelongsTo
     {
@@ -62,17 +48,23 @@ class Playlist extends BaseModel
         return $this->belongsToMany(Track::class);
     }
 
-    public function scopeCompact(Builder $query): Builder
+    public function uploadedImage()
     {
-        return $query->select(
-            'playlists.id',
-            'playlists.name',
-            'playlists.collaborative',
-            'playlists.owner_id',
-        );
+        return $this->attachedFileEntriesRelation('uploaded_image');
     }
 
-    public function toNormalizedArray(): array {
+    public function syncUploadedImage(string|null $initialImage = null)
+    {
+        if ($initialImage !== $this->image) {
+            (new SyncFileEntryModels())->fromUrl(
+                $this->image,
+                $this->uploadedImage(),
+            );
+        }
+    }
+
+    public function toNormalizedArray(): array
+    {
         return [
             'id' => $this->id,
             'name' => $this->name,

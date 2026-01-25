@@ -1,22 +1,21 @@
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {Trans} from '@ui/i18n/trans';
-import React, {Fragment, ReactNode} from 'react';
-import {useFieldArray, useFormContext} from 'react-hook-form';
-import {Accordion, AccordionItem} from '@ui/accordion/accordion';
-import {FormattedPrice} from '@common/billing/formatted-price';
 import {FormPermissionSelector} from '@common/auth/ui/permission-selector';
-import {PriceForm} from './price-form';
+import {FormattedPrice} from '@common/billing/formatted-price';
+import {Accordion, AccordionItem} from '@ui/accordion/accordion';
 import {Button} from '@ui/buttons/button';
-import {AddIcon} from '@ui/icons/material/Add';
 import {IconButton} from '@ui/buttons/icon-button';
-import {CloseIcon} from '@ui/icons/material/Close';
-import {CreateProductPayload} from '../requests/use-create-product';
-import {FormSwitch} from '@ui/forms/toggle/switch';
-import {FormSelect} from '@ui/forms/select/select';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {Item} from '@ui/forms/listbox/item';
-import {FormFileSizeField} from '@common/uploads/components/file-size-field';
-import {Link} from 'react-router-dom';
-import {LinkStyle} from '@ui/buttons/external-link';
+import {FormSelect} from '@ui/forms/select/select';
+import {FormSwitch} from '@ui/forms/toggle/switch';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {AddIcon} from '@ui/icons/material/Add';
+import {CloseIcon} from '@ui/icons/material/Close';
+import {Fragment, ReactNode} from 'react';
+import {useFieldArray, useFormContext} from 'react-hook-form';
+import {CreateProductPayload} from '../requests/use-create-product';
+import {PriceForm} from './price-form';
 
 export function CrupdatePlanForm() {
   return (
@@ -57,27 +56,6 @@ export function CrupdatePlanForm() {
           <Trans message="Fifth" />
         </Item>
       </FormSelect>
-      <FormFileSizeField
-        className="mb-30"
-        name="available_space"
-        label={<Trans message="Allowed storage space" />}
-        description={
-          <Trans
-            values={{
-              a: parts => (
-                <Link
-                  className={LinkStyle}
-                  target="_blank"
-                  to="/admin/settings/uploading"
-                >
-                  {parts}
-                </Link>
-              ),
-            }}
-            message="Total storage space all user uploads are allowed to take up."
-          />
-        }
-      />
       <FormSwitch
         name="recommended"
         className="mb-20"
@@ -110,6 +88,7 @@ export function CrupdatePlanForm() {
       </Header>
       <FeatureListForm />
       <PricingListForm />
+      <TrialSection />
       <Header>
         <Trans message="Permissions" />
       </Header>
@@ -226,5 +205,30 @@ function PricingListForm() {
         <Trans message="Add another price" />
       </Button>
     </Fragment>
+  );
+}
+
+function TrialSection() {
+  const {trans} = useTrans();
+  return (
+    <>
+      <Header>
+        <Trans message="Free trial days" />
+      </Header>
+      <FormTextField
+        name="trial_period_days"
+        type="number"
+        min={0}
+        step={1}
+        max={14}
+        label={<Trans message="Trial period days" />}
+        labelDisplay="hidden"
+        className="mb-20"
+        placeholder={trans(message('Optional'))}
+        description={
+          <Trans message="Customer will only be charged after the trial period ends." />
+        }
+      />
+    </>
   );
 }

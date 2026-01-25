@@ -3,6 +3,8 @@
 namespace Common\Search\Drivers\Mysql;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Arr;
 
 class MysqlFullTextIndexer
 {
@@ -23,48 +25,44 @@ class MysqlFullTextIndexer
 
         $this->searchableFields = $model->getSearchableKeys(true);
 
+        if (empty($this->searchableFields)) {
+            return;
+        }
+
         $this->indexAlreadyExists = $this->indexExists();
 
         if (!$this->indexAlreadyExists || $this->indexNeedsUpdate()) {
             $this->dropIndex();
             $fields = implode(',', $this->searchableFields);
             DB::statement(
-                "CREATE FULLTEXT INDEX $this->indexName ON $this->tableName ($fields)",
+                "CREATE FULLTEXT INDEX `{$this->indexName}` ON `{$this->tableName}` ($fields)",
             );
         }
     }
 
     private function indexExists(): bool
     {
-        return !empty(
-            DB::select("SHOW INDEX FROM $this->tableName WHERE Key_name = ?", [
-                $this->indexName,
-            ])
-        );
+        return Schema::hasIndex($this->tableName, $this->indexName);
     }
 
     private function indexNeedsUpdate(): bool
     {
         $currentIndexFields = $this->searchableFields;
-        $expectedIndexFields = $this->getIndexFields();
+        $expectedIndexFields = $this->getIndexColumns();
 
         return $currentIndexFields != $expectedIndexFields;
     }
 
-    private function getIndexFields(): array
+    private function getIndexColumns(): array
     {
-        $index = DB::select(
-            "SHOW INDEX FROM $this->tableName WHERE Key_name = ?",
-            [$this->indexName],
+        $indexes = Schema::getIndexes($this->tableName);
+
+        $index = Arr::first(
+            $indexes,
+            fn($idx) => $idx['name'] === $this->indexName,
         );
 
-        $indexFields = [];
-
-        foreach ($index as $idx) {
-            $indexFields[] = $idx->Column_name;
-        }
-
-        return $indexFields;
+        return $index['columns'] ?? [];
     }
 
     private function dropIndex()

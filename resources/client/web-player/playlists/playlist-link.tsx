@@ -1,12 +1,11 @@
-import {Link} from 'react-router-dom';
-import clsx from 'clsx';
-import React, {useMemo} from 'react';
-import {slugifyString} from '@ui/utils/string/slugify-string';
-import {Playlist} from '@app/web-player/playlists/playlist';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {slugifyString} from '@ui/utils/string/slugify-string';
+import clsx from 'clsx';
+import {useMemo} from 'react';
+import {Link} from 'react-router';
 
 interface AlbumLinkProps {
-  playlist: Playlist;
+  playlist: {id: number; name: string};
   className?: string;
 }
 export function PlaylistLink({playlist, className}: AlbumLinkProps) {
@@ -22,7 +21,7 @@ export function PlaylistLink({playlist, className}: AlbumLinkProps) {
 }
 
 export function getPlaylistLink(
-  playlist: Playlist,
+  playlist: {id: number; name: string},
   {absolute}: {absolute?: boolean} = {},
 ) {
   const playlistName = slugifyString(playlist.name);

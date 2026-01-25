@@ -26,7 +26,12 @@ class ScheduleLogItem extends BaseModel
     public static function scheduleRanInLast30Minutes(): bool
     {
         return (new self())
-            ->where('command', ScheduleHealthCommand::class)
+            ->where(function ($q) {
+                $q->where('command', ScheduleHealthCommand::class)->orWhere(
+                    'command',
+                    (new ScheduleHealthCommand())->getName(),
+                );
+            })
             ->whereBetween('ran_at', [
                 now()->subMinutes(30),
                 now()->addMinutes(30),

@@ -27,8 +27,12 @@ class UserPlaylistsController extends BaseController
             $builder->where('public', true);
         }
 
-        $pagination = app(PaginatePlaylists::class)->execute(
-            array_merge($this->request->all(), ['compact' => true]),
+        $pagination = (new PaginatePlaylists())->asApiResponse(
+            [
+                'orderBy' => 'updated_at',
+                'orderDir' => 'desc',
+                'perPage' => 30,
+            ],
             $builder,
         );
 
@@ -51,18 +55,12 @@ class UserPlaylistsController extends BaseController
 
     public function unfollow(int $id): Response
     {
-        $playlist = $this->request
-            ->user()
-            ->playlists()
-            ->find($id);
+        $playlist = $this->request->user()->playlists()->find($id);
 
         $this->authorize('show', $playlist);
 
         if ($playlist) {
-            $this->request
-                ->user()
-                ->playlists()
-                ->detach($id);
+            $this->request->user()->playlists()->detach($id);
         }
 
         return $this->success();

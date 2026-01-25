@@ -28,7 +28,6 @@ export function useFontSelectorState({
 }: UseFontSelectorProps): FontSelectorState {
   const {data, isLoading} = useValueLists(['googleFonts']);
   const [currentPage, setCurrentPage] = useState(0);
-
   const [filters, setFilterState] = useState<FontSelectorFilterValue>({
     query: '',
     category: value?.category ?? '',
@@ -36,12 +35,6 @@ export function useFontSelectorState({
   const {contains} = useFilter({
     sensitivity: 'base',
   });
-
-  const setFilters = useCallback((filters: FontSelectorFilterValue) => {
-    setFilterState(filters);
-    // reset to first page when searching or changing category
-    setCurrentPage(0);
-  }, []);
 
   const allFonts = useMemo(() => {
     return BrowserSafeFonts.concat(data?.googleFonts ?? []);
@@ -62,12 +55,28 @@ export function useFontSelectorState({
   }, [filteredFonts]);
   const fonts = pages[currentPage];
 
+  // open the page with the selected font
+  useEffect(() => {
+    if (data && value?.family) {
+      const index = filteredFonts.findIndex(f => f.family === value.family);
+      if (index >= 0) {
+        setCurrentPage(Math.floor(index / 20));
+      }
+    }
+  }, [data, filteredFonts, value?.family]);
+
   useEffect(() => {
     const id = 'font-selector';
     if (fonts?.length) {
       loadFonts(fonts, {id});
     }
   }, [fonts, currentPage]);
+
+  const setFilters = useCallback((filters: FontSelectorFilterValue) => {
+    setFilterState(filters);
+    // reset to first page when searching or changing category
+    setCurrentPage(0);
+  }, []);
 
   return {
     fonts: fonts || [],

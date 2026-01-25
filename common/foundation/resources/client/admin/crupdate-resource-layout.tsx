@@ -1,46 +1,47 @@
+import {DatatablePageHeaderBar} from '@common/datatable/page/datatable-page-with-header-layout';
+import {Button} from '@ui/buttons/button';
+import {Form} from '@ui/forms/form';
+import {Trans} from '@ui/i18n/trans';
+import clsx from 'clsx';
+import {AnimatePresence, m} from 'framer-motion';
+import {Fragment, ReactElement, ReactNode} from 'react';
 import {
   FieldValues,
   SubmitHandler,
   useFormContext,
   UseFormReturn,
 } from 'react-hook-form';
-import clsx from 'clsx';
-import React, {Fragment, ReactElement, ReactNode} from 'react';
-import {useStickySentinel} from '@ui/utils/hooks/sticky-sentinel';
-import {Form} from '@ui/forms/form';
-import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
-import {AnimatePresence, m} from 'framer-motion';
 
 interface Props<T extends FieldValues> {
   onSubmit: SubmitHandler<T>;
   form: UseFormReturn<T>;
-  title: ReactNode;
-  subTitle?: ReactNode;
+  title: ReactElement;
+  tabs?: ReactNode;
   isLoading: boolean;
   children: ReactNode;
   actions?: ReactNode;
-  backButton?: ReactNode;
   disableSaveWhenNotDirty?: boolean;
   wrapInContainer?: boolean;
   submitButtonText?: ReactNode;
-  variant?: 'popup' | 'sticky';
+  className?: string;
+  containerClassName?: string;
+  navbar?: ReactNode;
 }
 export function CrupdateResourceLayout<T extends FieldValues>({
   onSubmit,
   form,
   title,
-  subTitle,
+  tabs,
   children,
   actions,
-  backButton,
   isLoading = false,
   disableSaveWhenNotDirty = false,
   wrapInContainer = true,
   submitButtonText,
-  variant = 'sticky',
+  className,
+  containerClassName,
+  navbar,
 }: Props<T>) {
-  const {isSticky, sentinelRef} = useStickySentinel();
   const isDirty = !disableSaveWhenNotDirty
     ? true
     : Object.keys(form.formState.dirtyFields).length;
@@ -61,77 +62,52 @@ export function CrupdateResourceLayout<T extends FieldValues>({
       onSubmit={onSubmit}
       onBeforeSubmit={() => form.clearErrors()}
       form={form}
-      className="relative"
+      className={clsx('flex h-full flex-col', className)}
     >
-      {variant === 'sticky' && <div ref={sentinelRef} />}
+      {navbar}
       <CrupdateResourceHeader
-        wrapInContainer={wrapInContainer}
-        startActions={backButton}
-        subTitle={subTitle}
         endActions={
           <Fragment>
             {actions}
-            {variant === 'sticky' && saveButton}
+            {saveButton}
           </Fragment>
         }
-        className={clsx(
-          isSticky && 'bg shadow',
-          variant === 'sticky' && 'sticky',
-        )}
+        border={tabs ? 'border-none' : undefined}
       >
         {title}
       </CrupdateResourceHeader>
-      <div
-        className={
-          wrapInContainer ? 'container mx-auto px-24 pb-24' : undefined
-        }
-      >
-        <div className="rounded">{children}</div>
+      {tabs && <div className="flex-shrink-0">{tabs}</div>}
+      <div className="overflow-y-auto">
+        <div
+          className={clsx(
+            wrapInContainer ? 'container mx-auto px-24 py-56' : undefined,
+            containerClassName,
+          )}
+        >
+          {children}
+        </div>
       </div>
-      {variant === 'popup' && (
-        <DirtyFormSaveDrawer saveButton={saveButton} isLoading={isLoading} />
-      )}
     </Form>
   );
 }
 
 interface CrupdateResourceHeaderProps {
-  className?: string;
-  wrapInContainer?: boolean;
-  children: ReactNode;
-  subTitle?: ReactNode;
-  startActions?: ReactNode;
+  children: ReactElement;
   endActions?: ReactNode;
+  border?: string;
 }
 export function CrupdateResourceHeader({
-  className,
-  wrapInContainer,
   children,
-  subTitle,
-  startActions,
   endActions,
+  border,
 }: CrupdateResourceHeaderProps) {
   return (
-    <div
-      className={clsx('top-0 z-10 my-12 transition-shadow md:my-24', className)}
-    >
-      <div
-        className={clsx(
-          'flex items-center gap-24 py-14 md:items-start',
-          wrapInContainer && 'container mx-auto px-24',
-        )}
-      >
-        {startActions}
-        <div className="overflow-hidden overflow-ellipsis md:mr-64">
-          <h1 className="overflow-hidden overflow-ellipsis whitespace-nowrap text-xl md:text-3xl">
-            {children}
-          </h1>
-          {subTitle && <div className="mt-4">{subTitle}</div>}
-        </div>
-        <div className="mr-auto"></div>
-        {endActions}
-      </div>
-    </div>
+    <DatatablePageHeaderBar
+      showSidebarToggleButton
+      title={children}
+      rightContent={endActions}
+      border={border}
+    />
   );
 }
 
@@ -160,7 +136,6 @@ interface DirtyFormSaveDrawerProps {
   saveButton?: ReactElement;
   isLoading?: boolean;
 }
-
 export function DirtyFormSaveDrawer({
   saveButton,
   isLoading,

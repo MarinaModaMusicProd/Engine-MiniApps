@@ -1,3 +1,14 @@
+import {OffsetOptions, Placement, VirtualElement} from '@floating-ui/react-dom';
+import {mergeProps, useLayoutEffect} from '@react-aria/utils';
+import {useControlledState} from '@react-stately/utils';
+import {pointToVirtualElement} from '@ui/menu/context-menu';
+import {getGlobalDialogPosition} from '@ui/overlays/dialog/global-dialog-position';
+import {Drawer} from '@ui/overlays/drawer';
+import {rootEl} from '@ui/root-el';
+import {createEventHandler} from '@ui/utils/dom/create-event-handler';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {useCallbackRef} from '@ui/utils/hooks/use-callback-ref';
+import {AnimatePresence} from 'framer-motion';
 import React, {
   Children,
   cloneElement,
@@ -11,21 +22,12 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import {AnimatePresence} from 'framer-motion';
-import {useControlledState} from '@react-stately/utils';
-import {mergeProps, useLayoutEffect} from '@react-aria/utils';
+import {createPortal} from 'react-dom';
 import {useFloatingPosition} from '../floating-position';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {DialogContext, DialogContextValue} from './dialog-context';
+import {Modal} from '../modal';
 import {Popover} from '../popover';
 import {Tray} from '../tray';
-import {Modal} from '../modal';
-import {createPortal} from 'react-dom';
-import {createEventHandler} from '@ui/utils/dom/create-event-handler';
-import {OffsetOptions, Placement, VirtualElement} from '@floating-ui/react-dom';
-import {rootEl} from '@ui/root-el';
-import {pointToVirtualElement} from '@ui/menu/context-menu';
-import {useCallbackRef} from '@ui/utils/hooks/use-callback-ref';
+import {DialogContext, DialogContextValue} from './dialog-context';
 
 type PopoverProps = {
   type: 'popover';
@@ -35,11 +37,11 @@ type PopoverProps = {
   shiftCrossAxis?: boolean;
 };
 type ModalProps = {
-  type: 'modal' | 'tray';
+  type: 'modal' | 'tray' | 'drawer';
   mobileType?: 'tray' | 'modal' | 'popover';
   placement?: Placement;
 };
-type Props<T = any> = (PopoverProps | ModalProps) & {
+export type DialogTriggerProps<T = any> = (PopoverProps | ModalProps) & {
   children: [ReactElement, (ctx: DialogContextValue) => void] | ReactNode;
   disableInitialTransition?: boolean;
   onClose?: (
@@ -52,7 +54,7 @@ type Props<T = any> = (PopoverProps | ModalProps) & {
   alwaysReturnCurrentValueOnClose?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
   defaultIsOpen?: boolean;
-  triggerRef?: RefObject<HTMLElement> | RefObject<VirtualElement>;
+  triggerRef?: RefObject<HTMLElement | null> | RefObject<VirtualElement>;
   moveFocusToDialog?: boolean;
   returnFocusToTrigger?: boolean;
   triggerOnHover?: boolean;
@@ -61,8 +63,11 @@ type Props<T = any> = (PopoverProps | ModalProps) & {
   value?: T;
   defaultValue?: T;
   usePortal?: boolean;
+  underlayTransparent?: boolean;
+  underlayBlurred?: boolean;
+  position?: 'fixed' | 'absolute';
 };
-export function DialogTrigger(props: Props) {
+export function DialogTrigger(props: DialogTriggerProps) {
   let {
     children,
     type,
@@ -76,6 +81,10 @@ export function DialogTrigger(props: Props) {
     usePortal = true,
     mobileType,
     alwaysReturnCurrentValueOnClose,
+    underlayBlurred,
+    underlayTransparent,
+    position,
+    placement,
   } = props;
 
   // for context menu we will set triggerRef to VirtualElement in "onContextMenu" event.
@@ -104,11 +113,15 @@ export function DialogTrigger(props: Props) {
   const isMobile = useIsMobileMediaQuery();
   if (isMobile && type === 'popover') {
     type = mobileType || 'modal';
+    // make sure modal is centered on mobile, if placement for desktop mode is specified
+    placement = undefined;
   }
 
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const {x, y, reference, strategy, refs} = useFloatingPosition({
     ...props,
+    placement,
+    strategy: position ?? getGlobalDialogPosition(),
     disablePositioning: type === 'modal',
   });
 
@@ -174,6 +187,8 @@ export function DialogTrigger(props: Props) {
     Overlay = Modal;
   } else if (type === 'tray') {
     Overlay = Tray;
+  } else if (type === 'drawer') {
+    Overlay = Drawer;
   } else {
     Overlay = Popover;
   }
@@ -268,7 +283,10 @@ export function DialogTrigger(props: Props) {
             onClose={close}
             isDismissable={isDismissable}
             isContextMenu={triggerOnContextMenu}
-            placement={props.placement}
+            placement={placement}
+            underlayTransparent={underlayTransparent}
+            underlayBlurred={underlayBlurred}
+            position={strategy}
           >
             {dialog}
           </Overlay>
@@ -305,7 +323,7 @@ export function DialogTrigger(props: Props) {
 }
 
 function extractChildren(
-  rawChildren: Props['children'],
+  rawChildren: DialogTriggerProps['children'],
   ctx: DialogContextValue,
 ) {
   const children = Array.isArray(rawChildren)
@@ -318,8 +336,8 @@ function extractChildren(
   // trigger and dialog passed as children
   if (children.length === 2) {
     return {
-      dialogTrigger: children[0] as ReactElement,
-      dialog: dialog as ReactElement,
+      dialogTrigger: children[0] as ReactElement<any>,
+      dialog: dialog as ReactElement<any>,
     };
   }
 

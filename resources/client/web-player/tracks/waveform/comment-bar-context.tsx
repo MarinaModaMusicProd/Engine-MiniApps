@@ -1,15 +1,8 @@
-import {
-  createContext,
-  MutableRefObject,
-  RefObject,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import {createContext, RefObject, useMemo, useRef, useState} from 'react';
 
 interface CommentBarContextValue {
-  newCommentInputRef: RefObject<HTMLInputElement>;
-  newCommentPositionRef: MutableRefObject<number>;
+  newCommentInputRef: RefObject<HTMLInputElement | null>;
+  newCommentPositionRef: RefObject<number>;
   markerIsVisible: boolean;
   setMarkerIsVisible: (value: boolean) => void;
   disableCommenting: boolean;

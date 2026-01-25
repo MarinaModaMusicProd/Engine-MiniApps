@@ -1,50 +1,52 @@
-import {SearchIcon} from '@ui/icons/material/Search';
-import {message} from '@ui/i18n/message';
-import {Item} from '@ui/forms/listbox/item';
-import {ComboBox} from '@ui/forms/combobox/combobox';
-import React, {cloneElement, ReactElement, useState} from 'react';
-import {useTrans} from '@ui/i18n/use-trans';
-import {useSearchResults} from '@app/web-player/search/requests/use-search-results';
-import {ARTIST_MODEL} from '@app/web-player/artists/artist';
+import {appQueries} from '@app/app-queries';
 import {ALBUM_MODEL} from '@app/web-player/albums/album';
-import {TRACK_MODEL} from '@app/web-player/tracks/track';
-import {USER_MODEL} from '@ui/types/user';
-import {PLAYLIST_MODEL} from '@app/web-player/playlists/playlist';
-import {Section} from '@ui/forms/listbox/section';
-import {Trans} from '@ui/i18n/trans';
-import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
-import {ArtistLinks} from '@app/web-player/artists/artist-links';
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {
-  getUserProfileLink,
-  UserProfileLink,
-} from '@app/web-player/users/user-profile-link';
-import {AlbumLink, getAlbumLink} from '@app/web-player/albums/album-link';
-import {ArtistLink, getArtistLink} from '@app/web-player/artists/artist-link';
-import {getTrackLink, TrackLink} from '@app/web-player/tracks/track-link';
-import {UserImage} from '@app/web-player/users/user-image';
-import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
-import {PlayableModel} from '@app/web-player/playable-item/playable-model';
-import clsx from 'clsx';
-import {queueGroupId} from '@app/web-player/queue-group-id';
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {AlbumContextDialog} from '@app/web-player/albums/album-context-dialog';
 import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {AlbumLink, getAlbumLink} from '@app/web-player/albums/album-link';
+import {ARTIST_MODEL} from '@app/web-player/artists/artist';
+import {ArtistContextDialog} from '@app/web-player/artists/artist-context-dialog';
+import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
+import {ArtistLink, getArtistLink} from '@app/web-player/artists/artist-link';
+import {ArtistLinks} from '@app/web-player/artists/artist-links';
+import {PlayableModel} from '@app/web-player/playable-item/playable-model';
+import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
+import {PLAYLIST_MODEL} from '@app/web-player/playlists/playlist';
+import {PlaylistContextDialog} from '@app/web-player/playlists/playlist-context-dialog';
+import {PlaylistOwnerName} from '@app/web-player/playlists/playlist-grid-item';
+import {PlaylistImage} from '@app/web-player/playlists/playlist-image';
 import {
   getPlaylistLink,
   PlaylistLink,
 } from '@app/web-player/playlists/playlist-link';
-import {PlaylistImage} from '@app/web-player/playlists/playlist-image';
-import {PlaylistOwnerName} from '@app/web-player/playlists/playlist-grid-item';
-import {useListboxContext} from '@ui/forms/listbox/listbox-context';
-import {AnimatePresence, m} from 'framer-motion';
-import {useParams} from 'react-router-dom';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {ArtistContextDialog} from '@app/web-player/artists/artist-context-dialog';
-import {AlbumContextDialog} from '@app/web-player/albums/album-context-dialog';
+import {queueGroupId} from '@app/web-player/queue-group-id';
 import {TrackContextDialog} from '@app/web-player/tracks/context-dialog/track-context-dialog';
-import {PlaylistContextDialog} from '@app/web-player/playlists/playlist-context-dialog';
+import {TRACK_MODEL} from '@app/web-player/tracks/track';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {getTrackLink, TrackLink} from '@app/web-player/tracks/track-link';
+import {UserImage} from '@app/web-player/users/user-image';
+import {
+  getUserProfileLink,
+  UserProfileLink,
+} from '@app/web-player/users/user-profile-link';
+import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {opacityAnimation} from '@ui/animation/opacity-animation';
+import {IconButton} from '@ui/buttons/icon-button';
+import {ComboBox} from '@ui/forms/combobox/combobox';
+import {Item} from '@ui/forms/listbox/item';
+import {useListboxContext} from '@ui/forms/listbox/listbox-context';
+import {Section} from '@ui/forms/listbox/section';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {SearchIcon} from '@ui/icons/material/Search';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {USER_MODEL} from '@ui/types/user';
+import clsx from 'clsx';
+import {AnimatePresence, m} from 'framer-motion';
+import {cloneElement, ReactElement, useState} from 'react';
+import {useLocation, useParams} from 'react-router';
 
 interface SearchAutocompleteProps {
   className?: string;
@@ -53,13 +55,15 @@ export function SearchAutocomplete({className}: SearchAutocompleteProps) {
   const {searchQuery} = useParams();
   const {trans} = useTrans();
   const navigate = useNavigate();
+  const {pathname} = useLocation();
+  const isOnSearchPage = pathname.startsWith('/search/');
   const [query, setQuery] = useState(searchQuery || '');
   const [isOpen, setIsOpen] = useState(false);
-  const {isFetching, data} = useSearchResults({
-    loader: 'search',
-    query,
+  const {isFetching, data} = useQuery({
+    ...appQueries.search.results('search', query),
+    enabled: !!query && !isOnSearchPage,
+    placeholderData: keepPreviousData,
   });
-
   return (
     <form
       onSubmit={e => {
@@ -70,20 +74,25 @@ export function SearchAutocomplete({className}: SearchAutocompleteProps) {
           navigate(`/search/${encodedQuery}`);
         }
       }}
-      className={clsx('flex flex-auto items-center gap-14', className)}
+      className={clsx('flex flex-auto', className)}
     >
-      <button type="submit" aria-label={trans(message('Search'))}>
-        <SearchIcon className="flex-shrink-0 text-muted" />
-      </button>
       <ComboBox
-        unstyled
-        className="w-full max-w-780 flex-auto"
+        className="w-full max-w-720 flex-auto"
+        startAdornment={
+          <IconButton type="submit" aria-label={trans(message('Search'))}>
+            <SearchIcon />
+          </IconButton>
+        }
         offset={12}
-        inputClassName="w-full outline-none bg-transparent h-42 placeholder:text-muted"
         hideEndAdornment
-        inputBorder="border-none"
+        inputClassName="w-full outline-none placeholder:text-muted max-h-46"
+        size="lg"
         isAsync
-        placeholder={trans(message('Search'))}
+        inputRadius="rounded-button"
+        inputShadow="shadow-sm"
+        inputBorder="border border-divider-lighter"
+        background="dark:bg-fg-base/10"
+        placeholder={trans(message('Search songs, artists, albums, playlists'))}
         isLoading={isFetching}
         inputValue={query}
         onInputValueChange={setQuery}

@@ -1,30 +1,40 @@
-import {Chip} from '@ui/forms/input-field/chip-field/chip';
-import React, {ReactElement, useState} from 'react';
-import {useUploadAvatar} from '@common/auth/ui/account-settings/avatar/upload-avatar';
-import {useRemoveAvatar} from '@common/auth/ui/account-settings/avatar/remove-avatar';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {UploadType} from '@app/site-config';
+import {apiClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
 import {ImageSelector} from '@common/uploads/components/image-selector';
+import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {useMutation} from '@tanstack/react-query';
 import {Avatar} from '@ui/avatar/avatar';
-import {User} from '@ui/types/user';
+import {Chip} from '@ui/forms/input-field/chip-field/chip';
 import {Trans} from '@ui/i18n/trans';
 import {ErrorOutlineIcon} from '@ui/icons/material/ErrorOutline';
+import {User} from '@ui/types/user';
+import {ReactElement, useState} from 'react';
 
 interface Props {
-  user: User;
+  user: {
+    id: User['id'];
+    email: User['email'];
+    image: User['image'];
+    name: User['name'];
+    roles: User['roles'];
+    banned_at: User['banned_at'];
+    bans: User['bans'];
+  };
   badge?: ReactElement;
 }
 export function UpdateUserPageHeader({user, badge}: Props) {
   const isSuspended = user.banned_at !== null;
   const banReason = user.bans?.[0]?.comment;
   return (
-    <div className="container mx-auto mb-44 mt-38 px-24">
+    <div className="container mx-auto mb-44 mt-38 flex-shrink-0 px-24">
       <div className="flex gap-32">
         <div className="relative">
           <AvatarSelector user={user} />
           <div className="absolute right-0 top-2">{badge}</div>
         </div>
         <div>
-          {!!user.roles.length && (
+          {!!user.roles?.length && (
             <Chip radius="rounded-panel" size="sm" className="mb-6 w-max">
               {user.roles[0].name}
             </Chip>
@@ -48,18 +58,21 @@ export function UpdateUserPageHeader({user, badge}: Props) {
 }
 
 interface AvatarManagerProps {
-  user: User;
+  user: {
+    id: User['id'];
+    image: User['image'];
+    name: User['name'];
+  };
 }
 
 function AvatarSelector({user}: AvatarManagerProps) {
-  const uploadAvatar = useUploadAvatar({user});
-  const removeAvatar = useRemoveAvatar({user});
   const [value, setValue] = useState(user.image);
+  const updateAvatar = useUpdateAvatar(user.id);
   return (
     <FileUploadProvider>
       <ImageSelector
         value={value}
-        diskPrefix="avatars"
+        uploadType={UploadType.avatars}
         variant="avatar"
         stretchPreview
         previewSize="w-90 h-90"
@@ -67,17 +80,24 @@ function AvatarSelector({user}: AvatarManagerProps) {
           <Avatar label={user.name} size="w-full h-full text-2xl" circle />
         }
         showRemoveButton
-        onChange={url => {
-          const onSuccess = {
-            onSuccess: () => setValue(url),
-          };
-          if (url) {
-            uploadAvatar.mutate({url}, onSuccess);
-          } else {
-            removeAvatar.mutate(undefined, onSuccess);
-          }
+        onChange={(_, entry) => {
+          setValue(entry?.url);
+          updateAvatar.mutate({
+            image: entry?.url ?? null,
+            image_entry_id: entry?.id ?? null,
+          });
         }}
       />
     </FileUploadProvider>
   );
+}
+
+function useUpdateAvatar(userId: number) {
+  return useMutation({
+    mutationFn: (payload: {
+      image?: string | null;
+      image_entry_id?: number | null;
+    }) => apiClient.put(`users/${userId}`, payload).then(r => r.data),
+    onError: r => showHttpErrorToast(r),
+  });
 }

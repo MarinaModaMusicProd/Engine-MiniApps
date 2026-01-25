@@ -1,16 +1,17 @@
+import {mergeProps, useObjectRef} from '@react-aria/utils';
+import {useDefaultValidationRules} from '@ui/forms/use-default-validation-rules';
 import React, {forwardRef, HTMLProps, Ref} from 'react';
 import {useController} from 'react-hook-form';
-import {mergeProps, useObjectRef} from '@react-aria/utils';
 import {BaseFieldPropsWithDom} from '../base-field-props';
-import {getInputFieldClassNames} from '../get-input-field-class-names';
 import {Field} from '../field';
+import {getInputFieldClassNames} from '../get-input-field-class-names';
 import {useField} from '../use-field';
 
 export interface TextFieldProps
   extends BaseFieldPropsWithDom<HTMLInputElement> {
   rows?: number;
   inputElementType?: 'input' | 'textarea';
-  inputRef?: Ref<HTMLInputElement>;
+  inputRef?: Ref<HTMLInputElement | null>;
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -63,16 +64,19 @@ export const TextField = forwardRef<HTMLDivElement, TextFieldProps>(
 
 export interface FormTextFieldProps extends TextFieldProps {
   name: string;
+  errorMessageName?: string;
 }
 export const FormTextField = React.forwardRef<
   HTMLDivElement,
   FormTextFieldProps
->(({name, ...props}, ref) => {
+>((props, ref) => {
+  const rules = useDefaultValidationRules(props);
   const {
     field: {onChange, onBlur, value = '', ref: inputRef},
     fieldState: {invalid, error},
   } = useController({
-    name,
+    name: props.name,
+    rules,
   });
 
   const formProps: TextFieldProps = {
@@ -83,7 +87,6 @@ export const FormTextField = React.forwardRef<
     invalid,
     errorMessage: error?.message,
     inputRef,
-    name,
   };
 
   return <TextField ref={ref} {...mergeProps(formProps, props)} />;

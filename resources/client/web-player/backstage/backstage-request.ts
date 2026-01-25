@@ -1,6 +1,6 @@
-import {Artist} from '../artists/artist';
-import {User} from '@ui/types/user';
 import {FileEntry} from '@common/uploads/file-entry';
+import {User} from '@ui/types/user';
+import {PartialArtist} from '../artists/artist';
 
 interface ExternalSocialProfile {
   id: number | string;
@@ -17,13 +17,12 @@ export interface BackstageRequest {
   type: string;
   user_id: number;
   user: User;
-  artist?: Artist;
+  artist?: PartialArtist;
   created_at: string;
   status: 'approved' | 'pending' | 'denied';
   data: {
     socialProfiles: {[key: string]: ExternalSocialProfile};
-    first_name?: string;
-    last_name?: string;
+    name?: string;
     image?: string;
     company?: string;
     role?: string;

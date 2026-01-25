@@ -1,33 +1,37 @@
-import {Trans} from '@ui/i18n/trans';
+import {CaptchaContainer} from '@common/captcha/captcha-container';
+import {Footer} from '@common/ui/footer/footer';
 import {Navbar} from '@common/ui/navigation/navbar/navbar';
+import {Button} from '@ui/buttons/button';
 import {Form} from '@ui/forms/form';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {toast} from '@ui/toast/toast';
 import {useForm} from 'react-hook-form';
+import {useCaptcha} from '../captcha/use-captcha';
+import {StaticPageTitle} from '../seo/static-page-title';
 import {
   ContactPagePayload,
   useSubmitContactForm,
 } from './use-submit-contact-form';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {Button} from '@ui/buttons/button';
-import {useRecaptcha} from '../recaptcha/use-recaptcha';
-import {StaticPageTitle} from '../seo/static-page-title';
-import {Footer} from '@common/ui/footer/footer';
 
-export function ContactUsPage() {
+export function Component() {
   const form = useForm<ContactPagePayload>();
   const submitForm = useSubmitContactForm(form);
-  const {verify, isVerifying} = useRecaptcha('contact');
+  const {captchaToken, captchaEnabled, resetCaptcha} = useCaptcha('contact');
 
   return (
-    <div className="flex min-h-screen flex-col bg-alt">
+    <div className="flex min-h-screen flex-col bg">
       <StaticPageTitle>
         <Trans message="Contact us" />
       </StaticPageTitle>
       <Navbar
+        color="bg"
         className="sticky top-0 flex-shrink-0"
         menuPosition="contact-us-page"
       />
       <div className="container mx-auto flex flex-auto items-center justify-center p-24 md:p-40">
-        <div className="max-w-620 rounded border bg-paper p-24">
+        <div className="max-w-620 rounded-panel border bg-elevated p-24 shadow-sm">
           <h1 className="text-2xl">
             <Trans message="Contact us" />
           </h1>
@@ -37,10 +41,17 @@ export function ContactUsPage() {
           <Form
             form={form}
             onSubmit={async value => {
-              const isValid = await verify();
-              if (isValid) {
-                submitForm.mutate(value);
+              if (captchaEnabled && !captchaToken) {
+                toast.danger(message('Please solve the captcha challenge.'));
+                return;
               }
+              submitForm.mutate(
+                {
+                  ...value,
+                  captcha_token: captchaToken,
+                },
+                {onError: () => resetCaptcha()},
+              );
             }}
           >
             <FormTextField
@@ -64,11 +75,12 @@ export function ContactUsPage() {
               className="mb-20"
               rows={8}
             />
+            {captchaEnabled && <CaptchaContainer className="mb-20" />}
             <Button
               type="submit"
               variant="flat"
               color="primary"
-              disabled={submitForm.isPending || isVerifying}
+              disabled={submitForm.isPending}
             >
               <Trans message="Send" />
             </Button>

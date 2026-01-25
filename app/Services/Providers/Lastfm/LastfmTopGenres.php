@@ -2,7 +2,7 @@
 
 use App\Models\Genre;
 use App\Services\Providers\ContentProvider;
-use App\Services\Providers\SaveOrUpdate;
+use App\Services\Providers\UpsertsDataIntoDB;
 use Common\Settings\Settings;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 
 class LastfmTopGenres implements ContentProvider
 {
-    use SaveOrUpdate;
+    use UpsertsDataIntoDB;
 
     private string $apiKey;
 
@@ -19,7 +19,7 @@ class LastfmTopGenres implements ContentProvider
         protected Genre $genre,
         protected Filesystem $fs,
     ) {
-        $this->apiKey = config('common.site.lastfm.key');
+        $this->apiKey = config('services.lastfm.key');
 
         @ini_set('max_execution_time', 0);
     }

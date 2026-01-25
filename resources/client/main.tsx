@@ -1,41 +1,29 @@
-import './app.css';
-import React, { useEffect } from 'react';
-import {createRoot} from 'react-dom/client';
-import {CommonProvider} from '@common/core/common-provider';
-import * as Sentry from '@sentry/react';
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {Track, TRACK_MODEL} from '@app/web-player/tracks/track';
-import {ALBUM_MODEL} from '@app/web-player/albums/album';
-import {Artist, ARTIST_MODEL} from '@app/web-player/artists/artist';
-import {Repost} from '@app/web-player/reposts/repost';
-import {UserProfile} from '@app/web-player/user-profile/user-profile';
-import {UserLink} from '@app/web-player/user-profile/user-link';
-import {UserArtist} from '@app/web-player/user-profile/user-artist';
-import {LandingPageContent} from '@app/landing-page/landing-page-content';
-import {ignoredSentryErrors} from '@common/errors/ignored-sentry-errors';
-import {FetchCustomPageResponse} from '@common/custom-page/use-custom-page';
 import {appRouter} from '@app/app-router';
-import {UseArtistResponse} from '@app/web-player/artists/requests/use-artist';
-import {GetAlbumResponse} from '@app/web-player/albums/requests/use-album';
-import {getTrackResponse} from '@app/web-player/tracks/requests/use-track';
-import {Product} from '@common/billing/product';
-import {GetPlaylistResponse} from '@app/web-player/playlists/requests/use-playlist';
-import {GetUserProfileResponse} from '@app/web-player/user-profile/requests/use-user-profile';
-import {SearchResponse} from '@app/web-player/search/requests/use-search-results';
-import {BaseBackendBootstrapData} from '@common/core/base-backend-bootstrap-data';
-import {BaseBackendSettings} from '@common/core/settings/base-backend-settings';
+import {ALBUM_MODEL} from '@app/web-player/albums/album';
+import {GetAlbumResponse} from '@app/web-player/albums/requests/get-album-response';
+import {ARTIST_MODEL} from '@app/web-player/artists/artist';
+import {GetArtistResponse} from '@app/web-player/artists/requests/get-artist-response';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
+import {GetPlaylistResponse} from '@app/web-player/playlists/requests/get-playlist-response';
+import {SearchResponse} from '@app/web-player/search/search-response';
+import {GetTrackResponse} from '@app/web-player/tracks/requests/get-track-response';
+import {TRACK_MODEL} from '@app/web-player/tracks/track';
+import {FullUserProfile, UserArtist} from '@app/web-player/users/user-profile';
 import {BaseBackendUser} from '@common/auth/base-backend-user';
+import {Product} from '@common/billing/product';
+import {Channel} from '@common/channels/channel';
+import {BaseBackendBootstrapData} from '@common/core/base-backend-bootstrap-data';
+import {CommonProvider} from '@common/core/common-provider';
+import {BaseBackendSettings} from '@common/core/settings/base-backend-settings';
+import {FetchCustomPageResponse} from '@common/custom-page/use-custom-page';
+import {ignoredSentryErrors} from '@common/errors/ignored-sentry-errors';
+import {SectionConfig} from '@common/ui/landing-page/landing-page-config';
+import * as Sentry from '@sentry/react';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 import {rootEl} from '@ui/root-el';
+import {createRoot, RootOptions} from 'react-dom/client';
 import {Omit} from 'utility-types';
-import {BrowserTracing} from '@sentry/tracing';
-import {
-  useLocation,
-  useNavigationType,
-  createRoutesFromChildren,
-  matchRoutes
-} from 'react-router-dom';
-import telegramAnalytics from '@telegram-apps/analytics';
+import './app.css';
 
 declare module '@common/http/value-lists' {
   interface FetchValueListsResponse {
@@ -47,6 +35,7 @@ declare module '@ui/settings/settings' {
   interface Settings extends Omit<BaseBackendSettings, 'uploads'> {
     spotify_is_setup?: boolean;
     lastfm_is_setup?: boolean;
+    spotify_use_deprecated_api?: boolean;
     artist_provider?: string | false;
     album_provider?: string | false;
     search_provider?: string | false;
@@ -66,13 +55,14 @@ declare module '@ui/settings/settings' {
       hide_lyrics?: boolean;
       lyrics_automate?: boolean;
       enable_download?: boolean;
+      enable_offlining?: boolean;
       show_become_artist_btn?: boolean;
       default_artist_view?: 'list' | 'grid';
       mobile?: {
         auto_open_overlay?: boolean;
       };
     };
-    uploads: BaseBackendSettings['uploads'] & {
+    uploads: {
       autoMatch?: boolean;
     };
     artistPage: {
@@ -86,9 +76,9 @@ declare module '@ui/settings/settings' {
     homepage: {
       type: string;
       value?: number | string;
-      pricing?: boolean;
-      appearance: LandingPageContent;
-      trending?: boolean;
+    };
+    landingPage?: {
+      sections?: SectionConfig[];
     };
     ads?: {
       general_top?: string;
@@ -103,12 +93,6 @@ declare module '@ui/settings/settings' {
 
 declare module '@ui/types/user' {
   interface User extends BaseBackendUser {
-    username?: string;
-    uploaded_tracks: Track[];
-    playlists: Playlist[];
-    reposts?: Repost[];
-    profile?: UserProfile;
-    links?: UserLink[];
     artists?: UserArtist[];
   }
 }
@@ -116,34 +100,32 @@ declare module '@ui/types/user' {
 declare module '@ui/bootstrap-data/bootstrap-data' {
   interface BootstrapData extends BaseBackendBootstrapData {
     loaders?: {
-      artist?: UseArtistResponse;
-      artistPage?: UseArtistResponse;
-      editArtistPage?: UseArtistResponse;
+      artist?: GetArtistResponse;
+      artistPage?: GetArtistResponse;
+      editArtistPage?: GetArtistResponse;
       album?: GetAlbumResponse;
       albumEmbed?: GetAlbumResponse;
       albumPage?: GetAlbumResponse;
       editAlbumPage?: GetAlbumResponse;
-      track?: getTrackResponse;
-      trackPage?: getTrackResponse;
-      editTrackPage?: getTrackResponse;
+      track?: GetTrackResponse;
+      trackPage?: GetTrackResponse;
+      editTrackPage?: GetTrackResponse;
       playlistPage?: GetPlaylistResponse;
       playlist?: GetPlaylistResponse;
-      userProfilePage?: GetUserProfileResponse;
+      userProfilePage?: {
+        user: FullUserProfile;
+        loader: 'userProfilePage';
+      };
       searchPage?: SearchResponse;
       search?: SearchResponse;
       customPage?: FetchCustomPageResponse;
       landingPage?: {
         products: Product[];
-        trendingArtists: Artist[];
+        channels?: Channel[];
+        sections?: SectionConfig[];
       };
     };
-    playlists?: Playlist[];
-    artists: {
-      id: number;
-      name: string;
-      image_small?: string;
-      role: string;
-    }[];
+    playlists?: PartialPlaylist[];
     likes?: {
       [TRACK_MODEL]: Record<number, boolean>;
       [ALBUM_MODEL]: Record<number, boolean>;
@@ -157,31 +139,24 @@ declare module '@ui/bootstrap-data/bootstrap-data' {
 }
 
 const data = getBootstrapData();
+let options: RootOptions | undefined = undefined;
 const sentryDsn = data.settings.logging.sentry_public;
 if (sentryDsn && import.meta.env.PROD) {
   Sentry.init({
     dsn: sentryDsn,
-    integrations: [
-      new BrowserTracing({
-        tracingOrigins: ["localhost", window.location.origin, /^\//],
-        routingInstrumentation: Sentry.reactRouterV6Instrumentation(
-            useEffect,
-            useLocation,
-            useNavigationType,
-            createRoutesFromChildren,
-            matchRoutes
-        ),
-      }),
-    ],
+    integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.2,
     ignoreErrors: ignoredSentryErrors,
     release: data.sentry_release,
   });
+
+  options = {
+    onUncaughtError: Sentry.reactErrorHandler((error, errorInfo) => {
+      console.warn('Uncaught error', error, errorInfo.componentStack);
+    }),
+    onCaughtError: Sentry.reactErrorHandler(),
+    onRecoverableError: Sentry.reactErrorHandler(),
+  };
 }
 
-telegramAnalytics.init({
-  appName: 'marina_moda', // The analytics identifier you entered in @DataChief_bot
-  token: 'eyJhcHBfbmFtZSI6Im1hcmluYV9tb2RhIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9tYXJpbmFfbW9kYV9ib3QiLCJhcHBfZG9tYWluIjoiaHR0cHM6Ly9tYXJpbmEucmVjaGFpbi5uZXR3b3JrLyJ9!mtMWM2A3vq0782qvhtJg3YV42jp8X6JC1ITJO7Q+Vyc=', // SDK Auth token received via @DataChief_bot
-});
-
-createRoot(rootEl).render(<CommonProvider router={appRouter} />);
+createRoot(rootEl, options).render(<CommonProvider router={appRouter} />);

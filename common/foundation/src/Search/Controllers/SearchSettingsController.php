@@ -2,10 +2,10 @@
 
 namespace Common\Search\Controllers;
 
-use Artisan;
 use Common\Core\BaseController;
 use Common\Search\ImportRecordsIntoScout;
-use Str;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
 
 class SearchSettingsController extends BaseController
 {
@@ -26,6 +26,7 @@ class SearchSettingsController extends BaseController
     public function import()
     {
         $this->middleware('isAdmin');
+        $this->blockOnDemoSite();
 
         (new ImportRecordsIntoScout())->execute(
             request('model'),

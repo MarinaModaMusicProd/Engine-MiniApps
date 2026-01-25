@@ -19,13 +19,12 @@ class FileEntryUser extends BaseUser
     protected $hidden = [
         'password',
         'remember_token',
-        'first_name',
-        'last_name',
+        'name',
         'has_password',
         'pivot',
     ];
 
-    protected $appends = ['owns_entry', 'entry_permissions', 'name'];
+    protected $appends = ['owns_entry', 'entry_permissions'];
 
     public function getOwnsEntryAttribute()
     {
@@ -47,9 +46,10 @@ class FileEntryUser extends BaseUser
 
     public function toArray(bool $showAll = false): array
     {
-        return array_merge(
-            $this->attributesToArray(),
-            $this->relationsToArray(),
-        );
+        return [
+            ...$this->attributesToArray(),
+            ...$this->relationsToArray(),
+            'name' => $this->name,
+        ];
     }
 }

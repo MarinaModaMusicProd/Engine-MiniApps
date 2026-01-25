@@ -1,23 +1,23 @@
-import React, {ReactNode, useEffect, useRef, useState} from 'react';
-import clsx from 'clsx';
+import {UseSuspenseInfiniteQueryResult} from '@tanstack/react-query';
 import {UseInfiniteQueryResult} from '@tanstack/react-query/src/types';
-import {Trans} from '@ui/i18n/trans';
-import {Button} from '@ui/buttons/button';
-import {AnimatePresence, m} from 'framer-motion';
 import {opacityAnimation} from '@ui/animation/opacity-animation';
+import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
 import {ProgressCircle} from '@ui/progress/progress-circle';
+import clsx from 'clsx';
+import {AnimatePresence, m} from 'framer-motion';
+import React, {ReactNode, useEffect, useRef, useState} from 'react';
 
 export interface InfiniteScrollSentinelProps {
   loaderMarginTop?: string;
   children?: ReactNode;
   loadMoreExtraContent?: ReactNode;
-  query: UseInfiniteQueryResult;
+  query: UseInfiniteQueryResult | UseSuspenseInfiniteQueryResult;
   style?: React.CSSProperties;
   className?: string;
   variant?: 'infiniteScroll' | 'loadMore';
   size?: 'sm' | 'md';
 }
-
 export function InfiniteScrollSentinel({
   query: {isInitialLoading, fetchNextPage, isFetchingNextPage, hasNextPage},
   children,

@@ -1,25 +1,24 @@
+import {BanUsersDialog} from '@common/admin/users/ban-users-dialog';
+import {ImpersonateUserDialog} from '@common/admin/users/impersonate-user-dialog';
+import {useUnbanUsers} from '@common/admin/users/requests/use-unban-users';
 import {ColumnConfig} from '@common/datatable/column-config';
-import {User} from '@ui/types/user';
-import {Trans} from '@ui/i18n/trans';
 import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Chip} from '@ui/forms/input-field/chip-field/chip';
+import {ChipList} from '@ui/forms/input-field/chip-field/chip-list';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {Trans} from '@ui/i18n/trans';
 import {CheckIcon} from '@ui/icons/material/Check';
 import {CloseIcon} from '@ui/icons/material/Close';
-import {ChipList} from '@ui/forms/input-field/chip-field/chip-list';
-import {Chip} from '@ui/forms/input-field/chip-field/chip';
-import {Link} from 'react-router-dom';
-import clsx from 'clsx';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {IconButton} from '@ui/buttons/icon-button';
 import {EditIcon} from '@ui/icons/material/Edit';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {PersonOffIcon} from '@ui/icons/material/PersonOff';
-import {BanUserDialog} from '@common/admin/users/ban-user-dialog';
-import React from 'react';
-import {useUnbanUser} from '@common/admin/users/requests/use-unban-user';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import {useImpersonateUser} from '@common/admin/users/requests/use-impersonate-user';
 import {LoginIcon} from '@ui/icons/material/Login';
+import {PersonOffIcon} from '@ui/icons/material/PersonOff';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import {User} from '@ui/types/user';
+import clsx from 'clsx';
+import {Link} from 'react-router';
 
 export const userDatatableColumns: ColumnConfig<User>[] = [
   {
@@ -63,7 +62,7 @@ export const userDatatableColumns: ColumnConfig<User>[] = [
     header: () => <Trans message="Subscribed" />,
     width: 'w-96',
     body: user =>
-      user.subscriptions?.length ? (
+      user.subscriptions?.filter(s => s.valid).length ? (
         <CheckIcon className="text-positive icon-md" />
       ) : (
         <CloseIcon className="text-danger icon-md" />
@@ -78,20 +77,20 @@ export const userDatatableColumns: ColumnConfig<User>[] = [
       user.banned_at ? <CheckIcon className="text-danger icon-md" /> : null,
   },
   {
-    key: 'last_login',
+    key: 'latest_active_session',
     width: 'w-110',
     header: () => <Trans message="Last active" />,
     body: user =>
-      user.last_login ? (
+      user.latest_active_session ? (
         <time>
-          <FormattedDate date={user.last_login.created_at} />
+          <FormattedDate date={user.latest_active_session.updated_at} />
         </time>
       ) : (
         '-'
       ),
   },
   {
-    key: 'createdAt',
+    key: 'created_at',
     allowsSorting: true,
     width: 'w-110',
     header: () => <Trans message="Created at" />,
@@ -126,7 +125,7 @@ export const userDatatableColumns: ColumnConfig<User>[] = [
                 <PersonOffIcon />
               </IconButton>
             </Tooltip>
-            <BanUserDialog user={user} />
+            <BanUsersDialog userIds={[user.id]} />
           </DialogTrigger>
         )}
         <ImpersonateButton user={user} />
@@ -139,7 +138,7 @@ interface UnbanButtonProps {
   user: User;
 }
 function UnbanButton({user}: UnbanButtonProps) {
-  const unban = useUnbanUser(user.id);
+  const unban = useUnbanUsers([user.id]);
   return (
     <DialogTrigger
       type="modal"
@@ -170,7 +169,6 @@ interface ImpersonateButtonProps {
   user: User;
 }
 function ImpersonateButton({user}: ImpersonateButtonProps) {
-  const impersonate = useImpersonateUser();
   return (
     <DialogTrigger type="modal">
       <Tooltip label={<Trans message="Login as user" />}>
@@ -178,15 +176,7 @@ function ImpersonateButton({user}: ImpersonateButtonProps) {
           <LoginIcon />
         </IconButton>
       </Tooltip>
-      <ConfirmationDialog
-        title={<Trans message="Login as “:name“" values={{name: user.name}} />}
-        isLoading={impersonate.isPending}
-        body={<Trans message="Are you sure you want to login as this user?" />}
-        confirm={<Trans message="Login" />}
-        onConfirm={() => {
-          impersonate.mutate({userId: user.id});
-        }}
-      />
+      <ImpersonateUserDialog user={user} />
     </DialogTrigger>
   );
 }

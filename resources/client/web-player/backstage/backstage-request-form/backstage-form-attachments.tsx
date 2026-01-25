@@ -1,24 +1,24 @@
-import {useFormContext} from 'react-hook-form';
+import {UploadType} from '@app/site-config';
 import {CreateBackstageRequestPayload} from '@app/web-player/backstage/requests/use-create-backstage-request';
 import {useSocialLogin} from '@common/auth/requests/use-social-login';
-import {Trans} from '@ui/i18n/trans';
-import {Button} from '@ui/buttons/button';
-import {TwitterIcon} from '@ui/icons/social/twitter';
 import {useUser} from '@common/auth/ui/use-user';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {FacebookIcon} from '@ui/icons/social/facebook';
-import {DocumentScannerIcon} from '@ui/icons/material/DocumentScanner';
-import {prettyBytes} from '@ui/utils/files/pretty-bytes';
-import React, {cloneElement, ReactElement, ReactNode} from 'react';
-import {SvgIconProps} from '@ui/icons/svg-icon';
-import {IconButton} from '@ui/buttons/icon-button';
-import {CloseIcon} from '@ui/icons/material/Close';
-import {useActiveUpload} from '@common/uploads/uploader/use-active-upload';
 import {queryClient} from '@common/http/query-client';
+import {restrictionsFromConfig} from '@common/uploads/uploader/create-file-upload';
+import {useActiveUpload} from '@common/uploads/uploader/use-active-upload';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {CloseIcon} from '@ui/icons/material/Close';
+import {DocumentScannerIcon} from '@ui/icons/material/DocumentScanner';
+import {FacebookIcon} from '@ui/icons/social/facebook';
+import {TwitterIcon} from '@ui/icons/social/twitter';
+import {SvgIconProps} from '@ui/icons/svg-icon';
 import {useSettings} from '@ui/settings/use-settings';
-import {FileInputType} from '@ui/utils/files/file-input-config';
-import {Disk} from '@common/uploads/uploader/backend-metadata';
+import {toast} from '@ui/toast/toast';
+import {prettyBytes} from '@ui/utils/files/pretty-bytes';
+import {cloneElement, ReactElement, ReactNode} from 'react';
+import {useFormContext} from 'react-hook-form';
 
 export function BackstageFormAttachments() {
   const {social} = useSettings();
@@ -161,21 +161,18 @@ function AttachmentLayout({
   );
 }
 
-const FiveMB = 5 * 1024 * 1024;
 function PassportScanButton() {
   const {setValue} = useFormContext<CreateBackstageRequestPayload>();
   const {selectAndUploadFile} = useActiveUpload();
 
+  const restrictions = restrictionsFromConfig({
+    uploadType: UploadType.backstageAttachments,
+  });
   const handleUpload = () => {
     selectAndUploadFile({
       showToastOnRestrictionFail: true,
-      restrictions: {
-        allowedFileTypes: [FileInputType.image],
-        maxFileSize: FiveMB,
-      },
-      metadata: {
-        disk: Disk.uploads,
-      },
+      uploadType: UploadType.backstageAttachments,
+      restrictions,
       onSuccess: entry => {
         setValue('passportScan', entry);
       },

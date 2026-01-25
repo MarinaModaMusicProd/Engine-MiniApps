@@ -1,5 +1,5 @@
 <?php
-$cssVariables = collect(config('common.themes.light'))
+$cssVariables = collect(config('themes.light'))
     ->mapWithKeys(fn($value, $key) => [$key => $value])
     ->map(fn($value, $key) => "$key: $value;")
     ->implode('');
@@ -11,7 +11,7 @@ $buttonClass =
 <html style="{{$cssVariables}}">
 <head>
     <title>Install</title>
-    @vite('resources/client/main.css')
+    <link href="{{ getMainCssFileUrl() }}" rel="stylesheet">
 </head>
 <body class="bg-alt flex flex-col items-center justify-center text-main">
 <img src="{{ file_exists(public_path('images/logo-dark.png')) ? asset('images/logo-dark.png') : asset('images/logo-dark.svg') }}" alt="Logo" class="h-40 mb-34" />

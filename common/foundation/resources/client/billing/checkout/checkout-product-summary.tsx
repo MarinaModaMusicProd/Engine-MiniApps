@@ -1,13 +1,15 @@
-import {Trans} from '@ui/i18n/trans';
+import {billingQueries} from '@common/billing/billing-queries';
 import {FormattedPrice} from '@common/billing/formatted-price';
-import {useCheckoutProduct} from '@common/billing/requests/use-checkout-product';
-import {m} from 'framer-motion';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {Product} from '@common/billing/product';
 import {Price} from '@common/billing/price';
-import {ProductFeatureList} from '../pricing-table/product-feature-list';
+import {Product} from '@common/billing/product';
+import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {opacityAnimation} from '@ui/animation/opacity-animation';
 import {FormattedCurrency} from '@ui/i18n/formatted-currency';
+import {Trans} from '@ui/i18n/trans';
+import {Skeleton} from '@ui/skeleton/skeleton';
+import {m} from 'framer-motion';
+import {useParams} from 'react-router';
+import {ProductFeatureList} from '../pricing-table/product-feature-list';
 
 interface CheckoutProductSummaryProps {
   showBillingLine?: boolean;
@@ -15,9 +17,22 @@ interface CheckoutProductSummaryProps {
 export function CheckoutProductSummary({
   showBillingLine = true,
 }: CheckoutProductSummaryProps) {
-  const {status, product, price} = useCheckoutProduct();
+  const {productId, priceId} = useParams();
+  const query = useQuery({
+    ...billingQueries.products.get(productId!),
+    placeholderData: keepPreviousData,
+    enabled: productId != null && priceId != null,
+  });
 
-  if (status === 'error' || (status !== 'pending' && (!product || !price))) {
+  const product = query.data?.product;
+  const price =
+    product?.prices.find(p => p.id === parseInt(priceId!)) ||
+    product?.prices[0];
+
+  if (
+    query.status === 'error' ||
+    (query.status !== 'pending' && (!product || !price))
+  ) {
     return null;
   }
 
@@ -26,7 +41,7 @@ export function CheckoutProductSummary({
       <h2 className="mb-30 text-2xl">
         <Trans message="Summary" />
       </h2>
-      {status === 'pending' ? (
+      {query.status === 'pending' ? (
         <LoadingSkeleton key="loading-skeleton" />
       ) : (
         <ProductSummary

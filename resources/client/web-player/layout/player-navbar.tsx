@@ -1,22 +1,18 @@
-import {useSettings} from '@ui/settings/use-settings';
-import {useAuth} from '@common/auth/use-auth';
-import React, {Fragment, useMemo} from 'react';
-import {Button} from '@ui/buttons/button';
-import {Link} from 'react-router-dom';
-import {Trans} from '@ui/i18n/trans';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
-import {MenuItem} from '@ui/menu/menu-trigger';
-import {MicIcon} from '@ui/icons/material/Mic';
 import {getArtistLink} from '@app/web-player/artists/artist-link';
-import {Navbar} from '@common/ui/navigation/navbar/navbar';
+import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
 import {SearchAutocomplete} from '@app/web-player/search/search-autocomplete';
-import clsx from 'clsx';
+import {useAuth} from '@common/auth/use-auth';
+import {DashboardNavbar} from '@common/ui/dashboard-layout/dashboard-navbar';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
+import {MicIcon} from '@ui/icons/material/Mic';
+import {MenuItem} from '@ui/menu/menu-trigger';
+import {useSettings} from '@ui/settings/use-settings';
+import {Fragment, useMemo} from 'react';
+import {Link} from 'react-router';
 
-interface Props {
-  className?: string;
-}
-export function PlayerNavbar({className}: Props) {
+export function PlayerNavbar() {
   const navigate = useNavigate();
   const primaryArtist = usePrimaryArtistForCurrentUser();
   const {player} = useSettings();
@@ -54,17 +50,19 @@ export function PlayerNavbar({className}: Props) {
   }, [primaryArtist, navigate, player?.show_become_artist_btn]);
 
   return (
-    <Navbar
-      hideLogo
-      color="bg"
-      darkModeColor="bg"
-      size="sm"
+    <DashboardNavbar
+      color="transparent"
+      darkModeColor="transparent"
+      logoColor="matchMode"
+      border="border-none"
+      textColor="text-main"
+      size={null}
+      className="my-8"
       authMenuItems={menuItems}
-      className={clsx('dashboard-grid-header', className)}
     >
-      <SearchAutocomplete />
+      <SearchAutocomplete className="ml-44" />
       <ActionButtons />
-    </Navbar>
+    </DashboardNavbar>
   );
 }
 
@@ -74,8 +72,7 @@ function ActionButtons() {
 
   const showUploadButton =
     player?.show_upload_btn && isLoggedIn && hasPermission('music.create');
-  const showTryProButton =
-    billing?.enable && hasPermission('plans.view') && !isSubscribed;
+  const showTryProButton = billing?.enable && !isSubscribed;
 
   return (
     <Fragment>

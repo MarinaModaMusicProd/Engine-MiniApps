@@ -1,14 +1,14 @@
+import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
+import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
 import {Trans} from '@ui/i18n/trans';
 import {useSettings} from '@ui/settings/use-settings';
-import claimLabelImage from './images/claim-label.jpg';
-import claimArtistImage from './images/claim-artist.jpg';
-import {ReactNode} from 'react';
-import {Link} from 'react-router-dom';
-import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
 import clsx from 'clsx';
-import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
+import {ReactNode} from 'react';
+import {Link} from 'react-router';
+import claimArtistImage from './images/claim-artist.jpg';
+import claimLabelImage from './images/claim-label.jpg';
 
-export function BackstageTypeSelector() {
+export function Component() {
   const {branding} = useSettings();
   const isArtist = usePrimaryArtistForCurrentUser() != null;
   return (
@@ -63,7 +63,7 @@ function ClaimPanelLayout({
     <Link
       to={link}
       className={clsx(
-        'block flex flex-auto cursor-pointer flex-col items-center justify-center rounded-md border border-2 bg-paper p-34 transition-shadow hover:bg-primary/4 hover:shadow-xl',
+        'flex flex-auto cursor-pointer flex-col items-center justify-center rounded-panel border border-2 bg-elevated p-34 transition-shadow hover:bg-primary/4 hover:shadow-xl',
         className,
       )}
     >

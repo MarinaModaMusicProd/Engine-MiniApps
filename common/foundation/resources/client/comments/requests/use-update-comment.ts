@@ -1,9 +1,10 @@
+import {commentQueries} from '@common/comments/comment-queries';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {useMutation} from '@tanstack/react-query';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
 import {apiClient, queryClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
 
 interface Response extends BackendResponse {
   //
@@ -19,7 +20,7 @@ export function useUpdateComment() {
     mutationFn: (props: Payload) => updateComment(props),
     onSuccess: () => {
       toast(message('Comment updated'));
-      queryClient.invalidateQueries({queryKey: ['comment']});
+      queryClient.invalidateQueries({queryKey: commentQueries.invalidateKey});
     },
     onError: err => showHttpErrorToast(err),
   });

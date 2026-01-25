@@ -2,7 +2,7 @@ import {useQuery} from '@tanstack/react-query';
 import {apiClient} from '../http/query-client';
 import {BackendResponse} from '../http/backend-response/backend-response';
 import {CustomPage} from '../admin/custom-pages/custom-page';
-import {useParams} from 'react-router-dom';
+import {useParams} from 'react-router';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 
 const endpoint = (slugOrId: number | string) => `custom-pages/${slugOrId}`;

@@ -1,43 +1,52 @@
-import React, {useMemo} from 'react';
-import {playerStoreOptions} from '@app/web-player/state/player-store-options';
-import {PlayerContext} from '@common/player/player-context';
-import {FullPageLoader} from '@ui/progress/full-page-loader';
-import {
-  tracksToMediaItems,
-  trackToMediaItem,
-} from '@app/web-player/tracks/utils/track-to-media-item';
-import {useAlbum} from '@app/web-player/albums/requests/use-album';
-import {Album} from '@app/web-player/albums/album';
+import {appQueries} from '@app/app-queries';
+import {FullAlbum} from '@app/web-player/albums/album';
 import {AlbumListItem} from '@app/web-player/albums/album-list/album-list-item';
+import {queueGroupId} from '@app/web-player/queue-group-id';
+import {playerStoreOptions} from '@app/web-player/state/player-store-options';
+import {Track} from '@app/web-player/tracks/track';
+import {tracksToMediaItems} from '@app/web-player/tracks/utils/track-to-media-item';
+import {MediaItem} from '@common/player/media-item';
+import {PlayerContext} from '@common/player/player-context';
 import {PlayerStoreOptions} from '@common/player/state/player-store-options';
-import {PlayerOutlet} from '@common/player/ui/player-outlet';
 import {PlayerPoster} from '@common/player/ui/controls/player-poster';
+import {PlayerOutlet} from '@common/player/ui/player-outlet';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {useEffect, useMemo, useState} from 'react';
+import {useParams} from 'react-router';
 
-export function AlbumEmbed() {
-  const {data} = useAlbum({loader: 'albumEmbed'});
+export function Component() {
+  const {albumId} = useParams();
+  const {data} = useSuspenseQuery(appQueries.albums.get(albumId!, 'albumPage'));
+
+  const [mediaItems, setMediaItems] = useState<MediaItem<Track>[]>([]);
+  useEffect(() => {
+    if (data.album.tracks?.length) {
+      tracksToMediaItems(data.album.tracks, undefined, data.album).then(items =>
+        setMediaItems(items),
+      );
+    }
+  }, [data]);
+
   return (
     <div className="h-384 rounded border bg-alt p-14">
-      {!data?.album ? (
-        <FullPageLoader screen={false} />
-      ) : (
-        <EmbedContent album={data.album} />
-      )}
+      {mediaItems.length ? (
+        <EmbedContent album={data.album} mediaItems={mediaItems} />
+      ) : null}
     </div>
   );
 }
 
 interface EmbedContentProps {
-  album: Album;
+  album: FullAlbum;
+  mediaItems: MediaItem<Track>[];
 }
-function EmbedContent({album}: EmbedContentProps) {
+function EmbedContent({album, mediaItems}: EmbedContentProps) {
   const options: PlayerStoreOptions = useMemo(() => {
     return {
       ...playerStoreOptions,
       initialData: {
-        queue: album.tracks?.length ? tracksToMediaItems(album.tracks) : [],
-        cuedMediaId: album.tracks?.length
-          ? trackToMediaItem(album.tracks[0]).id
-          : undefined,
+        queue: mediaItems,
+        cuedMediaId: queueGroupId(album),
         state: {
           repeat: false,
         },

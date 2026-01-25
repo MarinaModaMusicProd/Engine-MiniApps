@@ -1,65 +1,51 @@
-import {useForm} from 'react-hook-form';
-import React from 'react';
-import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
-import {Trans} from '@ui/i18n/trans';
-import {PageStatus} from '@common/http/page-status';
-import {
-  useArtist,
-  UseArtistResponse,
-} from '@app/web-player/artists/requests/use-artist';
+import {CrupdateArtistForm} from '@app/admin/artist-datatable-page/artist-form/crupdate-artist-form';
 import {
   UpdateArtistPayload,
   useUpdateArtist,
 } from '@app/admin/artist-datatable-page/requests/use-update-artist';
-import {CrupdateArtistForm} from '@app/admin/artist-datatable-page/artist-form/crupdate-artist-form';
+import {appQueries} from '@app/app-queries';
+import {getArtistLink} from '@app/web-player/artists/artist-link';
 import {useArtistPermissions} from '@app/web-player/artists/use-artist-permissions';
-import {Navigate} from 'react-router-dom';
-import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
+import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
+import {Navbar} from '@common/ui/navigation/navbar/navbar';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
+import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
+import {Trans} from '@ui/i18n/trans';
+import {ReactElement} from 'react';
+import {useForm} from 'react-hook-form';
+import {Navigate} from 'react-router';
 
 interface Props {
-  wrapInContainer?: boolean;
   showExternalFields?: boolean;
+  breadcrumbs?: ReactElement;
+  navbar?: ReactElement;
 }
-export function UpdateArtistPage({wrapInContainer, showExternalFields}: Props) {
-  const query = useArtist({
-    loader: 'editArtistPage',
-  });
+export function Component({
+  showExternalFields = true,
+  breadcrumbs,
+  navbar,
+}: Props) {
+  const {artistId} = useRequiredParams(['artistId']);
+  const query = useSuspenseQuery(
+    appQueries.artists.show(artistId).artist('editArtistPage'),
+  );
+  const artist = query.data.artist;
 
-  if (query.data) {
-    return (
-      <PageContent
-        response={query.data}
-        wrapInContainer={wrapInContainer}
-        showExternalFields={showExternalFields}
-      />
-    );
-  }
-
-  return <PageStatus query={query} loaderClassName="absolute inset-0 m-auto" />;
-}
-
-interface PageContentProps {
-  response: UseArtistResponse;
-  wrapInContainer?: boolean;
-  showExternalFields?: boolean;
-}
-function PageContent({
-  response,
-  wrapInContainer,
-  showExternalFields,
-}: PageContentProps) {
-  const {canEdit} = useArtistPermissions(response.artist);
+  const {canEdit} = useArtistPermissions(artist);
   const form = useForm<UpdateArtistPayload>({
     defaultValues: {
-      id: response.artist.id,
-      name: response.artist.name,
-      verified: response.artist.verified,
-      spotify_id: response.artist.spotify_id,
-      genres: response.artist.genres,
-      image_small: response.artist.image_small,
-      links: response.artist.links,
-      profile: response.artist.profile,
-      profile_images: response.artist.profile_images,
+      id: artist.id,
+      name: artist.name,
+      verified: artist.verified,
+      spotify_id: artist.spotify_id,
+      genres: artist.genres,
+      image_small: artist.image_small,
+      links: artist.links,
+      profile: artist.profile,
+      profile_images: artist.profile_images,
+      disabled: artist.disabled,
     },
   });
   const updateArtist = useUpdateArtist(form);
@@ -74,18 +60,22 @@ function PageContent({
       onSubmit={values => {
         updateArtist.mutate(values);
       }}
+      navbar={navbar}
       title={
-        <Trans
-          message="Edit “:name“ artist"
-          values={{name: response.artist.name}}
-        />
+        breadcrumbs ?? (
+          <Breadcrumb size="xl">
+            <BreadcrumbItem to="/admin/artists">
+              <Trans message="Artists" />
+            </BreadcrumbItem>
+            <BreadcrumbItem>{artist.name}</BreadcrumbItem>
+          </Breadcrumb>
+        )
       }
       isLoading={updateArtist.isPending}
       disableSaveWhenNotDirty
-      wrapInContainer={wrapInContainer}
     >
       <CrupdateArtistForm
-        albums={response.albums?.data}
+        albums={query.data.albums?.data}
         showExternalFields={showExternalFields}
       />
     </CrupdateResourceLayout>
@@ -93,13 +83,28 @@ function PageContent({
 }
 
 export function BackstageUpdateArtistPage() {
-  return (
-    <BackstageLayout>
-      <UpdateArtistPage wrapInContainer={false} showExternalFields={false} />
-    </BackstageLayout>
+  const {artistId} = useRequiredParams(['artistId']);
+  const query = useSuspenseQuery(
+    appQueries.artists.show(artistId).artist('editArtistPage'),
   );
-}
-
-export function UpdateArtistPageWithExternalFields() {
-  return <UpdateArtistPage showExternalFields />;
+  return (
+    <div className="h-screen">
+      <Component
+        showExternalFields={false}
+        navbar={
+          <Navbar className="flex-shrink-0" color="bg" darkModeColor="bg" />
+        }
+        breadcrumbs={
+          <Breadcrumb size="xl">
+            <BreadcrumbItem to={getArtistLink(query.data.artist)}>
+              {query.data.artist.name}
+            </BreadcrumbItem>
+            <BreadcrumbItem>
+              <Trans message="Edit" />
+            </BreadcrumbItem>
+          </Breadcrumb>
+        }
+      />
+    </div>
+  );
 }

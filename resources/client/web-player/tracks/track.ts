@@ -1,32 +1,32 @@
-import {Lyric} from './lyrics/lyric';
-import {Genre} from '../genres/genre';
-import {Tag} from '@common/tags/tag';
-import {Artist} from '@app/web-player/artists/artist';
-import {Album} from '@app/web-player/albums/album';
+import {PartialAlbum} from '@app/web-player/albums/album';
+import {PartialArtist} from '@app/web-player/artists/artist';
+import {Lyric} from '@app/web-player/tracks/lyrics/lyric';
 
 export const TRACK_MODEL = 'track';
 
-export interface Track {
+export type Track = {
   id: number;
   name: string;
-  duration?: number;
-  artists?: Artist[];
-  plays?: number;
-  popularity?: number;
-  src?: string;
-  image?: string;
-  lyric?: Omit<Lyric, 'track'>;
-  album?: Album;
-  owner_id?: number;
-  description?: string;
-  tags: Tag[];
-  genres?: Genre[];
-  likes_count?: number;
-  reposts_count?: number;
-  comments_count?: number;
-  updated_at?: string;
-  created_at?: string;
-  // available in library tracks page only
-  added_at?: string;
+  image: string | null;
+  duration: number | null;
+  artists: PartialArtist[];
+  plays: number | null;
+  popularity: number | null;
+  src: string | null;
+  src_local: boolean;
+  album?: PartialAlbum;
+  owner_id: number | null;
   model_type: 'track';
-}
+  tags?: {id: number; name: string; display_name: string}[];
+  genres?: {id: number; name: string; display_name: string}[];
+  likes_count: number | null;
+  reposts_count: number | null;
+  comments_count: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+  lyric?: Lyric | null;
+};
+
+export type LibraryPageTrack = Track & {
+  added_at: string | null;
+};

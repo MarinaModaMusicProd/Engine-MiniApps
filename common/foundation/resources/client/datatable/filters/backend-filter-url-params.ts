@@ -1,19 +1,18 @@
-import {useNavigate, useSearchParams} from 'react-router-dom';
-import {Key, useCallback, useMemo} from 'react';
-import {BackendFilter} from './backend-filter';
-import {BackendFiltersUrlKey} from './backend-filters-url-key';
-import {decodeBackendFilters} from './utils/decode-backend-filters';
+import { Key, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router';
+import { BackendFilter } from './backend-filter';
+import { BackendFiltersUrlKey } from './backend-filters-url-key';
+import { decodeBackendFilters } from './utils/decode-backend-filters';
 import {
-  encodeBackendFilters,
   FilterListValue,
+  encodeBackendFilters,
 } from './utils/encode-backend-filters';
 
 export function useBackendFilterUrlParams(
   filters?: BackendFilter[],
   pinnedFilters?: string[],
 ) {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const encodedFilters = searchParams.get(BackendFiltersUrlKey);
 
@@ -63,13 +62,18 @@ export function useBackendFilterUrlParams(
     (filterValues: FilterListValue[]) => {
       const encodedFilters = encodeBackendFilters(filterValues, filters);
       if (encodedFilters) {
-        searchParams.set(BackendFiltersUrlKey, encodedFilters);
+        setSearchParams(prev => {
+          prev.delete('page');
+          prev.delete('perPage');
+          prev.set(BackendFiltersUrlKey, encodedFilters);
+          return prev;
+        }, {replace: true});
       } else {
         searchParams.delete(BackendFiltersUrlKey);
+        setSearchParams(searchParams, {replace: true});
       }
-      navigate({search: `?${searchParams}`}, {replace: true});
     },
-    [filters, navigate, searchParams],
+    [filters, searchParams, setSearchParams],
   );
 
   const add = useCallback(

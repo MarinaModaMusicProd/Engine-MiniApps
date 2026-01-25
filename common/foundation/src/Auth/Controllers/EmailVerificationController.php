@@ -1,8 +1,8 @@
 <?php namespace Common\Auth\Controllers;
 
 use App\Models\User;
-use Auth;
 use Common\Core\BaseController;
+use Illuminate\Support\Facades\Auth;
 
 class EmailVerificationController extends BaseController
 {

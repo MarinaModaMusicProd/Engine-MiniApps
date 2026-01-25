@@ -1,10 +1,15 @@
-import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {PlayerStoreContext} from '@common/player/player-context';
 import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import {useHtmlMediaInternalState} from '@common/player/providers/html-media/use-html-media-internal-state';
-import {useHtmlMediaEvents} from '@common/player/providers/html-media/use-html-media-events';
+import {PlayerStoreContext} from '@common/player/player-context';
 import {useHtmlMediaApi} from '@common/player/providers/html-media/use-html-media-api';
-import {MediaPlayer, MediaPlayerClass, supportsMediaSource} from 'dashjs';
+import {useHtmlMediaEvents} from '@common/player/providers/html-media/use-html-media-events';
+import {useHtmlMediaInternalState} from '@common/player/providers/html-media/use-html-media-internal-state';
+import {
+  MediaPlayer,
+  MediaPlayerClass,
+  Representation,
+  supportsMediaSource,
+} from 'dashjs';
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
 
 export default function DashProvider() {
   const store = useContext(PlayerStoreContext);
@@ -16,7 +21,7 @@ export default function DashProvider() {
   const htmlMediaEvents = useHtmlMediaEvents(htmlMediaState);
   const htmlMediaApi = useHtmlMediaApi(htmlMediaState);
 
-  const dash = useRef<MediaPlayerClass | undefined>();
+  const dash = useRef<MediaPlayerClass | undefined>(undefined);
   const [dashReady, setDashReady] = useState(false);
 
   const destroyDash = useCallback(() => {
@@ -40,7 +45,7 @@ export default function DashProvider() {
     });
 
     dashInstance.on(MediaPlayer.events.PLAYBACK_METADATA_LOADED, () => {
-      const levels = dashInstance.getBitrateInfoListFor('video');
+      const levels = dashInstance.getRepresentationsByType('video');
       if (!levels?.length) return;
 
       store.getState().emit('playbackQualities', {
@@ -78,9 +83,11 @@ export default function DashProvider() {
         setPlaybackQuality: (quality: string) => {
           if (!dash.current) return;
 
-          const levels = dash.current.getBitrateInfoListFor('video');
-          const index = levels.findIndex(
-            level => levelToPlaybackQuality(level) === quality
+          const representations =
+            dash.current.getRepresentationsByType('video');
+          const index = representations.findIndex(
+            representation =>
+              levelToPlaybackQuality(representation) === quality,
           );
 
           dash.current.updateSettings({
@@ -94,7 +101,7 @@ export default function DashProvider() {
           });
 
           if (index >= 0) {
-            dash.current.setQualityFor('video', index);
+            dash.current.setRepresentationForTypeByIndex('video', index);
           }
 
           store.getState().emit('playbackQualityChange', {quality});
@@ -108,12 +115,12 @@ export default function DashProvider() {
       className="h-full w-full"
       ref={videoRef}
       playsInline
-      poster={cuedMedia?.poster}
+      poster={cuedMedia?.poster ?? undefined}
       {...htmlMediaEvents}
     />
   );
 }
 
-const levelToPlaybackQuality = (level: any) => {
-  return level === -1 ? 'auto' : `${level.height}p`;
+const levelToPlaybackQuality = (representation: Representation | null) => {
+  return !representation ? 'auto' : `${representation.height}p`;
 };

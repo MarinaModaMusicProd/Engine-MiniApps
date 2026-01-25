@@ -1,13 +1,14 @@
+import {Likeable} from '@app/web-player/library/likeable';
 import {useAddItemsToLibrary} from '@app/web-player/library/requests/use-add-items-to-library';
 import {useRemoveItemsFromLibrary} from '@app/web-player/library/requests/use-remove-items-from-library';
 import {useLibraryStore} from '@app/web-player/library/state/likes-store';
-import {Likeable} from '@app/web-player/library/likeable';
-import {FavoriteIcon} from '@ui/icons/material/Favorite';
-import {FavoriteBorderIcon} from '@ui/icons/material/FavoriteBorder';
+import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
+import {useIsOffline} from '@app/web-player/use-is-offline';
 import {Button, ButtonProps} from '@ui/buttons/button';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
-import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
+import {FavoriteIcon} from '@ui/icons/material/Favorite';
+import {FavoriteBorderIcon} from '@ui/icons/material/FavoriteBorder';
 
 interface LikeButtonProps extends Omit<ButtonProps, 'children' | 'onClick'> {
   likeable: Likeable;
@@ -23,8 +24,11 @@ export function LikeButton({
   const removeFromLibrary = useRemoveItemsFromLibrary();
   const isLiked = useLibraryStore(s => s.has(likeable));
   const isLoading = addToLibrary.isPending || removeFromLibrary.isPending;
+  const isOffline = useIsOffline();
 
   const labels = getLabels(likeable);
+
+  const buttonIsDisabled = disabled || isLoading || isOffline;
 
   if (isLiked) {
     return (
@@ -33,7 +37,7 @@ export function LikeButton({
         variant="outline"
         radius={radius}
         startIcon={<FavoriteIcon className="text-primary" />}
-        disabled={disabled || isLoading}
+        disabled={buttonIsDisabled}
         onClickCapture={authHandler}
         onClick={() => {
           removeFromLibrary.mutate({likeables: [likeable]});
@@ -49,7 +53,7 @@ export function LikeButton({
       variant="outline"
       radius={radius}
       startIcon={<FavoriteBorderIcon />}
-      disabled={disabled || isLoading}
+      disabled={buttonIsDisabled}
       onClickCapture={authHandler}
       onClick={() => {
         addToLibrary.mutate({likeables: [likeable]});

@@ -1,33 +1,24 @@
-import {queryOptions, useQuery} from '@tanstack/react-query';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
+import {useSuspenseQuery} from '@tanstack/react-query';
 import {AdminSettings} from '../admin-settings';
-import {apiClient} from '@common/http/query-client';
 
-export interface FetchAdminSettingsResponse
-  extends BackendResponse,
-    AdminSettings {}
+export interface FetchAdminSettingsResponse extends AdminSettings {}
 
 export function useAdminSettings() {
-  return useQuery(adminSettingsQueryOptions);
-}
-
-export const adminSettingsQueryOptions = queryOptions({
-  queryKey: ['fetchAdminSettings'],
-  queryFn: () => fetchAdminSettings(),
-  staleTime: Infinity,
-  select: prepareSettingsForHookForm,
-});
-
-function fetchAdminSettings() {
-  return apiClient
-    .get<FetchAdminSettingsResponse>('settings')
-    .then(r => r.data);
+  return useSuspenseQuery({
+    ...commonAdminQueries.settings.index,
+    select: prepareSettingsForHookForm,
+  });
 }
 
 // need to cast all numbers to strings and null/undefined to empty string recursively, otherwise hook form isDirty functionality will not work properly when binding numbers to text fields due to string/number type mismatch
-export function prepareSettingsForHookForm(obj: any) {
+export function prepareSettingsForHookForm(
+  obj: any,
+): FetchAdminSettingsResponse {
   for (const key in obj) {
-    if (Array.isArray(obj[key])) {
+    if (key === 'themes' || key === 'defaults') {
+      continue;
+    } else if (Array.isArray(obj[key])) {
       obj[key] = obj[key].map(prepareSettingsForHookForm);
     } else if (typeof obj[key] === 'object') {
       obj[key] = prepareSettingsForHookForm(obj[key]);

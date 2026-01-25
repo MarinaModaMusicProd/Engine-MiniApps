@@ -8,12 +8,20 @@ use App\Models\Playlist;
 use App\Models\Tag;
 use App\Models\Track;
 use App\Models\User;
+use App\Services\Albums\AlbumLoader;
+use App\Services\Artists\ArtistLoader;
+use App\Services\Playlists\PlaylistLoader;
 use App\Services\Search\SearchInterface;
+use App\Services\Tracks\TrackLoader;
+use App\Services\Users\UserProfileLoader;
+use App\Traits\BuildsPaginatedApiResources;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Support\Collection;
 
 class LocalSearch implements SearchInterface
 {
+    use BuildsPaginatedApiResources;
+
     protected string $query;
     protected int $perPage;
     protected int $page;
@@ -21,7 +29,7 @@ class LocalSearch implements SearchInterface
     public function search(
         string $q,
         int $page,
-        int $perPage,
+        ?int $perPage = null,
         array $modelTypes,
     ): Collection {
         $this->query = urldecode($q);
@@ -53,64 +61,94 @@ class LocalSearch implements SearchInterface
         return $results;
     }
 
-    public function artists(): Paginator
+    public function artists(): array
     {
-        return Artist::search($this->query)->simplePaginate(
+        $paginator = Artist::search($this->query)
+            ->simplePaginate($this->perPage, 'page', $this->page)
+            ->through(
+                fn($artist) => (new ArtistLoader())->toApiResource($artist),
+            );
+        return $this->buildPagination($paginator, $paginator->items());
+    }
+
+    public function albums(): array
+    {
+        $paginator = Album::search($this->query)
+            ->simplePaginate($this->perPage, 'page', $this->page)
+            ->through(
+                fn($album) => (new AlbumLoader())->toApiResource(
+                    $album->load(['artists']),
+                ),
+            );
+        return $this->buildPagination($paginator, $paginator->items());
+    }
+
+    public function tracks(): array
+    {
+        $paginator = Track::search($this->query)
+            ->simplePaginate($this->perPage, 'page', $this->page)
+            ->through(
+                fn($track) => (new TrackLoader())->toApiResource(
+                    $track->load(['album.artists', 'artists', 'uploadedSrc']),
+                ),
+            );
+        return $this->buildPagination($paginator, $paginator->items());
+    }
+
+    public function playlists(): array
+    {
+        $paginator = Playlist::search($this->query)
+            ->simplePaginate($this->perPage, 'page', $this->page)
+            ->through(
+                fn($playlist) => (new PlaylistLoader())->toApiResource(
+                    $playlist->load(['editors']),
+                ),
+            );
+        return $this->buildPagination($paginator, $paginator->items());
+    }
+
+    public function channels(): array
+    {
+        $paginator = app(Channel::class)
+            ->search($this->query)
+            ->simplePaginate($this->perPage, 'page', $this->page)
+            ->through(
+                fn(Channel $channel) => $channel->toApiResource($channel),
+            );
+
+        return $this->buildPagination($paginator, $paginator->items());
+    }
+
+    public function genres(): array
+    {
+        $paginator = app(Genre::class)->simplePaginate(
             $this->perPage,
             'page',
             $this->page,
         );
+
+        return $this->buildPagination($paginator, $paginator->items());
     }
 
-    public function albums(): Paginator
+    public function tags(): array
     {
-        return Album::search($this->query)
-            ->simplePaginate($this->perPage, 'page', $this->page)
-            ->tap(fn($p) => $p->load(['artists']));
-    }
-
-    public function tracks(): Paginator
-    {
-        return Track::search($this->query)
-            ->simplePaginate($this->perPage, 'page', $this->page)
-            ->tap(fn($p) => $p->load(['album', 'artists']));
-    }
-
-    public function playlists(): Paginator
-    {
-        return Playlist::search($this->query)
-            ->simplePaginate($this->perPage, 'page', $this->page)
-            ->tap(fn($p) => $p->load(['editors']));
-    }
-
-    public function channels(): Paginator
-    {
-        return app(Channel::class)
+        $paginator = app(Tag::class)
             ->search($this->query)
             ->simplePaginate($this->perPage, 'page', $this->page);
+
+        return $this->buildPagination($paginator, $paginator->items());
     }
 
-    public function genres(): Paginator
+    public function users(): array
     {
-        return app(Genre::class)->simplePaginate(
-            $this->perPage,
-            'page',
-            $this->page,
-        );
-    }
-
-    public function tags(): Paginator
-    {
-        return app(Tag::class)
-            ->search($this->query)
-            ->simplePaginate($this->perPage, 'page', $this->page);
-    }
-
-    public function users(): Paginator
-    {
-        return app(User::class)
+        $paginator = app(User::class)
             ->search($this->query)
             ->simplePaginate($this->perPage, 'page', $this->page)
-            ->tap(fn($p) => $p->loadCount('followers'));
+            ->through(
+                fn($user) => (new UserProfileLoader())->toApiResource(
+                    $user->loadCount('followers')->load(['subscriptions']),
+                ),
+            );
+        return $this->buildPagination($paginator, $paginator->items());
     }
 }

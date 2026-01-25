@@ -2,24 +2,22 @@
 
 namespace Common\Settings\Validators\MailCredentials;
 
-use Arr;
-use Auth;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Aws\Ses\Exception\SesException;
 use Common\CommonServiceProvider;
 use Common\Settings\DotEnvEditor;
-use Common\Settings\Validators\MailCredentials\MailCredentialsMailable;
 use Common\Settings\Validators\SettingsValidator;
-use Config;
 use Exception;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Mail\MailServiceProvider;
-use Mail;
-use Str;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class OutgoingMailCredentialsValidator implements SettingsValidator
 {
     const KEYS = [
-        'mail_driver',
+        'mail_mailer',
         'mail_host',
         'mail_username',
         'mail_password',
@@ -29,7 +27,6 @@ class OutgoingMailCredentialsValidator implements SettingsValidator
         'mailgun_secret', // Mailgun
         'ses_key',
         'ses_secret', // Amazon SES
-        'sparkpost_secret', // Sparkpost
     ];
 
     public function fails($values)
@@ -54,9 +51,9 @@ class OutgoingMailCredentialsValidator implements SettingsValidator
 
             // "mail.*" credentials go into "mail.php" config
             // file, other credentials go into "services.php"
-            if ($key === 'mail.driver') {
+            if ($key === 'mail.mailer') {
                 $key = 'mail.default';
-            } elseif ($key === 'mail_from_address') {
+            } elseif ($key === 'mail.from.address') {
                 $key = 'mail.from.address';
             } elseif (!Str::startsWith($key, 'mail.')) {
                 $key = "services.$key";
@@ -64,7 +61,7 @@ class OutgoingMailCredentialsValidator implements SettingsValidator
                 $key = str_replace('mail.', 'mail.mailers.smtp.', $key);
             }
 
-            Config::set($key, $value);
+            config()->set($key, $value);
         }
 
         // make sure laravel uses newly set config
@@ -79,11 +76,11 @@ class OutgoingMailCredentialsValidator implements SettingsValidator
     private function getErrorMessage($e)
     {
         $message = null;
-        if (config('mail.driver') === 'smtp') {
+        if (config('mail.mailer') === 'smtp') {
             $message = $this->getSmtpMessage($e);
-        } elseif (config('mail.driver') === 'mailgun') {
+        } elseif (config('mail.mailer') === 'mailgun') {
             $message = $this->getMailgunMessage($e);
-        } elseif (config('mail.driver') === 'ses') {
+        } elseif (config('mail.mailer') === 'ses') {
             $message = $this->getSesMessage($e);
         }
 
@@ -97,10 +94,7 @@ class OutgoingMailCredentialsValidator implements SettingsValidator
 
     private function getMailgunMessage(ClientException $e)
     {
-        $originalContents = $e
-            ->getResponse()
-            ->getBody()
-            ->getContents();
+        $originalContents = $e->getResponse()->getBody()->getContents();
         $errResponse = json_decode($originalContents, true);
         if (is_null($errResponse) && is_string($originalContents)) {
             $errResponse = $originalContents;

@@ -1,12 +1,13 @@
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import {usePlayerActions} from '@common/player/hooks/use-player-actions';
-import {IconButton} from '@ui/buttons/icon-button';
-import {ButtonProps} from '@ui/buttons/button';
-import {MediaRepeatIcon} from '@ui/icons/media/media-repeat';
-import {MediaRepeatOnIcon} from '@ui/icons/media/media-repeat-on';
-import {Trans} from '@ui/i18n/trans';
-import {ReactElement} from 'react';
-import {Tooltip} from '@ui/tooltip/tooltip';
+import { usePlayerActions } from '@common/player/hooks/use-player-actions';
+import { usePlayerStore } from '@common/player/hooks/use-player-store';
+import { ButtonProps } from '@ui/buttons/button';
+import { IconButton } from '@ui/buttons/icon-button';
+import { MessageDescriptor } from '@ui/i18n/message-descriptor';
+import { Trans } from '@ui/i18n/trans';
+import { MediaRepeatIcon } from '@ui/icons/media/media-repeat';
+import { MediaRepeatOnIcon } from '@ui/icons/media/media-repeat-on';
+import { Tooltip } from '@ui/tooltip/tooltip';
+import { ReactElement } from 'react';
 
 interface Props {
   color?: ButtonProps['color'];
@@ -26,7 +27,7 @@ export function RepeatButton({
   const repeating = usePlayerStore(s => s.repeat);
   const player = usePlayerActions();
 
-  let label: ReactElement;
+  let label: ReactElement<MessageDescriptor>;
   if (repeating === 'all') {
     label = <Trans message="Enable repeat one" />;
   } else if (repeating === 'one') {

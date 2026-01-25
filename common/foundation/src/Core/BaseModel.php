@@ -3,8 +3,9 @@
 namespace Common\Core;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 abstract class BaseModel extends Model
 {
@@ -25,13 +26,17 @@ abstract class BaseModel extends Model
     {
         $searchableFields = [];
         $searchableRelations = [];
+
         foreach ((new static())->toSearchableArray() as $field => $value) {
-            if (!in_array($field, static::filterableFields())) {
-                if (
-                    method_exists(static::class, $field) &&
-                    !$this->$field() instanceof Attribute
-                ) {
-                    $searchableRelations[] = $field;
+            if (
+                !Arr::first(
+                    static::filterableFields(),
+                    fn($ff) => Str::is($ff, $field),
+                )
+            ) {
+                $relationField = Str::camel($field);
+                if ((new static())->isRelation($relationField)) {
+                    $searchableRelations[] = $relationField;
                 } else {
                     $searchableFields[] = $field;
                 }
@@ -55,7 +60,7 @@ abstract class BaseModel extends Model
         array $columns,
         string $value,
     ): Builder {
-        $mode = config('common.site.scout_mysql_mode');
+        $mode = config('scout.scout_mysql_mode');
         $columns = array_map(fn($col) => $this->qualifyColumn($col), $columns);
         if ($mode === 'fulltext' && strlen($value) >= 3) {
             if (is_null($builder->getQuery()->columns)) {
@@ -90,7 +95,12 @@ abstract class BaseModel extends Model
     {
         $searchableValues = [];
         foreach ($this->toSearchableArray() as $key => $value) {
-            if (!in_array($key, self::filterableFields())) {
+            if (
+                !!Arr::first(
+                    static::filterableFields(),
+                    fn($ff) => Str::is($ff, $key),
+                )
+            ) {
                 $searchableValues[] = $value;
             }
         }
@@ -102,8 +112,13 @@ abstract class BaseModel extends Model
         $searchableKeys = [];
         foreach ((new static())->toSearchableArray() as $key => $value) {
             if (
-                !in_array($key, static::filterableFields()) &&
-                (!$skipRelations || !method_exists(static::class, $key))
+                $key !== '_vectors' &&
+                !Arr::first(
+                    static::filterableFields(),
+                    fn($ff) => Str::is($ff, $key),
+                ) &&
+                (!$skipRelations ||
+                    !(new static())->isRelation(Str::camel($key)))
             ) {
                 $searchableKeys[] = $key;
             }

@@ -10,25 +10,21 @@ class DeleteTracks
 {
     public function execute(array $trackIds): void
     {
-        $tracks = app(Track::class)
-            ->whereIn('id', $trackIds)
-            ->get();
+        $tracks = Track::whereIn('id', $trackIds)->get();
 
         // delete waves
         $wavePaths = array_map(function ($id) {
             return "waves/{$id}.json";
         }, $trackIds);
-        app(Track::class)
-            ->getWaveStorageDisk()
-            ->delete($wavePaths);
+        app(Track::class)->getWaveStorageDisk()->delete($wavePaths);
 
-        // delete image and music files
-        $imagePaths = $tracks->pluck('image')->filter();
-        $musicPaths = $tracks
-            ->filter(fn(Track $track) => $track->srcIsLocal())
-            ->pluck('src');
+        $uploadFileEntryids = DB::table('file_entry_models')
+            ->whereIn('model_id', $trackIds)
+            ->where('model_type', Track::MODEL_TYPE)
+            ->pluck('file_entry_id');
+
         app(DeleteEntries::class)->execute([
-            'paths' => $imagePaths->concat($musicPaths)->toArray(),
+            'entryIds' => $uploadFileEntryids->toArray(),
         ]);
 
         // detach likeables
@@ -56,19 +52,13 @@ class DeleteTracks
             ->delete();
 
         // detach from playlists
-        DB::table('playlist_track')
-            ->whereIn('track_id', $trackIds)
-            ->delete();
+        DB::table('playlist_track')->whereIn('track_id', $trackIds)->delete();
 
         // detach from artists
-        DB::table('artist_track')
-            ->whereIn('track_id', $trackIds)
-            ->delete();
+        DB::table('artist_track')->whereIn('track_id', $trackIds)->delete();
 
         // delete plays
-        DB::table('track_plays')
-            ->whereIn('track_id', $trackIds)
-            ->delete();
+        DB::table('track_plays')->whereIn('track_id', $trackIds)->delete();
 
         // delete track
         app(Track::class)->destroy($tracks->pluck('id'));

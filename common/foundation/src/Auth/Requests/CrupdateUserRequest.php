@@ -12,16 +12,13 @@ class CrupdateUserRequest extends BaseFormRequest
             'email' => "email|min:3|max:255|unique:users,email,$except",
             'password' => 'min:3|max:255',
             'image' => 'string|max:255|nullable',
+            'image_entry_id' => 'int|nullable',
             'email_verified_at' => '', // can be date string or boolean
             // alpha and space/dash
-            'first_name' =>
-                'string|min:2|max:255|nullable|regex:/^[\pL\s\-]+$/u',
-            'last_name' =>
-                'string|min:2|max:255|nullable|regex:/^[\pL\s\-]+$/u',
+            'name' => 'string|min:2|max:255|nullable|regex:/^[\pL\s\-]+$/u',
             'permissions' => 'array',
             'roles' => 'array',
             'roles.*' => 'int',
-            'available_space' => 'nullable|min:0',
             'country' => 'nullable|string|max:255',
             'language' => 'nullable|string|max:255',
             'timezone' => 'nullable|string|max:255',

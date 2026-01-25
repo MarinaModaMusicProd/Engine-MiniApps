@@ -26,11 +26,18 @@ class NotificationSubscriptionsController extends BaseController
                         if (!isset($subscription['permissions'])) {
                             return true;
                         }
-                        return collect($subscription['permissions'])->every(
+                        $hasPermissions = collect(
+                            $subscription['permissions'] ?? [],
+                        )->every(
                             fn($permission) => $user->hasPermission(
                                 $permission,
                             ),
                         );
+                        $userTypeMatches =
+                            !isset($subscription['user_type']) ||
+                            $user->type === 'admin' ||
+                            $user->type === $subscription['user_type'];
+                        return $hasPermissions && $userTypeMatches;
                     })
                     ->values()
                     ->toArray();

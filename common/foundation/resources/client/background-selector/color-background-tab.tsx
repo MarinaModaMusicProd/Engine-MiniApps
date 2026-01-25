@@ -1,14 +1,14 @@
-import {Trans} from '@ui/i18n/trans';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {ColorPickerDialog} from '@ui/color-picker/color-picker-dialog';
-import {FormatColorFillIcon} from '@ui/icons/material/FormatColorFill';
+import {BackgroundSelectorButton} from '@common/background-selector/background-selector-button';
+import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {BgSelectorTabProps} from '@common/background-selector/bg-selector-tab-props';
 import {
   BaseColorBg,
   ColorBackgrounds,
 } from '@common/background-selector/color-backgrounds';
-import {BackgroundSelectorButton} from '@common/background-selector/background-selector-button';
-import {BgSelectorTabProps} from '@common/background-selector/bg-selector-tab-props';
-import {BackgroundSelectorConfig} from '@common/background-selector/background-selector-config';
+import {ColorPickerDialog} from '@ui/color-picker/color-picker-dialog';
+import {Trans} from '@ui/i18n/trans';
+import {FormatColorFillIcon} from '@ui/icons/material/FormatColorFill';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 
 export function ColorBackgroundTab({
   value,

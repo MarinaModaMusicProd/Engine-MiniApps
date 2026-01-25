@@ -1,9 +1,9 @@
-import {keepPreviousData, useQuery} from '@tanstack/react-query';
-import {apiClient} from '@common/http/query-client';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient} from '@common/http/query-client';
+import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {NormalizedModel} from '@ui/types/normalized-model';
 
-export interface SearchResponse extends BackendResponse {
+interface SearchResponse extends BackendResponse {
   results: NormalizedModel[];
 }
 
@@ -16,14 +16,10 @@ interface SearchParams {
 export function useAddableContent(params: SearchParams) {
   return useQuery({
     queryKey: ['search', params],
-    queryFn: () => search(params),
-    //enabled: !!params.query,
+    queryFn: () =>
+      apiClient
+        .get<SearchResponse>(`channel/search-for-addable-content`, {params})
+        .then(response => response.data),
     placeholderData: params.query ? keepPreviousData : undefined,
   });
-}
-
-function search(params: SearchParams) {
-  return apiClient
-    .get<SearchResponse>(`channel/search-for-addable-content`, {params})
-    .then(response => response.data);
 }

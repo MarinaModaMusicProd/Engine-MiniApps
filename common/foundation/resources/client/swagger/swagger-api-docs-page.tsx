@@ -1,39 +1,40 @@
-import SwaggerUI from 'swagger-ui-react';
-import 'swagger-ui-react/swagger-ui.css';
 import {Settings} from '@ui/settings/settings';
-import {useMemo} from 'react';
-import {Navbar} from '../ui/navigation/navbar/navbar';
-import {Footer} from '../ui/footer/footer';
 import {useSettings} from '@ui/settings/use-settings';
+import {useEffect} from 'react';
+import {SwaggerUIBundle} from 'swagger-ui-dist';
+import 'swagger-ui-dist/swagger-ui.css';
+import {Footer} from '../ui/footer/footer';
+import {Navbar} from '../ui/navigation/navbar/navbar';
 
 export function Component() {
   const settings = useSettings();
 
-  const plugins = useMemo(() => {
-    return getPluginsConfig(settings);
+  useEffect(() => {
+    SwaggerUIBundle({
+      dom_id: '#swagger-container',
+      url: `${settings.base_url}/swagger.yaml`,
+      plugins: getPluginsConfig(settings),
+      onComplete: () => {
+        //scroll to Tickets/incomingEmail
+        const hash = location.hash.slice(1);
+        if (hash) {
+          const el = document.querySelector(
+            `#operations-${hash.replace(/\//g, '-')}`,
+          );
+          if (el) {
+            el.scrollIntoView();
+            el.querySelector('button')?.click();
+          }
+        }
+      },
+    });
   }, [settings]);
 
   return (
     <div className="h-full overflow-y-auto bg-alt">
-      <Navbar size="sm" />
+      <Navbar color="bg" size="sm" />
       <div className="container mx-auto">
-        <SwaggerUI
-          url={`${settings.base_url}/swagger.yaml`}
-          plugins={plugins}
-          onComplete={system => {
-            //scroll to Tickets/incomingEmail
-            const hash = location.hash.slice(1);
-            if (hash) {
-              const el = document.querySelector(
-                `#operations-${hash.replace(/\//g, '-')}`,
-              );
-              if (el) {
-                el.scrollIntoView();
-                el.querySelector('button')?.click();
-              }
-            }
-          }}
-        />
+        <div id="swagger-container"></div>
         <Footer className="px-20" />
       </div>
     </div>

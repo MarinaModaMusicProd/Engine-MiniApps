@@ -10,30 +10,33 @@ class GenrePolicy extends BasePolicy
     public function index(?User $user)
     {
         return $this->hasPermission($user, 'genres.view') ||
-            $this->hasPermission($user, 'music.view');
+            $this->hasPermission($user, 'music.view') ||
+            $this->hasPermission($user, 'music.update');
     }
 
     public function show(?User $user)
     {
         return $this->hasPermission($user, 'genres.view') ||
-            $this->hasPermission($user, 'music.view');
+            $this->hasPermission($user, 'music.view') ||
+            $this->hasPermission($user, 'music.update');
     }
 
     public function store(User $user)
     {
-        return $user->hasPermission('genres.create') ||
-            $user->hasPermission('music.create');
+        return $this->hasPermission($user, 'genres.create') ||
+            $this->hasPermission($user, 'music.create') ||
+            $this->hasPermission($user, 'music.update');
     }
 
     public function update(User $user)
     {
-        return $user->hasPermission('genres.update') ||
-            $user->hasPermission('music.update');
+        return $this->hasPermission($user, 'genres.update') ||
+            $this->hasPermission($user, 'music.update');
     }
 
     public function destroy(User $user)
     {
-        return $user->hasPermission('genres.delete') ||
-            $user->hasPermission('music.delete');
+        return $this->hasPermission($user, 'genres.delete') ||
+            $this->hasPermission($user, 'music.update');
     }
 }

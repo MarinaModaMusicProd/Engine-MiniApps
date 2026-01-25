@@ -1,18 +1,27 @@
-import {m} from 'framer-motion';
 import {opacityAnimation} from '@ui/animation/opacity-animation';
 import {Skeleton} from '@ui/skeleton/skeleton';
-import React from 'react';
+import {m} from 'framer-motion';
 
-export function FilterListSkeleton() {
+const widths = ['w-90', 'w-76', 'w-128'];
+
+interface Props {
+  count?: number;
+}
+export function FilterListSkeleton({count}: Props) {
   return (
     <m.div
       className="flex h-30 items-center gap-6"
       key="filter-list-skeleton"
       {...opacityAnimation}
     >
-      <Skeleton variant="rect" size="h-full w-144" radius="rounded-md" />
-      <Skeleton variant="rect" size="h-full w-112" radius="rounded-md" />
-      <Skeleton variant="rect" size="h-full w-172" radius="rounded-md" />
+      {Array.from({length: count || 3}).map((_, index) => (
+        <Skeleton
+          key={index}
+          variant="rect"
+          size={`h-full ${widths[index % widths.length]}`}
+          radius="rounded-md"
+        />
+      ))}
     </m.div>
   );
 }

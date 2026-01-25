@@ -1,54 +1,50 @@
-import {useForm} from 'react-hook-form';
-import React from 'react';
-import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
-import {Trans} from '@ui/i18n/trans';
-import {useAlbum} from '@app/web-player/albums/requests/use-album';
-import {Album} from '@app/web-player/albums/album';
+import {AlbumForm} from '@app/admin/albums-datatable-page/album-form/album-form';
 import {
   UpdateAlbumPayload,
   useUpdateAlbum,
 } from '@app/admin/albums-datatable-page/requests/use-update-album';
-import {AlbumForm} from '@app/admin/albums-datatable-page/album-form/album-form';
-import {PageStatus} from '@common/http/page-status';
+import {appQueries} from '@app/app-queries';
+import {getAlbumLink} from '@app/web-player/albums/album-link';
+import {useAlbumPermissions} from '@app/web-player/albums/use-album-permissions';
+import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
+import {Navbar} from '@common/ui/navigation/navbar/navbar';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
 import {
   FileUploadProvider,
   useFileUploadStore,
 } from '@common/uploads/uploader/file-upload-provider';
-import {Navigate} from 'react-router-dom';
-import {useAlbumPermissions} from '@app/web-player/albums/use-album-permissions';
-import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
+import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
+import {Trans} from '@ui/i18n/trans';
+import {ReactElement} from 'react';
+import {useForm} from 'react-hook-form';
+import {Navigate} from 'react-router';
 
 interface Props {
-  wrapInContainer?: boolean;
+  showExternalFields?: boolean;
+  breadcrumbs?: ReactElement;
+  navbar?: ReactElement;
 }
-export function UpdateAlbumPage({wrapInContainer}: Props) {
-  const query = useAlbum({loader: 'editAlbumPage'});
-
-  if (query.data) {
-    return (
-      <FileUploadProvider>
-        <PageContent
-          album={query.data.album}
-          wrapInContainer={wrapInContainer}
-        />
-      </FileUploadProvider>
-    );
-  }
-
+export function Component(props: Props) {
   return (
-    <PageStatus
-      query={query}
-      loaderIsScreen={false}
-      loaderClassName="absolute inset-0 m-auto"
-    />
+    <FileUploadProvider>
+      <PageComponent {...props} />
+    </FileUploadProvider>
   );
 }
 
-interface PageContentProps {
-  album: Album;
-  wrapInContainer?: boolean;
-}
-function PageContent({album, wrapInContainer}: PageContentProps) {
+function PageComponent({
+  showExternalFields = true,
+  breadcrumbs,
+  navbar,
+}: Props) {
+  const {albumId} = useRequiredParams(['albumId']);
+  const query = useSuspenseQuery(
+    appQueries.albums.get(albumId, 'editAlbumPage'),
+  );
+  const album = query.data.album;
+
   const {canEdit} = useAlbumPermissions(album);
   const uploadIsInProgress = !!useFileUploadStore(s => s.activeUploadsCount);
   const form = useForm<UpdateAlbumPayload>({
@@ -76,20 +72,48 @@ function PageContent({album, wrapInContainer}: PageContentProps) {
       onSubmit={values => {
         updateAlbum.mutate(values);
       }}
-      title={<Trans message="Edit “:name“ album" values={{name: album.name}} />}
+      navbar={navbar}
+      title={
+        breadcrumbs ?? (
+          <Breadcrumb size="xl">
+            <BreadcrumbItem to="/admin/albums">
+              <Trans message="Albums" />
+            </BreadcrumbItem>
+            <BreadcrumbItem>{album.name}</BreadcrumbItem>
+          </Breadcrumb>
+        )
+      }
       isLoading={updateAlbum.isPending || uploadIsInProgress}
       disableSaveWhenNotDirty
-      wrapInContainer={wrapInContainer}
     >
-      <AlbumForm showExternalIdFields />
+      <AlbumForm showExternalIdFields={showExternalFields} />
     </CrupdateResourceLayout>
   );
 }
 
 export function BackstageUpdateAlbumPage() {
+  const {albumId} = useRequiredParams(['albumId']);
+  const query = useSuspenseQuery(
+    appQueries.albums.get(albumId, 'editAlbumPage'),
+  );
   return (
-    <BackstageLayout>
-      <UpdateAlbumPage wrapInContainer={false} />
-    </BackstageLayout>
+    <div className="h-screen">
+      <Component
+        showExternalFields={false}
+        navbar={
+          <Navbar className="flex-shrink-0" color="bg" darkModeColor="bg" />
+        }
+        breadcrumbs={
+          <Breadcrumb size="xl">
+            <BreadcrumbItem to={getAlbumLink(query.data.album)}>
+              {query.data.album.name}
+            </BreadcrumbItem>
+            <BreadcrumbItem>
+              <Trans message="Edit" />
+            </BreadcrumbItem>
+          </Breadcrumb>
+        }
+      />
+    </div>
   );
 }

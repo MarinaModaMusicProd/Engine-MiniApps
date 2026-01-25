@@ -12,7 +12,7 @@ class MysqlFilterer extends BaseFilterer
 
     public function apply(): ?Builder
     {
-        $this->applyMysqlFilters($this->filters, $this->query);
+        $this->applyMysqlFilters($this->filters->getAll(), $this->query);
 
         if ($this->searchTerm) {
             $this->query->mysqlSearch($this->searchTerm);

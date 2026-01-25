@@ -1,3 +1,16 @@
+import {ChipFieldFilterPanel} from '@common/datatable/filters/panels/chip-field-filter-panel';
+import {useNormalizedModel} from '@common/ui/normalized-model/use-normalized-model';
+import {Avatar} from '@ui/avatar/avatar';
+import {DateRangePresets} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-presets';
+import {AbsoluteDateRange} from '@ui/forms/input-field/date/date-range-picker/form-date-range-picker';
+import {FormattedDateTimeRange} from '@ui/i18n/formatted-date-time-range';
+import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {Skeleton} from '@ui/skeleton/skeleton';
+import {NormalizedModel} from '@ui/types/normalized-model';
+import {Fragment, Key, ReactNode} from 'react';
+import {FilterItemFormValue} from '../add-filter-dialog';
 import {
   BackendFilter,
   CustomFilterControl,
@@ -12,25 +25,13 @@ import {
   FilterSelectModelControl,
   FilterTextInputControl,
 } from '../backend-filter';
-import {FilterListTriggerButton} from './filter-list-trigger-button';
-import {Trans} from '@ui/i18n/trans';
+import {FilterOperatorNames} from '../filter-operator-names';
+import {DateRangeFilterPanel} from '../panels/date-range-filter-panel';
+import {InputFilterPanel} from '../panels/input-filter-panel';
+import {NormalizedModelFilterPanel} from '../panels/normalized-model-filter-panel';
 import {SelectFilterPanel} from '../panels/select-filter-panel';
 import {FilterListItemDialogTrigger} from './filter-list-item-dialog-trigger';
-import {Avatar} from '@ui/avatar/avatar';
-import {NormalizedModelFilterPanel} from '../panels/normalized-model-filter-panel';
-import {DateRangeFilterPanel} from '../panels/date-range-filter-panel';
-import {Fragment, Key, ReactNode} from 'react';
-import {DateRangePresets} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-presets';
-import {FormattedDateTimeRange} from '@ui/i18n/formatted-date-time-range';
-import {AbsoluteDateRange} from '@ui/forms/input-field/date/date-range-picker/form-date-range-picker';
-import {InputFilterPanel} from '../panels/input-filter-panel';
-import {FilterOperatorNames} from '../filter-operator-names';
-import {FilterItemFormValue} from '../add-filter-dialog';
-import {useNormalizedModel} from '@common/ui/normalized-model/use-normalized-model';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {useTrans} from '@ui/i18n/use-trans';
-import {ChipFieldFilterPanel} from '@common/datatable/filters/panels/chip-field-filter-panel';
-import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {FilterListTriggerButton} from './filter-list-trigger-button';
 
 export interface FilterListControlProps<T = unknown, E = FilterControl> {
   filter: BackendFilter<E>;
@@ -99,7 +100,6 @@ function BooleanToggleControl({
   FilterBooleanToggleControl['defaultValue'],
   FilterBooleanToggleControl
 >) {
-  // todo: toggle control on or off here
   return (
     <FilterListTriggerButton
       onClick={() => {
@@ -136,10 +136,15 @@ function SelectControl(
 function ChipFieldControl(
   props: FilterListControlProps<string[], FilterChipFieldControl>,
 ) {
+  const label = props.filter.control.autocompleteEndpoint ? (
+    props.value.map(v => (v as unknown as NormalizedModel).name).join(', ')
+  ) : (
+    <MultipleValues {...props} />
+  );
   return (
     <FilterListItemDialogTrigger
       {...props}
-      label={<MultipleValues {...props} />}
+      label={label}
       panel={<ChipFieldFilterPanel filter={props.filter} />}
     />
   );
@@ -151,7 +156,9 @@ function MultipleValues(
   const {trans} = useTrans();
   const {filter, value} = props;
 
-  const options = value.map(v => filter.control.options.find(o => o.key === v));
+  const options = value.map(v =>
+    filter.control.options?.find(o => o.key === v),
+  );
   const maxShownCount = 3;
   const notShownCount = value.length - maxShownCount;
 

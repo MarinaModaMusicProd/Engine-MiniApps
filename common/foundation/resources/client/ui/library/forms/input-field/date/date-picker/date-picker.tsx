@@ -1,33 +1,29 @@
-import React, {
-  ComponentPropsWithoutRef,
-  Fragment,
-  MouseEvent,
-  useRef,
-} from 'react';
-import {parseAbsoluteToLocal, ZonedDateTime} from '@internationalized/date';
-import {useController} from 'react-hook-form';
+import {parseAbsolute, ZonedDateTime} from '@internationalized/date';
 import {mergeProps} from '@react-aria/utils';
-import {
-  DatePickerValueProps,
-  useDatePickerState,
-} from './use-date-picker-state';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
+import {useCurrentDateTime} from '@ui/i18n/use-current-date-time';
+import {useDateFormatter} from '@ui/i18n/use-date-formatter';
+import {useTrans} from '@ui/i18n/use-trans';
+import {useUserTimezone} from '@ui/i18n/use-user-timezone';
 import {DateRangeIcon} from '@ui/icons/material/DateRange';
 import {Dialog} from '@ui/overlays/dialog/dialog';
 import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import clsx from 'clsx';
+import {ComponentPropsWithoutRef, Fragment, MouseEvent, useRef} from 'react';
+import {useController} from 'react-hook-form';
 import {Calendar} from '../calendar/calendar';
 import {
   DatePickerField,
   DatePickerFieldProps,
 } from '../date-range-picker/date-picker-field';
 import {DateSegmentList} from '../segments/date-segment-list';
-import {useDateFormatter} from '@ui/i18n/use-date-formatter';
-import {useTrans} from '@ui/i18n/use-trans';
-import clsx from 'clsx';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
-import {useCurrentDateTime} from '@ui/i18n/use-current-date-time';
+import {
+  DatePickerValueProps,
+  useDatePickerState,
+} from './use-date-picker-state';
 
 export interface DatePickerProps
   extends Omit<DatePickerFieldProps, 'children'>,
@@ -129,8 +125,10 @@ interface FormDatePickerProps extends DatePickerProps {
 }
 export function FormDatePicker(props: FormDatePickerProps) {
   const {min, max} = props;
+  const userTimezone = useUserTimezone();
+  const timezone = props.timezone || userTimezone;
   const {trans} = useTrans();
-  const {format} = useDateFormatter();
+  const {format} = useDateFormatter({timeZone: timezone});
   const {
     field: {onChange, onBlur, value = null, ref},
     fieldState: {invalid, error},
@@ -139,7 +137,7 @@ export function FormDatePicker(props: FormDatePickerProps) {
     rules: {
       validate: v => {
         if (!v) return;
-        const date = parseAbsoluteToLocal(v);
+        const date = parseAbsolute(v, timezone);
         if (min && date.compare(min) < 0) {
           return trans({
             message: 'Enter a date after :date',
@@ -157,7 +155,7 @@ export function FormDatePicker(props: FormDatePickerProps) {
   });
 
   const parsedValue: null | ZonedDateTime = value
-    ? parseAbsoluteToLocal(value)
+    ? parseAbsolute(value, timezone)
     : null;
 
   const formProps: Partial<DatePickerProps> = {

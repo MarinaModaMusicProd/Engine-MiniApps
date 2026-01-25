@@ -11,16 +11,12 @@ class SoftDeleteEntries
 {
     use ChunksChildEntries;
 
-    public function __construct(protected FileEntry $entry)
-    {
-    }
-
     public function execute(Collection|array $entryIds): void
     {
         collect($entryIds)
             ->chunk(400)
             ->each(function ($ids) {
-                $entries = $this->entry
+                $entries = FileEntry::query()
                     ->withTrashed()
                     ->whereIn('id', $ids)
                     ->get();
@@ -28,13 +24,12 @@ class SoftDeleteEntries
             });
     }
 
-    /**
-     * Move specified entries to "trash".
-     */
     protected function delete(Collection|array $entries): void
     {
         $this->chunkChildEntries($entries, function ($chunk) {
-            $this->entry->whereIn('id', $chunk->pluck('id'))->delete();
+            FileEntry::query()
+                ->whereIn('id', $chunk->pluck('id'))
+                ->delete();
             event(
                 new FileEntriesDeleted($chunk->pluck('id')->toArray(), false),
             );

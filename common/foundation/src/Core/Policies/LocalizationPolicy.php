@@ -9,17 +9,20 @@ class LocalizationPolicy
 
     public function index(?User $user)
     {
-        return $user->hasPermission('localizations.view');
+        return $user->hasPermission('localizations.view') ||
+            $user->hasPermission('localizations.update');
     }
 
     public function show(?User $user)
     {
-        return $user->hasPermission('localizations.view');
+        return $user->hasPermission('localizations.view') ||
+            $user->hasPermission('localizations.update');
     }
 
     public function store(User $user)
     {
-        return $user->hasPermission('localizations.create');
+        return $user->hasPermission('localizations.create') ||
+            $user->hasPermission('localizations.update');
     }
 
     public function update(User $user)
@@ -29,6 +32,7 @@ class LocalizationPolicy
 
     public function destroy(User $user)
     {
-        return $user->hasPermission('localizations.delete');
+        return $user->hasPermission('localizations.delete') ||
+            $user->hasPermission('localizations.update');
     }
 }

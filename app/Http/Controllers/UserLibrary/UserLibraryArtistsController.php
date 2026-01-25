@@ -1,24 +1,33 @@
 <?php namespace App\Http\Controllers\UserLibrary;
 
 use App\Models\User;
+use App\Services\Artists\PaginateArtists;
 use Auth;
 use Common\Core\BaseController;
 use Common\Database\Datasource\Datasource;
 
 class UserLibraryArtistsController extends BaseController
 {
-    public function index(User $user = null)
+    public function index(User $user)
     {
-        $user = $user ?? Auth::user();
         $this->authorize('show', $user);
 
-        $builder = $user->likedArtists()->limit(30);
+        $params = $this->validate(request(), [
+            'orderBy' => 'string',
+            'orderDir' => 'string',
+            'query' => 'string|nullable',
+        ]);
+        $params['perPage'] = 30;
 
-        $params = request()->all();
-        $params['orderBy'] = request()->get('orderBy', 'likes.created_at');
-        $params['orderDir'] = request()->get('orderDir', 'desc');
-
-        $pagination = (new Datasource($builder, $params))->paginate();
+        $pagination = (new PaginateArtists())->asApiResponse(
+            [
+                'perPage' => $params['perPage'],
+                'orderBy' => $params['orderBy'] ?? 'likes.created_at',
+                'orderDir' => $params['orderDir'] ?? 'desc',
+                'query' => $params['query'] ?? null,
+            ],
+            builder: $user->likedArtists(),
+        );
 
         return $this->success(['pagination' => $pagination]);
     }

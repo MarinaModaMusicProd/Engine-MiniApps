@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up()
@@ -28,18 +28,22 @@ return new class extends Migration {
             'App\\Models\\User',
             'App\\Models\\UserProfile',
             'App\\Models\\Action',
-            'App\\Models\\Activity', 'Common\\HelpCenter\\Models\\HcArticle', 'Common\\HelpCenter\\Models\\HcArticleFeedback',
+            'modules\\helpdesk\\src\\Models\\Activity',
+            'Common\\HelpCenter\\Models\\HcArticle',
+            'Common\\HelpCenter\\Models\\HcArticleFeedback',
             'App\\Models\\ArticleRole',
-            'App\\Models\\CannedReply', 'Common\\HelpCenter\\Models\\HcCategory',
+            'App\\Models\\CannedReply',
+            'Common\\HelpCenter\\Models\\HcCategory',
             'App\\Models\\Condition',
             'App\\Models\\Email',
             'App\\Models\\Operator',
             'App\\Models\\PurchaseCode',
             'App\\Models\\Reply',
-            'App\\Models\\SearchTerm',
+            'modules\\helpdesk\\src\\Models\\SearchTerm',
             'App\\Models\\Tag',
-            'App\\Models\\Ticket', 'Helpdesk\\Models\\Trigger',
-            'App\\Models\\UserDetails',
+            'App\\Models\\Ticket',
+            'modules\\helpdesk\\src\\Models\\Trigger',
+            'App\\Contacts\\Models\\UserDetails',
             'App\\Models\\Biolink',
             'App\\Models\\BiolinkAppearance',
             'App\\Models\\BiolinkLink',
@@ -60,7 +64,7 @@ return new class extends Migration {
             'App\\Models\\Folder',
             'App\\Models\\RootFolder',
             'App\\Models\\ShareableLink',
-            'App\\Models\\User',
+            'App\\Auth\\Models\\User',
             'App\\Models\\Channel',
             'App\\Models\\Episode',
             'App\\Models\\Genre',
@@ -83,7 +87,31 @@ return new class extends Migration {
             'App\\Models\\VideoCaption',
             'App\\Models\\VideoPlay',
             'App\\Models\\VideoReport',
-            'App\\Models\\VideoVote', 'common\\Foundation\\Admin\\Appearance\\Themes\\CssTheme', 'common\\Foundation\\Auth\\ActiveSession', 'common\\Foundation\\Auth\\Ban', 'common\\Foundation\\Auth\\Permissions\\Permission', 'common\\Foundation\\Auth\\Roles\\Role', 'common\\Foundation\\Auth\\SocialProfile', 'common\\Foundation\\Billing\\Invoices\\Invoice', 'common\\Foundation\\Billing\\Models\\Price', 'common\\Foundation\\Billing\\Models\\Product', 'common\\Foundation\\Billing\\Subscription', 'common\\Foundation\\Comments\\Comment', 'common\\Foundation\\Comments\\CommentReport', 'common\\Foundation\\Comments\\CommentVote', 'common\\Foundation\\Csv\\CsvExport', 'common\\Foundation\\Domains\\CustomDomain', 'common\\Foundation\\Files\\FileEntry', 'common\\Foundation\\Files\\FileEntryPivot', 'common\\Foundation\\Files\\FileEntryUser', 'common\\Foundation\\Localizations\\Localization', 'common\\Foundation\\Notifications\\NotificationSubscription', 'common\\Foundation\\Pages\\CustomPage', 'common\\Foundation\\Settings\\Setting', 'common\\Foundation\\Tags\\Tag', 'common\\Foundation\\Votes\\Vote',
+            'App\\Models\\VideoVote',
+            'common\\Foundation\\Admin\\Appearance\\Themes\\CssTheme',
+            'common\\Foundation\\Auth\\UserSession',
+            'common\\Foundation\\Auth\\Ban',
+            'common\\Foundation\\Auth\\Permissions\\Permission',
+            'common\\Foundation\\Auth\\Roles\\Role',
+            'common\\Foundation\\Auth\\SocialProfile',
+            'common\\Foundation\\Billing\\Invoices\\Invoice',
+            'common\\Foundation\\Billing\\Models\\Price',
+            'common\\Foundation\\Billing\\Models\\Product',
+            'common\\Foundation\\Billing\\Subscription',
+            'common\\Foundation\\Comments\\Comment',
+            'common\\Foundation\\Comments\\CommentReport',
+            'common\\Foundation\\Comments\\CommentVote',
+            'common\\Foundation\\Csv\\CsvExport',
+            'common\\Foundation\\Domains\\CustomDomain',
+            'common\\Foundation\\Files\\FileEntry',
+            'common\\Foundation\\Files\\FileEntryPivot',
+            'common\\Foundation\\Files\\FileEntryUser',
+            'common\\Foundation\\Localizations\\Localization',
+            'common\\Foundation\\Notifications\\NotificationSubscription',
+            'common\\Foundation\\Pages\\CustomPage',
+            'common\\Foundation\\Settings\\Setting',
+            'common\\Foundation\\Tags\\Tag',
+            'common\\Foundation\\Votes\\Vote',
         ];
 
         $tables = [
@@ -110,17 +138,11 @@ return new class extends Migration {
             'reposts' => 'repostable_type',
         ];
 
-        $output = new ConsoleOutput();
-
         foreach ($tables as $table => $_column) {
             if (Schema::hasTable($table)) {
                 $columns = is_array($_column) ? $_column : [$_column];
                 foreach ($columns as $column) {
                     foreach ($models as $model) {
-                        $output->write(
-                            "Updating $table.$column to $model",
-                            true,
-                        );
                         try {
                             $constant_reflex = new ReflectionClassConstant(
                                 $model,
@@ -180,7 +202,5 @@ return new class extends Migration {
         }
     }
 
-    public function down()
-    {
-    }
+    public function down() {}
 };

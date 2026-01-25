@@ -13,7 +13,7 @@ trait GetsUserPreferredChannels
      */
     public function via($notifiable): array
     {
-        if (!config('common.site.notif_subs_integrated')) {
+        if (!config('app.notif_subs_integrated')) {
             return ['database', 'mail'];
         }
 

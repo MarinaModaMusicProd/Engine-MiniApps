@@ -1,14 +1,13 @@
-import React from 'react';
-import {Link, useParams} from 'react-router-dom';
-import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
-import clsx from 'clsx';
-import {IconButton} from '@ui/buttons/icon-button';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {Trans} from '@ui/i18n/trans';
 import {AntennaIcon} from '@app/web-player/channels/antenna-icon';
-import {useShouldShowRadioButton} from '@app/web-player/tracks/context-dialog/use-should-show-radio-button';
 import {getRadioLink} from '@app/web-player/radio/get-radio-link';
+import {useShouldShowRadioButton} from '@app/web-player/tracks/context-dialog/use-should-show-radio-button';
 import {Channel} from '@common/channels/channel';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
+import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import clsx from 'clsx';
+import {Link, useParams} from 'react-router';
 
 interface ChannelHeadingProps {
   channel: Channel;

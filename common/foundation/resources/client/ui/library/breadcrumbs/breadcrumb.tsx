@@ -1,3 +1,20 @@
+import {
+  useLayoutEffect,
+  useResizeObserver,
+  useValueEffect,
+} from '@react-aria/utils';
+import {
+  BreadcrumbItem,
+  BreadcrumbItemProps,
+} from '@ui/breadcrumbs/breadcrumb-item';
+import {ButtonSize} from '@ui/buttons/button-size';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Item} from '@ui/forms/listbox/item';
+import {useTrans} from '@ui/i18n/use-trans';
+import {MoreHorizIcon} from '@ui/icons/material/MoreHoriz';
+import {IconSize} from '@ui/icons/svg-icon';
+import {Menu, MenuTrigger} from '@ui/menu/menu-trigger';
+import clsx from 'clsx';
 import React, {
   cloneElement,
   ReactElement,
@@ -5,22 +22,6 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import {
-  useLayoutEffect,
-  useResizeObserver,
-  useValueEffect,
-} from '@react-aria/utils';
-import clsx from 'clsx';
-import {IconButton} from '@ui/buttons/icon-button';
-import {ButtonSize} from '@ui/buttons/button-size';
-import {useTrans} from '@ui/i18n/use-trans';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {MoreHorizIcon} from '@ui/icons/material/MoreHoriz';
-import {IconSize} from '@ui/icons/svg-icon';
-import {
-  BreadcrumbItem,
-  BreadcrumbItemProps,
-} from '@ui/breadcrumbs/breadcrumb-item';
 
 const MIN_VISIBLE_ITEMS = 1;
 const MAX_VISIBLE_ITEMS = 10;
@@ -28,9 +29,10 @@ const MAX_VISIBLE_ITEMS = 10;
 export interface BreadcrumbsProps {
   children?: ReactNode;
   isDisabled?: boolean;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   currentIsClickable?: boolean;
+  inactiveMuted?: boolean;
   isNavigation?: boolean;
 }
 export function Breadcrumb(props: BreadcrumbsProps) {
@@ -41,6 +43,7 @@ export function Breadcrumb(props: BreadcrumbsProps) {
     className,
     currentIsClickable,
     isNavigation,
+    inactiveMuted = true,
   } = props;
   const {trans} = useTrans();
   const style = sizeStyle(size);
@@ -99,8 +102,6 @@ export function Breadcrumb(props: BreadcrumbsProps) {
 
         last!.style.overflow = '';
       }
-
-      // eslint-disable-next-line no-restricted-syntax
       for (const breadcrumb of listItems.reverse()) {
         calculatedWidth += breadcrumb.offsetWidth;
         if (calculatedWidth < containerWidth) {
@@ -114,7 +115,6 @@ export function Breadcrumb(props: BreadcrumbsProps) {
       );
     };
 
-    // eslint-disable-next-line func-names
     setVisibleItems(function* () {
       // Update to show all items.
       yield childArray.length;
@@ -151,7 +151,8 @@ export function Breadcrumb(props: BreadcrumbsProps) {
             {childArray.map((child, index) => {
               const isLast = selectedKey === index;
               return (
-                <MenuItem
+                <Item
+                  to={child.props.to}
                   key={index}
                   value={index}
                   onSelected={() => {
@@ -161,7 +162,7 @@ export function Breadcrumb(props: BreadcrumbsProps) {
                   }}
                 >
                   {cloneElement(child, {isMenuItem: true})}
-                </MenuItem>
+                </Item>
               );
             })}
           </Menu>
@@ -190,6 +191,7 @@ export function Breadcrumb(props: BreadcrumbsProps) {
       sizeStyle: style,
       isClickable,
       isDisabled,
+      inactiveMuted,
       isLink: isNavigation && child.key !== 'menu',
     });
   });
@@ -198,7 +200,7 @@ export function Breadcrumb(props: BreadcrumbsProps) {
 
   return (
     <Element
-      className={clsx(className, 'w-full min-w-0')} // prevent flex parent overflow
+      className={clsx(className, 'breadcrumb-root w-full min-w-0')} // prevent flex parent overflow
       aria-label={trans({message: 'Breadcrumbs'})}
       ref={domRef}
     >
@@ -217,11 +219,11 @@ function sizeStyle(size: BreadcrumbsProps['size']): BreadcrumbSizeStyle {
     case 'sm':
       return {font: 'text-sm', icon: 'sm', btn: 'sm', minHeight: 'min-h-36'};
     case 'lg':
-      return {font: 'text-lg', icon: 'md', btn: 'md', minHeight: 'min-h-42'};
+      return {font: 'text-lg', icon: 'sm', btn: 'md', minHeight: 'min-h-42'};
     case 'xl':
-      return {font: 'text-xl', icon: 'md', btn: 'md', minHeight: 'min-h-42'};
+      return {font: 'text-xl', icon: 'sm', btn: 'md', minHeight: 'min-h-42'};
     default:
-      return {font: 'text-base', icon: 'md', btn: 'md', minHeight: 'min-h-42'};
+      return {font: 'text-base', icon: 'sm', btn: 'md', minHeight: 'min-h-42'};
   }
 }
 

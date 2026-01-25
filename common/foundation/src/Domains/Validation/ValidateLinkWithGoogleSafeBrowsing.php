@@ -22,7 +22,7 @@ class ValidateLinkWithGoogleSafeBrowsing
                 [
                     'client' => [
                         'clientId' => config('app.name'),
-                        'clientVersion' => config('common.site.version'),
+                        'clientVersion' => config('app.version'),
                     ],
                     'threatInfo' => [
                         'threatTypes' => [

@@ -1,30 +1,29 @@
-import {useFormContext} from 'react-hook-form';
-import React from 'react';
-import {Trans} from '@ui/i18n/trans';
-import {Button} from '@ui/buttons/button';
-import {IconButton} from '@ui/buttons/icon-button';
-import {AddIcon} from '@ui/icons/material/Add';
-import {EditIcon} from '@ui/icons/material/Edit';
+import {UpdateArtistPayload} from '@app/admin/artist-datatable-page/requests/use-update-artist';
 import musicImage from '@app/admin/tracks-datatable-page/music.svg';
-import {IllustratedMessage} from '@ui/images/illustrated-message';
-import {Link} from 'react-router-dom';
-import {ColumnConfig} from '@common/datatable/column-config';
-import {Album} from '@app/web-player/albums/album';
+import {FullAlbum} from '@app/web-player/albums/album';
 import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
 import {AlbumLink} from '@app/web-player/albums/album-link';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {useDeleteAlbum} from '@app/web-player/albums/requests/use-delete-album';
+import {ColumnConfig} from '@common/datatable/column-config';
 import {Table} from '@common/ui/tables/table';
 import {useSortableTableData} from '@common/ui/tables/use-sortable-table-data';
-import {UpdateArtistPayload} from '@app/admin/artist-datatable-page/requests/use-update-artist';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {Trans} from '@ui/i18n/trans';
+import {AddIcon} from '@ui/icons/material/Add';
 import {CloseIcon} from '@ui/icons/material/Close';
-import {useDeleteAlbum} from '@app/web-player/albums/requests/use-delete-album';
-import {InfoDialogTriggerIcon} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger-icon';
+import {EditIcon} from '@ui/icons/material/Edit';
+import {IllustratedMessage} from '@ui/images/illustrated-message';
 import {SvgImage} from '@ui/images/svg-image';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {InfoDialogTriggerIcon} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger-icon';
+import {useFormContext} from 'react-hook-form';
+import {Link} from 'react-router';
 
-const Columns: ColumnConfig<Album>[] = [
+const Columns: ColumnConfig<FullAlbum>[] = [
   {
     key: 'name',
     allowsSorting: true,
@@ -77,7 +76,7 @@ const Columns: ColumnConfig<Album>[] = [
 ];
 
 interface Props {
-  albums?: Album[];
+  albums?: FullAlbum[];
 }
 export function ArtistAlbumsTable({albums = []}: Props) {
   const {watch} = useFormContext<UpdateArtistPayload>();
@@ -137,7 +136,7 @@ export function ArtistAlbumsTable({albums = []}: Props) {
 }
 
 interface RowActionsProps {
-  album: Album;
+  album: FullAlbum;
 }
 function RowActions({album}: RowActionsProps) {
   const deleteAlbum = useDeleteAlbum();

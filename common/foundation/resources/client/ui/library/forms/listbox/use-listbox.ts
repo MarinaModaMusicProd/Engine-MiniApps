@@ -1,17 +1,17 @@
-import React, {Ref, useCallback, useId, useMemo, useRef, useState} from 'react';
+import {VirtualElement} from '@floating-ui/react-dom';
 import {useControlledState} from '@react-stately/utils';
+import {useFloatingPosition} from '@ui/overlays/floating-position';
+import React, {Ref, useCallback, useId, useMemo, useRef, useState} from 'react';
 import {
   buildListboxCollection,
   CollectionItem,
 } from './build-listbox-collection';
-import {useFloatingPosition} from '@ui/overlays/floating-position';
 import {
   ListBoxChildren,
   ListboxProps,
   PrimitiveValue,
   UseListboxReturn,
 } from './types';
-import {VirtualElement} from '@floating-ui/react-dom';
 
 export function useListbox<T>(
   props: ListboxProps & ListBoxChildren<T>,
@@ -322,12 +322,17 @@ function useControlledSelection(props: ListboxProps) {
     if (typeof stateValues === 'undefined') {
       return [];
     }
-    return Array.isArray(stateValues) ? stateValues : [stateValues];
+    return Array.isArray(stateValues)
+      ? stateValues
+      : stateValues != null
+        ? [stateValues]
+        : [];
   }, [stateValues]);
 
   const selectValues = useCallback(
     (mixedValue: PrimitiveValue | PrimitiveValue[] | null) => {
       const newValues = Array.isArray(mixedValue) ? mixedValue : [mixedValue];
+
       if (selectionMode === 'single') {
         setStateValues(newValues[0]);
       } else {

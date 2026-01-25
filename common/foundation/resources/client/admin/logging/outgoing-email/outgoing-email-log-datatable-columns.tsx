@@ -1,16 +1,16 @@
-import {ColumnConfig} from '@common/datatable/column-config';
-import {Trans} from '@ui/i18n/trans';
-import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {IconButton} from '@ui/buttons/icon-button';
-import React, {ReactNode} from 'react';
-import {useRerunScheduledCommand} from '@common/admin/logging/schedule/use-rerurun-scheduled-command';
+import {OutgoingEmailLogEntryDialog} from '@common/admin/logging/outgoing-email/outgoing-email-log-entry-dialog';
 import {OutgoingEmailLogItem} from '@common/admin/logging/outgoing-email/outgoing-email-log-item';
-import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
+import {useRerunScheduledCommand} from '@common/admin/logging/schedule/use-rerurun-scheduled-command';
+import {ColumnConfig} from '@common/datatable/column-config';
+import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
+import {IconButton} from '@ui/buttons/icon-button';
 import {Chip, ChipProps} from '@ui/forms/input-field/chip-field/chip';
+import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
+import {Trans} from '@ui/i18n/trans';
 import {VisibilityIcon} from '@ui/icons/material/Visibility';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {OutgoingEmailLogEntryDialog} from '@common/admin/logging/outgoing-email/outgoing-email-log-entry-dialog';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import {ReactNode} from 'react';
 
 export const OutgoingEmailLogDatatableColumns: ColumnConfig<OutgoingEmailLogItem>[] =
   [

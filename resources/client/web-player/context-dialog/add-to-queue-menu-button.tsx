@@ -1,18 +1,18 @@
+import {PartialAlbum} from '@app/web-player/albums/album';
+import {PartialArtist} from '@app/web-player/artists/artist';
 import {ContextMenuButton} from '@app/web-player/context-dialog/context-dialog-layout';
-import {Trans} from '@ui/i18n/trans';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {tracksToMediaItems} from '@app/web-player/tracks/utils/track-to-media-item';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
 import {queueGroupId} from '@app/web-player/queue-group-id';
 import {Track} from '@app/web-player/tracks/track';
-import {Artist} from '@app/web-player/artists/artist';
-import {Playlist} from '@app/web-player/playlists/playlist';
+import {tracksToMediaItems} from '@app/web-player/tracks/utils/track-to-media-item';
 import {usePlayerActions} from '@common/player/hooks/use-player-actions';
-import {Album} from '@app/web-player/albums/album';
+import {Trans} from '@ui/i18n/trans';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 
-type MediaItem = Track[] | Album | Artist | Playlist;
+type MediaItem = Track | PartialAlbum | PartialArtist | PartialPlaylist;
 
 interface AddToQueueButtonProps {
-  item: MediaItem;
+  item: MediaItem | null;
   loadTracks: () => Promise<Track[]>;
 }
 export function AddToQueueButton({item, loadTracks}: AddToQueueButtonProps) {
@@ -21,13 +21,14 @@ export function AddToQueueButton({item, loadTracks}: AddToQueueButtonProps) {
 
   return (
     <ContextMenuButton
+      enableWhileOffline
       onClick={async () => {
         closeMenu();
         const tracks = await loadTracks();
         player.appendToQueue(
-          tracksToMediaItems(
+          await tracksToMediaItems(
             tracks,
-            Array.isArray(item) ? undefined : queueGroupId(item),
+            item ? queueGroupId(item) : undefined,
           ),
         );
       }}

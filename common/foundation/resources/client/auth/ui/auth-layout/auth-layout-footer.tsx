@@ -1,4 +1,4 @@
-import {Link} from 'react-router-dom';
+import {Link} from 'react-router';
 import {CustomMenu} from '@common/menus/custom-menu';
 import {useSettings} from '@ui/settings/use-settings';
 

@@ -1,41 +1,48 @@
+import {ActiveTrialBanner} from '@common/billing/billing-page/active-trial-banner';
+import {billingQueries} from '@common/billing/billing-queries';
+import {useSuspenseQuery} from '@tanstack/react-query';
 import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
 import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
-import {Trans} from '@ui/i18n/trans';
-import {useNavigate} from '../../ui/navigation/use-navigate';
-import {BillingPlanPanel} from './billing-plan-panel';
-import {Fragment} from 'react';
-import {useProducts} from '../pricing-table/use-products';
-import {Link, Navigate, useParams} from 'react-router-dom';
 import {Button} from '@ui/buttons/button';
-import {FormattedPrice} from '../formatted-price';
-import {useBillingUser} from './use-billing-user';
 import {FormattedDate} from '@ui/i18n/formatted-date';
+import {Trans} from '@ui/i18n/trans';
+import {Fragment} from 'react';
+import {Link, Navigate, useParams} from 'react-router';
+import {useNavigate} from '../../ui/navigation/use-navigate';
+import {FormattedPrice} from '../formatted-price';
+import {BillingPlanPanel} from './billing-plan-panel';
 import {useChangeSubscriptionPlan} from './requests/use-change-subscription-plan';
 
 const previousUrl = '/billing/change-plan';
 
-export function ConfirmPlanChangePage() {
+export function Component() {
   const {productId, priceId} = useParams();
   const navigate = useNavigate();
-  const query = useProducts();
-  const {subscription} = useBillingUser();
+  const productQuery = useSuspenseQuery(billingQueries.products.index());
+  const userQuery = useSuspenseQuery(billingQueries.user());
   const changePlan = useChangeSubscriptionPlan();
 
-  if (!query.data || subscription?.price_id == priceId) {
+  if (`${userQuery.data.subscription.price_id}` == priceId) {
     return <Navigate to="/billing/change-plan" replace />;
   }
 
-  const newProduct = query.data.products.find(p => `${p.id}` === productId);
+  const newProduct = productQuery.data.products.find(
+    p => `${p.id}` === productId,
+  );
   const newPrice = newProduct?.prices.find(p => `${p.id}` === priceId);
 
-  if (!newProduct || !newPrice || !subscription) {
+  if (!newProduct || !newPrice) {
     navigate(previousUrl);
     return null;
   }
 
   const newDate = (
     <span className="whitespace-nowrap">
-      <FormattedDate date={subscription.renews_at} preset="long" />;
+      <FormattedDate
+        date={userQuery.data.subscription.renews_at}
+        preset="long"
+      />
+      ;
     </span>
   );
 
@@ -52,6 +59,7 @@ export function ConfirmPlanChangePage() {
           <Trans message="Confirm" />
         </BreadcrumbItem>
       </Breadcrumb>
+      <ActiveTrialBanner className="mb-24" />
       <h1 className="my-32 text-3xl font-bold md:my-64">
         <Trans message="Confirm your new plan" />
       </h1>
@@ -74,7 +82,7 @@ export function ConfirmPlanChangePage() {
                 className="mb-16 w-full"
                 onClick={() => {
                   changePlan.mutate({
-                    subscriptionId: subscription.id,
+                    subscriptionId: userQuery.data.subscription.id,
                     newProductId: newProduct.id,
                     newPriceId: newPrice.id,
                   });

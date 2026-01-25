@@ -1,9 +1,11 @@
 <?php namespace App\Services\Providers\Spotify;
 
+use App\Services\Albums\AlbumLoader;
+use App\Services\Artists\ArtistLoader;
 use App\Services\Providers\Local\LocalSearch;
 use App\Services\Search\SearchInterface;
+use App\Services\Tracks\TrackLoader;
 use Illuminate\Contracts\Pagination\Paginator as PaginatorContract;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
@@ -14,13 +16,12 @@ class SpotifySearch extends LocalSearch implements SearchInterface
     public function __construct(
         protected SpotifyHttpClient $httpClient,
         protected SpotifyNormalizer $normalizer,
-    ) {
-    }
+    ) {}
 
     public function search(
         string $q,
         int $page,
-        int $perPage,
+        ?int $perPage = null,
         array $modelTypes,
     ): Collection {
         $this->query = urldecode($q);
@@ -73,7 +74,7 @@ class SpotifySearch extends LocalSearch implements SearchInterface
         ];
         $tracks = [
             'items' => collect(Arr::get($response, 'tracks.items', []))
-                ->filter()
+                ->filter(fn($t) => $t && $t['album']['id'])
                 ->map(
                     fn($spotifyTrack) => $this->normalizer->track(
                         $spotifyTrack,
@@ -89,7 +90,7 @@ class SpotifySearch extends LocalSearch implements SearchInterface
         ];
     }
 
-    public function artists(): PaginatorContract
+    public function artists(): array
     {
         if (isset($this->formattedResults['artists']['items'])) {
             return $this->paginator($this->formattedResults['artists']);
@@ -98,7 +99,7 @@ class SpotifySearch extends LocalSearch implements SearchInterface
         return parent::artists();
     }
 
-    public function albums(): PaginatorContract
+    public function albums(): array
     {
         if (isset($this->formattedResults['albums']['items'])) {
             return $this->paginator($this->formattedResults['albums']);
@@ -107,7 +108,7 @@ class SpotifySearch extends LocalSearch implements SearchInterface
         return parent::albums();
     }
 
-    public function tracks(): PaginatorContract
+    public function tracks(): array
     {
         if (isset($this->formattedResults['tracks']['items'])) {
             return $this->paginator($this->formattedResults['tracks']);
@@ -116,12 +117,35 @@ class SpotifySearch extends LocalSearch implements SearchInterface
         return parent::tracks();
     }
 
-    protected function paginator(array $data): PaginatorContract
+    protected function paginator(array $data): array
     {
-        return new Paginator(
-            items: $data['items'],
-            perPage: $this->perPage,
-            currentPage: $this->page,
-        );
+        $items = collect($data['items']);
+        $total = $data['total'];
+        $offset = $data['offset'];
+        $itemCount = $items->count();
+        $hasMorePages = $offset + $itemCount < $total;
+
+        return [
+            'data' => $this->itemToApiResource($items),
+            'current_page' => $this->page,
+            'from' => $itemCount > 0 ? $offset + 1 : null,
+            'next_page' => $hasMorePages ? $this->page + 1 : null,
+            'per_page' => $this->perPage,
+            'prev_page' => $this->page > 1 ? $this->page - 1 : null,
+            'to' => $itemCount > 0 ? $offset + $itemCount : null,
+        ];
+    }
+
+    protected function itemToApiResource(Collection $items): array
+    {
+        return $items
+            ->map(
+                fn($item) => match ($item['model_type']) {
+                    'artist' => (new ArtistLoader())->toApiResource($item),
+                    'album' => (new AlbumLoader())->toApiResource($item),
+                    'track' => (new TrackLoader())->toApiResource($item),
+                },
+            )
+            ->toArray();
     }
 }

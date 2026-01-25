@@ -1,17 +1,17 @@
-import {useMutation} from '@tanstack/react-query';
-import {useTrans} from '@ui/i18n/use-trans';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
-import {onFormQueryError} from '@common/errors/on-form-query-error';
-import {UseFormReturn} from 'react-hook-form';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Track} from '@app/web-player/tracks/track';
 import {
   CreateTrackPayload,
   prepareTrackPayload,
 } from '@app/admin/tracks-datatable-page/requests/use-create-track';
+import {Track} from '@app/web-player/tracks/track';
+import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
+import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
+import {UseFormReturn} from 'react-hook-form';
 
 export interface UpdateTrackResponse extends BackendResponse {
   track: Track;

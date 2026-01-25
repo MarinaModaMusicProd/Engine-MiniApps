@@ -1,38 +1,35 @@
-import React from 'react';
-import clsx from 'clsx';
+import {UploadType} from '@app/site-config';
+import {ButtonSize} from '@ui/buttons/button-size';
 import {IconButton} from '@ui/buttons/icon-button';
-import {ImageIcon} from '@ui/icons/material/Image';
-import {MenubarButtonProps} from './menubar-button-props';
-import {useActiveUpload} from '../../uploads/uploader/use-active-upload';
-import {Disk} from '../../uploads/uploader/backend-metadata';
-import {Tooltip} from '@ui/tooltip/tooltip';
 import {Trans} from '@ui/i18n/trans';
-import {FileInputType} from '@ui/utils/files/file-input-config';
+import {ImageUpIcon} from '@ui/icons/lucide/image-up';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import {getImageSize} from '@ui/utils/files/get-image-size';
+import clsx from 'clsx';
+import {useActiveUpload} from '../../uploads/uploader/use-active-upload';
+import {useCurrentTextEditor} from '../tiptap-editor-context';
 
-const TwoMB = 2097152;
-
-interface Props extends MenubarButtonProps {
-  diskPrefix?: string;
-}
-
-export function ImageButton({editor, size, diskPrefix = 'page_media'}: Props) {
+type Props = {
+  uploadType: keyof typeof UploadType;
+  size?: ButtonSize;
+  iconSize?: ButtonSize;
+};
+export function ImageButton({size, iconSize, uploadType}: Props) {
+  const editor = useCurrentTextEditor();
   const {selectAndUploadFile} = useActiveUpload();
 
   const handleUpload = () => {
     selectAndUploadFile({
+      uploadType,
       showToastOnRestrictionFail: true,
-      restrictions: {
-        allowedFileTypes: [FileInputType.image],
-        maxFileSize: TwoMB,
-      },
-      metadata: {
-        diskPrefix: diskPrefix,
-        disk: Disk.public,
-      },
-      onSuccess: entry => {
+      onSuccess: async (entry, file) => {
+        if (!editor) return;
+        const size = await getImageSize(file.native);
         editor.commands.focus();
         editor.commands.setImage({
           src: entry.url,
+          width: size.width,
+          height: size.height,
         });
       },
     });
@@ -42,10 +39,12 @@ export function ImageButton({editor, size, diskPrefix = 'page_media'}: Props) {
     <Tooltip label={<Trans message="Insert image" />}>
       <IconButton
         size={size}
+        iconSize={iconSize}
         onClick={handleUpload}
         className={clsx('flex-shrink-0')}
+        disabled={!editor}
       >
-        <ImageIcon />
+        <ImageUpIcon />
       </IconButton>
     </Tooltip>
   );

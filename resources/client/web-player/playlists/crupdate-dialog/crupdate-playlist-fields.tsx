@@ -1,12 +1,13 @@
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {Trans} from '@ui/i18n/trans';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {FormSwitch} from '@ui/forms/toggle/switch';
-import {useTrans} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
-import {Fragment} from 'react';
+import {UploadType} from '@app/site-config';
 import {FormImageSelector} from '@common/uploads/components/image-selector';
+import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {FormSwitch} from '@ui/forms/toggle/switch';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
 import {ImageIcon} from '@ui/icons/material/Image';
+import {Fragment} from 'react';
 
 export function CrupdatePlaylistFields() {
   const {trans} = useTrans();
@@ -16,7 +17,7 @@ export function CrupdatePlaylistFields() {
         <FileUploadProvider>
           <FormImageSelector
             name="image"
-            diskPrefix="playlist_media"
+            uploadType={UploadType.artwork}
             variant="square"
             previewSize="w-160 h-160"
             className="mb-24 md:mb-0"

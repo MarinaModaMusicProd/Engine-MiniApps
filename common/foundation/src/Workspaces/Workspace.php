@@ -3,14 +3,16 @@
 namespace Common\Workspaces;
 
 use App\Models\User;
-use App\Workspaces\WorkspaceRelationships;
-use Auth;
 use Common\Core\BaseModel;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class Workspace extends BaseModel
 {
+    use HasFactory;
+
     const MODEL_TYPE = 'workspace';
 
     protected $guarded = ['id'];
@@ -40,8 +42,7 @@ class Workspace extends BaseModel
         return $this->belongsTo(User::class, 'owner_id')->select([
             'id',
             'email',
-            'first_name',
-            'last_name',
+            'name',
             'image',
         ]);
     }
@@ -60,17 +61,14 @@ class Workspace extends BaseModel
                 'workspace_user.is_owner',
                 'workspace_user.id as member_id',
                 'users.id',
-                'users.first_name',
-                'users.last_name',
+                'users.name',
                 'users.image',
             ]);
     }
 
     public function isMember(User $user): bool
     {
-        return $this->members()
-            ->where('user_id', $user->id)
-            ->exists();
+        return $this->members()->where('user_id', $user->id)->exists();
     }
 
     public function isOwner(User $user): bool
@@ -80,9 +78,7 @@ class Workspace extends BaseModel
 
     public function findMember(User $user): WorkspaceMember
     {
-        return $this->members()
-            ->where('user_id', $user->id)
-            ->first();
+        return $this->members()->where('user_id', $user->id)->first();
     }
 
     public function scopeForUser(Builder $builder, int $userId): Builder

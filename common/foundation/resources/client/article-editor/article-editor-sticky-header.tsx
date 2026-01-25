@@ -1,46 +1,88 @@
-import {SlugEditor, SlugEditorProps} from '@common/ui/other/slug-editor';
-import {useController, useFormContext} from 'react-hook-form';
-import React, {Fragment, ReactNode, useEffect, useRef} from 'react';
-import clsx from 'clsx';
-import {useStickySentinel} from '@ui/utils/hooks/sticky-sentinel';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {Button} from '@ui/buttons/button';
-import {Link} from 'react-router-dom';
-import {ArrowBackIcon} from '@ui/icons/material/ArrowBack';
-import {Trans} from '@ui/i18n/trans';
+import {UploadType} from '@app/site-config';
+import {DatatablePageHeaderBar} from '@common/datatable/page/datatable-page-with-header-layout';
 import {HistoryButtons} from '@common/text-editor/menubar/history-buttons';
-import {ModeButton} from '@common/text-editor/menubar/mode-button';
-import {ArticleBodyEditorMenubar} from './article-body-editor-menubar';
-import {Editor} from '@tiptap/react';
-import {CreateCustomPagePayload} from '@common/admin/custom-pages/requests/use-create-custom-page';
+import {ModeButton} from '@common/text-editor/mode-button';
+import {useCurrentTextEditor} from '@common/text-editor/tiptap-editor-context';
+import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
+import {ArrowBackIcon} from '@ui/icons/material/ArrowBack';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {useStickySentinel} from '@ui/utils/hooks/sticky-sentinel';
+import clsx from 'clsx';
+import {Fragment, ReactNode} from 'react';
+import {useFormContext} from 'react-hook-form';
+import {Link} from 'react-router';
+import {ArticleEditorMenubar} from './article-editor-menubar';
+
+interface ArticleEditorHeaderProps {
+  children: ReactNode;
+  onSave?: (editorContent: string) => void;
+  saveButton?: ReactNode;
+  isSaving?: boolean;
+  rightContent?: ReactNode;
+  showSidebarToggleButton?: boolean;
+}
+export function ArticleEditorHeader({
+  children,
+  onSave,
+  saveButton,
+  isSaving = false,
+  rightContent,
+  showSidebarToggleButton = true,
+}: ArticleEditorHeaderProps) {
+  const editor = useCurrentTextEditor();
+  return (
+    <DatatablePageHeaderBar
+      showSidebarToggleButton={showSidebarToggleButton}
+      rightContent={
+        <Fragment>
+          <HistoryButtons />
+          <ModeButton />
+          {onSave && (
+            <SaveButton
+              onSave={() => {
+                onSave(editor?.getHTML() ?? '');
+              }}
+              isLoading={isSaving}
+            />
+          )}
+          {saveButton}
+          {rightContent}
+        </Fragment>
+      }
+    >
+      {children}
+    </DatatablePageHeaderBar>
+  );
+}
 
 interface StickyHeaderProps {
-  editor: Editor;
-  allowSlugEditing?: boolean;
   onSave?: (editorContent: string) => void;
   saveButton?: ReactNode;
   backLink: string;
   isLoading?: boolean;
-  slugPrefix?: string;
-  imageDiskPrefix?: string;
+  imageUploadType: keyof typeof UploadType;
 }
 export function ArticleEditorStickyHeader({
-  editor,
-  allowSlugEditing = true,
   onSave,
   saveButton,
   isLoading = false,
   backLink,
-  slugPrefix = 'pages',
-  imageDiskPrefix,
+  imageUploadType,
 }: StickyHeaderProps) {
   const {isSticky, sentinelRef} = useStickySentinel();
   const isMobile = useIsMobileMediaQuery();
+  const editor = useCurrentTextEditor()!;
 
   return (
     <Fragment>
       <div ref={sentinelRef} />
-      <div className={clsx('sticky top-0 z-10 mb-20 bg', isSticky && 'shadow')}>
+      <div
+        className={clsx(
+          'sticky top-0 z-10 mb-20 w-full flex-shrink-0 bg',
+          isSticky && 'shadow',
+        )}
+      >
         <div className="flex items-center justify-between gap-20 border-b px-20 py-10 text-muted sm:justify-start">
           {!isMobile && (
             <Fragment>
@@ -54,44 +96,25 @@ export function ArticleEditorStickyHeader({
               >
                 <Trans message="Back" />
               </Button>
-              <div className="mr-auto">
-                {allowSlugEditing && (
-                  <FormSlugEditor
-                    name="slug"
-                    showLinkIcon={false}
-                    prefix={slugPrefix}
-                  />
-                )}
-              </div>
             </Fragment>
           )}
-          {editor && <HistoryButtons editor={editor} />}
-          {!isMobile && <ModeButton editor={editor} />}
-          {onSave && (
-            <SaveButton
-              onSave={() => {
-                onSave(editor.getHTML());
-              }}
-              isLoading={isLoading}
-            />
-          )}
+          {editor && <HistoryButtons />}
+          {!isMobile && <ModeButton />}
+          {onSave && <SaveButton onSave={onSave} isLoading={isLoading} />}
           {saveButton}
         </div>
-        <ArticleBodyEditorMenubar
-          editor={editor}
-          size="sm"
-          imageDiskPrefix={imageDiskPrefix}
-        />
+        <ArticleEditorMenubar size="sm" imageUploadType={imageUploadType} />
       </div>
     </Fragment>
   );
 }
 
 interface SaveButtonProps {
-  onSave: () => void;
+  onSave: (editorContent: string) => void;
   isLoading: boolean;
 }
 function SaveButton({onSave, isLoading}: SaveButtonProps) {
+  const editor = useCurrentTextEditor();
   const form = useFormContext();
   const title = form.watch('title');
 
@@ -101,48 +124,10 @@ function SaveButton({onSave, isLoading}: SaveButtonProps) {
       size="sm"
       color="primary"
       className="min-w-90"
-      disabled={isLoading || !title}
-      onClick={() => onSave()}
+      disabled={isLoading || !title || !editor}
+      onClick={() => onSave(editor?.getHTML() ?? '')}
     >
       <Trans message="Save" />
     </Button>
-  );
-}
-
-interface FormSlugEditorProps extends SlugEditorProps {
-  name: string;
-}
-function FormSlugEditor({name, ...other}: FormSlugEditorProps) {
-  const {
-    field: {onChange, onBlur, value = '', ref},
-  } = useController({
-    name,
-  });
-  const manuallyChanged = useRef(false);
-
-  const {watch, setValue} = useFormContext<CreateCustomPagePayload>();
-
-  useEffect(() => {
-    const subscription = watch((formVal, {name: fieldName}) => {
-      // if user has not changed slug manually, set it based on page title field changes
-      if (fieldName === 'title' && !manuallyChanged.current) {
-        setValue('slug', formVal.title);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, setValue]);
-
-  return (
-    <SlugEditor
-      className={clsx(!value && 'invisible')}
-      onChange={e => {
-        manuallyChanged.current = true;
-        onChange(e);
-      }}
-      onInputBlur={onBlur}
-      value={value}
-      inputRef={ref}
-      {...other}
-    />
   );
 }

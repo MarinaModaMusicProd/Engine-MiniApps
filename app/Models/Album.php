@@ -3,8 +3,11 @@
 use App\Traits\OrdersByPopularity;
 use Common\Comments\Comment;
 use Common\Core\BaseModel;
+use Common\Files\Traits\HasAttachedFileEntries;
 use Common\Settings\Settings;
 use Common\Tags\Tag;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,7 +18,7 @@ use Laravel\Scout\Searchable;
 
 class Album extends BaseModel
 {
-    use OrdersByPopularity, HasFactory, Searchable;
+    use OrdersByPopularity, HasFactory, Searchable, HasAttachedFileEntries;
 
     const MODEL_TYPE = 'album';
 
@@ -29,24 +32,20 @@ class Album extends BaseModel
         'release_date' => 'date',
     ];
 
-    protected $guarded = ['id', 'views'];
-    protected $hidden = [
-        'artist_type',
-        'pivot',
-        'fully_scraped',
-        'temp_id',
-        'artist_id',
-        'views',
-        'spotify_id',
-        'description',
-        'updated_at',
-    ];
+    protected $guarded = [];
+
     protected $appends = ['model_type'];
 
     public function artists(): BelongsToMany
     {
         return $this->belongsToMany(Artist::class, 'artist_album')
-            ->select(['artists.id', 'artists.name', 'artists.image_small'])
+            ->select([
+                'artists.id',
+                'artists.name',
+                'artists.image_small',
+                'artists.verified',
+                'artists.disabled',
+            ])
             ->orderBy('artist_album.primary', 'desc');
     }
 
@@ -96,11 +95,7 @@ class Album extends BaseModel
      */
     public function tags()
     {
-        return $this->morphToMany(Tag::class, 'taggable')->select(
-            'tags.name',
-            'tags.display_name',
-            'tags.id',
-        );
+        return $this->morphToMany(Tag::class, 'taggable');
     }
 
     /**
@@ -108,10 +103,18 @@ class Album extends BaseModel
      */
     public function genres()
     {
-        return $this->morphToMany(Genre::class, 'genreable')->select(
-            'genres.name',
-            'genres.id',
-        );
+        return $this->morphToMany(Genre::class, 'genreable');
+    }
+
+    public function uploadedImage()
+    {
+        return $this->attachedFileEntriesRelation('uploaded_image');
+    }
+
+    #[Scope]
+    protected function releasedOnly(Builder $query): void
+    {
+        $query->where('release_date', '<=', now());
     }
 
     public function needsUpdating(): bool

@@ -1,14 +1,15 @@
-import {useEffect, useRef, useState} from 'react';
+import {billingQueries} from '@common/billing/billing-queries';
 import {loadScript} from '@paypal/paypal-js';
-import {useProducts} from '@common/billing/pricing-table/use-products';
+import {useQuery} from '@tanstack/react-query';
 import {useSettings} from '@ui/settings/use-settings';
+import {useEffect, useRef, useState} from 'react';
 
 interface UsePaypalProps {
   productId?: string;
   priceId?: string;
 }
 export function usePaypal({productId, priceId}: UsePaypalProps) {
-  const {data} = useProducts();
+  const {data} = useQuery(billingQueries.products.index());
   const paypalLoadStarted = useRef<boolean>(false);
   const paypalButtonsRendered = useRef<boolean>(false);
   const [paypalIsLoaded, setPaypalIsLoaded] = useState(false);
@@ -58,13 +59,15 @@ export function usePaypal({productId, priceId}: UsePaypalProps) {
           return actions.subscription.create({
             application_context: {
               shipping_preference: 'NO_SHIPPING',
+              return_url: `${base_url}/checkout/${productId}/${priceId}/paypal/done?subscriptionId=${data.subscriptionID}&status=success`,
+              cancel_url: `${base_url}/checkout/${productId}/${priceId}/paypal/done?status=error`,
             },
             plan_id: price?.paypal_id!,
           });
         },
         onApprove: (data, actions) => {
           actions.redirect(
-            `${base_url}/checkout/${productId}/${priceId}/paypal/done?subscriptionId=${data.subscriptionID}&status=success`
+            `${base_url}/checkout/${productId}/${priceId}/paypal/done?subscriptionId=${data.subscriptionID}&status=success`,
           );
           return Promise.resolve();
         },

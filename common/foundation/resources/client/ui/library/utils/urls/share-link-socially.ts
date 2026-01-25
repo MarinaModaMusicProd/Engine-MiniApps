@@ -10,7 +10,7 @@ export function shareLinkSocially(
   network: ShareableNetworks,
   link: string,
   name?: string,
-  image?: string
+  image?: string | null,
 ) {
   const url = generateShareUrl(network, link, name, image);
 
@@ -44,7 +44,7 @@ function generateShareUrl(
   type: ShareableNetworks,
   link: string,
   name?: string,
-  image?: string
+  image?: string | null,
 ): string {
   switch (type) {
     case 'facebook':

@@ -1,11 +1,11 @@
-import React, {useState} from 'react';
-import {useNormalizedModels} from '@common/ui/normalized-model/use-normalized-models';
 import {CrupdateResourceSection} from '@common/admin/crupdate-resource-layout';
-import {Trans} from '@ui/i18n/trans';
+import {useAuth} from '@common/auth/use-auth';
+import {useNormalizedModels} from '@common/ui/normalized-model/use-normalized-models';
+import {Avatar} from '@ui/avatar/avatar';
 import {FormChipField} from '@ui/forms/input-field/chip-field/form-chip-field';
 import {Item} from '@ui/forms/listbox/item';
-import {Avatar} from '@ui/avatar/avatar';
-import {useAuth} from '@common/auth/use-auth';
+import {Trans} from '@ui/i18n/trans';
+import {useState} from 'react';
 
 interface Props {
   endpoint?: string;
@@ -26,6 +26,9 @@ export function UserRoleSection({endpoint}: Props) {
         onInputValueChange={setQuery}
         alwaysShowAvatar
         readOnly={!hasPermission('users.update')}
+        description={
+          <Trans message="User will inherit all permissions from the roles they are assigned." />
+        }
       >
         {suggestion => (
           <Item

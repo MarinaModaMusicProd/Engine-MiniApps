@@ -6,12 +6,11 @@ use App\Models\Channel;
 use App\Models\User;
 use App\Policies\ChannelPolicy;
 use Clockwork\Support\Laravel\ClockworkServiceProvider;
-use Common\Admin\Analytics\AnalyticsServiceProvider;
-use Common\Admin\Appearance\Themes\CssTheme;
-use Common\Admin\Appearance\Themes\CssThemePolicy;
 use Common\Auth\BaseUser;
 use Common\Auth\Commands\DeleteExpiredBansCommand;
 use Common\Auth\Commands\DeleteExpiredOtpCodesCommand;
+use Common\Auth\Controllers\PasswordController;
+use Common\Auth\Controllers\TwoFactorAuthenticationController;
 use Common\Auth\Events\UsersDeleted;
 use Common\Auth\Middleware\ForbidBannedUser;
 use Common\Auth\Middleware\OptionalAuthenticate;
@@ -34,17 +33,22 @@ use Common\Core\Commands\GenerateSitemap;
 use Common\Core\Commands\SeedCommand;
 use Common\Core\Commands\UpdateSimplePaginateTables;
 use Common\Core\Contracts\AppUrlGenerator;
+use Common\Core\Exceptions\BaseExceptionHandler;
+use Common\Core\Install\Commands\CheckIfUpdateAvailableCommand;
 use Common\Core\Install\RedirectIfNotInstalledMiddleware;
-use Common\Core\Install\UpdateActionsCommand;
+use Common\Core\Install\Commands\RunUpdateActionsCommand;
+use Common\Core\Install\Commands\UpdateAppCommand;
 use Common\Core\Middleware\EnableDebugIfLoggedInAsAdmin;
 use Common\Core\Middleware\EnsureEmailIsVerified;
+use Common\Core\Middleware\EnsureFrontendRequestsAreStateful;
 use Common\Core\Middleware\IsAdmin;
 use Common\Core\Middleware\PrerenderIfCrawler;
+use Common\Core\Middleware\RedirectIfAuthenticated;
 use Common\Core\Middleware\RestrictDemoSiteFunctionality;
 use Common\Core\Middleware\SetAppLocale;
 use Common\Core\Middleware\SetSentryUserMiddleware;
 use Common\Core\Middleware\SimulateSlowConnectionMiddleware;
-use Common\Core\Policies\AppearancePolicy;
+use Common\Core\Middleware\VerifyCsrfToken;
 use Common\Core\Policies\FileEntryPolicy;
 use Common\Core\Policies\LocalizationPolicy;
 use Common\Core\Policies\PagePolicy;
@@ -58,7 +62,6 @@ use Common\Core\Policies\UserPolicy;
 use Common\Core\Prerender\BaseUrlGenerator;
 use Common\Core\Rendering\CrawlerDetector;
 use Common\Csv\DeleteExpiredCsvExports;
-use Common\Database\AppCursorPaginator;
 use Common\Database\CustomLengthAwarePaginator;
 use Common\Database\CustomSimplePaginator;
 use Common\Domains\CustomDomain;
@@ -69,13 +72,11 @@ use Common\Files\Commands\DeleteUploadArtifacts;
 use Common\Files\Events\FileUploaded;
 use Common\Files\FileEntry;
 use Common\Files\Listeners\CreateThumbnailForUploadedFile;
-use Common\Files\Providers\BackblazeServiceProvider;
-use Common\Files\Providers\DigitalOceanServiceProvider;
-use Common\Files\Providers\DropboxServiceProvider;
-use Common\Files\Providers\DynamicStorageDiskProvider;
+use Common\Files\Providers\RegisterCustomFlysystemProviders;
 use Common\Files\S3\AbortOldS3Uploads;
 use Common\Files\Tus\DeleteExpiredTusUploads;
 use Common\Files\Tus\TusServiceProvider;
+use Common\Files\Uploads\CountUploadingBackendFiles;
 use Common\Localizations\Commands\ExportTranslations;
 use Common\Localizations\Commands\GenerateFooTranslations;
 use Common\Localizations\Listeners\UpdateAllUsersLanguageWhenDefaultLocaleChanges;
@@ -85,16 +86,17 @@ use Common\Logging\Mail\OutgoingEmailLogSubscriber;
 use Common\Logging\Schedule\MonitorsSchedule;
 use Common\Logging\Schedule\ScheduleHealthCommand;
 use Common\Pages\CustomPage;
+use Common\Search\Commands\ImportRecordsIntoScoutCommand;
 use Common\Search\Drivers\Mysql\MysqlSearchEngine;
 use Common\ServerTiming\ServerTiming;
 use Common\ServerTiming\ServerTimingMiddleware;
 use Common\Settings\Events\SettingsSaved;
 use Common\Settings\Mail\GmailApiMailTransport;
 use Common\Settings\Mail\GmailClient;
-use Common\Settings\Setting;
+use Common\Settings\Models\Setting;
 use Common\Settings\Settings;
-use Common\SSR\StartSsr;
-use Common\SSR\StopSsr;
+use Common\Settings\Themes\CssTheme;
+use Common\Settings\Themes\CssThemePolicy;
 use Common\Tags\Tag;
 use Common\Workspaces\Actions\RemoveMemberFromWorkspace;
 use Common\Workspaces\ActiveWorkspace;
@@ -102,15 +104,21 @@ use Common\Workspaces\Policies\WorkspaceMemberPolicy;
 use Common\Workspaces\Policies\WorkspacePolicy;
 use Common\Workspaces\Workspace;
 use Common\Workspaces\WorkspaceMember;
-use Illuminate\Auth\Events\Registered;
+use Illuminate\Console\Events\ArtisanStarting;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Foundation\CachesConfiguration;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\AliasLoader;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken as LaravelValidateCsrfToken;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -118,6 +126,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Fortify\Http\Controllers\PasswordController as FortifyPasswordController;
+use Laravel\Fortify\Http\Controllers\TwoFactorAuthenticationController as FortifyTwoFactorAuthenticationController;
+use Laravel\Horizon\Horizon;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful as SanctumEnsureFrontendRequestsAreStateful;
 use Laravel\Scout\EngineManager;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\SocialiteServiceProvider;
@@ -131,15 +143,6 @@ class CommonServiceProvider extends ServiceProvider
 {
     use MonitorsSchedule;
 
-    const CONFIG_FILES = [
-        'permissions',
-        'default-settings',
-        'site',
-        'demo',
-        'setting-validators',
-        'menus',
-    ];
-
     public function __construct($app)
     {
         parent::__construct($app);
@@ -148,6 +151,8 @@ class CommonServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Model::preventLazyLoading(!$this->app->isProduction());
+
         Route::prefix('api')
             ->middleware('api')
             ->group(function () {
@@ -165,27 +170,15 @@ class CommonServiceProvider extends ServiceProvider
             'editable-views',
         );
 
-        $this->registerPolicies();
-        $this->registerCustomValidators();
+        $this->registerGatePoliciesAndAbilities();
+        $this->registerRouteBindings();
+        $this->registerCustomValidationRules();
         $this->registerCommands();
         $this->registerMiddleware();
         $this->registerCollectionExtensions();
         $this->registerEventListeners();
         $this->registerCustomMailDrivers();
         $this->setMorphMap();
-
-        $configs = collect(self::CONFIG_FILES)
-            ->mapWithKeys(function ($file) {
-                return [
-                    app('path.common') .
-                    "/resources/config/$file.php" => config_path(
-                        "common/$file.php",
-                    ),
-                ];
-            })
-            ->toArray();
-
-        $this->publishes($configs);
 
         Vite::useScriptTagAttributes([
             'data-keep' => 'true',
@@ -210,7 +203,9 @@ class CommonServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->mergeConfig();
+        $this->registerCoreBindings();
+
+        $this->loadConfig();
 
         $request = $this->app->make(Request::class);
         $this->app->instance(AppUrl::class, (new AppUrl())->init());
@@ -221,7 +216,6 @@ class CommonServiceProvider extends ServiceProvider
 
         // register socialite service provider and alias
         $this->app->register(SocialiteServiceProvider::class);
-        $this->app->register(AnalyticsServiceProvider::class);
         $loader->alias('Socialite', Socialite::class);
 
         $this->app->register(TusServiceProvider::class);
@@ -236,7 +230,7 @@ class CommonServiceProvider extends ServiceProvider
         );
 
         // active workspace
-        if (config('common.site.workspaces_integrated')) {
+        if (config('app.workspaces_integrated')) {
             $this->app->singleton(ActiveWorkspace::class, function () {
                 return new ActiveWorkspace();
             });
@@ -261,21 +255,20 @@ class CommonServiceProvider extends ServiceProvider
             LengthAwarePaginator::class,
             CustomLengthAwarePaginator::class,
         );
+
+        $this->app->bind(
+            FortifyPasswordController::class,
+            PasswordController::class,
+        );
+        $this->app->bind(
+            FortifyTwoFactorAuthenticationController::class,
+            TwoFactorAuthenticationController::class,
+        );
         $this->app->bind(Paginator::class, CustomSimplePaginator::class);
 
         $this->registerDevProviders();
 
-        // register flysystem providers
-        $this->app->register(DynamicStorageDiskProvider::class);
-        if ($this->storageDriverSelected('dropbox')) {
-            $this->app->register(DropboxServiceProvider::class);
-        }
-        if ($this->storageDriverSelected('digitalocean_s3')) {
-            $this->app->register(DigitalOceanServiceProvider::class);
-        }
-        if ($this->storageDriverSelected('backblaze_s3')) {
-            $this->app->register(BackblazeServiceProvider::class);
-        }
+        (new RegisterCustomFlysystemProviders())->execute();
 
         // register scout drivers
         resolve(EngineManager::class)->extend('mysql', function () {
@@ -286,40 +279,100 @@ class CommonServiceProvider extends ServiceProvider
         }
     }
 
-    private function mergeConfig()
+    private function registerCoreBindings(): void
     {
-        $this->deepMergeDefaultSettings(
-            app('path.common') . '/resources/config/default-settings.php',
-            'common.default-settings',
-        );
-        $this->deepMergeConfigFrom(
-            app('path.common') . '/resources/config/demo-blocked-routes.php',
-            'common.demo-blocked-routes',
-        );
-        $this->mergeConfigFrom(
-            app('path.common') . '/resources/config/site.php',
-            'common.site',
-        );
-        $this->mergeConfigFrom(
-            app('path.common') . '/resources/config/setting-validators.php',
-            'common.setting-validators',
-        );
-        $this->mergeConfigFrom(
-            app('path.common') . '/resources/config/menus.php',
-            'common.menus',
-        );
-        $this->mergeConfigFrom(
-            app('path.common') . '/resources/config/appearance.php',
-            'common.appearance',
-        );
-        $this->mergeConfigFrom(
-            app('path.common') . '/resources/config/services.php',
+        $bindings = [
+            ExceptionHandler::class => BaseExceptionHandler::class,
+            SanctumEnsureFrontendRequestsAreStateful::class =>
+                EnsureFrontendRequestsAreStateful::class,
+            LaravelValidateCsrfToken::class => VerifyCsrfToken::class,
+        ];
+
+        foreach ($bindings as $abstract => $concrete) {
+            $this->app->bind($abstract, $concrete);
+        }
+    }
+
+    private function loadConfig(): void
+    {
+        $merge = [
+            // laravel
+            'app',
             'services',
-        );
-        $this->mergeConfigFrom(
-            app('path.common') . '/resources/config/seo/common.php',
-            'seo.common',
-        );
+
+            // common
+            'setting-validators',
+            'menus',
+            'seo/common',
+        ];
+        foreach ($merge as $config) {
+            $this->mergeConfigFrom(
+                app('path.common') . "/config/{$config}.php",
+                str_replace('/', '.', $config),
+            );
+        }
+
+        $mergeRecursive = ['mail', 'scout', 'logging'];
+
+        foreach ($mergeRecursive as $config) {
+            $this->replaceConfigRecursivelyFrom(
+                app('path.common') . "/config/{$config}.php",
+                str_replace('/', '.', $config),
+            );
+        }
+
+        if (
+            !(
+                $this->app instanceof CachesConfiguration &&
+                $this->app->configurationIsCached()
+            )
+        ) {
+            $config = $this->app->make('config');
+            $config->set(
+                'filesystems',
+                array_replace_recursive(
+                    require app('path.common') . '/config/filesystems.php',
+                    Arr::except($config->get('filesystems', []), ['disks']),
+                ),
+            );
+        }
+
+        // these 3rd party package configs are loaded before CommonServiceProvider, so we need to override some
+        // config keys, instead of merging. This will prevent overriding this config via app config though
+        $override = [
+            'fortify',
+            'log-viewer',
+            'geoip',
+            'sentry',
+            'sanctum',
+            // "default" for cache will not get overridden, otherwise
+            'cache',
+            'broadcasting',
+            'database',
+        ];
+        foreach ($override as $config) {
+            $this->forceOverrideConfigFrom(
+                app('path.common') . "/config/{$config}.php",
+                str_replace('/', '.', $config),
+            );
+        }
+    }
+
+    // this will override any config provided by app or other packages
+    protected function forceOverrideConfigFrom($path, $key)
+    {
+        if (
+            !(
+                $this->app instanceof CachesConfiguration &&
+                $this->app->configurationIsCached()
+            )
+        ) {
+            $config = $this->app->make('config');
+            $config->set(
+                $key,
+                array_merge($config->get($key, []), require $path),
+            );
+        }
     }
 
     /**
@@ -334,7 +387,7 @@ class CommonServiceProvider extends ServiceProvider
      *
      * @param Request $request
      */
-    private function normalizeRequestUri(Request $request)
+    private function normalizeRequestUri(Request $request): void
     {
         $parsedUrl = parse_url(config('app.url'));
 
@@ -358,7 +411,7 @@ class CommonServiceProvider extends ServiceProvider
 
     private function registerMiddleware(): void
     {
-        if (!config('common.site.installed')) {
+        if (!config('app.installed')) {
             $this->app['router']->pushMiddlewareToGroup(
                 'web',
                 RedirectIfNotInstalledMiddleware::class,
@@ -373,6 +426,7 @@ class CommonServiceProvider extends ServiceProvider
             'customDomainsEnabled' => CustomDomainsEnabled::class,
             'prerenderIfCrawler' => PrerenderIfCrawler::class,
             'verifyApiAccess' => VerifyApiAccessMiddleware::class,
+            'guest' => RedirectIfAuthenticated::class,
         ];
 
         $apiMiddleware = [
@@ -382,6 +436,7 @@ class CommonServiceProvider extends ServiceProvider
             ForbidBannedUser::class,
             SetSentryUserMiddleware::class,
             VerifyApiAccessMiddleware::class,
+            EnsureFrontendRequestsAreStateful::class,
         ];
 
         $webMiddleware = [
@@ -393,7 +448,13 @@ class CommonServiceProvider extends ServiceProvider
             SetSentryUserMiddleware::class,
         ];
 
-        if (config('common.site.demo')) {
+        if (config('sanctum.middleware.authenticate_session')) {
+            $webMiddleware[] = config(
+                'sanctum.middleware.authenticate_session',
+            );
+        }
+
+        if (config('app.demo')) {
             $apiMiddleware[] = RestrictDemoSiteFunctionality::class;
             $webMiddleware[] = RestrictDemoSiteFunctionality::class;
         }
@@ -411,10 +472,7 @@ class CommonServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Register custom validation rules with laravel.
-     */
-    private function registerCustomValidators()
+    private function registerCustomValidationRules(): void
     {
         Validator::extend(
             'email_verified',
@@ -426,35 +484,23 @@ class CommonServiceProvider extends ServiceProvider
         );
     }
 
-    /**
-     * Deep merge the given configuration with the existing configuration.
-     */
-    private function deepMergeConfigFrom(string $path, string $key): void
+    private function registerGatePoliciesAndAbilities(): void
     {
-        $config = $this->app['config']->get($key, []);
-        $this->app['config']->set(
-            $key,
-            array_merge_recursive(require $path, $config),
-        );
-    }
-
-    private function registerPolicies()
-    {
-        Gate::policy('App\Model', 'App\Policies\ModelPolicy');
         Gate::policy(FileEntry::class, FileEntryPolicy::class);
         Gate::policy(BaseUser::class, UserPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(CustomPage::class, PagePolicy::class);
         Gate::policy(Setting::class, SettingPolicy::class);
         Gate::policy(Localization::class, LocalizationPolicy::class);
-        Gate::policy('AppearancePolicy', AppearancePolicy::class);
         Gate::policy('ReportPolicy', ReportPolicy::class);
         Gate::policy(CssTheme::class, CssThemePolicy::class);
         Gate::policy(CustomDomain::class, CustomDomainPolicy::class);
         Gate::policy(Permission::class, PermissionPolicy::class);
         Gate::policy(Tag::class, TagPolicy::class);
         Gate::policy(Comment::class, CommentPolicy::class);
-        Gate::policy(Channel::class, ChannelPolicy::class);
+        if (class_exists(Channel::class)) {
+            Gate::policy(Channel::class, ChannelPolicy::class);
+        }
 
         // billing
         Gate::policy(Subscription::class, SubscriptionPolicy::class);
@@ -467,6 +513,26 @@ class CommonServiceProvider extends ServiceProvider
 
         Gate::define('admin.access', function (BaseUser $user) {
             return $user->hasPermission('admin.access');
+        });
+
+        Gate::define('viewPulse', function (User $user) {
+            return $user->hasPermission('admin.access');
+        });
+
+        Horizon::auth(function ($request) {
+            if (config('app.demo')) {
+                return $request->user()?->email === config('app.demo_email');
+            } else {
+                return $request->user()?->hasPermission('admin');
+            }
+        });
+    }
+
+    private function registerRouteBindings(): void
+    {
+        Route::bind('user', function ($value) {
+            $id = $value === 'me' ? Auth::id() : (int) $value;
+            return User::findOrFail($id);
         });
     }
 
@@ -483,12 +549,14 @@ class CommonServiceProvider extends ServiceProvider
             UpdateSimplePaginateTables::class,
             DeleteExpiredBansCommand::class,
             DeleteExpiredOtpCodesCommand::class,
-            StartSsr::class,
-            StopSsr::class,
-            UpdateActionsCommand::class,
+            RunUpdateActionsCommand::class,
             GenerateSitemap::class,
             ScheduleHealthCommand::class,
             CleanLogTables::class,
+            ImportRecordsIntoScoutCommand::class,
+            CountUploadingBackendFiles::class,
+            CheckIfUpdateAvailableCommand::class,
+            UpdateAppCommand::class,
         ];
 
         if ($this->app->environment() !== 'production') {
@@ -507,8 +575,9 @@ class CommonServiceProvider extends ServiceProvider
             }
 
             $schedule = $this->app->make(Schedule::class);
+
             // make sure daily commands are not running at the same time to prevent CPU/Memory spikes
-            $schedule->command(DeleteUploadArtifacts::class)->dailyAt('02:00');
+            //$schedule->command(DeleteUploadArtifacts::class)->dailyAt('02:00');
             $schedule
                 ->command(DeleteExpiredCsvExports::class)
                 ->dailyAt('02:10');
@@ -527,50 +596,38 @@ class CommonServiceProvider extends ServiceProvider
                 ->dailyAt('03:00');
             $schedule->command(CleanLogTables::class)->dailyAt('03:10');
             $schedule->command(ScheduleHealthCommand::class)->everyMinute();
+            $schedule
+                ->command(CountUploadingBackendFiles::class)
+                ->everyFifteenMinutes();
 
-            $this->monitorSchedule($schedule);
+            if (config('app.envato_purchase_code')) {
+                $schedule
+                    ->command(CheckIfUpdateAvailableCommand::class)
+                    ->dailyAt('03:20');
+            }
+
+            // wait until artisan is booted to monitor schedule, otherwise commands
+            // registered via console.php file will not be available yet
+            Event::listen(ArtisanStarting::class, function () use ($schedule) {
+                $this->monitorSchedule($schedule);
+
+                $defaultLocale = settings('locale.default', 'auto');
+                if ($defaultLocale && $defaultLocale !== 'auto') {
+                    app()->setLocale($defaultLocale);
+                }
+            });
         });
     }
 
-    /**
-     * Deep merge "default-settings" config values.
-     */
-    private function deepMergeDefaultSettings(
-        string $path,
-        string $configKey,
-    ): void {
-        $defaultSettings = require $path;
-        $userSettings = $this->app['config']->get($configKey, []);
-
-        foreach ($userSettings as $userSetting) {
-            //remove default setting, if it's overwritten by user setting
-            foreach ($defaultSettings as $key => $defaultSetting) {
-                if ($defaultSetting['name'] === $userSetting['name']) {
-                    unset($defaultSettings[$key]);
-                }
-            }
-
-            //push user setting into default settings array
-            $defaultSettings[] = $userSetting;
-        }
-
-        $this->app['config']->set($configKey, $defaultSettings);
-    }
-
-    private function registerDevProviders()
+    private function registerDevProviders(): void
     {
         if (!config('app.debug')) {
             return;
         }
 
-        if ($this->clockworkExists()) {
+        if (class_exists(ClockworkServiceProvider::class)) {
             $this->app->register(ClockworkServiceProvider::class);
         }
-    }
-
-    private function clockworkExists(): bool
-    {
-        return class_exists(ClockworkServiceProvider::class);
     }
 
     private function registerCollectionExtensions(): void
@@ -619,8 +676,8 @@ class CommonServiceProvider extends ServiceProvider
 
     protected function storageDriverSelected(string $name): bool
     {
-        return config('common.site.uploads_disk_driver') === $name ||
-            config('common.site.public_disk_driver') === $name;
+        return config('filesystems.uploads_disk_driver') === $name ||
+            config('filesystems.public_disk_driver') === $name;
     }
 
     private function registerEventListeners(): void
@@ -634,16 +691,8 @@ class CommonServiceProvider extends ServiceProvider
             FileUploaded::class,
             CreateThumbnailForUploadedFile::class,
         );
-        Event::listen(Registered::class, function (Registered $event) {
-            if (
-                app(Settings::class)->get('require_email_confirmation') &&
-                !$event->user->hasVerifiedEmail()
-            ) {
-                $event->user->sendEmailVerificationNotification();
-            }
-        });
 
-        if (config('common.site.workspaces_integrated')) {
+        if (config('app.workspaces_integrated')) {
             Event::listen(UsersDeleted::class, function (UsersDeleted $e) {
                 $e->users->each(function (User $user) {
                     app(Workspace::class)
@@ -665,24 +714,23 @@ class CommonServiceProvider extends ServiceProvider
         }
     }
 
-    public function registerCustomMailDrivers()
+    public function registerCustomMailDrivers(): void
     {
         $this->app->get('mail.manager');
-        $this->app
-            ->get('mail.manager')
-            ->extend('gmailApi', function (array $config) {
-                return new GmailApiMailTransport();
-            });
+        $this->app->get('mail.manager')->extend('gmailApi', function () {
+            return new GmailApiMailTransport();
+        });
 
         $this->app->singleton(GmailClient::class);
     }
 
-    private function setMorphMap()
+    private function setMorphMap(): void
     {
         Relation::enforceMorphMap([
             'post' => 'App\Models\Post',
             'video' => 'App\Models\Video',
             'workspace' => Workspace::class,
+            User::MODEL_TYPE => User::class,
         ]);
     }
 }

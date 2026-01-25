@@ -4,7 +4,7 @@ namespace Common\Websockets;
 
 class GetWebsocketCredentialsForClient
 {
-    public function execute(): array
+    public function execute(): array|null
     {
         $driver = config('broadcasting.default');
 
@@ -40,6 +40,6 @@ class GetWebsocketCredentialsForClient
             ];
         }
 
-        return [];
+        return null;
     }
 }

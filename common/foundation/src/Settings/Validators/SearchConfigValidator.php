@@ -3,8 +3,8 @@
 namespace Common\Settings\Validators;
 
 use App\Models\User;
-use Arr;
 use Exception;
+use Illuminate\Support\Arr;
 use Laravel\Scout\Builder;
 use Laravel\Scout\EngineManager;
 use Matchish\ScoutElasticSearch\ElasticSearchServiceProvider;

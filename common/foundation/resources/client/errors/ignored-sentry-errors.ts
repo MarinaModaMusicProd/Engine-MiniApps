@@ -7,4 +7,13 @@ export const ignoredSentryErrors = [
   'Importing a module script failed.',
   'chrome-extension://',
   'AbortError: Share canceled',
+  'Could not cue media',
+
+  // axios
+  'Request failed with status code',
+  new RegExp('^Network Error'),
+  new RegExp('^CancelledError'),
+  new RegExp('^timeout exceeded'),
+  new RegExp('^Request aborted'),
+  new RegExp('^AxiosError'),
 ];

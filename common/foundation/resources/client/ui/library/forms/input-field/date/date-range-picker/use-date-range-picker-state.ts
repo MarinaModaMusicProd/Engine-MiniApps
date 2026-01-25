@@ -1,5 +1,3 @@
-import {useControlledState} from '@react-stately/utils';
-import {HTMLAttributes, useCallback, useState} from 'react';
 import {
   CalendarDate,
   DateValue,
@@ -12,16 +10,18 @@ import {
   toCalendarDate,
   ZonedDateTime,
 } from '@internationalized/date';
+import {useControlledState} from '@react-stately/utils';
+import {toSafeZoned} from '@ui/i18n/to-safe-zoned';
+import {useCurrentDateTime} from '@ui/i18n/use-current-date-time';
+import {endOfDay} from '@ui/utils/date/end-of-day';
+import {startOfDay} from '@ui/utils/date/start-of-day';
+import {HTMLAttributes, useCallback, useState} from 'react';
 import {
   BaseDatePickerState,
   DatePickerValueProps,
 } from '../date-picker/use-date-picker-state';
-import {DateRangeValue} from './date-range-value';
 import {useBaseDatePickerState} from '../use-base-date-picker-state';
-import {startOfDay} from '@ui/utils/date/start-of-day';
-import {endOfDay} from '@ui/utils/date/end-of-day';
-import {useCurrentDateTime} from '@ui/i18n/use-current-date-time';
-import {toSafeZoned} from '@ui/i18n/to-safe-zoned';
+import {DateRangeValue} from './date-range-value';
 
 export interface IsPlaceholderValue {
   start: boolean;
@@ -80,35 +80,31 @@ export function useDateRangePickerState(
   });
 
   const constrainRange = useCallback(
-      (range: DateRangeValue): DateRangeValue => {
-        let start: ZonedDateTime = range.start ?? now;
-        let end: ZonedDateTime = range.end ?? now;
+    (range: DateRangeValue): DateRangeValue => {
+      let start = range.start;
+      let end = range.end;
 
-        // Убедимся, что начальная дата больше минимальной и меньше конечной
-        if (min) {
-          start = (maxDate(start, min) as ZonedDateTime) ?? start;
-        }
-        const startMax = max ? minDate(max, end) : end;
-        if (startMax) {
-          start = (minDate(start, startMax) as ZonedDateTime) ?? start;
-        }
+      // make sure start date is after min date and before max date/range end
+      if (min) {
+        start = maxDate(start, min)!;
+      }
+      const startMax = max ? minDate(max, end) : end;
+      start = minDate(start, startMax)!;
 
-        // Убедимся, что конечная дата больше минимальной и начальной
-        const endMin = min ? maxDate(min, start) : start;
-        if (endMin) {
-          end = (maxDate(end, endMin) as ZonedDateTime) ?? end;
-        }
+      // make sure end date is after min date/range start and before max date
+      const endMin = min ? maxDate(min, start) : start;
+      end = maxDate(end, endMin)!;
 
-        if (max) {
-          end = (minDate(end, max) as ZonedDateTime) ?? end;
-        }
+      if (max) {
+        end = minDate(end, max)!;
+      }
 
-        return {
-          start: toSafeZoned(start, timezone),
-          end: toSafeZoned(end, timezone),
-        };
-      },
-      [min, max, timezone, now],
+      return {
+        start: toSafeZoned(start, timezone),
+        end: toSafeZoned(end, timezone),
+      };
+    },
+    [min, max, timezone],
   );
 
   const setSelectedValue = useCallback(

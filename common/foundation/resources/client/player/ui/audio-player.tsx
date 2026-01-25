@@ -1,42 +1,45 @@
-import {Fragment} from 'react';
-import {PlayerContext} from '@common/player/player-context';
 import {MediaItem} from '@common/player/media-item';
-import {PlayerOutlet} from '@common/player/ui/player-outlet';
-import {PlayButton} from '@common/player/ui/controls/play-button';
-import {VolumeControls} from '@common/player/ui/controls/volume-controls';
-import {Seekbar} from '@common/player/ui/controls/seeking/seekbar';
+import {PlayerContext} from '@common/player/player-context';
+import {PlayerStoreOptions} from '@common/player/state/player-store-options';
 import {FormattedCurrentTime} from '@common/player/ui/controls/formatted-current-time';
 import {FormattedPlayerDuration} from '@common/player/ui/controls/formatted-player-duration';
+import {PlayButton} from '@common/player/ui/controls/play-button';
 import {PlaybackOptionsButton} from '@common/player/ui/controls/playback-options-button';
-import clsx from 'clsx';
 import {SeekButton} from '@common/player/ui/controls/seeking/seek-button';
+import {Seekbar} from '@common/player/ui/controls/seeking/seekbar';
+import {VolumeControls} from '@common/player/ui/controls/volume-controls';
+import {PlayerOutlet} from '@common/player/ui/player-outlet';
+import {guessPlayerProvider} from '@common/player/utils/guess-player-provider';
 import {Forward10Icon} from '@ui/icons/material/Forward10';
 import {UndoIcon} from '@ui/icons/material/Undo';
-
-const mediaItem: MediaItem = {
-  id: 'test1',
-  src: 'storage/title-videos/pLiHKnN3dXz0Ep0rVrgiZ4mSS0lyDV8fnrcwmDOE.mp4',
-  poster: 'https://peach.blender.org/wp-content/uploads/bbb-splash.png',
-  provider: 'htmlAudio',
-};
-
-const mediaItem2: MediaItem = {
-  id: 'test2',
-  src: '0G3_kG5FFfQ',
-  provider: 'youtube',
-};
+import clsx from 'clsx';
+import {Fragment} from 'react';
 
 interface Props {
+  id: string;
+  queue?: MediaItem[];
+  cuedMediaId?: string;
+  autoPlay?: boolean;
+  listeners?: PlayerStoreOptions['listeners'];
+  src?: string;
   className?: string;
 }
-export function AudioPlayer({className}: Props) {
+export function AudioPlayer({
+  id,
+  queue,
+  cuedMediaId,
+  autoPlay,
+  src,
+  className,
+}: Props) {
   return (
     <PlayerContext
-      id="audio"
+      id={id}
       options={{
+        autoPlay,
         initialData: {
-          queue: [mediaItem2, mediaItem],
-          cuedMediaId: 'test1',
+          queue: queue ? queue : [mediaItemFromSrc(src!)],
+          cuedMediaId,
         },
       }}
     >
@@ -77,4 +80,12 @@ function Controls() {
       </div>
     </div>
   );
+}
+
+function mediaItemFromSrc(src: string): MediaItem {
+  return {
+    id: src,
+    src,
+    provider: guessPlayerProvider(src),
+  };
 }

@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Album;
 use App\Models\Repost;
+use App\Models\Track;
 use App\Models\User;
+use App\Services\Albums\AlbumLoader;
+use App\Services\Tracks\TrackLoader;
 use Common\Core\BaseController;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,16 +19,44 @@ class RepostController extends BaseController
 
         $pagination = $user
             ->reposts()
-            ->with('repostable.artists')
+            ->with(['repostable'])
             ->simplePaginate(20);
 
-        [$albums, $tracks] = $pagination->partition(function (Repost $repost) {
+        [$albumReposts, $trackReposts] = $pagination->partition(function (
+            Repost $repost,
+        ) {
             return $repost->repostable?->model_type === Album::MODEL_TYPE;
         });
 
-        $albums->load('repostable.tracks');
+        $albumReposts = $albumReposts->map(function (Repost $repost) {
+            $repost->repostable
+                ->load(['artists', 'tracks.uploadedSrc', 'tracks.artists'])
+                ->withCount(['likes', 'reposts']);
+            $repost->repostable = (new AlbumLoader())->toApiResource(
+                $repost->repostable,
+            );
+            return [
+                'id' => $repost->id,
+                'repostable' => $repost->repostable,
+            ];
+        });
 
-        $pagination->setCollection($tracks->concat($albums)->values());
+        $trackReposts = $trackReposts->map(function (Repost $repost) {
+            $repost->repostable
+                ->load(['album.artists', 'artists', 'uploadedSrc'])
+                ->withCount(['likes', 'reposts']);
+            $repost->repostable = (new TrackLoader())->toApiResource(
+                $repost->repostable,
+            );
+            return [
+                'id' => $repost->id,
+                'repostable' => $repost->repostable,
+            ];
+        });
+
+        $pagination->setCollection(
+            $albumReposts->concat($trackReposts)->values(),
+        );
 
         return $this->success(['pagination' => $pagination]);
     }

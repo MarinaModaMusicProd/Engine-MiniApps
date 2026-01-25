@@ -4,7 +4,7 @@ use App\Http\Requests\ModifyTracks;
 use App\Models\Track;
 use App\Services\Tracks\CrupdateTrack;
 use App\Services\Tracks\DeleteTracks;
-use App\Services\Tracks\LoadTrack;
+use App\Services\Tracks\TrackLoader;
 use App\Services\Tracks\PaginateTracks;
 use Common\Core\BaseController;
 use Illuminate\Http\Request;
@@ -14,18 +14,19 @@ class TrackController extends BaseController
     public function __construct(
         protected Track $track,
         protected Request $request,
-    ) {
-    }
+    ) {}
 
     public function index()
     {
         $this->authorize('index', Track::class);
 
-        $pagination = App(PaginateTracks::class)->execute(
-            $this->request->all(),
-        );
+        $builder = Track::query()->with('lyric');
 
-        $pagination->makeVisible(['views', 'updated_at', 'plays']);
+        $pagination = (new PaginateTracks())->asApiResponse(
+            request()->all(),
+            builder: $builder,
+            loader: 'editTrackDatatable',
+        );
 
         return $this->success(['pagination' => $pagination]);
     }
@@ -35,7 +36,7 @@ class TrackController extends BaseController
         $this->authorize('show', $track);
 
         $loader = request('loader', 'trackPage');
-        $data = (new LoadTrack())->execute($track, $loader);
+        $data = (new TrackLoader())->load($track, $loader);
 
         return $this->renderClientOrApi([
             'pageName' => $loader === 'trackPage' ? 'track-page' : null,
@@ -46,6 +47,8 @@ class TrackController extends BaseController
     public function store(ModifyTracks $request)
     {
         $this->authorize('store', Track::class);
+
+        $this->blockOnDemoSite();
 
         $track = app(CrupdateTrack::class)->execute(
             $request->all(),
@@ -62,6 +65,8 @@ class TrackController extends BaseController
 
         $this->authorize('update', $track);
 
+        $this->blockOnDemoSite();
+
         $track = app(CrupdateTrack::class)->execute(
             $request->all(),
             $track,
@@ -75,6 +80,8 @@ class TrackController extends BaseController
     {
         $trackIds = explode(',', $ids);
         $this->authorize('destroy', [Track::class, $trackIds]);
+
+        $this->blockOnDemoSite();
 
         app(DeleteTracks::class)->execute($trackIds);
 

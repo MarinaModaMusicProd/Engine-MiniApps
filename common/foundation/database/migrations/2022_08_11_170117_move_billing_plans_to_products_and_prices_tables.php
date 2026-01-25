@@ -4,6 +4,7 @@ use Common\Billing\Models\Price;
 use Common\Billing\Models\Product;
 use Common\Billing\Subscription;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 class MoveBillingPlansToProductsAndPricesTables extends Migration
 {
@@ -27,7 +28,6 @@ class MoveBillingPlansToProductsAndPricesTables extends Migration
                         : null,
                     'created_at' => $plan->created_at,
                     'updated_at' => $plan->updated_at,
-                    'available_space' => $plan->available_space,
                     'free' => $plan->free,
                     'recommended' => $plan->recommended,
                 ]);

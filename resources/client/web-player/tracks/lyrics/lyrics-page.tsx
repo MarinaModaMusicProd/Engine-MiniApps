@@ -1,23 +1,26 @@
+import {useCuedTrack} from '@app/web-player/player-controls/use-cued-track';
 import {
   SyncedLyricResponse,
   useLyrics,
   UseLyricsResponse,
 } from '@app/web-player/tracks/lyrics/use-lyrics';
-import {IllustratedMessage} from '@ui/images/illustrated-message';
-import {MediaMicrophoneIcon} from '@ui/icons/media/media-microphone';
-import {Trans} from '@ui/i18n/trans';
-import React, {ReactNode, useEffect, useMemo} from 'react';
-import clsx from 'clsx';
-import {AnimatePresence, m} from 'framer-motion';
-import {opacityAnimation} from '@ui/animation/opacity-animation';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {MusicNoteIcon} from '@ui/icons/material/MusicNote';
-import {useCuedTrack} from '@app/web-player/player-controls/use-cued-track';
 import {Track} from '@app/web-player/tracks/track';
 import {useCurrentTime} from '@common/player/hooks/use-current-time';
 import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {opacityAnimation} from '@ui/animation/opacity-animation';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
+import {CloseIcon} from '@ui/icons/material/Close';
+import {MusicNoteIcon} from '@ui/icons/material/MusicNote';
+import {MediaMicrophoneIcon} from '@ui/icons/media/media-microphone';
+import {IllustratedMessage} from '@ui/images/illustrated-message';
+import {Skeleton} from '@ui/skeleton/skeleton';
+import clsx from 'clsx';
+import {AnimatePresence, m} from 'framer-motion';
+import {ReactNode, useEffect, useMemo} from 'react';
+import {useLocation, useNavigate} from 'react-router';
 
-export function LyricsPage() {
+export function Component() {
   const track = useCuedTrack();
   return (
     <AnimatePresence initial={false} mode="wait">
@@ -41,19 +44,43 @@ function Lyrics({track}: LyricsProps) {
   const duration = usePlayerStore(s => s.mediaDuration);
   const {data, isLoading} = useLyrics(track.id, {duration});
 
+  let content = null;
   if (data) {
-    return <SyncedLyrics data={data} />;
-  }
-
-  if (isLoading) {
-    return <LyricSkeleton />;
+    content = <SyncedLyrics data={data} />;
+  } else if (isLoading) {
+    content = <LyricSkeleton />;
+  } else {
+    content = (
+      <NoLyricsMessage
+        title={<Trans message="We do not have lyrics for this song yet" />}
+        description={<Trans message="Please try again later" />}
+      />
+    );
   }
 
   return (
-    <NoLyricsMessage
-      title={<Trans message="We do not have lyrics for this song yet" />}
-      description={<Trans message="Please try again later" />}
-    />
+    <div className="relative isolate">
+      <CloseButton />
+      {content}
+    </div>
+  );
+}
+
+function CloseButton() {
+  const {key} = useLocation();
+  const hasPreviousUrl = key !== 'default';
+  const navigate = useNavigate();
+  return (
+    <IconButton
+      className="absolute right-0 top-0 z-10"
+      onClick={() => {
+        if (hasPreviousUrl) {
+          navigate(-1);
+        }
+      }}
+    >
+      <CloseIcon />
+    </IconButton>
   );
 }
 

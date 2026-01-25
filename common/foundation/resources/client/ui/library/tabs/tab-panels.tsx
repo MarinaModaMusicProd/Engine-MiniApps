@@ -1,4 +1,8 @@
-import React, {
+import { getFocusableTreeWalker } from '@react-aria/focus';
+import { useLayoutEffect } from '@react-aria/utils';
+import { TabContext } from '@ui/tabs/tabs-context';
+import clsx from 'clsx';
+import {
   Children,
   cloneElement,
   ComponentPropsWithoutRef,
@@ -9,10 +13,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import clsx from 'clsx';
-import {useLayoutEffect} from '@react-aria/utils';
-import {getFocusableTreeWalker} from '@react-aria/focus';
-import {TabContext} from '@ui/tabs/tabs-context';
 
 export interface TabPanelsProps {
   children: ReactNode;
@@ -28,7 +28,7 @@ export function TabPanels({children, className}: TabPanelsProps) {
   if (isLazy) {
     const el = panelArray[selectedTab] as ReactElement;
     rendered = isValidElement(el)
-      ? cloneElement<TabPanelProps>(panelArray[selectedTab] as ReactElement, {
+      ? cloneElement<TabPanelProps>(panelArray[selectedTab] as ReactElement<TabPanelProps>, {
           index: selectedTab,
         })
       : null;

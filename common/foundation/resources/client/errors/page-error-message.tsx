@@ -1,11 +1,20 @@
-import {IllustratedMessage} from '@ui/images/illustrated-message';
-import {ErrorIcon} from '@ui/icons/material/Error';
+import {queryClient} from '@common/http/query-client';
+import {Button} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
+import {ErrorIcon} from '@ui/icons/material/Error';
+import {IllustratedMessage} from '@ui/images/illustrated-message';
+import {useState} from 'react';
 
 export function PageErrorMessage() {
+  const [isRetrying, setIsRetrying] = useState(false);
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    await queryClient.resetQueries();
+    setIsRetrying(false);
+  };
   return (
     <IllustratedMessage
-      className="mt-40"
+      className="pt-40"
       image={
         <div>
           <ErrorIcon size="xl" />
@@ -14,6 +23,17 @@ export function PageErrorMessage() {
       imageHeight="h-auto"
       title={<Trans message="There was an issue loading this page" />}
       description={<Trans message="Please try again later" />}
+      action={
+        <Button
+          variant="outline"
+          onClick={() => {
+            handleRetry();
+          }}
+          disabled={isRetrying}
+        >
+          <Trans message="Retry" />
+        </Button>
+      }
     />
   );
 }

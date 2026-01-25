@@ -13,7 +13,8 @@ class TrackPolicy extends BasePolicy
     public function index(?User $user)
     {
         return $this->hasPermission($user, 'tracks.view') ||
-            $this->hasPermission($user, 'music.view');
+            $this->hasPermission($user, 'music.view') ||
+            $this->hasPermission($user, 'music.update');
     }
 
     public function show(?User $user, Track $track)
@@ -22,7 +23,8 @@ class TrackPolicy extends BasePolicy
             return true;
         } elseif (
             $this->hasPermission($user, 'tracks.view') ||
-            $this->hasPermission($user, 'music.view')
+            $this->hasPermission($user, 'music.view') ||
+            $this->hasPermission($user, 'music.update')
         ) {
             return true;
         } elseif ($user) {
@@ -38,7 +40,8 @@ class TrackPolicy extends BasePolicy
         // user can't create tracks at all
         if (
             !$this->hasPermission($user, 'tracks.create') &&
-            !$this->hasPermission($user, 'music.create')
+            !$this->hasPermission($user, 'music.create') &&
+            !$this->hasPermission($user, 'music.update')
         ) {
             return false;
         }
@@ -88,7 +91,7 @@ class TrackPolicy extends BasePolicy
     {
         if (
             $this->hasPermission($user, 'tracks.delete') ||
-            $this->hasPermission($user, 'music.delete')
+            $this->hasPermission($user, 'music.update')
         ) {
             return true;
         } else {
@@ -115,7 +118,7 @@ class TrackPolicy extends BasePolicy
 
     public function download(?User $user, Track $track)
     {
-        return app(Settings::class)->get('player.enable_download') &&
-            $this->hasPermission($user, 'music.download');
+        return $this->hasPermission($user, 'music.download') ||
+            $this->hasPermission($user, 'music.offline');
     }
 }

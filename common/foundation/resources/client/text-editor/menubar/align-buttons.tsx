@@ -1,14 +1,15 @@
+import {IconButton} from '@ui/buttons/icon-button';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {FormatAlignCenterIcon} from '@ui/icons/material/FormatAlignCenter';
+import {FormatAlignJustifyIcon} from '@ui/icons/material/FormatAlignJustify';
+import {FormatAlignLeftIcon} from '@ui/icons/material/FormatAlignLeft';
+import {FormatAlignRightIcon} from '@ui/icons/material/FormatAlignRight';
+import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
 import clsx from 'clsx';
 import {ComponentType} from 'react';
-import {FormatAlignLeftIcon} from '@ui/icons/material/FormatAlignLeft';
-import {FormatAlignCenterIcon} from '@ui/icons/material/FormatAlignCenter';
-import {FormatAlignRightIcon} from '@ui/icons/material/FormatAlignRight';
-import {FormatAlignJustifyIcon} from '@ui/icons/material/FormatAlignJustify';
+import {useCurrentTextEditor} from '../tiptap-editor-context';
 import {MenubarButtonProps} from './menubar-button-props';
-import {IconButton} from '@ui/buttons/icon-button';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {Trans} from '@ui/i18n/trans';
-import {message} from '@ui/i18n/message';
 
 const iconMap = {
   left: {
@@ -29,10 +30,11 @@ const iconMap = {
   },
 };
 
-export function AlignButtons({editor, size}: MenubarButtonProps) {
-  const activeKey = (Object.keys(iconMap).find(key => {
-    return editor.isActive({textAlign: key});
-  }) || 'left') as keyof typeof iconMap;
+export function AlignButtons({size}: MenubarButtonProps) {
+  const editor = useCurrentTextEditor();
+  const activeKey = Object.keys(iconMap).find(key =>
+    editor?.isActive({textAlign: key}),
+  ) as keyof typeof iconMap | null;
   const ActiveIcon: ComponentType = activeKey
     ? iconMap[activeKey].icon
     : iconMap.left.icon;
@@ -43,12 +45,13 @@ export function AlignButtons({editor, size}: MenubarButtonProps) {
       selectionMode="single"
       selectedValue={activeKey}
       onSelectionChange={key => {
-        editor.commands.focus();
-        editor.commands.setTextAlign(key as string);
+        editor?.commands.focus();
+        editor?.commands.setTextAlign(key as keyof typeof iconMap);
       }}
     >
       <IconButton
         size={size}
+        disabled={!editor}
         color={activeKey ? 'primary' : null}
         className={clsx('flex-shrink-0')}
       >

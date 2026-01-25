@@ -1,27 +1,27 @@
-import React, {Fragment, memo, useContext, useState} from 'react';
-import {SiteConfigContext} from '@common/core/settings/site-config-context';
-import {Link} from 'react-router-dom';
-import {Comment} from '@common/comments/comment';
 import {useAuth} from '@common/auth/use-auth';
-import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
-import {NewCommentForm} from '@common/comments/new-comment-form';
-import {User} from '@ui/types/user';
-import {Commentable} from '@common/comments/commentable';
-import {useDeleteComments} from '@common/comments/requests/use-delete-comments';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {queryClient} from '@common/http/query-client';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import {FormattedDuration} from '@ui/i18n/formatted-duration';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {ThumbButtons} from '@common/votes/thumb-buttons';
-import {ReplyIcon} from '@ui/icons/material/Reply';
-import {MoreVertIcon} from '@ui/icons/material/MoreVert';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
-import {useSubmitReport} from '@common/reports/requests/use-submit-report';
-import {IconButton} from '@ui/buttons/icon-button';
 import {UserAvatar} from '@common/auth/user-avatar';
+import {Comment} from '@common/comments/comment';
+import {Commentable} from '@common/comments/commentable';
+import {NewCommentForm} from '@common/comments/new-comment-form';
+import {useDeleteComments} from '@common/comments/requests/use-delete-comments';
+import {SiteConfigContext} from '@common/core/settings/site-config-context';
+import {useSubmitReport} from '@common/reports/requests/use-submit-report';
+import {ThumbButtons} from '@common/votes/thumb-buttons';
+import {Avatar} from '@ui/avatar/avatar';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {FormattedDuration} from '@ui/i18n/formatted-duration';
+import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
+import {Trans} from '@ui/i18n/trans';
+import {MoreVertIcon} from '@ui/icons/material/MoreVert';
+import {ReplyIcon} from '@ui/icons/material/Reply';
+import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {User} from '@ui/types/user';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {Fragment, memo, useContext, useState} from 'react';
+import {Link} from 'react-router';
 
 interface CommentListItemProps {
   comment: Comment;
@@ -46,7 +46,15 @@ export function CommentListItem({
   return (
     <div style={{paddingLeft: `${comment.depth * 20}px`}}>
       <div className="group flex min-h-70 items-start gap-24 py-18">
-        <UserAvatar user={comment.user} size={isMobile ? 'lg' : 'xl'} circle />
+        {comment.user ? (
+          <UserAvatar
+            user={comment.user}
+            size={isMobile ? 'lg' : 'xl'}
+            circle
+          />
+        ) : (
+          <Avatar label="User" />
+        )}
         <div className="flex-auto text-sm">
           <div className="mb-4 flex items-center gap-8">
             {comment.user && <UserDisplayName user={comment.user} />}
@@ -154,14 +162,7 @@ export function CommentOptionsTrigger({
   const handleDelete = (isConfirmed: boolean) => {
     setIsDeleteDialogOpen(false);
     if (isConfirmed) {
-      deleteComments.mutate(
-        {commentIds: [comment.id]},
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['comment']});
-          },
-        },
-      );
+      deleteComments.mutate({commentIds: [comment.id]});
     }
   };
 
@@ -204,11 +205,14 @@ export function CommentOptionsTrigger({
 }
 
 interface UserDisplayNameProps {
-  user: User;
+  user: {
+    name: string;
+    id: number;
+  };
 }
 function UserDisplayName({user}: UserDisplayNameProps) {
   const {auth} = useContext(SiteConfigContext);
-  if (auth.getUserProfileLink) {
+  if (auth?.getUserProfileLink) {
     return (
       <Link
         to={auth.getUserProfileLink(user)}

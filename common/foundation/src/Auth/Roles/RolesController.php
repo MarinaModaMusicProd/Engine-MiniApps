@@ -1,34 +1,23 @@
 <?php namespace Common\Auth\Roles;
 
 use App\Models\User;
-use Common\Auth\Roles\CrupdateRole;
-use Common\Auth\Roles\Role;
 use Common\Core\BaseController;
 use Common\Database\Datasource\Datasource;
-use Illuminate\Http\Request;
 
 class RolesController extends BaseController
 {
-    /**
-     * @var User
-     */
-    private $user;
+    public function __construct(protected Role $role, protected User $user) {}
 
-    /**
-     * @var Role
-     */
-    private $role;
-
-    /**
-     * @var Request
-     */
-    private $request;
-
-    public function __construct(Request $request, Role $role, User $user)
+    public function index()
     {
-        $this->role = $role;
-        $this->user = $user;
-        $this->request = $request;
+        $this->authorize('index', Role::class);
+
+        $pagination = (new Datasource(
+            Role::query()->where('type', request('type', 'users')),
+            request()->all(),
+        ))->paginate();
+
+        return $this->success(['pagination' => $pagination]);
     }
 
     public function show(Role $role)
@@ -40,30 +29,19 @@ class RolesController extends BaseController
         return $this->success(['role' => $role]);
     }
 
-    public function index()
-    {
-        $this->authorize('index', Role::class);
-
-        $pagination = (new Datasource(
-            $this->role,
-            request()->all(),
-        ))->paginate();
-
-        return $this->success(['pagination' => $pagination]);
-    }
-
     public function store()
     {
         $this->authorize('store', Role::class);
+        $this->blockOnDemoSite();
 
-        $this->validate($this->request, [
+        $data = $this->validate(request(), [
             'name' => 'required|unique:roles|min:2|max:255',
-            'default' => 'nullable|boolean',
-            'guests' => 'nullable|boolean',
+            'description' => 'nullable|string|max:200',
+            'type' => 'string',
             'permissions' => 'nullable|array',
         ]);
 
-        $role = app(CrupdateRole::class)->execute($this->request->all());
+        $role = (new CrupdateRole())->execute($data);
 
         return $this->success(['role' => $role], 201);
     }
@@ -71,26 +49,36 @@ class RolesController extends BaseController
     public function update(int $id)
     {
         $this->authorize('update', Role::class);
+        $this->blockOnDemoSite();
 
-        $this->validate($this->request, [
+        $data = $this->validate(request(), [
             'name' => "min:2|max:255|unique:roles,name,$id",
-            'default' => 'boolean',
-            'guests' => 'boolean',
+            'description' => 'nullable|string|max:200',
+            'type' => 'string',
             'permissions' => 'array',
         ]);
 
-        $role = $this->role->findOrFail($id);
+        $role = Role::findOrFail($id);
 
-        $role = app(CrupdateRole::class)->execute($this->request->all(), $role);
+        $role = (new CrupdateRole())->execute($data, $role);
 
         return $this->success(['role' => $role]);
     }
 
     public function destroy(int $id)
     {
-        $role = $this->role->findOrFail($id);
+        $role = Role::findOrFail($id);
+
+        if ($role->internal) {
+            return $this->error(
+                __("System role ':name' cannot be deleted.", [
+                    'name' => $role->name,
+                ]),
+            );
+        }
 
         $this->authorize('destroy', $role);
+        $this->blockOnDemoSite();
 
         $role->users()->detach();
         $role->delete();
@@ -102,16 +90,17 @@ class RolesController extends BaseController
     {
         $this->authorize('update', Role::class);
 
-        $this->validate($this->request, [
+        $this->validate(request(), [
             'userIds' => 'required|array|min:1|max:25',
             'userIds.*' => 'required|int',
         ]);
 
         $role = $this->role->findOrFail($roleId);
+        $this->blockOnDemoSite();
 
         $users = $this->user
             ->with('roles')
-            ->whereIn('id', $this->request->get('userIds'))
+            ->whereIn('id', request('userIds'))
             ->get(['email', 'id']);
 
         if ($users->isEmpty()) {
@@ -133,15 +122,16 @@ class RolesController extends BaseController
     public function removeUsers(int $roleId)
     {
         $this->authorize('update', Role::class);
+        $this->blockOnDemoSite();
 
-        $this->validate($this->request, [
+        $this->validate(request(), [
             'userIds' => 'required|array|min:1',
             'userIds.*' => 'required|integer',
         ]);
 
         $role = $this->role->findOrFail($roleId);
 
-        $role->users()->detach($this->request->get('userIds'));
+        $role->users()->detach(request('userIds'));
 
         return $this->success();
     }

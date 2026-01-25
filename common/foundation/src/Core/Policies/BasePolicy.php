@@ -9,7 +9,7 @@ use Common\Settings\Settings;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Http\Request;
-use Str;
+use Illuminate\Support\Str;
 
 abstract class BasePolicy
 {
@@ -34,13 +34,14 @@ abstract class BasePolicy
     protected function storeWithCountRestriction(
         User $user,
         string $namespace,
+        string|null $ability = 'create',
     ): Response {
         [
             $relationName,
             $permission,
             $singularName,
             $pluralName,
-        ] = $this->parseNamespace($namespace);
+        ] = $this->parseNamespace($namespace, $ability);
 
         // user can't create resource at all
         if (!$this->hasPermission($user, $permission)) {

@@ -1,21 +1,18 @@
-import {RouteObject} from 'react-router-dom';
-import {ContactUsPage} from '@common/contact/contact-us-page';
-import {CustomPageLayout} from '@common/custom-page/custom-page-layout';
 import {NotFoundPage} from '@common/ui/not-found-page/not-found-page';
-import React from 'react';
+import {RouteObject} from 'react-router';
 
 export const commonRoutes: RouteObject[] = [
   {
     path: 'contact',
-    element: <ContactUsPage />,
+    lazy: () => import('@common/contact/contact-us-page'),
   },
   {
     path: 'pages/:pageSlug',
-    element: <CustomPageLayout />,
+    lazy: () => import('@common/custom-page/custom-page-layout'),
   },
   {
     path: 'pages/:pageId/:pageSlug',
-    element: <CustomPageLayout />,
+    lazy: () => import('@common/custom-page/custom-page-layout'),
   },
   {
     path: '404',

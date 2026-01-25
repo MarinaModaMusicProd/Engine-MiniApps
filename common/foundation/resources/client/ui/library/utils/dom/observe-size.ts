@@ -3,12 +3,15 @@ import {RefObject} from 'react';
 type Callback = (e: {width: number; height: number}) => void;
 
 export function observeSize(
-  ref: RefObject<HTMLElement>,
+  ref: RefObject<HTMLElement | null>,
   callback: Callback,
 ): () => void {
   const observer = new ResizeObserver(entries => {
-    const rect = entries[0].contentRect;
-    callback({width: rect.width, height: rect.height});
+    // entries[0].contentRect does not include border
+    callback({
+      width: entries[0].borderBoxSize[0].inlineSize,
+      height: entries[0].borderBoxSize[0].blockSize,
+    });
   });
   if (ref.current) {
     observer.observe(ref.current);

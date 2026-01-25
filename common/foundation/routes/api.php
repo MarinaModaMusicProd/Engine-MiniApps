@@ -1,24 +1,23 @@
 <?php
 
-use Common\Admin\AdminSetupAlertsController;
+use Common\Admin\SiteAlertsController;
 use Common\Admin\Analytics\AnalyticsController;
-use Common\Admin\Appearance\Controllers\AppearanceController;
-use Common\Admin\Appearance\Controllers\SeoTagsController;
 use Common\Admin\CacheController;
 use Common\Admin\ImpersonateUserController;
 use Common\Admin\Sitemap\SitemapController;
 use Common\Auth\Controllers\AccessTokenController;
-use Common\Auth\Controllers\BanUserController;
+use Common\Auth\Controllers\BanUsersController;
 use Common\Auth\Controllers\EmailVerificationController;
 use Common\Auth\Controllers\MobileAuthController;
+use Common\Auth\Controllers\PermissionsController;
 use Common\Auth\Controllers\SocialAuthController;
-use Common\Auth\Controllers\UserAvatarController;
 use Common\Auth\Controllers\UserController;
-use Common\Auth\Controllers\UserFollowedUsersController;
-use Common\Auth\Controllers\UserFollowersController;
+use Common\Auth\Controllers\FollowedUsersController;
+use Common\Auth\Controllers\FollowersController;
 use Common\Auth\Controllers\UserSessionsController;
 use Common\Auth\Middleware\VerifyApiAccessMiddleware;
 use Common\Auth\Roles\RolesController;
+use Common\Billing\BillingUserController;
 use Common\Billing\Gateways\Paypal\PaypalController;
 use Common\Billing\Gateways\Stripe\StripeController;
 use Common\Billing\Gateways\SyncProductsController;
@@ -28,6 +27,8 @@ use Common\Billing\Subscriptions\SubscriptionsController;
 use Common\Comments\Controllers\CommentableController;
 use Common\Comments\Controllers\CommentController;
 use Common\Core\Controllers\BootstrapController;
+use Common\Core\Install\LicenseController;
+use Common\Core\Install\UpdateController;
 use Common\Core\Values\ValueListsController;
 use Common\Csv\CommonCsvExportController;
 use Common\Domains\CustomDomainController;
@@ -36,6 +37,7 @@ use Common\Files\Controllers\DownloadFileController;
 use Common\Files\Controllers\FileEntriesController;
 use Common\Files\Controllers\RestoreDeletedEntriesController;
 use Common\Files\Controllers\ServerMaxUploadSizeController;
+use Common\Files\Controllers\ValidateBackendCredentialsController;
 use Common\Files\S3\S3CorsController;
 use Common\Files\S3\S3FileEntryController;
 use Common\Files\S3\S3MultipartUploadController;
@@ -54,11 +56,10 @@ use Common\Pages\CustomPageController;
 use Common\Reports\ReportController;
 use Common\Search\Controllers\NormalizedModelsController;
 use Common\Search\Controllers\SearchSettingsController;
-use Common\Settings\SettingsController;
+use Common\Settings\Manager\SettingsController;
 use Common\Settings\Uploading\DropboxRefreshTokenController;
 use Common\Tags\TagController;
 use Common\Tags\TaggableController;
-use Common\Validation\RecaptchaController;
 use Common\Votes\VoteController;
 use Common\Workspaces\Controllers\WorkspaceController;
 use Common\Workspaces\Controllers\WorkspaceInvitesController;
@@ -119,6 +120,9 @@ Route::group(['prefix' => 'v1'], function () {
         Route::post('roles/{id}/remove-users', [RolesController::class, 'removeUsers']);
         Route::post('roles/csv/export', [CommonCsvExportController::class, 'exportRoles']);
 
+        //PERMISSIONS
+        Route::get('permissions', [PermissionsController::class, 'index']);
+
         //USERS
         Route::get('users/{user}', [UserController::class, 'show'])->withoutMiddleware('verified');
         Route::apiResource('users', UserController::class)->except(['destroy', 'show']);
@@ -126,21 +130,17 @@ Route::group(['prefix' => 'v1'], function () {
         Route::post('access-tokens', [AccessTokenController::class, 'store']);
         Route::delete('access-tokens/{tokenId}', [AccessTokenController::class, 'destroy']);
         Route::post('users/csv/export', [CommonCsvExportController::class, 'exportUsers']);
-        Route::get('users/{user}/followers', [UserFollowersController::class, 'index']);
-        Route::post('users/{user}/follow', [UserFollowersController::class, 'follow']);
-        Route::post('users/{user}/unfollow', [UserFollowersController::class, 'unfollow']);
-        Route::get('users/{user}/followed-users', [UserFollowedUsersController::class, 'index']);
-        Route::get('users/{user}/followed-users/ids', [UserFollowedUsersController::class, 'ids']);
+        Route::get('users/{user}/followers', [FollowersController::class, 'index']);
+        Route::post('users/{user}/follow', [FollowersController::class, 'follow']);
+        Route::post('users/{user}/unfollow', [FollowersController::class, 'unfollow']);
+        Route::get('users/{user}/followed-users', [FollowedUsersController::class, 'index']);
+        Route::get('users/{user}/followed-users/ids', [FollowedUsersController::class, 'ids']);
         Route::post('resend-email-verification', [EmailVerificationController::class, 'resendVerificationEmail'])->middleware(['throttle:6,1']);
-        Route::post('validate-email-verification-otp', [EmailVerificationController::class, 'validateOtp'])->middleware(['throttle:6,1']);
-
-        //USER AVATAR
-        Route::post('users/{user}/avatar', [UserAvatarController::class, 'store']);
-        Route::delete('users/{user}/avatar', [UserAvatarController::class, 'destroy']);
+        Route::post('validate-email-verification-otp', [EmailVerificationController::class, 'validateOtp'])->middleware(['throttle:6,1'])->withoutMiddleware('verified');
 
         // USER BANS
-        Route::post('users/ban/{id}', [BanUserController::class, 'store']);
-        Route::delete('users/unban/{id}', [BanUserController::class, 'destroy']);
+        Route::post('users/ban/{userIds}', [BanUsersController::class, 'store']);
+        Route::delete('users/unban/{userIds}', [BanUsersController::class, 'destroy']);
 
         // USER SESSIONS
         Route::get('user-sessions', [UserSessionsController::class, 'index'])->middleware('auth');
@@ -171,17 +171,14 @@ Route::group(['prefix' => 'v1'], function () {
 
         // SETTINGS
         Route::get('settings', [SettingsController::class, 'index']);
-        Route::post('settings', [SettingsController::class, 'persist']);
+        Route::get('settings/seo-tags', [SettingsController::class, 'loadSeoTags']);
+        Route::get('settings/menu-editor-config', [SettingsController::class, 'loadMenuEditorConfig']);
+        Route::post('settings', [SettingsController::class, 'update']);
         Route::post('settings/uploading/dropbox-refresh-token', [DropboxRefreshTokenController::class, 'generate']);
+        Route::put('settings/uploading/validate-backend-credentials',ValidateBackendCredentialsController::class);
 
         // SITEMAP
         Route::post('sitemap/generate', [SitemapController::class, 'generate']);
-
-        // APPEARANCE EDITOR
-        Route::post('admin/appearance', [AppearanceController::class, 'save']);
-        Route::get('admin/appearance/values', [AppearanceController::class, 'getValues']);
-        Route::get('admin/appearance/seo-tags/{name}', [SeoTagsController::class, 'show']);
-        Route::put('admin/appearance/seo-tags/{name}', [SeoTagsController::class, 'update']);
 
         // CUSTOM PAGES
         Route::apiResource('custom-pages', CustomPageController::class);
@@ -212,25 +209,23 @@ Route::group(['prefix' => 'v1'], function () {
         // SUBSCRIPTIONS
         Route::get('billing/subscriptions', [SubscriptionsController::class, 'index']);
         Route::post('billing/subscriptions', [SubscriptionsController::class, 'store']);
-        Route::post('billing/subscriptions/{subscription}/cancel', [SubscriptionsController::class, 'cancel']);
-        Route::put('billing/subscriptions/{subscription}', [SubscriptionsController::class, 'update']);
-        Route::post('billing/subscriptions/{subscription}/resume', [SubscriptionsController::class, 'resume']);
-        Route::post('billing/subscriptions/{subscription}/change-plan', [SubscriptionsController::class, 'changePlan']);
+        Route::post('billing/subscriptions/{id}/cancel', [SubscriptionsController::class, 'cancel']);
+        Route::put('billing/subscriptions/{id}', [SubscriptionsController::class, 'update']);
+        Route::post('billing/subscriptions/{id}/resume', [SubscriptionsController::class, 'resume']);
+        Route::post('billing/subscriptions/{id}/change-plan', [SubscriptionsController::class, 'changePlan']);
         Route::post('billing/stripe/create-partial-subscription', [StripeController::class, 'createPartialSubscription']);
         Route::post('billing/stripe/create-setup-intent', [StripeController::class, 'createSetupIntent']);
         Route::post('billing/stripe/change-default-payment-method', [StripeController::class, 'changeDefaultPaymentMethod']);
         Route::post('billing/stripe/store-subscription-details-locally', [StripeController::class, 'storeSubscriptionDetailsLocally']);
         Route::post('billing/paypal/store-subscription-details-locally', [PaypalController::class, 'storeSubscriptionDetailsLocally']);
-
-        // INVOICES
-        Route::get('billing/invoices', [InvoiceController::class, 'index']);
+        Route::get('billing/user', BillingUserController::class);
 
         // CUSTOM DOMAINS
         Route::apiResource('custom-domain', CustomDomainController::class)->middleware('customDomainsEnabled');
 
         // ADMIN
         Route::get('uploads/server-max-file-size', [ServerMaxUploadSizeController::class, 'index']);
-        Route::get('admin/setup-alerts', [AdminSetupAlertsController::class, 'index']);
+        Route::get('admin/site-alerts', [SiteAlertsController::class, 'index']);
         Route::get('admin/reports', [AnalyticsController::class, 'report']);
         Route::get('admin/reports/header', [AnalyticsController::class, 'headerReport']);
         Route::get('admin/reports/sessions', [AnalyticsController::class, 'sessionsReport']);
@@ -252,9 +247,6 @@ Route::group(['prefix' => 'v1'], function () {
         // VALUE LISTS
         Route::get('value-lists/{names}', [ValueListsController::class, 'index'])->withoutMiddleware('verified');
 
-        // RECAPTCHA
-        Route::post('recaptcha/verify', [RecaptchaController::class, 'verify']);
-
         // SCHEDULE LOG
         Route::get('logs/schedule', [ScheduleLogController::class, 'index']);
         Route::post('logs/schedule/rerun/{id}', [ScheduleLogController::class, 'rerun']);
@@ -274,7 +266,13 @@ Route::group(['prefix' => 'v1'], function () {
 
         // BOOTSTRAP
         Route::get('bootstrap-data', [BootstrapController::class, 'getBootstrapData']);
-        Route::get('remote-config/mobile', [BootstrapController::class, 'getMobileBootstrapData']);
+        Route::get('remote-config/mobile', [BootstrapController::class, 'getMobileBootstrapData'])->withoutMiddleware('verifyApiAccess');
+
+        // UPDATE
+        Route::post('update', [UpdateController::class, 'runUpdate']);
+
+        // PURCHASE CODES
+        Route::post('license/register-purchase-code', [LicenseController::class, 'registerPurchaseCode']);
 
         $verificationLimiter = config('fortify.limiters.verification', '6,1');
         Route::post('auth/email/verification-notification', [MobileAuthController::class, 'sendEmailVerificationNotification'])->middleware(['throttle:'.$verificationLimiter]);

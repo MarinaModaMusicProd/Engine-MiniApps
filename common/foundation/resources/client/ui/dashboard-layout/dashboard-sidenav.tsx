@@ -6,6 +6,7 @@ import {DashboardLayoutContext} from './dashboard-layout-context';
 export interface DashboardSidenavChildrenProps {
   className?: string;
   isCompactMode?: boolean;
+  isOverlayMode?: boolean;
 }
 
 export interface SidenavProps {
@@ -38,14 +39,17 @@ export function DashboardSidenav({
     rightSidenavStatus,
     setRightSidenavStatus,
   } = useContext(DashboardLayoutContext);
-  const status = position === 'left' ? leftSidenavStatus : rightSidenavStatus;
   const isOverlayMode = isMobileMode || mode === 'overlay';
+  let status = position === 'left' ? leftSidenavStatus : rightSidenavStatus;
+  // on mobile always overlay full size sidebar, instead of compact
+  if (isOverlayMode && status === 'compact') {
+    status = 'open';
+  }
 
   const variants = {
-    open: {display, width: null as any},
-    compact: {
+    open: {
       display,
-      width: null as any,
+      width: getAnimateSize(status === 'compact' ? 'compact' : size) as any,
     },
     closed: {
       width: 0,
@@ -55,13 +59,15 @@ export function DashboardSidenav({
     },
   };
 
-  const sizeClassName = getSize(status === 'compact' ? 'compact' : size);
+  const sizeClassName = getSizeClassName(
+    status === 'compact' ? 'compact' : size,
+  );
 
   return (
     <m.div
       variants={variants}
       initial={false}
-      animate={forceClosed ? 'closed' : status}
+      animate={forceClosed || status === 'closed' ? 'closed' : 'open'}
       transition={{type: 'tween', duration: 0.15}}
       onClick={e => {
         // close sidenav when user clicks a link or button on mobile
@@ -76,7 +82,6 @@ export function DashboardSidenav({
         position === 'left'
           ? 'dashboard-grid-sidenav-left'
           : 'dashboard-grid-sidenav-right',
-        'will-change-[width]',
         overflow,
         sizeClassName,
         isOverlayMode && `${overlayPosition} bottom-0 top-0 z-20 shadow-2xl`,
@@ -87,16 +92,17 @@ export function DashboardSidenav({
       {cloneElement<DashboardSidenavChildrenProps>(children, {
         className: clsx(
           children.props.className,
-          'w-full h-full',
-          status === 'compact' && 'compact-scrollbar',
+          'w-full h-full overflow-y-auto compact-scrollbar',
+          status === 'compact' && 'hidden-scrollbar',
         ),
         isCompactMode: status === 'compact',
+        isOverlayMode,
       })}
     </m.div>
   );
 }
 
-function getSize(size: SidenavProps['size'] | 'compact'): string {
+function getSizeClassName(size: SidenavProps['size'] | 'compact'): string {
   switch (size) {
     case 'compact':
       return 'w-60';
@@ -106,7 +112,26 @@ function getSize(size: SidenavProps['size'] | 'compact'): string {
       return 'w-240';
     case 'lg':
       return 'w-288';
+    case 'xl':
+      return 'w-340';
     default:
       return size || '';
+  }
+}
+
+function getAnimateSize(size: SidenavProps['size'] | 'compact') {
+  switch (size) {
+    case 'compact':
+      return 60;
+    case 'sm':
+      return 224;
+    case 'md':
+      return 240;
+    case 'lg':
+      return 288;
+    case 'xl':
+      return 340;
+    default:
+      return size ? parseInt(size.replace(/^\D+/g, '')) : null;
   }
 }

@@ -1,6 +1,29 @@
+import {ImapConnectionCredentials} from '@common/admin/settings/pages/email-settings/incoming-email/imap-connection-credentials';
 import {MenuConfig, MenuItemConfig} from '@common/menus/menu-config';
+import {SectionConfig} from '@common/ui/landing-page/landing-page-config';
+import {Settings} from '@ui/settings/settings';
 
-export type RecaptchaAction = 'contact' | 'register' | 'link_creation';
+export const DEFAULT_CHUNK_SIZE = 2097152; // 2MB
+
+export type CaptchaAction = keyof NonNullable<
+  Required<Settings>['captcha']['enable']
+>;
+
+export type UploadingBackendSettings = {
+  id: string;
+  name: string;
+  root?: string;
+  domain?: string;
+  type: string;
+  config?: Record<string, string | number>;
+};
+
+export type UploadingTypeSettings = {
+  backends: string[];
+  root?: string;
+  max_file_size?: number;
+  accept?: string[];
+};
 
 export interface BaseBackendSettings {
   version: string;
@@ -12,6 +35,9 @@ export interface BaseBackendSettings {
     site_name: string;
     site_description: string;
     favicon: string;
+  };
+  landingPage?: {
+    sections?: SectionConfig[];
   };
   menus: MenuConfig[];
   html_base_uri: string;
@@ -39,10 +65,32 @@ export interface BaseBackendSettings {
   api?: {
     integrated: boolean;
   };
+  websockets?: {
+    integrated: boolean;
+  };
+  incoming_email?: {
+    integrated?: boolean;
+    imap?: {
+      connections?: ImapConnectionCredentials[];
+    };
+    mailgun?: {
+      enabled?: boolean;
+      verify?: boolean;
+    };
+    gmail?: {
+      enabled?: boolean;
+      topicName?: string;
+    };
+    pipe?: {
+      enabled?: boolean;
+    };
+    api?: {
+      enabled?: boolean;
+    };
+  };
   billing: {
     integrated: boolean;
     enable: boolean;
-    accepted_cards?: string | string[];
     paypal_test_mode: boolean;
     stripe_public_key?: string;
     invoice: {
@@ -90,29 +138,17 @@ export interface BaseBackendSettings {
     compact_buttons: boolean;
     requireAccount?: boolean;
   };
-  web3?: {
-    ton?: {
-      enable: boolean;
-    };
-    compact_buttons: boolean;
-    requireAccount?: boolean;
-  };
   auth?: {
     domain_blacklist?: string;
   };
   workspaces: {
     integrated: boolean;
   };
-  uploads: {
-    chunk_size: number;
-    max_size: number;
-    available_space: number;
-    allowed_extensions?: string[];
-    blocked_extensions?: string[];
-    public_driver: string;
-    uploads_driver: string;
-    s3_direct_upload: boolean;
-    disable_tus: boolean;
+  uploading?: {
+    chunk_size?: number;
+    backends?: UploadingBackendSettings[];
+    disable_tus?: boolean;
+    types?: Record<string, UploadingTypeSettings>;
   };
   require_email_confirmation: boolean;
   single_device_login: boolean;
@@ -120,13 +156,16 @@ export interface BaseBackendSettings {
     contact_page_address?: string;
     handler?: string;
   };
-  recaptcha?: {
-    enable?: Record<RecaptchaAction, boolean>;
-    site_key?: string;
-    secret_key?: string;
+  captcha?: {
+    enable?: Record<'contact' | 'register', boolean>;
+    provider?: 'recaptcha' | 'turnstile';
+    g_site_key?: string;
+    g_secret_key?: string;
+    t_site_key?: string;
+    t_secret_key?: string;
   };
   broadcasting?: {
-    driver?: 'pusher' | 'reverb' | 'ably';
+    driver?: 'pusher' | 'reverb' | 'ably' | 'null' | 'log';
     key?: string;
     cluster?: string;
     host?: string;

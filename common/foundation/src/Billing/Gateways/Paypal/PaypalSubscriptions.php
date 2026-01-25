@@ -1,17 +1,19 @@
 <?php namespace Common\Billing\Gateways\Paypal;
 
 use App\Models\User;
+use Common\Billing\Gateways\Stripe\FormatsMoney;
 use Common\Billing\Invoices\Invoice;
 use Common\Billing\Models\Price;
 use Common\Billing\Models\Product;
 use Common\Billing\Notifications\NewInvoiceAvailable;
 use Common\Billing\Subscription;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class PaypalSubscriptions
 {
-    use InteractsWithPaypalRestApi;
+    use InteractsWithPaypalRestApi, FormatsMoney;
 
     public function isIncomplete(Subscription $subscription): bool
     {
@@ -56,18 +58,47 @@ class PaypalSubscriptions
             $subscription->markAsCancelled();
         }
 
+        $isOnTrial =
+            // subscription has 2 cycles, first is trial, second is regular
+            count(Arr::get($response, 'billing_info.cycle_executions', [])) ===
+                2 &&
+            // first cycle is trial
+            Arr::get(
+                $response,
+                'billing_info.cycle_executions.0.tenure_type',
+            ) === 'TRIAL' &&
+            // trial cycle has been completed
+            Arr::get(
+                $response,
+                'billing_info.cycle_executions.0.cycles_completed',
+            ) === 1 &&
+            // regular cycle has not completed yet
+            Arr::get(
+                $response,
+                'billing_info.cycle_executions.1.cycles_completed',
+            ) === 0;
+
+        $nextBillingTime = Arr::get(
+            $response,
+            'billing_info.next_billing_time',
+            null,
+        );
+
+        $trialEndsAt =
+            $isOnTrial && $nextBillingTime
+                ? Carbon::parse($nextBillingTime)
+                : null;
+
         $data = [
             'price_id' => $price->id,
             'product_id' => $price->product_id,
             'gateway_name' => 'paypal',
             'gateway_id' => $paypalSubscriptionId,
             'gateway_status' => $response['status'],
+            'trial_ends_at' => $trialEndsAt,
             'renews_at' =>
-                $response['status'] === 'ACTIVE' &&
-                isset($response['billing_info']['next_billing_time'])
-                    ? Carbon::parse(
-                        $response['billing_info']['next_billing_time'],
-                    )
+                $response['status'] === 'ACTIVE' && $nextBillingTime
+                    ? Carbon::parse($nextBillingTime)
                     : null,
         ];
 
@@ -93,26 +124,46 @@ class PaypalSubscriptions
         $renewsAt = Carbon::parse(
             $paypalSubscription['billing_info']['next_billing_time'],
         );
-        $isPaid = $paypalSubscription['status'] === 'ACTIVE';
+
+        $status =
+            $paypalSubscription['status'] === 'ACTIVE'
+                ? Invoice::STATUS_PAID
+                : Invoice::STATUS_DRAFT;
+        $amountPaid = $subscription->onTrial()
+            ? 0
+            : $this->priceToCents($subscription->price);
 
         $invoice = Invoice::whereBetween('created_at', [
             $startTime,
             $renewsAt,
         ])->first();
+
         if ($invoice) {
-            // paid invoices should never be set to unpaid
-            if (!$invoice->paid) {
-                $invoice->update(['paid' => $isPaid]);
+            // paid invoices should never be set to unpaid,
+            // this could happen if webhooks arrive out of order
+            if ($invoice->status !== Invoice::STATUS_PAID) {
+                $invoice->update([
+                    'status' => $status,
+                ]);
+            }
+
+            if ($amountPaid > $invoice->amount_paid) {
+                $invoice->update([
+                    'amount_paid' => $amountPaid,
+                    'currency' => $subscription->price->currency,
+                ]);
             }
         } else {
             $invoice = Invoice::create([
                 'subscription_id' => $subscription->id,
-                'paid' => $isPaid,
+                'status' => $status,
+                'amount_paid' => $amountPaid,
+                'currency' => $subscription->price->currency,
                 'uuid' => Str::random(10),
             ]);
         }
 
-        if ($invoice->paid && !$invoice->notified) {
+        if ($invoice->status === Invoice::STATUS_PAID && !$invoice->notified) {
             $subscription->user->notify(new NewInvoiceAvailable($invoice));
             $invoice->update(['notified' => true]);
         }

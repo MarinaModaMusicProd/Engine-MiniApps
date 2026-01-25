@@ -1,9 +1,9 @@
 import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import {useContext, useEffect, useRef} from 'react';
 import {PlayerStoreContext} from '@common/player/player-context';
-import {useHtmlMediaInternalState} from '@common/player/providers/html-media/use-html-media-internal-state';
-import {useHtmlMediaEvents} from '@common/player/providers/html-media/use-html-media-events';
 import {useHtmlMediaApi} from '@common/player/providers/html-media/use-html-media-api';
+import {useHtmlMediaEvents} from '@common/player/providers/html-media/use-html-media-events';
+import {useHtmlMediaInternalState} from '@common/player/providers/html-media/use-html-media-internal-state';
+import {useContext, useEffect, useRef} from 'react';
 
 export function HtmlAudioProvider() {
   const ref = useRef<HTMLAudioElement>(null);
@@ -30,7 +30,7 @@ export function HtmlAudioProvider() {
 
   return (
     <audio
-      className="w-full h-full"
+      className="h-full w-full"
       ref={ref}
       src={src}
       autoPlay={autoPlay}

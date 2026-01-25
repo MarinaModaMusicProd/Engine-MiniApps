@@ -5,7 +5,7 @@ namespace Common\Auth\Fortify;
 use App\Models\User;
 use Closure;
 use Common\Auth\Actions\CreateUser;
-use Common\Auth\Fortify\PasswordValidationRules;
+use Common\Validation\CaptchaTokenValid;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -27,7 +27,7 @@ class FortifyRegisterUser implements CreatesNewUsers
             abort(404);
         }
 
-        $appRules = config('common.registration-rules') ?? [];
+        $appRules = config('registration-rules') ?? [];
         $commonRules = [
             'email' => [
                 'required',
@@ -45,6 +45,7 @@ class FortifyRegisterUser implements CreatesNewUsers
             'token_name' => 'string|min:3|max:50',
             'invite_id' => 'string',
             'invite_type' => 'string',
+            'captcha_token' => [new CaptchaTokenValid('register')],
         ];
 
         foreach ($appRules as $key => $rules) {

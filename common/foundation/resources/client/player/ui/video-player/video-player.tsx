@@ -1,28 +1,28 @@
 import {
+  PlayerActions,
+  usePlayerActions,
+} from '@common/player/hooks/use-player-actions';
+import { usePlayerClickHandler } from '@common/player/hooks/use-player-click-handler';
+import { usePlayerStore } from '@common/player/hooks/use-player-store';
+import { MediaItem } from '@common/player/media-item';
+import { PlayerContext } from '@common/player/player-context';
+import { PlayerStoreOptions } from '@common/player/state/player-store-options';
+import { BufferingSpinner } from '@common/player/ui/controls/buffering-spinner';
+import { PlayerPoster } from '@common/player/ui/controls/player-poster';
+import { PlayerOutlet } from '@common/player/ui/player-outlet';
+import { VideoPlayerControls } from '@common/player/ui/video-player/video-player-controls';
+import { guessPlayerProvider } from '@common/player/utils/guess-player-provider';
+import { IconButton } from '@ui/buttons/icon-button';
+import { MediaPlayIcon } from '@ui/icons/media/media-play';
+import { usePrevious } from '@ui/utils/hooks/use-previous';
+import clsx from 'clsx';
+import {
   MutableRefObject,
   ReactNode,
   useCallback,
   useEffect,
   useRef,
 } from 'react';
-import {PlayerContext} from '@common/player/player-context';
-import {MediaItem} from '@common/player/media-item';
-import {PlayerOutlet} from '@common/player/ui/player-outlet';
-import {
-  PlayerActions,
-  usePlayerActions,
-} from '@common/player/hooks/use-player-actions';
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import clsx from 'clsx';
-import {PlayerPoster} from '@common/player/ui/controls/player-poster';
-import {usePlayerClickHandler} from '@common/player/hooks/use-player-click-handler';
-import {IconButton} from '@ui/buttons/icon-button';
-import {MediaPlayIcon} from '@ui/icons/media/media-play';
-import {BufferingSpinner} from '@common/player/ui/controls/buffering-spinner';
-import {guessPlayerProvider} from '@common/player/utils/guess-player-provider';
-import {usePrevious} from '@ui/utils/hooks/use-previous';
-import {PlayerStoreOptions} from '@common/player/state/player-store-options';
-import {VideoPlayerControls} from '@common/player/ui/video-player/video-player-controls';
 
 interface Props {
   id: string;
@@ -76,8 +76,8 @@ interface PlayerLayoutProps {
   rightActions?: ReactNode;
 }
 function PlayerLayout({apiRef, rightActions}: PlayerLayoutProps) {
-  const leaveTimerRef = useRef<number | null>();
-  const inactiveTimerRef = useRef<number | null>();
+  const leaveTimerRef = useRef<number>(null);
+  const inactiveTimerRef = useRef<number>(null);
   const pointerIsOverControls = useRef(false);
   const actions = usePlayerActions();
   const controlsVisible = usePlayerStore(s => s.controlsVisible);

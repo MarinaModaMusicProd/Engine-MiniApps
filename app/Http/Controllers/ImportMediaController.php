@@ -21,9 +21,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ImportMediaController extends BaseController
 {
-    public function __construct(protected Request $request)
-    {
-    }
+    public function __construct(protected Request $request) {}
 
     public function import()
     {
@@ -75,7 +73,7 @@ class ImportMediaController extends BaseController
                 Playlist::unguard();
                 $playlist = Playlist::firstOrCreate(
                     ['spotify_id' => $spotifyId],
-                    ['owner_id' => Auth::id()],
+                    ['owner_id' => Auth::id(), ...$data['playlist']],
                 );
                 $playlist->editors()->syncWithoutDetaching([Auth::id()]);
                 $playlist->fill($data['playlist'])->save();

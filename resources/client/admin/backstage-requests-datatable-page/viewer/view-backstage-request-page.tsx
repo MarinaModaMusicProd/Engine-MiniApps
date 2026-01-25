@@ -1,32 +1,34 @@
-import React, {cloneElement, ReactElement, ReactNode} from 'react';
-import {useBackstageRequest} from '@app/web-player/backstage/requests/use-backstage-request';
-import {Trans} from '@ui/i18n/trans';
-import {BackstageRequest} from '@app/web-player/backstage/backstage-request';
 import {BackstageRequestType} from '@app/admin/backstage-requests-datatable-page/backstage-request-type';
+import {BackstageRequestViewerHeader} from '@app/admin/backstage-requests-datatable-page/viewer/backstage-request-viewer-header';
 import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
 import {ArtistLink} from '@app/web-player/artists/artist-link';
-import {SvgIconProps} from '@ui/icons/svg-icon';
-import {TwitterIcon} from '@ui/icons/social/twitter';
-import {FacebookIcon} from '@ui/icons/social/facebook';
-import {DocumentScannerIcon} from '@ui/icons/material/DocumentScanner';
-import {prettyBytes} from '@ui/utils/files/pretty-bytes';
-import {BackstageRequestViewerHeader} from '@app/admin/backstage-requests-datatable-page/viewer/backstage-request-viewer-header';
+import {BackstageRequest} from '@app/web-player/backstage/backstage-request';
+import {useBackstageRequest} from '@app/web-player/backstage/requests/use-backstage-request';
+import {UserAvatar} from '@common/auth/user-avatar';
+import {PageStatus} from '@common/http/page-status';
+import {Button} from '@ui/buttons/button';
 import {LinkStyle} from '@ui/buttons/external-link';
+import {Trans} from '@ui/i18n/trans';
+import {DocumentScannerIcon} from '@ui/icons/material/DocumentScanner';
+import {FacebookIcon} from '@ui/icons/social/facebook';
+import {TwitterIcon} from '@ui/icons/social/twitter';
+import {SvgIconProps} from '@ui/icons/svg-icon';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {ImageZoomDialog} from '@ui/overlays/dialog/image-zoom-dialog';
-import {Button} from '@ui/buttons/button';
-import {PageStatus} from '@common/http/page-status';
-import {UserAvatar} from '@common/auth/user-avatar';
+import {prettyBytes} from '@ui/utils/files/pretty-bytes';
+import {cloneElement, ReactElement, ReactNode} from 'react';
 
-export function ViewBackstageRequestPage() {
+export function Component() {
   const query = useBackstageRequest();
 
   if (query.data) {
     return (
-      <div className="container mx-auto p-24">
+      <div className="flex h-full flex-col">
         <BackstageRequestViewerHeader request={query.data.request} />
-        <RequestDetails request={query.data.request} />
-        <VerificationList request={query.data.request} />
+        <div className="container mx-auto flex-auto overflow-y-auto p-24">
+          <RequestDetails request={query.data.request} />
+          <VerificationList request={query.data.request} />
+        </div>
       </div>
     );
   }
@@ -50,7 +52,7 @@ function RequestDetails({request}: RequestDetailsProps) {
             request.data.image ? (
               <img
                 src={request.data.image || request.artist?.image_small}
-                className="rounded"
+                className="max-h-100 rounded"
                 alt=""
               />
             ) : null
@@ -96,14 +98,7 @@ function RequestDetails({request}: RequestDetailsProps) {
             ) : undefined
           }
         />
-        <Detail
-          name={<Trans message="First name" />}
-          value={request.data.first_name}
-        />
-        <Detail
-          name={<Trans message="Last name" />}
-          value={request.data.last_name}
-        />
+        <Detail name={<Trans message="Name" />} value={request.data.name} />
         <Detail
           name={<Trans message="Company" />}
           value={request.data.company}

@@ -1,3 +1,11 @@
+import {useTableRowStyle} from '@common/ui/tables/style/use-table-row-style';
+import {TableCell} from '@common/ui/tables/table-cell';
+import {TableContext} from '@common/ui/tables/table-context';
+import {TableDataItem} from '@common/ui/tables/types/table-data-item';
+import {usePointerEvents} from '@ui/interactions/use-pointer-events';
+import {createEventHandler} from '@ui/utils/dom/create-event-handler';
+import {isCtrlOrShiftPressed} from '@ui/utils/keybinds/is-ctrl-or-shift-pressed';
+import clsx from 'clsx';
 import React, {
   ComponentPropsWithoutRef,
   JSXElementConstructor,
@@ -7,19 +15,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {TableContext} from '@common/ui/tables/table-context';
-import {TableCell} from '@common/ui/tables/table-cell';
-import {TableDataItem} from '@common/ui/tables/types/table-data-item';
-import {createEventHandler} from '@ui/utils/dom/create-event-handler';
-import {isCtrlOrShiftPressed} from '@ui/utils/keybinds/is-ctrl-or-shift-pressed';
-import {useTableRowStyle} from '@common/ui/tables/style/use-table-row-style';
-import clsx from 'clsx';
-import {usePointerEvents} from '@ui/interactions/use-pointer-events';
 
 const interactableElements = ['button', 'a', 'input', 'select', 'textarea'];
 
-export interface RowElementProps<T = TableDataItem>
-  extends ComponentPropsWithoutRef<'tr'> {
+export interface RowElementProps<
+  T = TableDataItem,
+> extends ComponentPropsWithoutRef<'tr'> {
   item: T & {isPlaceholder?: boolean};
 }
 
@@ -47,6 +48,7 @@ export function TableRow({
     enableSelection,
     selectionStyle,
     hideHeaderRow,
+    tableStyle,
   } = useContext(TableContext);
 
   const isTouchDevice = useRef(false);
@@ -138,7 +140,7 @@ export function TableRow({
 
   const styleClassName = useTableRowStyle({index, isSelected});
 
-  const RowElement = renderAs || 'div';
+  const RowElement = renderAs || (tableStyle === 'html' ? 'tr' : 'div');
   return (
     <RowElement
       role="row"
@@ -146,7 +148,7 @@ export function TableRow({
       aria-selected={isSelected}
       tabIndex={-1}
       className={clsx(className, styleClassName)}
-      item={RowElement === 'div' ? (undefined as any) : item}
+      item={typeof RowElement === 'string' ? (undefined as any) : item}
       onDoubleClick={createEventHandler(doubleClickHandler)}
       onKeyDown={createEventHandler(keyboardHandler)}
       onContextMenu={createEventHandler(contextMenuHandler)}

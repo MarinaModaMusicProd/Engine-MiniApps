@@ -6,7 +6,7 @@ interface BaseMediaItem<T = any> {
   provider: 'youtube' | 'htmlAudio' | 'htmlVideo' | 'hls' | 'dash';
   meta?: T;
   initialTime?: number;
-  poster?: string;
+  poster?: string | null;
   captions?: {
     id: string | number;
     label: string;

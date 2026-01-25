@@ -1,10 +1,10 @@
 import {IconButton, IconButtonProps} from '@ui/buttons/icon-button';
-import {FacebookIcon} from '@ui/icons/social/facebook';
-import {TwitterIcon} from '@ui/icons/social/twitter';
-import {TumblrIcon} from '@ui/icons/social/tumblr';
-import {ShareIcon} from '@ui/icons/material/Share';
-import {toast} from '@ui/toast/toast';
 import {message} from '@ui/i18n/message';
+import {ShareIcon} from '@ui/icons/material/Share';
+import {FacebookIcon} from '@ui/icons/social/facebook';
+import {TumblrIcon} from '@ui/icons/social/tumblr';
+import {TwitterIcon} from '@ui/icons/social/twitter';
+import {toast} from '@ui/toast/toast';
 import {
   ShareableNetworks,
   shareLinkSocially,
@@ -13,7 +13,7 @@ import {
 interface ShareButtonsProps {
   link: string;
   name?: string;
-  image?: string;
+  image?: string | null;
   size?: IconButtonProps['size'];
 }
 export function ShareMediaButtons({

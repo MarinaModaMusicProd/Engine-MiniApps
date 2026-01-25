@@ -1,17 +1,18 @@
-import {Navigate, useParams} from 'react-router-dom';
+import {billingQueries} from '@common/billing/billing-queries';
+import {useQuery} from '@tanstack/react-query';
 import {Trans} from '@ui/i18n/trans';
+import {FullPageLoader} from '@ui/progress/full-page-loader';
+import {useSettings} from '@ui/settings/use-settings';
+import {Fragment} from 'react';
+import {Navigate, useParams} from 'react-router';
 import {CheckoutLayout} from './checkout-layout';
 import {CheckoutProductSummary} from './checkout-product-summary';
 import {usePaypal} from './paypal/use-paypal';
 import {StripeElementsForm} from './stripe/stripe-elements-form';
-import {Fragment} from 'react';
-import {useProducts} from '../pricing-table/use-products';
-import {FullPageLoader} from '@ui/progress/full-page-loader';
-import {useSettings} from '@ui/settings/use-settings';
 
-export function Checkout() {
+export function Component() {
   const {productId, priceId} = useParams();
-  const productQuery = useProducts();
+  const productQuery = useQuery(billingQueries.products.index());
   const {paypalElementRef} = usePaypal({
     productId,
     priceId,
@@ -35,6 +36,9 @@ export function Checkout() {
     return <Navigate to="/pricing" replace />;
   }
 
+  const formType =
+    product.trial_period_days > 0 ? 'confirmSetup' : 'confirmPayment';
+
   return (
     <CheckoutLayout>
       <Fragment>
@@ -47,7 +51,8 @@ export function Checkout() {
               productId={productId}
               priceId={priceId}
               submitLabel={<Trans message="Upgrade" />}
-              type="subscription"
+              confirmType={formType}
+              createType="subscription"
               returnUrl={`${base_url}/checkout/${productId}/${priceId}/stripe/done`}
             />
             <Separator />

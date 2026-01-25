@@ -1,18 +1,19 @@
-import {ComponentPropsWithoutRef, useCallback, useMemo} from 'react';
-import {
-  DashboardLayoutContext,
-  DashboardSidenavStatus,
-} from './dashboard-layout-context';
-import {AnimatePresence} from 'framer-motion';
 import {useControlledState} from '@react-stately/utils';
-import {useMediaQuery} from '@ui/utils/hooks/use-media-query';
+import {Underlay} from '@ui/overlays/underlay';
 import {
   getFromLocalStorage,
   setInLocalStorage,
 } from '@ui/utils/hooks/local-storage';
 import {useBlockBodyOverflow} from '@ui/utils/hooks/use-block-body-overflow';
+import {useMediaQuery} from '@ui/utils/hooks/use-media-query';
+import {usePrevious} from '@ui/utils/hooks/use-previous';
 import clsx from 'clsx';
-import {Underlay} from '@ui/overlays/underlay';
+import {AnimatePresence} from 'framer-motion';
+import {ComponentPropsWithoutRef, useCallback, useEffect, useMemo} from 'react';
+import {
+  DashboardLayoutContext,
+  DashboardSidenavStatus,
+} from './dashboard-layout-context';
 
 interface DashboardLayoutProps extends ComponentPropsWithoutRef<'div'> {
   name: string;
@@ -20,6 +21,7 @@ interface DashboardLayoutProps extends ComponentPropsWithoutRef<'div'> {
   leftSidenavStatus?: DashboardSidenavStatus;
   onLeftSidenavChange?: (status: DashboardSidenavStatus) => void;
   rightSidenavStatus?: DashboardSidenavStatus;
+  compactByDefault?: boolean;
   initialRightSidenavStatus?: DashboardSidenavStatus;
   onRightSidenavChange?: (status: DashboardSidenavStatus) => void;
   height?: string;
@@ -31,6 +33,7 @@ export function DashboardLayout({
   leftSidenavStatus: leftSidenav,
   onLeftSidenavChange,
   rightSidenavStatus: rightSidenav,
+  compactByDefault,
   initialRightSidenavStatus,
   onRightSidenavChange,
   name,
@@ -45,8 +48,16 @@ export function DashboardLayout({
   const isMobile = useMediaQuery('(max-width: 1024px)');
 
   const isCompactModeInitially = useMemo(() => {
-    return !name ? false : getFromLocalStorage(`${name}.sidenav.compact`);
-  }, [name]);
+    if (!name) return compactByDefault ?? false;
+
+    const stored = getFromLocalStorage(`${name}.sidenav.compact`);
+    if (stored != null) {
+      return stored;
+    }
+
+    return compactByDefault ?? false;
+  }, [name, compactByDefault]);
+
   const defaultLeftSidenavStatus = isCompactModeInitially ? 'compact' : 'open';
   const [leftSidenavStatus, setLeftSidenavStatus] = useControlledState(
     leftSidenav,
@@ -83,6 +94,26 @@ export function DashboardLayout({
     [_setRightSidenavStatus, name],
   );
 
+  const previousIsMobile = usePrevious(isMobile);
+  useEffect(() => {
+    if (isMobile === previousIsMobile) return;
+
+    if (!isMobile) {
+      setLeftSidenavStatus(defaultLeftSidenavStatus);
+      setRightSidenavStatus(rightSidenavStatusDefault);
+    } else {
+      setLeftSidenavStatus('closed');
+      setRightSidenavStatus('closed');
+    }
+  }, [
+    isMobile,
+    defaultLeftSidenavStatus,
+    rightSidenavStatusDefault,
+    previousIsMobile,
+    setLeftSidenavStatus,
+    setRightSidenavStatus,
+  ]);
+
   const shouldShowUnderlay =
     isMobile && (leftSidenavStatus === 'open' || rightSidenavStatus === 'open');
 
@@ -100,7 +131,13 @@ export function DashboardLayout({
     >
       <div
         {...domProps}
-        className={clsx('relative isolate', gridClassName, className, height)}
+        className={clsx(
+          'relative isolate',
+          isMobile && 'dashboard-mobile-mode',
+          gridClassName,
+          className,
+          height,
+        )}
       >
         {children}
         <AnimatePresence>

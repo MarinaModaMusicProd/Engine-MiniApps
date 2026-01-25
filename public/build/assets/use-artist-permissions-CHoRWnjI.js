@@ -1,0 +1,1 @@
+import{e as o,r as c}from"./main-BEfQELxr.js";function d(i){const{user:s,hasPermission:e}=o();return c.useMemo(()=>{var a;const t={canEdit:!1,canDelete:!1};if(s!=null&&s.id){const n=!!((a=s.artists)!=null&&a.find(r=>r.id===i.id));t.canEdit=e("artists.update")||e("music.update")||n,t.canDelete=e("artists.delete")||e("music.delete")||n}return t},[s,i,e])}export{d as u};

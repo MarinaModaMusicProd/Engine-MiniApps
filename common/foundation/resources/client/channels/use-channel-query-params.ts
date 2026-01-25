@@ -1,27 +1,43 @@
-import {Channel} from '@common/channels/channel';
-import {useParams, useSearchParams} from 'react-router-dom';
 import {useBackendFilterUrlParams} from '@common/datatable/filters/backend-filter-url-params';
 import {BackendFiltersUrlKey} from '@common/datatable/filters/backend-filters-url-key';
+import {removeEmptyValuesFromObject} from '@ui/utils/objects/remove-empty-values-from-object';
+import {useParams, useSearchParams} from 'react-router';
+
+export type ChannelQueryParams = {
+  restriction?: string | null;
+  page?: string | null;
+  perPage?: string | null;
+  query?: string | null;
+  order?: string | null;
+  [BackendFiltersUrlKey]?: string | null;
+};
 
 export function useChannelQueryParams(
-  channel?: Channel,
-  userParams?: Record<string, string | null> | null,
-): Record<string, string | number | null> {
+  userParams?: ChannelQueryParams | null,
+): ChannelQueryParams {
   const params = useParams();
   const [searchParams] = useSearchParams();
   const {encodedFilters} = useBackendFilterUrlParams();
 
-  const queryParams = {
-    ...userParams,
-    restriction: params.restriction || '',
-    order: searchParams.get('order'),
+  return validateChannelQueryParams({
+    restriction: searchParams.get('restriction') ?? params.restriction,
+    page: searchParams.get('page') ?? userParams?.page,
+    perPage: searchParams.get('perPage') ?? userParams?.perPage,
+    query: searchParams.get('query') ?? userParams?.query,
+    order: searchParams.get('order') ?? userParams?.order,
     [BackendFiltersUrlKey]: encodedFilters,
-  };
+  });
+}
 
-  // always set default channel order to keep query key stable
-  if (!queryParams.order && channel) {
-    queryParams.order = channel.config.contentOrder || 'popularity:desc';
-  }
-
-  return queryParams;
+export function validateChannelQueryParams(
+  params: Record<string, any>,
+): ChannelQueryParams {
+  return removeEmptyValuesFromObject({
+    restriction: params.restriction ?? '',
+    page: params.page ?? '1',
+    perPage: params.perPage ?? null,
+    query: params.query ?? null,
+    order: params.order ?? null,
+    [BackendFiltersUrlKey]: params[BackendFiltersUrlKey] ?? null,
+  });
 }

@@ -1,15 +1,15 @@
-import {ButtonColor} from '@ui/buttons/get-shared-button-style';
-import {useSettings} from '@ui/settings/use-settings';
+import {NavbarProps} from '@common/ui/navigation/navbar/navbar';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {Menu, MenuTrigger} from '@ui/menu/menu-trigger';
+import {Button} from '@ui/buttons/button';
+import {ButtonColor} from '@ui/buttons/get-shared-button-style';
 import {IconButton} from '@ui/buttons/icon-button';
-import {PersonIcon} from '@ui/icons/material/Person';
 import {Item} from '@ui/forms/listbox/item';
 import {Trans} from '@ui/i18n/trans';
-import {Link} from 'react-router-dom';
-import {Button} from '@ui/buttons/button';
-import {NavbarProps} from '@common/ui/navigation/navbar/navbar';
+import {PersonIcon} from '@ui/icons/material/Person';
+import {Menu, MenuTrigger} from '@ui/menu/menu-trigger';
+import {useSettings} from '@ui/settings/use-settings';
 import {Fragment} from 'react';
+import {Link} from 'react-router';
 
 interface NavbarAuthButtonsProps {
   primaryButtonColor?: ButtonColor;
@@ -20,7 +20,7 @@ export function NavbarAuthButtons({
   navbarColor,
 }: NavbarAuthButtonsProps) {
   if (!primaryButtonColor) {
-    primaryButtonColor = navbarColor === 'primary' ? 'paper' : 'primary';
+    primaryButtonColor = navbarColor === 'primary' ? 'elevated' : 'primary';
   }
 
   return (

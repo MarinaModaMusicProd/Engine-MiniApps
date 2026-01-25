@@ -1,35 +1,38 @@
-import {useForm} from 'react-hook-form';
-import React, {useEffect} from 'react';
-import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
-import {Trans} from '@ui/i18n/trans';
 import {AlbumForm} from '@app/admin/albums-datatable-page/album-form/album-form';
 import {
   CreateAlbumPayload,
   useCreateAlbum,
 } from '@app/admin/albums-datatable-page/requests/use-create-album';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {useLocation, useSearchParams} from 'react-router-dom';
-import {useCurrentDateTime} from '@ui/i18n/use-current-date-time';
 import {getAlbumLink} from '@app/web-player/albums/album-link';
+import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
+import {Navbar} from '@common/ui/navigation/navbar/navbar';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {useNormalizedModel} from '@common/ui/normalized-model/use-normalized-model';
 import {
   FileUploadProvider,
   useFileUploadStore,
 } from '@common/uploads/uploader/file-upload-provider';
-import {useNormalizedModel} from '@common/ui/normalized-model/use-normalized-model';
-import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
+import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
+import {Trans} from '@ui/i18n/trans';
+import {useCurrentDateTime} from '@ui/i18n/use-current-date-time';
+import {ReactElement, useEffect} from 'react';
+import {useForm} from 'react-hook-form';
+import {useLocation, useSearchParams} from 'react-router';
 
 interface Props {
-  wrapInContainer?: boolean;
+  breadcrumbs?: ReactElement;
+  navbar?: ReactElement;
 }
-export function CreateAlbumPage({wrapInContainer}: Props) {
+export function Component({breadcrumbs, navbar}: Props) {
   return (
     <FileUploadProvider>
-      <PageContent wrapInContainer={wrapInContainer} />
+      <PageContent breadcrumbs={breadcrumbs} navbar={navbar} />
     </FileUploadProvider>
   );
 }
 
-function PageContent({wrapInContainer}: Props) {
+function PageContent({breadcrumbs, navbar}: Props) {
   const uploadIsInProgress = !!useFileUploadStore(s => s.activeUploadsCount);
   const now = useCurrentDateTime();
   const navigate = useNavigate();
@@ -74,10 +77,21 @@ function PageContent({wrapInContainer}: Props) {
           },
         });
       }}
-      title={<Trans message="Add new album" />}
+      title={
+        breadcrumbs ?? (
+          <Breadcrumb size="xl">
+            <BreadcrumbItem to="/admin/albums">
+              <Trans message="Albums" />
+            </BreadcrumbItem>
+            <BreadcrumbItem>
+              <Trans message="New" />
+            </BreadcrumbItem>
+          </Breadcrumb>
+        )
+      }
       isLoading={createAlbum.isPending || uploadIsInProgress}
       disableSaveWhenNotDirty
-      wrapInContainer={wrapInContainer}
+      navbar={navbar}
     >
       <AlbumForm showExternalIdFields />
     </CrupdateResourceLayout>
@@ -85,9 +99,26 @@ function PageContent({wrapInContainer}: Props) {
 }
 
 export function BackstageCreateAlbumPage() {
+  const [searchParams] = useSearchParams();
   return (
-    <BackstageLayout>
-      <CreateAlbumPage wrapInContainer={false} />
-    </BackstageLayout>
+    <div className="h-screen">
+      <Component
+        navbar={
+          <Navbar className="flex-shrink-0" color="bg" darkModeColor="bg" />
+        }
+        breadcrumbs={
+          <Breadcrumb size="xl">
+            <BreadcrumbItem
+              to={`/backstage/artists/${searchParams.get('artistId')}/edit`}
+            >
+              <Trans message="Backstage" />
+            </BreadcrumbItem>
+            <BreadcrumbItem>
+              <Trans message="New album" />
+            </BreadcrumbItem>
+          </Breadcrumb>
+        }
+      />
+    </div>
   );
 }

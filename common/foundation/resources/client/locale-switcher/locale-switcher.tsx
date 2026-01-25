@@ -1,28 +1,28 @@
-import {useValueLists} from '../http/value-lists';
-import {Button} from '@ui/buttons/button';
-import {LanguageIcon} from '@ui/icons/material/Language';
-import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {useSelectedLocale} from '@ui/i18n/selected-locale';
 import {useChangeLocale} from '@common/locale-switcher/change-locale';
+import {useBootstrapDataStore} from '@ui/bootstrap-data/bootstrap-data-store';
+import {Button} from '@ui/buttons/button';
+import {useSelectedLocale} from '@ui/i18n/selected-locale';
+import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
+import {LanguageIcon} from '@ui/icons/material/Language';
+import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
 import {useSettings} from '@ui/settings/use-settings';
 
 export function LocaleSwitcher() {
-  const {locale} = useSelectedLocale();
+  const {localeCode, localeName} = useSelectedLocale();
   const changeLocale = useChangeLocale();
-  const {data} = useValueLists(['localizations']);
+  const siteLocales = useBootstrapDataStore(s => s.data.i18n.locales);
   const {i18n} = useSettings();
 
-  if (!data?.localizations || !locale || !i18n.enable) return null;
+  if (!siteLocales || !localeCode || !i18n.enable) return null;
 
   return (
     <MenuTrigger
       floatingWidth="matchTrigger"
       selectionMode="single"
-      selectedValue={locale.language}
+      selectedValue={localeCode}
       onSelectionChange={value => {
         const newLocale = value as string;
-        if (newLocale !== locale?.language) {
+        if (newLocale !== localeCode) {
           changeLocale.mutate({locale: newLocale});
         }
       }}
@@ -33,16 +33,16 @@ export function LocaleSwitcher() {
         startIcon={<LanguageIcon />}
         endIcon={<KeyboardArrowDownIcon />}
       >
-        {locale.name}
+        {localeName}
       </Button>
       <Menu>
-        {data.localizations.map(localization => (
+        {siteLocales.map(locale => (
           <MenuItem
-            value={localization.language}
-            key={localization.language}
+            value={locale.language}
+            key={locale.language}
             className="capitalize"
           >
-            {localization.name}
+            {locale.name}
           </MenuItem>
         ))}
       </Menu>

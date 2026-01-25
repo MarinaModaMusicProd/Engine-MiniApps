@@ -1,13 +1,12 @@
-import {ColumnConfig} from '@common/datatable/column-config';
 import {CustomPage} from '@common/admin/custom-pages/custom-page';
-import {Trans} from '@ui/i18n/trans';
-import {Link} from 'react-router-dom';
-import {LinkStyle} from '@ui/buttons/external-link';
+import {ColumnConfig} from '@common/datatable/column-config';
 import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import React from 'react';
+import {LinkStyle} from '@ui/buttons/external-link';
 import {IconButton} from '@ui/buttons/icon-button';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {Trans} from '@ui/i18n/trans';
 import {EditIcon} from '@ui/icons/material/Edit';
+import {Link} from 'react-router';
 
 export const CustomPageDatatableColumns: ColumnConfig<CustomPage>[] = [
   {
@@ -33,6 +32,7 @@ export const CustomPageDatatableColumns: ColumnConfig<CustomPage>[] = [
           image={page.user.image}
           label={page.user.name}
           description={page.user.email}
+          avatarCircle
         />
       ),
   },

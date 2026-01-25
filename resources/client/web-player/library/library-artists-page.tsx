@@ -1,45 +1,54 @@
-import {StaticPageTitle} from '@common/seo/static-page-title';
-import {Trans} from '@ui/i18n/trans';
-import {useLibraryStore} from '@app/web-player/library/state/likes-store';
-import React from 'react';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {SearchIcon} from '@ui/icons/material/Search';
-import {message} from '@ui/i18n/message';
-import {useTrans} from '@ui/i18n/use-trans';
-import {PageErrorMessage} from '@common/errors/page-error-message';
-import {ContentGrid} from '@app/web-player/playable-item/content-grid';
-import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
-import {AnimatePresence, m} from 'framer-motion';
-import {opacityAnimation} from '@ui/animation/opacity-animation';
-import {MediaPageNoResultsMessage} from '@app/web-player/layout/media-page-no-results-message';
+import {appQueries} from '@app/app-queries';
 import {ArtistGridItem} from '@app/web-player/artists/artist-grid-item';
-import {PlayableMediaGridSkeleton} from '@app/web-player/playable-item/player-media-grid-skeleton';
+import {MediaPageNoResultsMessage} from '@app/web-player/layout/media-page-no-results-message';
+import {PlayerPageSuspense} from '@app/web-player/layout/player-page-suspsense';
+import {usePlayerPagePaginationParams} from '@app/web-player/layout/use-player-page-pagination-params';
 import {LibraryPageSortDropdown} from '@app/web-player/library/library-page-sort-dropdown';
-import {useUserLikedArtists} from '@app/web-player/library/requests/use-user-liked-artists';
+import {defaultLibrarySortDescriptor} from '@app/web-player/library/library-search-params';
+import {useLibraryStore} from '@app/web-player/library/state/likes-store';
+import {ContentGrid} from '@app/web-player/playable-item/content-grid';
 import {AdHost} from '@common/admin/ads/ad-host';
+import {StaticPageTitle} from '@common/seo/static-page-title';
+import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
+import {useFlatInfiniteQueryItems} from '@common/ui/infinite-scroll/use-flat-infinite-query-items';
+import {useSuspenseInfiniteQuery} from '@tanstack/react-query';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {SearchIcon} from '@ui/icons/material/Search';
+import {ProgressCircle} from '@ui/progress/progress-circle';
 
 const sortItems = {
   'likes.created_at:desc': message('Recently added'),
   'name:asc': message('A-Z'),
 };
 
-export function LibraryArtistsPage() {
+export function Component() {
+  return (
+    <PlayerPageSuspense>
+      <LibraryArtistsPage />
+    </PlayerPageSuspense>
+  );
+}
+
+function LibraryArtistsPage() {
   const {trans} = useTrans();
   const totalItems = useLibraryStore(s => Object.keys(s.artist).length);
-  const query = useUserLikedArtists('me', {willSortOrFilter: true});
+
   const {
-    isInitialLoading,
-    sortDescriptor,
-    setSortDescriptor,
     searchQuery,
     setSearchQuery,
-    items,
-    isError,
-  } = query;
+    sortDescriptor,
+    setSortDescriptor,
+    isDefferedLoading,
+    queryParams,
+  } = usePlayerPagePaginationParams(defaultLibrarySortDescriptor);
 
-  if (isError) {
-    return <PageErrorMessage />;
-  }
+  const query = useSuspenseInfiniteQuery(
+    appQueries.artists.liked('me', queryParams),
+  );
+  const artists = useFlatInfiniteQueryItems(query);
 
   return (
     <div>
@@ -59,12 +68,16 @@ export function LibraryArtistsPage() {
       </h1>
       <div className="flex items-center justify-between gap-24">
         <TextField
-          value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           className="max-w-512 flex-auto"
           size="sm"
           startAdornment={<SearchIcon />}
           placeholder={trans(message('Search within artists'))}
+          endAdornment={
+            isDefferedLoading ? (
+              <ProgressCircle size="xs" isIndeterminate />
+            ) : null
+          }
         />
         <LibraryPageSortDropdown
           items={sortItems}
@@ -73,26 +86,14 @@ export function LibraryArtistsPage() {
         />
       </div>
       <div className="mt-34">
-        <AnimatePresence initial={false} mode="wait">
-          {isInitialLoading ? (
-            <PlayableMediaGridSkeleton
-              itemCount={totalItems}
-              itemRadius="rounded-full"
-              showDescription={false}
-            />
-          ) : (
-            <m.div key="media-grid" {...opacityAnimation}>
-              <ContentGrid>
-                {items.map(artist => (
-                  <ArtistGridItem key={artist.id} artist={artist} />
-                ))}
-                <InfiniteScrollSentinel query={query} />
-              </ContentGrid>
-            </m.div>
-          )}
-        </AnimatePresence>
+        <ContentGrid>
+          {artists.map(artist => (
+            <ArtistGridItem key={artist.id} artist={artist} />
+          ))}
+          <InfiniteScrollSentinel query={query} />
+        </ContentGrid>
       </div>
-      {!items.length && !isInitialLoading && (
+      {!artists.length ? (
         <MediaPageNoResultsMessage
           className="mt-34"
           searchQuery={searchQuery}
@@ -100,7 +101,7 @@ export function LibraryArtistsPage() {
             <Trans message="You have not added any artists to your library yet." />
           }
         />
-      )}
+      ) : null}
       <AdHost slot="general_bottom" className="mt-34" />
     </div>
   );

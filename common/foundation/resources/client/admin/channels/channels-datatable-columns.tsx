@@ -1,5 +1,5 @@
 import {ColumnConfig} from '@common/datatable/column-config';
-import {Link} from 'react-router-dom';
+import {Link} from 'react-router';
 import {IconButton} from '@ui/buttons/icon-button';
 import {EditIcon} from '@ui/icons/material/Edit';
 import React from 'react';

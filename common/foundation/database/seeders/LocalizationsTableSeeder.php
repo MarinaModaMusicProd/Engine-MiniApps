@@ -1,4 +1,4 @@
-<?php namespace Common\Database\Seeds;
+<?php namespace Common\Database\Seeders;
 
 use Common\Localizations\Localization;
 use Common\Localizations\LocalizationsRepository;

@@ -2,7 +2,7 @@
 
 namespace Common\Files\Actions\Deletion;
 
-use Arr;
+use Illuminate\Support\Arr;
 use Common\Files\FileEntry;
 use Common\Files\Actions\Deletion\PermanentlyDeleteEntries;
 use Common\Files\Actions\Deletion\SoftDeleteEntries;

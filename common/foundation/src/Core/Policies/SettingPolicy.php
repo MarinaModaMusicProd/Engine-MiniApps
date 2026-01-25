@@ -9,7 +9,7 @@ class SettingPolicy
 
     public function index(User $user)
     {
-        return $user->hasPermission('settings.view');
+        return $user->hasPermission('settings.update');
     }
 
     public function update(User $user)

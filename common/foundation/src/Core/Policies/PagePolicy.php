@@ -1,24 +1,24 @@
 <?php namespace Common\Core\Policies;
 
 use App\Models\User;
-use Common\Core\Policies\BasePolicy;
 use Common\Pages\CustomPage;
 
 class PagePolicy extends BasePolicy
 {
     public function index(?User $user, int $userId = null)
     {
-        return $user->hasPermission('custom_pages.view') || $user->id === $userId;
+        return $user->hasPermission('custom_pages.update') ||
+            $user->id === $userId;
     }
 
     public function show(?User $user, CustomPage $customPage)
     {
-        return $user->hasPermission('custom_pages.view') || $customPage->user_id === $user->id;
+        return true;
     }
 
     public function store(User $user)
     {
-        return $user->hasPermission('custom_pages.create');
+        return $user->hasPermission('custom_pages.update');
     }
 
     public function update(User $user)
@@ -28,7 +28,7 @@ class PagePolicy extends BasePolicy
 
     public function destroy(User $user, $pageIds)
     {
-        if ($user->hasPermission('custom_pages.delete')) {
+        if ($user->hasPermission('custom_pages.update')) {
             return true;
         } else {
             $dbCount = app(CustomPage::class)

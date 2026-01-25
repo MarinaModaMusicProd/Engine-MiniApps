@@ -1,6 +1,6 @@
 <?php namespace Common\Billing\Gateways\Stripe;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Billing\Models\Product;
 use Common\Billing\Subscription;
 use Common\Billing\Gateways\Stripe\Stripe;
@@ -28,13 +28,16 @@ class StripeController extends BaseController
         ]);
 
         $product = Product::findOrFail($data['product_id']);
-        $clientSecret = $this->stripe->subscriptions->createPartial(
+        $result = $this->stripe->subscriptions->createPartial(
             $product,
             Auth::user(),
             $data['price_id'] ?? null,
         );
 
-        return $this->success(['clientSecret' => $clientSecret]);
+        return $this->success([
+            'clientSecret' => $result['clientSecret'],
+            'subscriptionId' => $result['subscriptionId'],
+        ]);
     }
 
     public function createSetupIntent(): Response|JsonResponse
@@ -60,17 +63,27 @@ class StripeController extends BaseController
     public function storeSubscriptionDetailsLocally(): Response|JsonResponse
     {
         $data = $this->validate($this->request, [
-            'payment_intent_id' => 'required|string',
+            'intent_type' => 'required|string',
+            'intent_id' => 'required|string',
+            'subscription_id' => 'string',
         ]);
 
-        $paymentIntent = $this->stripe->client->paymentIntents->retrieve(
-            $data['payment_intent_id'],
-            ['expand' => ['invoice']],
-        );
+        if ($data['intent_type'] === 'paymentIntent') {
+            $intent = $this->stripe->client->paymentIntents->retrieve(
+                $data['intent_id'],
+                ['expand' => ['invoice']],
+            );
+            $subscriptionId = $intent->invoice->subscription;
+        } else {
+            $intent = $this->stripe->client->setupIntents->retrieve(
+                $data['intent_id'],
+            );
+            $subscriptionId = $this->stripe->client->subscriptions->retrieve(
+                $data['subscription_id'],
+            )->id;
+        }
 
-        $this->stripe->subscriptions->sync(
-            $paymentIntent->invoice->subscription,
-        );
+        $this->stripe->subscriptions->sync($subscriptionId);
 
         return $this->success();
     }

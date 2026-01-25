@@ -15,13 +15,14 @@ class FileEntryPolicy extends BasePolicy
 {
     public function index(
         ?User $user,
-        array $entryIds = null,
-        int $userId = null,
+        array|null $entryIds = null,
+        int|null $userId = null,
     ): bool {
         if ($entryIds) {
             return $this->userCan($user, 'files.view', $entryIds);
         } else {
-            return $user->hasPermission('files.view') || $userId === $user->id;
+            return $user->hasPermission('files.update') ||
+                $userId === $user->id;
         }
     }
 
@@ -79,14 +80,15 @@ class FileEntryPolicy extends BasePolicy
         return $this->userCan($user, 'files.download', $entries);
     }
 
-    public function store(User $user, int $parentId = null): bool
+    public function store(User $user, int|null $parentId = null): bool
     {
         //check if user can modify parent entry (if specified)
         if ($parentId) {
             return $this->userCan($user, 'files.update', [$parentId]);
         }
 
-        return $user->hasPermission('files.create');
+        return $user->hasPermission('files.create') ||
+            $user->hasPermission('files.update');
     }
 
     public function update(User $user, Collection|array|FileEntry $entries)
@@ -101,7 +103,8 @@ class FileEntryPolicy extends BasePolicy
      */
     public function destroy(User $user, $entries)
     {
-        return $this->userCan($user, 'files.delete', $entries);
+        return $this->userCan($user, 'files.delete', $entries) ||
+            $user->hasPermission('files.update');
     }
 
     /**
@@ -112,7 +115,10 @@ class FileEntryPolicy extends BasePolicy
      */
     protected function userCan(User $currentUser, string $permission, $entries)
     {
-        if ($currentUser->hasPermission($permission)) {
+        if (
+            $currentUser->hasPermission($permission) ||
+            $currentUser->hasPermission('files.update')
+        ) {
             return true;
         }
 
@@ -162,9 +168,7 @@ class FileEntryPolicy extends BasePolicy
         if ($entries instanceof FileEntry) {
             return $entries->newCollection([$entries]);
         } elseif (isset($entries[0]) && is_numeric($entries[0])) {
-            return app(FileEntry::class)
-                ->whereIn('id', $entries)
-                ->get();
+            return app(FileEntry::class)->whereIn('id', $entries)->get();
         } else {
             return $entries;
         }

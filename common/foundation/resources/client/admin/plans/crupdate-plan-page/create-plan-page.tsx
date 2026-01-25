@@ -1,17 +1,20 @@
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
+import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
+import {Trans} from '@ui/i18n/trans';
 import {useForm} from 'react-hook-form';
 import {CrupdateResourceLayout} from '../../crupdate-resource-layout';
-import {Trans} from '@ui/i18n/trans';
-import {CrupdatePlanForm} from './crupdate-plan-form';
 import {
   CreateProductPayload,
   useCreateProduct,
 } from '../requests/use-create-product';
+import {CrupdatePlanForm} from './crupdate-plan-form';
 
-export function CreatePlanPage() {
+export function Component() {
   const form = useForm<CreateProductPayload>({
     defaultValues: {
       free: false,
       recommended: false,
+      trial_period_days: 0,
     },
   });
   const createProduct = useCreateProduct(form);
@@ -22,7 +25,16 @@ export function CreatePlanPage() {
       onSubmit={values => {
         createProduct.mutate(values);
       }}
-      title={<Trans message="Create new plan" />}
+      title={
+        <Breadcrumb size="xl">
+          <BreadcrumbItem to="/admin/plans">
+            <Trans message="Plans" />
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <Trans message="New plan" />
+          </BreadcrumbItem>
+        </Breadcrumb>
+      }
       isLoading={createProduct.isPending}
     >
       <CrupdatePlanForm />

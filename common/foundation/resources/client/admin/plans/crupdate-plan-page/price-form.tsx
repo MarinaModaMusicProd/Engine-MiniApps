@@ -1,17 +1,16 @@
-import {useFormContext} from 'react-hook-form';
+import {BillingPeriodPresets} from '@common/admin/plans/crupdate-plan-page/billing-period-presets';
+import {Price} from '@common/billing/price';
 import {Product} from '@common/billing/product';
-import React, {Fragment, useMemo, useState} from 'react';
-import {useValueLists} from '@common/http/value-lists';
+import {Button} from '@ui/buttons/button';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {Trans} from '@ui/i18n/trans';
 import {Item} from '@ui/forms/listbox/item';
 import {FormSelect, Select} from '@ui/forms/select/select';
-import {Price} from '@common/billing/price';
-import {BillingPeriodPresets} from '@common/admin/plans/crupdate-plan-page/billing-period-presets';
-import {Button} from '@ui/buttons/button';
 import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
 import {useTrans} from '@ui/i18n/use-trans';
-import {PrimitiveValue} from "@ui/forms/listbox/types";
+import {getCurrencyList} from '@ui/utils/intl/currencies';
+import {Fragment, useState} from 'react';
+import {useFormContext} from 'react-hook-form';
 
 interface PriceFormProps {
   index: number;
@@ -19,10 +18,7 @@ interface PriceFormProps {
 }
 export function PriceForm({index, onRemovePrice}: PriceFormProps) {
   const {trans} = useTrans();
-  const query = useValueLists(['currencies']);
-  const currencies = useMemo(() => {
-    return query.data?.currencies ? Object.values(query.data.currencies) : [];
-  }, [query.data]);
+  const currencies = getCurrencyList();
   const {watch, getValues} = useFormContext<Product>();
   const isNewProduct = !watch('id');
   const isNewPrice = watch(`prices.${index}.id`) == null;
@@ -126,7 +122,7 @@ function BillingPeriodSelect({
       className="mb-20"
       selectionMode="single"
       selectedValue={value}
-      onSelectionChange={(value: PrimitiveValue) => {
+      onSelectionChange={value => {
         onValueChange(value as string);
         if (value === 'custom') {
         } else {

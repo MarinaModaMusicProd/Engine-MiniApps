@@ -21,7 +21,7 @@ class ArtistFactory extends Factory
      */
     public function definition()
     {
-        $createdAt = $this->faker->dateTimeBetween('-4 months', 'now');
+        $createdAt = $this->faker->dateTimeBetween('-4 months', 'now', 'UTC');
         return [
             'name' => $this->faker->words(rand(2, 5), true),
             'image_small' => $this->faker->imageUrl(240, 240),

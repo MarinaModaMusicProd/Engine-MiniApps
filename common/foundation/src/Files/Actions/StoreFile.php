@@ -3,6 +3,7 @@
 namespace Common\Files\Actions;
 
 use Common\Files\FileEntryPayload;
+use Common\Files\Uploads\Uploads;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
@@ -23,13 +24,14 @@ class StoreFile
         FileEntryPayload $payload,
         array $fileOptions,
     ): string|false {
-        $this->disk = $payload->public
-            ? Storage::disk('public')
-            : Storage::disk('uploads');
+        $this->disk = Uploads::disk(
+            $payload->uploadType->name,
+            $payload->backend->id,
+        );
 
         $this->diskOptions = [
             'mimetype' => $payload->clientMime,
-            'visibility' => $payload->visibility,
+            'visibility' => $payload->uploadType->visibility,
         ];
 
         $this->payload = $payload;
@@ -38,7 +40,8 @@ class StoreFile
             // prevent uploading .htaccess files
             $payload->filename === '.htaccess' ||
             // dont store php files in public disk
-            ($payload->public && $this->isPhpFile($payload, $fileOptions)) ||
+            ($payload->uploadType->public &&
+                $this->isPhpFile($payload, $fileOptions)) ||
             // prevent path traversal or storing at root in user specified folder
             ($payload->diskPrefix &&
                 (Str::contains($payload->diskPrefix, '..') ||
@@ -88,7 +91,7 @@ class StoreFile
 
     protected function storeLocalFile(string $sourcePath): string|false
     {
-        $dirPath = $this->disk->path($this->payload->diskPrefix);
+        $dirPath = $this->disk->path($this->payload->diskPrefix ?? '');
 
         FileFacade::ensureDirectoryExists($dirPath);
         $stored = @rename($sourcePath, "$dirPath/{$this->payload->filename}");

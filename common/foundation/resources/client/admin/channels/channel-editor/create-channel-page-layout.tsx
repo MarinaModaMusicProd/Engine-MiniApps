@@ -1,13 +1,15 @@
-import {useForm} from 'react-hook-form';
-import React, {ReactNode} from 'react';
-import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
-import {Trans} from '@ui/i18n/trans';
-import {EMPTY_PAGINATION_RESPONSE} from '@common/http/backend-response/pagination-response';
-import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
 import {
   CreateChannelPayload,
   useCreateChannel,
 } from '@common/admin/channels/requests/use-create-channel';
+import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
+import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
+import {EMPTY_PAGINATION_RESPONSE} from '@common/http/backend-response/pagination-response';
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
+import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
+import {Trans} from '@ui/i18n/trans';
+import {ReactNode} from 'react';
+import {useForm} from 'react-hook-form';
 
 interface Props {
   defaultValues?: Partial<UpdateChannelPayload['config']>;
@@ -39,7 +41,16 @@ export function CreateChannelPageLayout({
       onSubmit={values => {
         createChannel.mutate(values);
       }}
-      title={<Trans message="New channel" />}
+      title={
+        <Breadcrumb>
+          <BreadcrumbItem to="/admin/channels">
+            <Trans message="Channels" />
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <Trans message="New" />
+          </BreadcrumbItem>
+        </Breadcrumb>
+      }
       isLoading={createChannel.isPending}
     >
       {children}

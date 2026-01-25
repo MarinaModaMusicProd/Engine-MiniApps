@@ -2,11 +2,11 @@
 
 namespace Common\Auth\Controllers;
 
-use Common\Auth\ActiveSession;
+use Common\Auth\UserSession;
 use Common\Core\BaseController;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Support\Facades\Auth;
-use Jenssegers\Agent\Agent;
 
 class UserSessionsController extends BaseController
 {
@@ -18,34 +18,27 @@ class UserSessionsController extends BaseController
     public function index()
     {
         $sessions = Auth::user()
-            ->activeSessions()
+            ->userSessions()
             ->orderBy('updated_at', 'desc')
             ->limit(30)
             ->get()
-            ->map(function (ActiveSession $session) {
-                $agent = new Agent(null, $session->user_agent);
-                $location = geoip($session->ip_address);
-
-                $isCurrentDevice = $session->session_id
-                    ? $session->session_id ===
-                        request()
-                            ->session()
-                            ->getId()
+            ->map(function (UserSession $session) {
+                $isCurrentDevice = requestIsFromFrontend()
+                    ? $session->session_id === request()->session()->getId()
                     : $session->token ===
                         Auth::user()->currentAccessToken()->token;
 
                 return [
                     'id' => $session->id,
-                    'platform' => $agent->platform(),
-                    'device_type' => $agent->deviceType(),
-                    'browser' => $agent->browser(),
-                    'country' => $location->country,
-                    'city' => $location->city,
-                    'ip_address' => config('common.site.demo')
+                    'country' => $session->country,
+                    'city' => $session->city,
+                    'platform' => $session->platform,
+                    'browser' => $session->browser,
+                    'ip_address' => config('app.demo')
                         ? 'Hidden on demo site'
                         : $session->ip_address,
                     'is_current_device' => $isCurrentDevice,
-                    'last_active' => $session->updated_at,
+                    'updated_at' => $session->updated_at,
                 ];
             })
             ->values();
@@ -55,21 +48,17 @@ class UserSessionsController extends BaseController
 
     public function LogoutOtherSessions(StatefulGuard $guard)
     {
+        $this->blockOnDemoSite();
+
         $data = $this->validate(request(), [
             'password' => 'required',
         ]);
 
         $guard->logoutOtherDevices($data['password']);
 
-        ActiveSession::where('user_id', $guard->id())
+        UserSession::where('user_id', $guard->id())
             ->whereNotNull('session_id')
-            ->where(
-                'session_id',
-                '!=',
-                request()
-                    ->session()
-                    ->getId(),
-            )
+            ->where('session_id', '!=', request()->session()->getId())
             ->delete();
 
         return $this->success();

@@ -25,6 +25,9 @@ class NormalizedModelsController extends BaseController
         $namespace = modelTypeToNamespace($modelType);
         $query = request('query');
         $with = request('with') ? explode(',', request('with')) : [];
+        $modelIds = request('modelIds')
+            ? explode(',', request('modelIds'))
+            : [];
 
         $this->authorize('index', $namespace);
 
@@ -34,6 +37,7 @@ class NormalizedModelsController extends BaseController
         }
 
         $results = $model
+            ->when($modelIds, fn($q) => $q->whereIn('id', $modelIds))
             ->take(15)
             ->get()
             ->load($with)

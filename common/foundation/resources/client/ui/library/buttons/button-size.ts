@@ -10,7 +10,7 @@ interface Props {
 
 export function getButtonSizeStyle(
   size?: ButtonSize,
-  {padding, equalWidth, variant}: Props = {}
+  {padding, equalWidth, variant}: Props = {},
 ): string {
   switch (size) {
     case '2xs':

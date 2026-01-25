@@ -1,18 +1,13 @@
-import React from 'react';
-import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
-import {Trans} from '@ui/i18n/trans';
-import {TrackForm} from '@app/admin/tracks-datatable-page/track-form/track-form';
 import {useCreateTrackForm} from '@app/admin/tracks-datatable-page/crupdate/use-create-track-form';
+import {TrackForm} from '@app/admin/tracks-datatable-page/track-form/track-form';
+import {getTrackLink} from '@app/web-player/tracks/track-link';
+import {CrupdateResourceLayout} from '@common/admin/crupdate-resource-layout';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {useLocation} from 'react-router-dom';
-import {getTrackLink} from '@app/web-player/tracks/track-link';
-import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
+import {Trans} from '@ui/i18n/trans';
+import {useLocation} from 'react-router';
 
-interface Props {
-  wrapInContainer?: boolean;
-}
-export function CreateTrackPage({wrapInContainer}: Props) {
+export function Component() {
   const navigate = useNavigate();
   const {pathname} = useLocation();
   const {form, createTrack} = useCreateTrackForm({
@@ -33,19 +28,10 @@ export function CreateTrackPage({wrapInContainer}: Props) {
       title={<Trans message="Add new track" />}
       isLoading={createTrack.isPending}
       disableSaveWhenNotDirty
-      wrapInContainer={wrapInContainer}
     >
       <FileUploadProvider>
         <TrackForm showExternalIdFields />
       </FileUploadProvider>
     </CrupdateResourceLayout>
-  );
-}
-
-export function BackstageCreateTrackPage() {
-  return (
-    <BackstageLayout>
-      <CreateTrackPage />
-    </BackstageLayout>
   );
 }

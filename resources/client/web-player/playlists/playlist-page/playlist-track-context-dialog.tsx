@@ -1,14 +1,14 @@
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {Trans} from '@ui/i18n/trans';
 import {ContextMenuButton} from '@app/web-player/context-dialog/context-dialog-layout';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
 import {useRemoveTracksFromPlaylist} from '@app/web-player/playlists/requests/use-remove-tracks-from-playlist';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {TableTrackContextDialog} from '@app/web-player/tracks/context-dialog/table-track-context-dialog';
-import {useAuth} from '@common/auth/use-auth';
 import {Track} from '@app/web-player/tracks/track';
+import {useAuth} from '@common/auth/use-auth';
+import {Trans} from '@ui/i18n/trans';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 
 interface PlaylistTrackContextDialogProps {
-  playlist: Playlist;
+  playlist: PartialPlaylist;
 }
 export function PlaylistTrackContextDialog({
   playlist,
@@ -24,7 +24,7 @@ export function PlaylistTrackContextDialog({
 }
 
 interface RemoveFromPlaylistMenuItemProps {
-  playlist: Playlist;
+  playlist: PartialPlaylist;
   tracks: Track[];
 }
 export function RemoveFromPlaylistMenuItem({

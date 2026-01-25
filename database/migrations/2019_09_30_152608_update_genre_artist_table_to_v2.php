@@ -1,16 +1,14 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Common\Database\Traits\AddsIndexToExistingTable;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 class UpdateGenreArtistTableToV2 extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
+    use AddsIndexToExistingTable;
+
     public function up()
     {
         Schema::table('genre_artist', function (Blueprint $table) {
@@ -22,16 +20,17 @@ class UpdateGenreArtistTableToV2 extends Migration
             }
 
             $table->renameColumn('artist_id', 'genreable_id');
-            if ( ! Schema::hasColumn('genre_artist', 'genreable_type')) {
-                $table->string('genreable_type', 10)->index()->default('App\\\Artist');
+            if (!Schema::hasColumn('genre_artist', 'genreable_type')) {
+                $table
+                    ->string('genreable_type', 10)
+                    ->index()
+                    ->default('App\\\Artist');
             }
 
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $indexesFound = $sm->listTableIndexes('genre_artist');
-
-            if (array_key_exists('genre_artist_artist_id_genre_id_unique', $indexesFound)) {
-                $table->dropIndex('genre_artist_artist_id_genre_id_unique');
-            }
+            $this->removeIndex(
+                $table,
+                'genre_artist_artist_id_genre_id_unique',
+            );
 
             $table->unique(['genreable_id', 'genreable_type', 'genre_id']);
         });
@@ -41,11 +40,6 @@ class UpdateGenreArtistTableToV2 extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         //

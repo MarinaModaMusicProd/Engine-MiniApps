@@ -1,13 +1,11 @@
-import {Link, LinkProps} from 'react-router-dom';
-import clsx from 'clsx';
-import React, {useMemo} from 'react';
-import {Artist} from '@app/web-player/artists/artist';
-import {slugifyString} from '@ui/utils/string/slugify-string';
-import {UserArtist} from '@app/web-player/user-profile/user-artist';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {slugifyString} from '@ui/utils/string/slugify-string';
+import clsx from 'clsx';
+import {useMemo} from 'react';
+import {Link, LinkProps} from 'react-router';
 
 interface AlbumLinkProps extends Omit<LinkProps, 'to'> {
-  artist: Artist | UserArtist;
+  artist: {id: number; name: string};
   className?: string;
 }
 export function ArtistLink({artist, className, ...linkProps}: AlbumLinkProps) {
@@ -30,7 +28,7 @@ export function ArtistLink({artist, className, ...linkProps}: AlbumLinkProps) {
 }
 
 export function getArtistLink(
-  artist: Artist | UserArtist,
+  artist: {id: number | string; name: string},
   {absolute}: {absolute?: boolean} = {},
 ): string {
   let link = `/artist/${artist.id}/${slugifyString(artist.name)}`;

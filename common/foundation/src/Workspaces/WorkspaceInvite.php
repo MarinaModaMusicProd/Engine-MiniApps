@@ -17,8 +17,6 @@ class WorkspaceInvite extends Model
     protected $keyType = 'orderedUuid';
     public $incrementing = false;
 
-    protected bool $gravatarEnabled = true;
-
     protected $casts = [
         'user_id' => 'integer',
     ];

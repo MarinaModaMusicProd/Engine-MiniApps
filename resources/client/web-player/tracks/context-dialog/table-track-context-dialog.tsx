@@ -1,13 +1,15 @@
-import {Track} from '@app/web-player/tracks/track';
-import {useContext, useMemo} from 'react';
-import {TableContext} from '@common/ui/tables/table-context';
 import {
   TrackContextDialog,
   TrackContextDialogProps,
 } from '@app/web-player/tracks/context-dialog/track-context-dialog';
+import {Track} from '@app/web-player/tracks/track';
+import {TableContext} from '@common/ui/tables/table-context';
+import {useContext, useMemo} from 'react';
 
-interface TableTrackContextDialogProps
-  extends Omit<TrackContextDialogProps, 'tracks'> {}
+interface TableTrackContextDialogProps extends Omit<
+  TrackContextDialogProps,
+  'tracks'
+> {}
 export function TableTrackContextDialog({
   children,
   ...props

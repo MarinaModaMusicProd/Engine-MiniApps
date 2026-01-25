@@ -1,7 +1,16 @@
-import React, {
+import {useFocusManager} from '@react-aria/focus';
+import {mergeProps, useLayoutEffect, useObjectRef} from '@react-aria/utils';
+import {useControlledState} from '@react-stately/utils';
+import {Avatar} from '@ui/avatar/avatar';
+import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
+import {Popover} from '@ui/overlays/popover';
+import {ProgressCircle} from '@ui/progress/progress-circle';
+import {NormalizedModel} from '@ui/types/normalized-model';
+import {createEventHandler} from '@ui/utils/dom/create-event-handler';
+import clsx from 'clsx';
+import {
   HTMLAttributes,
   Key,
-  ReactElement,
   ReactNode,
   Ref,
   RefObject,
@@ -10,35 +19,25 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {useFocusManager} from '@react-aria/focus';
-import clsx from 'clsx';
-import {mergeProps, useLayoutEffect, useObjectRef} from '@react-aria/utils';
-import {useControlledState} from '@react-stately/utils';
-import {ChipList} from './chip-list';
-import {Field, FieldProps} from '../field';
-import {Input} from '../input';
-import {Chip, ChipProps} from './chip';
-import {NormalizedModel} from '@ui/types/normalized-model';
-import {getInputFieldClassNames} from '../get-input-field-class-names';
-import {ProgressCircle} from '@ui/progress/progress-circle';
-import {useField} from '../use-field';
 import {Listbox} from '../../listbox/listbox';
-import {useListbox} from '../../listbox/use-listbox';
-import {BaseFieldPropsWithDom} from '../base-field-props';
-import {useListboxKeyboardNavigation} from '../../listbox/use-listbox-keyboard-navigation';
-import {createEventHandler} from '@ui/utils/dom/create-event-handler';
 import {ListBoxChildren, ListboxProps} from '../../listbox/types';
+import {useListbox} from '../../listbox/use-listbox';
+import {useListboxKeyboardNavigation} from '../../listbox/use-listbox-keyboard-navigation';
+import {BaseFieldPropsWithDom} from '../base-field-props';
+import {Field, FieldProps} from '../field';
+import {getInputFieldClassNames} from '../get-input-field-class-names';
+import {Input} from '../input';
+import {useField} from '../use-field';
+import {Chip, ChipProps} from './chip';
+import {ChipList} from './chip-list';
 import {stringToChipValue} from './string-to-chip-value';
-import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
-import {Avatar} from '@ui/avatar/avatar';
-import {Popover} from '@ui/overlays/popover';
 
 export interface ChipValue extends Omit<NormalizedModel, 'model_type'> {
   invalid?: boolean;
   errorMessage?: string;
 }
 
-export type ChipFieldProps<T> = Omit<
+export type ChipFieldProps<T, P extends ChipValue = ChipValue> = Omit<
   ListboxProps,
   'selectionMode' | 'displayWith'
 > &
@@ -50,6 +49,8 @@ export type ChipFieldProps<T> = Omit<
     defaultValue?: (ChipValue | string)[];
     displayWith?: (value: ChipValue) => ReactNode;
     validateWith?: (value: ChipValue) => ChipValue;
+    getItemForPresentation?: (value: ChipValue) => P | undefined;
+    maxItems?: number;
     allowCustomValue?: boolean;
     showDropdownArrow?: boolean;
     onChange?: (value: ChipValue[]) => void;
@@ -62,17 +63,16 @@ export type ChipFieldProps<T> = Omit<
     onChipClick?: (value: ChipValue) => void;
     alwaysShowAvatar?: boolean;
     readOnly?: boolean;
+    ref?: Ref<HTMLInputElement>;
   };
 
-function ChipFieldInner<T>(
-  props: ChipFieldProps<T>,
-  ref: Ref<HTMLInputElement>,
-) {
+export function ChipField<T>({ref, ...props}: ChipFieldProps<T>) {
   const fieldRef = useRef<HTMLDivElement>(null);
   const inputRef = useObjectRef(ref);
   const {
     displayWith = v => v.name,
     validateWith,
+    getItemForPresentation,
     children,
     suggestions,
     isLoading,
@@ -94,6 +94,7 @@ function ChipFieldInner<T>(
     onChipClick,
     alwaysShowAvatar = false,
     readOnly,
+    maxItems,
     ...inputFieldProps
   } = props;
   const fieldClassNames = getInputFieldClassNames({
@@ -135,6 +136,7 @@ function ChipFieldInner<T>(
           chipSize={chipSize}
           alwaysShowAvatar={alwaysShowAvatar}
           readOnly={readOnly}
+          getItemForPresentation={getItemForPresentation}
         />
         <ChipInput
           size={props.size}
@@ -163,7 +165,7 @@ function ChipFieldInner<T>(
   );
 }
 
-interface ListWrapperProps {
+interface ListWrapperProps<P extends ChipValue = ChipValue> {
   items: ChipValue[];
   setItems: (items: ChipValue[]) => void;
   displayChipUsing: (value: ChipValue) => ReactNode;
@@ -171,8 +173,9 @@ interface ListWrapperProps {
   onChipClick?: (value: ChipValue) => void;
   alwaysShowAvatar?: boolean;
   readOnly?: boolean;
+  getItemForPresentation?: (value: ChipValue) => P | undefined;
 }
-function ListWrapper({
+function ListWrapper<P extends ChipValue = ChipValue>({
   items,
   setItems,
   displayChipUsing,
@@ -180,7 +183,8 @@ function ListWrapper({
   onChipClick,
   alwaysShowAvatar,
   readOnly,
-}: ListWrapperProps) {
+  getItemForPresentation,
+}: ListWrapperProps<P>) {
   const manager = useFocusManager();
   const removeItem = useCallback(
     (key: Key) => {
@@ -204,39 +208,42 @@ function ListWrapper({
       size={chipSize}
       selectable
     >
-      {items.map(item => (
-        <Chip
-          key={item.id}
-          errorMessage={item.errorMessage}
-          adornment={
-            item.image || alwaysShowAvatar ? (
-              <Avatar
-                circle
-                src={item.image}
-                fallback="initials"
-                label={item.name}
-              />
-            ) : null
-          }
-          onClick={() => onChipClick?.(item)}
-          onRemove={
-            readOnly
-              ? undefined
-              : () => {
-                  const newItems = removeItem(item.id);
-                  if (newItems.length) {
-                    // focus previous chip
-                    manager?.focusPrevious({tabbable: true});
-                  } else {
-                    // focus input
-                    manager?.focusLast();
+      {items.map(item => {
+        item = getItemForPresentation?.(item) ?? item;
+        return (
+          <Chip
+            key={item.id}
+            errorMessage={item.errorMessage}
+            adornment={
+              item.image || alwaysShowAvatar ? (
+                <Avatar
+                  circle
+                  src={item.image}
+                  fallback="initials"
+                  label={item.name}
+                />
+              ) : null
+            }
+            onClick={() => onChipClick?.(item)}
+            onRemove={
+              readOnly
+                ? undefined
+                : () => {
+                    const newItems = removeItem(item.id);
+                    if (newItems.length) {
+                      // focus previous chip
+                      manager?.focusPrevious({tabbable: true});
+                    } else {
+                      // focus input
+                      manager?.focusLast();
+                    }
                   }
-                }
-          }
-        >
-          {displayChipUsing(item)}
-        </Chip>
-      ))}
+            }
+          >
+            {displayChipUsing(item)}
+          </Chip>
+        );
+      })}
     </ChipList>
   );
 }
@@ -246,8 +253,8 @@ interface ChipInputProps<T> {
   inputProps: ReturnType<typeof useField>['inputProps'];
   inputValue?: string;
   onInputValueChange?: (value: string) => void;
-  fieldRef: RefObject<HTMLDivElement>;
-  inputRef: RefObject<HTMLInputElement>;
+  fieldRef: RefObject<HTMLDivElement | null>;
+  inputRef: RefObject<HTMLInputElement | null>;
   chips: ChipValue[];
   setChips: (items: ChipValue[]) => void;
   validateWith?: (value: ChipValue) => ChipValue;
@@ -379,6 +386,7 @@ function ChipInput<T>(props: ChipInputProps<T>) {
         )}
         placeholder={placeholder}
         {...mergeProps(inputProps, {
+          required: false,
           ref: inputRef,
           value: inputValue,
           onChange: onInputChange,
@@ -471,6 +479,7 @@ function useChipFieldValueState({
   value,
   defaultValue,
   valueKey,
+  maxItems,
 }: ChipFieldProps<any>) {
   // convert value from string[] to ChipValue[], if needed
   const propsValue = useMemo(() => {
@@ -485,7 +494,10 @@ function useChipFieldValueState({
   // emit string[] or ChipValue[] on change, based on "valueKey" prop
   const handleChange = useCallback(
     (value: ChipValue[]) => {
-      const newValue = valueKey ? value.map(v => v[valueKey]) : value;
+      let newValue = valueKey ? value.map(v => v[valueKey]) : value;
+      if (maxItems) {
+        newValue = newValue.slice(0, maxItems);
+      }
       onChange?.(newValue as any);
     },
     [onChange, valueKey],
@@ -501,15 +513,15 @@ function useChipFieldValueState({
 function mixedValueToChipValue(
   value?: (string | number | ChipValue)[] | null,
 ): ChipValue[] | undefined {
-  if (value == null) {
+  if (!value) {
     return undefined;
+  }
+
+  if (!Array.isArray(value)) {
+    return [stringToChipValue(value)];
   }
 
   return value.map(v => {
     return typeof v !== 'object' ? stringToChipValue(v as string) : v;
   });
 }
-
-export const ChipField = React.forwardRef(ChipFieldInner) as <T>(
-  props: ChipFieldProps<T> & {ref?: Ref<HTMLInputElement>},
-) => ReactElement;

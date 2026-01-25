@@ -1,33 +1,33 @@
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
 import {ArtistLinks} from '@app/web-player/artists/artist-links';
-import {Waveform} from '@app/web-player/tracks/waveform/waveform';
-import {Track} from '@app/web-player/tracks/track';
-import {useSettings} from '@ui/settings/use-settings';
+import {GenreLink} from '@app/web-player/genres/genre-link';
+import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
 import {TrackSeekbar} from '@app/web-player/player-controls/seekbar/track-seekbar';
+import {useTrackPermissions} from '@app/web-player/tracks/hooks/use-track-permissions';
+import {Track} from '@app/web-player/tracks/track';
+import {TrackActionsBar} from '@app/web-player/tracks/track-actions-bar';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {TrackLink} from '@app/web-player/tracks/track-link';
 import {trackIsLocallyUploaded} from '@app/web-player/tracks/utils/track-is-locally-uploaded';
-import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
 import {
   CommentBarContext,
   CommentBarContextProvider,
 } from '@app/web-player/tracks/waveform/comment-bar-context';
 import {CommentBarNewCommentForm} from '@app/web-player/tracks/waveform/comment-bar-new-comment-form';
-import React, {Fragment, memo, useContext} from 'react';
-import {AnimatePresence} from 'framer-motion';
-import {Chip} from '@ui/forms/input-field/chip-field/chip';
-import {GenreLink} from '@app/web-player/genres/genre-link';
-import {RepeatIcon} from '@ui/icons/material/Repeat';
-import {TrackLink} from '@app/web-player/tracks/track-link';
-import {useTrackPermissions} from '@app/web-player/tracks/hooks/use-track-permissions';
-import {User} from '@ui/types/user';
+import {Waveform} from '@app/web-player/tracks/waveform/waveform';
+import {PartialUserProfile} from '@app/web-player/users/user-profile';
 import {UserProfileLink} from '@app/web-player/users/user-profile-link';
-import {TrackActionsBar} from '@app/web-player/tracks/track-actions-bar';
+import {Chip} from '@ui/forms/input-field/chip-field/chip';
+import {FormattedRelativeTime} from '@ui/i18n/formatted-relative-time';
+import {RepeatIcon} from '@ui/icons/material/Repeat';
+import {useSettings} from '@ui/settings/use-settings';
 import clsx from 'clsx';
+import {AnimatePresence} from 'framer-motion';
+import {Fragment, memo, useContext} from 'react';
 
 interface TrackListItemProps {
   track: Track;
   queue?: Track[];
-  reposter?: User;
+  reposter?: PartialUserProfile;
   className?: string;
   hideArtwork?: boolean;
   hideActions?: boolean;

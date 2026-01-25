@@ -1,13 +1,12 @@
-import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {User} from '@ui/types/user';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {toast} from '@ui/toast/toast';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
+import {adminQueries} from '@app/admin/admin-queries';
 import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useMutation} from '@tanstack/react-query';
 import {message} from '@ui/i18n/message';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {toast} from '@ui/toast/toast';
+import {User} from '@ui/types/user';
+import {UseFormReturn} from 'react-hook-form';
 
 interface Response extends BackendResponse {
   user: User;
@@ -19,13 +18,13 @@ export interface CreateUserPayload
 }
 
 export function useCreateUser(form: UseFormReturn<CreateUserPayload>) {
-  const navigate = useNavigate();
   return useMutation({
     mutationFn: (props: CreateUserPayload) => createUser(props),
     onSuccess: () => {
       toast(message('User created'));
-      queryClient.invalidateQueries({queryKey: DatatableDataQueryKey('users')});
-      navigate('/admin/users');
+      queryClient.invalidateQueries({
+        queryKey: adminQueries.users.invalidateKey,
+      });
     },
     onError: r => onFormQueryError(r, form),
   });

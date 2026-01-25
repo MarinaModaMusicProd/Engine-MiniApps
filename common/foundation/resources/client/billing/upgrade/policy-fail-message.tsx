@@ -1,13 +1,13 @@
-import {Trans} from '@ui/i18n/trans';
-import {Link} from 'react-router-dom';
-import {LinkStyle} from '@ui/buttons/external-link';
-import {ReactElement, ReactNode} from 'react';
+import {PolicyFailReason} from '@common/billing/upgrade/policy-fail-reason';
 import {
   SectionHelper,
   SectionHelperProps,
 } from '@common/ui/other/section-helper';
+import {LinkStyle} from '@ui/buttons/external-link';
+import {Trans} from '@ui/i18n/trans';
 import {useSettings} from '@ui/settings/use-settings';
-import {PolicyFailReason} from '@common/billing/upgrade/policy-fail-reason';
+import {ReactElement, ReactNode} from 'react';
+import {Link} from 'react-router';
 
 interface Props {
   className?: string;
@@ -83,5 +83,10 @@ function MessageText({resourceName, reason}: MessageTextProps) {
     );
   }
 
-  return <Trans message="You don't have permissions to create :name." />;
+  return (
+    <Trans
+      message="You don't have permissions to create :name."
+      values={{name: resourceName}}
+    />
+  );
 }

@@ -3,6 +3,9 @@
 namespace Common\Files;
 
 use Common\Files\Traits\GetsEntryTypeFromMime;
+use Common\Files\Uploads\UploadBackend;
+use Common\Files\Uploads\Uploads;
+use Common\Files\Uploads\UploadType;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -15,28 +18,31 @@ class FileEntryPayload
     use GetsEntryTypeFromMime;
 
     private array $data;
-    public mixed $diskName;
     public string|null $clientName;
     public string $filename;
-    public ?int $workspaceId;
     public string|null $clientMime;
+    public string $clientExtension;
     public string $type;
     public ?string $relativePath;
-    public string $clientExtension;
-
     public int $size;
     public ?int $parentId;
+    public ?int $workspaceId;
 
-    public string $diskPrefix;
-    public bool $public;
-    public string $visibility;
+    public string|null $diskPrefix;
     public int|null $ownerId;
+
+    public UploadType $uploadType;
+    public UploadBackend $backend;
 
     public function __construct(array $data)
     {
         $this->prepareData($data);
-        $this->diskName = Arr::get($data, 'disk', 'uploads');
-        $this->public = $this->diskName === 'public';
+        $this->uploadType = Uploads::type($data['uploadType']);
+
+        $backendId =
+            $data['backendId'] ?? Arr::random($this->uploadType->backendIds);
+        $this->backend = Uploads::backend($backendId);
+
         $this->prepareEntryPayload();
     }
 
@@ -78,27 +84,21 @@ class FileEntryPayload
         $this->size =
             $this->data['file_size'] ??
             ($this->data['size'] ?? $this->data['clientSize']);
-        $this->visibility = $this->public
-            ? 'public'
-            : config('common.site.remote_file_visibility');
-        $this->type = $this->getTypeFromMime(
-            $this->clientMime,
-            $this->clientExtension,
-        );
+        $this->type =
+            Arr::get($this->data, 'type') ??
+            $this->getTypeFromMime($this->clientMime, $this->clientExtension);
     }
 
     private function getDiskPrefix()
     {
-        if ($this->public) {
-            return Arr::get($this->data, 'diskPrefix');
-        } else {
+        if (!$this->uploadType->public) {
             return $this->filename;
         }
     }
 
     private function getFilename()
     {
-        $keepOriginalName = settings('uploads.keep_original_name');
+        $keepOriginalName = settings('filesystems.keep_original_name');
 
         if (isset($this->data['filename'])) {
             return $this->data['filename'];
@@ -107,7 +107,7 @@ class FileEntryPayload
         $uuid = Str::uuid();
 
         // public files will be stored with extension
-        if ($this->public) {
+        if ($this->uploadType->public) {
             return $keepOriginalName
                 ? $this->clientName
                 : "{$uuid}.{$this->clientExtension}";

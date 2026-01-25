@@ -1,9 +1,41 @@
-import {useFormContext} from 'react-hook-form';
-import {NormalizedModel} from '@ui/types/normalized-model';
-import {Trans} from '@ui/i18n/trans';
+import {ChannelContentSearchFieldProps} from '@common/admin/channels/channel-editor/channel-content-search-field';
+import {useAddToChannel} from '@common/admin/channels/requests/use-add-to-channel';
+import {useRemoveFromChannel} from '@common/admin/channels/requests/use-remove-from-channel';
+import {useReorderChannelContent} from '@common/admin/channels/requests/use-reorder-channel-content';
+import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
+import {useUpdateChannelContent} from '@common/admin/channels/requests/use-update-channel-content';
+import {Channel, ChannelContentItem} from '@common/channels/channel';
+import {useChannelContent} from '@common/channels/requests/use-channel-content';
+import {ColumnConfig} from '@common/datatable/column-config';
+import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
+import {queryClient} from '@common/http/query-client';
+import {PaginationControls} from '@common/ui/navigation/pagination-controls';
 import {Table} from '@common/ui/tables/table';
+import {TableContext} from '@common/ui/tables/table-context';
 import {RowElementProps} from '@common/ui/tables/table-row';
+import {mergeProps} from '@react-aria/utils';
+import {UseQueryResult} from '@tanstack/react-query';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Item} from '@ui/forms/listbox/item';
+import {Select} from '@ui/forms/select/select';
+import {Trans} from '@ui/i18n/trans';
+import {CloseIcon} from '@ui/icons/material/Close';
+import {DragHandleIcon} from '@ui/icons/material/DragHandle';
+import {RefreshIcon} from '@ui/icons/material/Refresh';
+import {WarningIcon} from '@ui/icons/material/Warning';
+import {IllustratedMessage} from '@ui/images/illustrated-message';
+import {SvgImage} from '@ui/images/svg-image';
+import {DragPreview} from '@ui/interactions/dnd/drag-preview';
+import {
+  DropPosition,
+  useSortable,
+} from '@ui/interactions/dnd/sortable/use-sortable';
+import {DragPreviewRenderer} from '@ui/interactions/dnd/use-draggable';
+import {NormalizedModel} from '@ui/types/normalized-model';
+import {moveItemInNewArray} from '@ui/utils/array/move-item-in-new-array';
 import {useIsTouchDevice} from '@ui/utils/hooks/is-touch-device';
+import clsx from 'clsx';
 import React, {
   cloneElement,
   ReactElement,
@@ -12,43 +44,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {TableContext} from '@common/ui/tables/table-context';
-import {DragPreviewRenderer} from '@ui/interactions/dnd/use-draggable';
-import {
-  DropPosition,
-  useSortable,
-} from '@ui/interactions/dnd/sortable/use-sortable';
-import clsx from 'clsx';
-import {mergeProps} from '@react-aria/utils';
-import {ColumnConfig} from '@common/datatable/column-config';
-import {DragHandleIcon} from '@ui/icons/material/DragHandle';
-import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
-import {IconButton} from '@ui/buttons/icon-button';
-import {CloseIcon} from '@ui/icons/material/Close';
-import {DragPreview} from '@ui/interactions/dnd/drag-preview';
-import {WarningIcon} from '@ui/icons/material/Warning';
-import {IllustratedMessage} from '@ui/images/illustrated-message';
+import {useFormContext} from 'react-hook-form';
+import {Link, useParams, useSearchParams} from 'react-router';
 import playlist from '../playlist.svg';
-import {SvgImage} from '@ui/images/svg-image';
-import {Link, useParams} from 'react-router-dom';
-import {Button} from '@ui/buttons/button';
-import {RefreshIcon} from '@ui/icons/material/Refresh';
-import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
-import {useUpdateChannelContent} from '@common/admin/channels/requests/use-update-channel-content';
-import {ChannelContentSearchFieldProps} from '@common/admin/channels/channel-editor/channel-content-search-field';
-import {useChannelContent} from '@common/channels/requests/use-channel-content';
-import {PaginationControls} from '@common/ui/navigation/pagination-controls';
-import {queryClient} from '@common/http/query-client';
-import {PaginationResponse} from '@common/http/backend-response/pagination-response';
-import {moveItemInNewArray} from '@ui/utils/array/move-item-in-new-array';
-import {useReorderChannelContent} from '@common/admin/channels/requests/use-reorder-channel-content';
-import {useAddToChannel} from '@common/admin/channels/requests/use-add-to-channel';
-import {useRemoveFromChannel} from '@common/admin/channels/requests/use-remove-from-channel';
-import {Channel, ChannelContentItem} from '@common/channels/channel';
-import {Select} from '@ui/forms/select/select';
-import {Item} from '@ui/forms/listbox/item';
-import {UseQueryResult} from '@tanstack/react-query';
-import {PrimitiveValue} from "@ui/forms/listbox/types";
 
 const columnConfig: ColumnConfig<NormalizedModel>[] = [
   {
@@ -115,17 +113,23 @@ export function ChannelContentEditor({
 }: Props) {
   const {watch, getValues} = useFormContext<UpdateChannelPayload>();
   const channel = getValues() as Channel<ChannelContentItem<NormalizedModel>>;
-  const [perPage, setPerPage] = useState<string | number>(
-    channel.content?.per_page ?? 100,
-  );
+  const [searchParams, setSearchParams] = useSearchParams();
+  const perPage =
+    searchParams.get('perPage') ?? channel.content?.per_page ?? '100';
+  const setPerPage = (perPage: number | string) => {
+    setSearchParams(prev => {
+      prev.set('perPage', perPage.toString());
+      prev.delete('page');
+      return prev;
+    });
+  };
   const contentType = watch('config.contentType');
   const contentOrder = watch('config.contentOrder');
   const addToChannel = useAddToChannel();
-  const query = useChannelContent<ChannelContentItem<NormalizedModel>>(
-    channel,
-    {loader: 'editChannelPage', paginate: 'simple', perPage: `${perPage}`},
-  );
-  const pagination = query.data!;
+  const {query, queryKey} = useChannelContent<
+    ChannelContentItem<NormalizedModel>
+  >(channel, 'editChannelPage');
+  const pagination = query.data!.channel.content;
 
   const filteredColumns = columnConfig.filter(col => {
     // only show delete button when channel content is managed manually
@@ -164,14 +168,14 @@ export function ChannelContentEditor({
       <Pagination
         query={query}
         perPage={perPage}
-        onPageChange={setPerPage}
+        onPerPageChange={setPerPage}
         className="mb-24"
       />
       <Table
         className="mt-24"
         columns={filteredColumns}
+        meta={{queryKey}}
         data={pagination?.data || []}
-        meta={query.queryKey}
         renderRowAs={contentType === 'manual' ? ContentTableRow : undefined}
         enableSelection={false}
         hideHeaderRow
@@ -194,7 +198,7 @@ export function ChannelContentEditor({
       <Pagination
         query={query}
         perPage={perPage}
-        onPageChange={setPerPage}
+        onPerPageChange={setPerPage}
         className="mt-24"
       />
     </div>
@@ -202,34 +206,37 @@ export function ChannelContentEditor({
 }
 
 interface PaginationProps {
-  query: UseQueryResult<PaginationResponse<unknown>, unknown>;
+  query: UseQueryResult<{
+    channel: Channel<ChannelContentItem<NormalizedModel>>;
+  }>;
   perPage: number | string;
-  onPageChange: (perPage: number | string) => void;
+  onPerPageChange: (perPage: number | string) => void;
   className?: string;
 }
 function Pagination({
   query,
   perPage,
-  onPageChange,
+  onPerPageChange,
   className,
 }: PaginationProps) {
-  if (!query.data) return;
+  if (!query.data?.channel.content) return;
+  const pagination = query.data.channel.content;
 
   return (
     <div
       className={clsx('flex items-center justify-between gap-24', className)}
     >
-      <PaginationControls pagination={query.data} type="simple" />
-      {query.data?.data.length >= query.data?.per_page && (
+      <PaginationControls pagination={pagination} type="simple" />
+      {pagination.data.length >= pagination.per_page && (
         <Select
           minWidth="min-w-auto"
-          selectionMode="single"
           disabled={query.isLoading}
           labelPosition="side"
           size="xs"
           label={<Trans message="Per page" />}
           selectedValue={`${perPage}`}
-          onSelectionChange={(value: PrimitiveValue) => onPageChange(value)}
+          selectionMode="single"
+          onSelectionChange={value => onPerPageChange(value)}
           className="ml-auto"
         >
           <Item value="50">50</Item>
@@ -269,24 +276,36 @@ function ContentTableRow({
     },
     onSortEnd: (oldIndex, newIndex) => {
       // do optimistic reorder
-      const newPagination = queryClient.setQueryData<
-        PaginationResponse<unknown>
-      >(meta, pagination => {
-        if (pagination) {
-          pagination = {
-            ...pagination,
-            data: moveItemInNewArray(pagination.data, oldIndex, newIndex),
+      const newData = queryClient.setQueryData<{
+        channel: Channel<ChannelContentItem<NormalizedModel>>;
+      }>(meta.queryKey, data => {
+        if (data?.channel.content) {
+          data = {
+            ...data,
+            channel: {
+              ...data.channel,
+              content: {
+                ...data.channel.content,
+                data: moveItemInNewArray(
+                  data.channel.content.data,
+                  oldIndex,
+                  newIndex,
+                ),
+              },
+            },
           };
         }
-        return pagination;
+        return data;
       });
 
       // reorder on backend
-      if (newPagination) {
+      if (newData?.channel.content) {
         reorderContent.mutate({
           channelId: getValues('id'),
           modelType: item.model_type,
-          ids: newPagination.data.map(item => (item as NormalizedModel).id),
+          ids: newData.channel.content?.data.map(
+            item => (item as NormalizedModel).id,
+          ),
         });
       }
     },

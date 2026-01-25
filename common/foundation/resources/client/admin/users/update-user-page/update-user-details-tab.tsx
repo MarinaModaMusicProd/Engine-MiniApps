@@ -1,65 +1,32 @@
-import {Trans} from '@ui/i18n/trans';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import React from 'react';
-import {UserRoleSection} from '@common/admin/users/update-user-page/user-role-section';
-import {useForm} from 'react-hook-form';
-import {Link, useOutletContext} from 'react-router-dom';
-import {User} from '@ui/types/user';
 import {UpdateUserPayload} from '@common/admin/users/requests/user-update-user';
 import {UpdateUserForm} from '@common/admin/users/update-user-page/update-user-form';
-import {FormSwitch} from '@ui/forms/toggle/switch';
+import {UpdateUserPageUser} from '@common/admin/users/update-user-page/update-user-page-user';
+import {UserRoleSection} from '@common/admin/users/update-user-page/user-role-section';
 import {useResendVerificationEmail} from '@common/auth/requests/use-resend-verification-email';
-import {useSettings} from '@ui/settings/use-settings';
 import {Button} from '@ui/buttons/button';
-import {FormFileSizeField} from '@common/uploads/components/file-size-field';
-import {LinkStyle} from '@ui/buttons/external-link';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {FormSwitch} from '@ui/forms/toggle/switch';
+import {Trans} from '@ui/i18n/trans';
+import {useSettings} from '@ui/settings/use-settings';
+import {useForm} from 'react-hook-form';
+import {useOutletContext} from 'react-router';
 
-export function UpdateUserDetailsTab() {
-  const user = useOutletContext() as User;
+export function Component() {
+  const user = useOutletContext() as UpdateUserPageUser;
   const form = useForm<UpdateUserPayload>({
     defaultValues: {
-      first_name: user.first_name ?? '',
-      last_name: user.last_name ?? '',
+      name: user.name ?? '',
       roles: user.roles,
       email_verified_at: !!user.email_verified_at,
-      available_space: user.available_space,
     },
   });
 
   return (
     <UpdateUserForm form={form}>
-      <div className="mb-24 flex gap-44">
-        <FormTextField
-          name="first_name"
-          label={<Trans message="First name" />}
-          className="flex-auto"
-        />
-        <FormTextField
-          name="last_name"
-          label={<Trans message="Last name" />}
-          className="flex-auto"
-        />
-      </div>
-      <FormFileSizeField
+      <FormTextField
+        name="name"
+        label={<Trans message="Name" />}
         className="mb-24"
-        name="available_space"
-        label={<Trans message="Allowed storage space" />}
-        description={
-          <Trans
-            values={{
-              a: parts => (
-                <Link
-                  className={LinkStyle}
-                  target="_blank"
-                  to="/admin/settings/uploading"
-                >
-                  {parts}
-                </Link>
-              ),
-            }}
-            message="Total storage space all user uploads are allowed to take up. If left empty, this value will be inherited from any roles or subscriptions user has, or from 'Available space' setting in <a>Uploading</a> settings page."
-          />
-        }
       />
       <EmailConfirmSection user={user} />
       <UserRoleSection />
@@ -68,7 +35,7 @@ export function UpdateUserDetailsTab() {
 }
 
 interface EmailConfirmSectionProps {
-  user: User;
+  user: UpdateUserPageUser;
 }
 function EmailConfirmSection({user}: EmailConfirmSectionProps) {
   const resendConfirmationEmail = useResendVerificationEmail();

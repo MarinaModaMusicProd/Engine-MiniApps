@@ -1,6 +1,6 @@
-import {useMemo} from 'react';
-import {useAuth} from '@common/auth/use-auth';
 import {Track} from '@app/web-player/tracks/track';
+import {useAuth} from '@common/auth/use-auth';
+import {useMemo} from 'react';
 
 export function useTrackPermissions(tracks: (Track | undefined)[]) {
   const {user, hasPermission} = useAuth();

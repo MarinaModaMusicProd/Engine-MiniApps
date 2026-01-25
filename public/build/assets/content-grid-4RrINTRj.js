@@ -1,0 +1,1 @@
+import{j as c,d}from"./main-BEfQELxr.js";import{G as t}from"./genre-B_3ZyEC1.js";function n({children:a,layout:e,className:i,containerRef:o,isCarousel:s,contentModel:r}){return c.jsx("div",{ref:o,className:d("content-grid",e==="compact"?r===t?"compact-genre-grid":"compact-grid":r===t?"default-genre-grid":"default-grid",s&&"carousel-grid",i),children:a})}export{n as C};

@@ -2,7 +2,7 @@
 
 namespace Common\Csv;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Auth\Jobs\ExportRolesCsv;
 use Common\Auth\Jobs\ExportUsersCsv;
 use Common\Csv\BaseCsvExportController;

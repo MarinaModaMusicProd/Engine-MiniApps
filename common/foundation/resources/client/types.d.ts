@@ -12,10 +12,8 @@ declare module 'mime-match' {
 }
 
 interface Window {
-  grecaptcha?: {
-    ready: (callback: () => void) => void;
-    execute: (siteKey: string, options: {action: string}) => Promise<string>;
-  };
+  captchaOnloadCallback?: () => void;
+  turnstile?: Turnstile.Turnstile;
   bootstrapData: string;
   onYouTubeIframeAPIReady: () => void;
 }

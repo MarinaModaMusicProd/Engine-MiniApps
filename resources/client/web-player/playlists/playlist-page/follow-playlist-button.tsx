@@ -1,20 +1,20 @@
-import {FavoriteIcon} from '@ui/icons/material/Favorite';
-import {FavoriteBorderIcon} from '@ui/icons/material/FavoriteBorder';
-import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {useFollowPlaylist} from '@app/web-player/playlists/requests/use-follow-playlist';
-import {useUnfollowPlaylist} from '@app/web-player/playlists/requests/use-unfollow-playlist';
 import {useIsFollowingPlaylist} from '@app/web-player/playlists/hooks/use-is-following-playlist';
 import {usePlaylistPermissions} from '@app/web-player/playlists/hooks/use-playlist-permissions';
-import {IconButton} from '@ui/buttons/icon-button';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
+import {useFollowPlaylist} from '@app/web-player/playlists/requests/use-follow-playlist';
+import {useUnfollowPlaylist} from '@app/web-player/playlists/requests/use-unfollow-playlist';
+import {Button} from '@ui/buttons/button';
 import {ButtonSize} from '@ui/buttons/button-size';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
+import {FavoriteIcon} from '@ui/icons/material/Favorite';
+import {FavoriteBorderIcon} from '@ui/icons/material/FavoriteBorder';
 
 interface FollowPlaylistButtonProps {
   buttonType: 'icon' | 'text';
   className?: string;
   size?: ButtonSize;
-  playlist: Playlist;
+  playlist: PartialPlaylist;
   radius?: string;
 }
 export function FollowPlaylistButton({

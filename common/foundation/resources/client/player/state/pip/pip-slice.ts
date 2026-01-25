@@ -1,11 +1,12 @@
-import {StateCreator} from 'zustand';
+import { FullscreenSlice } from '@common/player/state/fullscreen/fullscreen-slice';
+import { createChromePipAdapter } from '@common/player/state/pip/chrome-pip-adapter';
+import { PipAdapter } from '@common/player/state/pip/pip-adapter';
+import { createSafariPipAdapter } from '@common/player/state/pip/safari-pip-adapter';
 import {
   PlayerState,
   ProviderListeners,
 } from '@common/player/state/player-state';
-import {PipAdapter} from '@common/player/state/pip/pip-adapter';
-import {createChromePipAdapter} from '@common/player/state/pip/chrome-pip-adapter';
-import {createSafariPipAdapter} from '@common/player/state/pip/safari-pip-adapter';
+import { StateCreator } from 'zustand';
 
 export interface PipSlice {
   isPip: boolean;
@@ -18,7 +19,7 @@ export interface PipSlice {
 }
 
 type BaseSliceCreator = StateCreator<
-  PipSlice & PlayerState,
+  PipSlice & PlayerState & FullscreenSlice,
   [['zustand/immer', unknown]],
   [],
   PipSlice

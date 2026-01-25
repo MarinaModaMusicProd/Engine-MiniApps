@@ -6,10 +6,5 @@ use Common\Files\FileEntry;
 
 interface FileResponse
 {
-    /**
-     * @param FileEntry $entry
-     * @param array $options
-     * @return mixed
-     */
-    public function make(FileEntry $entry, $options);
+    public function make(FileEntry $entry, array $options);
 }

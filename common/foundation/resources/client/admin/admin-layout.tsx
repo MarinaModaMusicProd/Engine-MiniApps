@@ -1,54 +1,83 @@
-import {Outlet} from 'react-router-dom';
-import {AdminSidebar} from './admin-sidebar';
-import {DashboardLayout} from '@common/ui/dashboard-layout/dashboard-layout';
-import {DashboardContent} from '@common/ui/dashboard-layout/dashboard-content';
-import {DashboardSidenav} from '@common/ui/dashboard-layout/dashboard-sidenav';
-import {DashboardNavbar} from '@common/ui/dashboard-layout/dashboard-navbar';
 import {
   AdminSetupAlert,
-  useAdminSetupAlerts,
-} from '@common/admin/use-admin-setup-alerts';
+  useAdminSiteAlerts,
+} from '@common/admin/use-admin-site-alerts';
+import {DashboardContent} from '@common/ui/dashboard-layout/dashboard-content';
+import {DashboardLayout} from '@common/ui/dashboard-layout/dashboard-layout';
+import {DashboardSidenav} from '@common/ui/dashboard-layout/dashboard-sidenav';
 import {SectionHelper} from '@common/ui/other/section-helper';
 import {ErrorIcon} from '@ui/icons/material/Error';
+import {InfoIcon} from '@ui/icons/material/Info';
 import {
+  getFromLocalStorage,
   setInLocalStorage,
   useLocalStorage,
 } from '@ui/utils/hooks/local-storage';
+import clsx from 'clsx';
+import {Outlet, useMatches} from 'react-router';
+import {Fragment} from 'react/jsx-runtime';
+import {AdminSidebar} from './admin-sidebar';
 
-export function AdminLayout() {
+export function Component() {
+  const matches = useMatches();
+  const customDashboardLayout = matches.some(
+    m => (m.handle as any)?.customDashboardLayout,
+  );
   return (
-    <DashboardLayout name="admin" leftSidenavCanBeCompact>
-      <DashboardNavbar size="sm" menuPosition="admin-navbar" />
+    <DashboardLayout
+      name="admin"
+      leftSidenavCanBeCompact
+      className="dashboard-layout-with-spacing"
+    >
       <DashboardSidenav position="left" size="sm">
         <AdminSidebar />
       </DashboardSidenav>
-      <DashboardContent>
-        <div className="bg dark:bg-alt">
-          <SetupAlertsList />
+      {customDashboardLayout ? (
+        <Fragment>
+          <SiteAlertsList />
           <Outlet />
-        </div>
-      </DashboardContent>
+        </Fragment>
+      ) : (
+        <DashboardContent isScrollable={true} stableScrollbar={false}>
+          <div className="dashboard-rounded-panel">
+            <SiteAlertsList />
+            <Outlet />
+          </div>
+        </DashboardContent>
+      )}
     </DashboardLayout>
   );
 }
 
-function SetupAlertsList() {
-  const {data} = useAdminSetupAlerts();
-  const [dismissValue] = useLocalStorage<{
-    timestamp: number;
-  } | null>('admin-setup-alert-dismissed', null);
+type DismissedAlert = {
+  id: string;
+  timestamp: number;
+};
+
+function SiteAlertsList() {
+  const {data} = useAdminSiteAlerts();
+  const [dismissedAlerts] = useLocalStorage<DismissedAlert[]>(
+    'dismissed-site-alerts',
+    [],
+  );
 
   // show alert if 1 day passed since last dismiss
-  const shouldShowAlert =
-    !dismissValue || Date.now() - dismissValue.timestamp > 86400000;
+  const alerts = data?.alerts.filter(
+    alert =>
+      !dismissedAlerts?.some(
+        d => d.id === alert.id && Date.now() - d.timestamp < 86400000,
+      ),
+  );
 
-  if (!data?.alerts.length || !shouldShowAlert) {
+  if (!alerts?.length) {
     return null;
   }
 
   return (
-    <div className="fixed left-24 right-24 top-24 z-10 mx-auto w-max max-w-[calc(100%-48px)] overflow-hidden rounded-panel bg shadow-md">
-      <SetupAlert alert={data.alerts[0]} />
+    <div className="fixed bottom-24 right-24 z-10 mx-auto flex w-[742px] max-w-[calc(100%-48px)] flex-col gap-12">
+      {alerts.map(alert => (
+        <SetupAlert key={alert.id} alert={alert} />
+      ))}
     </div>
   );
 }
@@ -60,18 +89,40 @@ function SetupAlert({alert}: SetupAlertProps) {
   const description = (
     <div dangerouslySetInnerHTML={{__html: alert.description}}></div>
   );
+
+  const handleDismiss = () => {
+    const dismissedAlerts =
+      getFromLocalStorage<DismissedAlert[]>('dismissed-site-alerts') || [];
+    const value = {
+      id: alert.id,
+      timestamp: Date.now(),
+    };
+    const i = dismissedAlerts.findIndex(v => v.id === alert.id);
+    if (i === -1) {
+      dismissedAlerts.push(value);
+    } else {
+      dismissedAlerts[i] = value;
+    }
+    setInLocalStorage('dismissed-site-alerts', dismissedAlerts);
+  };
+
+  const icon =
+    alert.severity === 'error' ? (
+      <ErrorIcon size="xs" className="text-danger" />
+    ) : (
+      <InfoIcon size="xs" />
+    );
+
   return (
-    <SectionHelper
-      leadingIcon={<ErrorIcon size="xs" className="text-danger" />}
-      onClose={() => {
-        setInLocalStorage('admin-setup-alert-dismissed', {
-          timestamp: Date.now(),
-        });
-      }}
-      key={alert.title}
-      title={alert.title}
-      description={description}
-      color="neutral"
-    />
+    <div className={clsx('overflow-hidden rounded-panel bg shadow-lg')}>
+      <SectionHelper
+        leadingIcon={icon}
+        onClose={() => handleDismiss()}
+        key={alert.title}
+        title={alert.title}
+        description={description}
+        color={alert.severity === 'error' ? 'danger' : 'neutral'}
+      />
+    </div>
   );
 }

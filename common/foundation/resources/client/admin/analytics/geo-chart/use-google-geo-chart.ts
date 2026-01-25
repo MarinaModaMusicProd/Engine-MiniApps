@@ -1,16 +1,16 @@
-import lazyLoader from '@ui/utils/loaders/lazy-loader';
+import {LocationDatasetItem} from '@common/admin/analytics/report-metric';
+import {message} from '@ui/i18n/message';
+import {useTrans} from '@ui/i18n/use-trans';
 import {useSettings} from '@ui/settings/use-settings';
-import {RefObject, useCallback, useEffect, useRef} from 'react';
 import {useThemeSelector} from '@ui/themes/theme-selector-context';
 import {themeValueToHex} from '@ui/themes/utils/theme-value-to-hex';
-import {useTrans} from '@ui/i18n/use-trans';
-import {message} from '@ui/i18n/message';
-import {LocationDatasetItem} from '@common/admin/analytics/report-metric';
+import lazyLoader from '@ui/utils/loaders/lazy-loader';
+import {RefObject, useCallback, useEffect, useRef} from 'react';
 
 const loaderUrl = 'https://www.gstatic.com/charts/loader.js';
 
 interface UseGoogleGeoChartProps {
-  placeholderRef: RefObject<HTMLDivElement>;
+  placeholderRef: RefObject<HTMLDivElement | null>;
   data: LocationDatasetItem[];
   onCountrySelected?: (countryCode: string) => void;
   country?: string;
@@ -25,7 +25,7 @@ export function useGoogleGeoChart({
   const {analytics} = useSettings();
   const apiKey = analytics?.gchart_api_key;
   const {selectedTheme} = useThemeSelector();
-  const geoChartRef = useRef<google.visualization.GeoChart>();
+  const geoChartRef = useRef<google.visualization.GeoChart>(null);
   // only allow selecting countries, not cities
   const regionInteractivity = !!onCountrySelected && !country;
   const drawGoogleChart = useCallback(() => {
@@ -38,7 +38,7 @@ export function useGoogleGeoChart({
     ]);
 
     const backgroundColor = `${themeValueToHex(
-      selectedTheme.values['--be-paper'],
+      selectedTheme.values['--be-bg-elevated'],
     )}`;
     const chartColor = `${themeValueToHex(
       selectedTheme.values['--be-primary'],

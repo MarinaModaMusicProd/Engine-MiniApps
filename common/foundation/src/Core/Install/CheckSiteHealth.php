@@ -100,7 +100,7 @@ class CheckSiteHealth
             'items' => collect([
                 '.htaccess',
                 'public/.htaccess',
-                config('common.site.installed') ? '.env' : 'env.example',
+                config('app.installed') ? '.env' : 'env.example',
                 'storage',
                 'storage/app',
                 'storage/logs',

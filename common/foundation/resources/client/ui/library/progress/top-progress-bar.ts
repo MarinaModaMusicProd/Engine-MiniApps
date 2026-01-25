@@ -27,6 +27,7 @@ export class TopProgressBar {
         this.stopTrickling();
         this.visible = false;
         this.hiding = false;
+        this.setValue(0);
       });
     }
   }

@@ -1,9 +1,9 @@
-import {BackendFilter, FilterControlType} from '../backend-filter';
-import {ComponentPropsWithRef, forwardRef, ReactNode} from 'react';
 import {Button} from '@ui/buttons/button';
-import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
 import {Trans} from '@ui/i18n/trans';
+import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
 import clsx from 'clsx';
+import {ComponentPropsWithRef, forwardRef, ReactNode} from 'react';
+import {BackendFilter, FilterControlType} from '../backend-filter';
 
 interface TriggerButtonProps
   extends Omit<ComponentPropsWithRef<'button'>, 'color'> {
@@ -37,7 +37,6 @@ export const InactiveFilterButton = forwardRef<
     <Button
       variant="outline"
       size="xs"
-      color="paper"
       radius="rounded-md"
       border="border"
       ref={ref}

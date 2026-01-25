@@ -10,17 +10,17 @@ class RolePolicy
 
     public function index(User $user): bool
     {
-        return $user->hasPermission('roles.view');
+        return $user->hasPermission('roles.update');
     }
 
     public function show(User $user): bool
     {
-        return $user->hasPermission('roles.show');
+        return $user->hasPermission('roles.update');
     }
 
     public function store(User $user): bool
     {
-        return $user->hasPermission('roles.create');
+        return $user->hasPermission('roles.update');
     }
 
     public function update(User $user): bool
@@ -30,6 +30,6 @@ class RolePolicy
 
     public function destroy(User $user, Role $role): bool
     {
-        return !$role->internal && $user->hasPermission('roles.delete');
+        return !$role->internal && $user->hasPermission('roles.update');
     }
 }

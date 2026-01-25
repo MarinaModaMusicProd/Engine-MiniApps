@@ -1,6 +1,5 @@
-import React from 'react';
-import clsx from 'clsx';
 import {ProgressCircle} from '@ui/progress/progress-circle';
+import clsx from 'clsx';
 
 interface FullPageLoaderProps {
   className?: string;
@@ -15,7 +14,7 @@ export function FullPageLoader({className, screen}: FullPageLoaderProps) {
         className,
       )}
     >
-      <ProgressCircle isIndeterminate aria-label="Loading page..." size="md" />
+      <ProgressCircle isIndeterminate aria-label="Loading page..." />
     </div>
   );
 }

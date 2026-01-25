@@ -1,12 +1,12 @@
 import {Button, ButtonProps} from '@ui/buttons/button';
-import {BackendFilter} from './backend-filter';
-import {FilterAltIcon} from '@ui/icons/material/FilterAlt';
-import {Trans} from '@ui/i18n/trans';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
 import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
+import {FilterAltIcon} from '@ui/icons/material/FilterAlt';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {AddFilterDialog} from './add-filter-dialog';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
 import {ReactElement} from 'react';
+import {AddFilterDialog} from './add-filter-dialog';
+import {BackendFilter} from './backend-filter';
 
 interface AddFilterButtonProps {
   filters: BackendFilter[];

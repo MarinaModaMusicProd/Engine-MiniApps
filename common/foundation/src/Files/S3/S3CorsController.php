@@ -18,6 +18,13 @@ class S3CorsController extends BaseController
 
     public function uploadCors()
     {
+        $this->blockOnDemoSite();
+
+        $this->validate(request(), [
+            'uploadType' => 'required|string',
+            'backendId' => 'required|string',
+        ]);
+
         $cors = [
             [
                 'AllowedOrigins' => [config('app.url')],
@@ -36,13 +43,5 @@ class S3CorsController extends BaseController
         ]);
 
         return $this->success();
-    }
-
-    protected function getDiskName(): string
-    {
-        if (Storage::disk('uploads') instanceof AwsS3V3Adapter) {
-            return 'uploads';
-        }
-        return 'public';
     }
 }

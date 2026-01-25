@@ -16,78 +16,122 @@ use Google\Analytics\Data\V1beta\Row;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
-class BuildGoogleAnalyticsReport implements BuildAnalyticsReport
+class BuildGoogleAnalyticsReport extends BuildAnalyticsReport
 {
     use GeneratesTrendResults;
 
     protected BetaAnalyticsDataClient $client;
-    protected MetricDateRange $dateRange;
 
-    public function __construct()
+    public function __construct(array $params)
     {
+        parent::__construct($params);
+
         $this->client = new BetaAnalyticsDataClient([
             'credentials' => storage_path('laravel-analytics/certificate.json'),
         ]);
     }
 
-    public function execute(array $params = []): array
+    public function execute(): array
     {
-        $this->dateRange = $params['dateRange'] ?? new MetricDateRange();
-
         return $this->buildReport();
     }
 
     protected function buildReport(): array
     {
         $pageViews = $this->buildPageViewsMetric();
+
+        // browsers
+        $browsers = [
+            'granularity' => $this->dateRange->granularity,
+            'datasets' => [
+                [
+                    'label' => __('Sessions'),
+                    'data' => $this->buildTopBrowsersMetric($this->dateRange),
+                ],
+            ],
+        ];
+        if ($this->compareDateRange) {
+            $browsers['datasets'][] = [
+                'label' => __('Sessions'),
+                'data' => $this->buildTopBrowsersMetric(
+                    $this->compareDateRange,
+                ),
+            ];
+        }
+
+        // locations
+        $locations = [
+            'granularity' => $this->dateRange->granularity,
+            'datasets' => [
+                [
+                    'label' => __('Sessions'),
+                    'data' => $this->buildTopLocationsMetric($this->dateRange),
+                ],
+            ],
+        ];
+        if ($this->compareDateRange) {
+            $locations['datasets'][] = [
+                'label' => __('Sessions'),
+                'data' => $this->buildTopLocationsMetric(
+                    $this->compareDateRange,
+                ),
+            ];
+        }
+
+        // devices
+        $devices = [
+            'granularity' => $this->dateRange->granularity,
+            'datasets' => [
+                [
+                    'label' => __('Sessions'),
+                    'data' => $this->buildTopDevicesMetric($this->dateRange),
+                ],
+            ],
+        ];
+        if ($this->compareDateRange) {
+            $devices['datasets'][] = [
+                'label' => __('Sessions'),
+                'data' => $this->buildTopDevicesMetric($this->compareDateRange),
+            ];
+        }
+
+        // platforms
+        $platforms = [
+            'granularity' => $this->dateRange->granularity,
+            'datasets' => [
+                [
+                    'label' => __('Sessions'),
+                    'data' => $this->buildTopPlatformsMetric($this->dateRange),
+                ],
+            ],
+        ];
+        if ($this->compareDateRange) {
+            $platforms['datasets'][] = [
+                'label' => __('Sessions'),
+                'data' => $this->buildTopPlatformsMetric(
+                    $this->compareDateRange,
+                ),
+            ];
+        }
+
         return [
             'pageViews' => [
                 'datasets' => $pageViews,
                 'granularity' => $this->dateRange->granularity,
                 'total' => $pageViews[0]['data']->sum('value'),
             ],
-            'browsers' => [
-                'granularity' => $this->dateRange->granularity,
-                'datasets' => [
-                    [
-                        'label' => __('Sessions'),
-                        'data' => $this->buildTopBrowsersMetric(),
-                    ],
-                ],
-            ],
-            'locations' => [
-                'granularity' => $this->dateRange->granularity,
-                'datasets' => [
-                    [
-                        'label' => __('Sessions'),
-                        'data' => $this->buildTopLocationsMetric(),
-                    ],
-                ],
-            ],
-            'devices' => [
-                'granularity' => $this->dateRange->granularity,
-                'datasets' => [
-                    [
-                        'label' => __('Sessions'),
-                        'data' => $this->buildTopDevicesMetric(),
-                    ],
-                ],
-            ],
-            'platforms' => [
-                'granularity' => $this->dateRange->granularity,
-                'datasets' => [
-                    [
-                        'label' => __('Sessions'),
-                        'data' => $this->buildTopPlatformsMetric(),
-                    ],
-                ],
-            ],
+            'browsers' => $browsers,
+            'locations' => $locations,
+            'devices' => $devices,
+            'platforms' => $platforms,
         ];
     }
 
-    protected function buildTopBrowsersMetric(int $maxResults = 10): Collection
-    {
-        $rows = $this->performQuery($this->dateRange, [
+    protected function buildTopBrowsersMetric(
+        MetricDateRange $dateRange,
+        int $maxResults = 10,
+    ): Collection {
+        $rows = $this->performQuery($dateRange, [
             'dimensions' => ['browser'],
             'metrics' => ['sessions'],
             'sort' => ['direction' => 'desc', 'metric' => 'sessions'],
@@ -110,10 +154,11 @@ class BuildGoogleAnalyticsReport implements BuildAnalyticsReport
         ]);
     }
 
-    private function buildTopLocationsMetric(): Collection
-    {
+    private function buildTopLocationsMetric(
+        MetricDateRange $dateRange,
+    ): Collection {
         $maxResults = 6;
-        $rows = $this->performQuery($this->dateRange, [
+        $rows = $this->performQuery($dateRange, [
             'metrics' => ['sessions'],
             'dimensions' => ['country'],
             'sort' => [
@@ -148,9 +193,11 @@ class BuildGoogleAnalyticsReport implements BuildAnalyticsReport
         ]);
     }
 
-    protected function buildTopDevicesMetric(int $maxResults = 10): Collection
-    {
-        $rows = $this->performQuery($this->dateRange, [
+    protected function buildTopDevicesMetric(
+        MetricDateRange $dateRange,
+        int $maxResults = 10,
+    ): Collection {
+        $rows = $this->performQuery($dateRange, [
             'dimensions' => ['deviceCategory'],
             'metrics' => ['sessions'],
             'sort' => ['direction' => 'desc', 'metric' => 'sessions'],
@@ -175,9 +222,11 @@ class BuildGoogleAnalyticsReport implements BuildAnalyticsReport
         ]);
     }
 
-    protected function buildTopPlatformsMetric(int $maxResults = 10): Collection
-    {
-        $rows = $this->performQuery($this->dateRange, [
+    protected function buildTopPlatformsMetric(
+        MetricDateRange $dateRange,
+        int $maxResults = 10,
+    ): Collection {
+        $rows = $this->performQuery($dateRange, [
             'dimensions' => ['operatingSystem'],
             'metrics' => ['sessions'],
             'sort' => ['direction' => 'desc', 'metric' => 'sessions'],
@@ -210,7 +259,8 @@ class BuildGoogleAnalyticsReport implements BuildAnalyticsReport
             [
                 'label' => __('Previous period'),
                 'data' => $this->getPageViews(
-                    $this->dateRange->getPreviousPeriod(),
+                    $this->compareDateRange ??
+                        $this->dateRange->getPreviousPeriod(),
                 ),
             ],
         ];

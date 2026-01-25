@@ -1,3 +1,9 @@
+import {mergeProps, useObjectRef} from '@react-aria/utils';
+import {useControlledState} from '@react-stately/utils';
+import {AutoFocusProps, useAutoFocus} from '@ui/focus/use-auto-focus';
+import {CheckBoxOutlineBlankIcon} from '@ui/icons/material/CheckBoxOutlineBlank';
+import {SvgIconProps} from '@ui/icons/svg-icon';
+import clsx from 'clsx';
 import React, {
   ChangeEventHandler,
   ComponentPropsWithoutRef,
@@ -6,18 +12,12 @@ import React, {
   useCallback,
   useEffect,
 } from 'react';
-import clsx from 'clsx';
 import {useController} from 'react-hook-form';
-import {mergeProps, useObjectRef} from '@react-aria/utils';
-import {useControlledState} from '@react-stately/utils';
-import {InputSize} from '../input-field/input-size';
 import {getInputFieldClassNames} from '../input-field/get-input-field-class-names';
-import {CheckBoxOutlineBlankIcon} from '@ui/icons/material/CheckBoxOutlineBlank';
+import {InputSize} from '../input-field/input-size';
+import {Orientation} from '../orientation';
 import {CheckboxFilledIcon} from './checkbox-filled-icon';
 import {IndeterminateCheckboxFilledIcon} from './indeterminate-checkbox-filled-icon';
-import {SvgIconProps} from '@ui/icons/svg-icon';
-import {Orientation} from '../orientation';
-import {AutoFocusProps, useAutoFocus} from '@ui/focus/use-auto-focus';
 
 export interface CheckboxProps
   extends AutoFocusProps,

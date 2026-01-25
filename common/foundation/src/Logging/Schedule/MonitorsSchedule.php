@@ -2,8 +2,7 @@
 
 namespace Common\Logging\Schedule;
 
-use Common\Logging\Schedule\ScheduleHealthCommand;
-use Common\Logging\Schedule\ScheduleLogItem;
+use App\Conversations\Email\Commands\ImportEmailsViaImap;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Artisan;
@@ -20,7 +19,7 @@ trait MonitorsSchedule
 
             $event->before(function () use ($event, $stopwatch, $logItem) {
                 $logItem->ran_at = now();
-                $stopwatch->start($event->command);
+                $stopwatch->start($event->command ?? $event->description);
             });
 
             $event->after(function (Stringable $output) use (
@@ -28,18 +27,31 @@ trait MonitorsSchedule
                 $stopwatch,
                 $logItem,
             ) {
-                $stopwatch->stop($event->command);
-                $commandParts = collect(explode(' ', $event->command));
-                $artisanIndex = $commandParts->search(
-                    fn($str) => trim($str, '\'"') === 'artisan',
-                );
-                $signature = $commandParts->get($artisanIndex + 1);
+                $stopwatch->stop($event->command ?? $event->description);
 
-                $namespace = get_class(Artisan::all()[$signature]);
+                if ($event->command) {
+                    $commandParts = collect(explode(' ', $event->command));
+                    $artisanIndex = $commandParts->search(
+                        fn($str) => trim($str, '\'"') === 'artisan',
+                    );
+                    $signatureWithoutArguments = $commandParts->get(
+                        $artisanIndex + 1,
+                    );
+                    $signature = $commandParts
+                        ->slice($artisanIndex + 1)
+                        ->implode(' ');
+
+                    $namespace = get_class(
+                        Artisan::all()[$signatureWithoutArguments],
+                    );
+                } else {
+                    $namespace = $event->description;
+                    $signature = $namespace;
+                }
 
                 // check if command already ran with the same signature and exit code in the last hour
                 $lastLogItem = ScheduleLogItem::query()
-                    ->where('command', $namespace)
+                    ->where('command', $signature)
                     ->when(
                         // only keep one log item of ScheduleHealthCommand
                         $namespace !== ScheduleHealthCommand::class,
@@ -52,12 +64,14 @@ trait MonitorsSchedule
                     ->first();
 
                 $data = [
-                    'command' => $namespace,
+                    'command' => $signature,
                     'output' => trim($output->limit(1000)->toString(), "\n"),
                     'exit_code' => $event->exitCode,
-                    'duration' => $stopwatch
-                        ->getEvent($event->command)
-                        ->getDuration(),
+                    'duration' => abs(
+                        $stopwatch
+                            ->getEvent($event->command ?? $event->description)
+                            ->getDuration(),
+                    ),
                 ];
 
                 if ($lastLogItem) {

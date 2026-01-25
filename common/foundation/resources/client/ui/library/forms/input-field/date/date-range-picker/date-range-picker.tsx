@@ -1,19 +1,14 @@
-import React, {
-  ComponentPropsWithoutRef,
-  Fragment,
-  MouseEvent,
-  useRef,
-} from 'react';
+import {ArrowRightAltIcon} from '@ui/icons/material/ArrowRightAlt';
 import {DateRangeIcon} from '@ui/icons/material/DateRange';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {DatePickerField, DatePickerFieldProps} from './date-picker-field';
-import {useDateRangePickerState} from './use-date-range-picker-state';
-import {ArrowRightAltIcon} from '@ui/icons/material/ArrowRightAlt';
-import {DatePickerValueProps} from '../date-picker/use-date-picker-state';
-import {DateRangeValue} from './date-range-value';
-import {DateSegmentList} from '../segments/date-segment-list';
-import {DateRangeDialog} from './dialog/date-range-dialog';
 import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {ComponentPropsWithoutRef, Fragment, MouseEvent, useRef} from 'react';
+import {DatePickerValueProps} from '../date-picker/use-date-picker-state';
+import {DateSegmentList} from '../segments/date-segment-list';
+import {DatePickerField, DatePickerFieldProps} from './date-picker-field';
+import {DateRangeValue} from './date-range-value';
+import {DateRangeDialog} from './dialog/date-range-dialog';
+import {useDateRangePickerState} from './use-date-range-picker-state';
 
 export interface DateRangePickerProps
   extends DatePickerValueProps<Partial<DateRangeValue>>,

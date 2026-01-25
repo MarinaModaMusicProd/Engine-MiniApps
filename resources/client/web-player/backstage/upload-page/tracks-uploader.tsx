@@ -1,3 +1,22 @@
+import {useCreateTrack} from '@app/admin/tracks-datatable-page/requests/use-create-track';
+import {mergeTrackFormValues} from '@app/admin/tracks-datatable-page/requests/use-extract-track-file-metadata';
+import {TrackForm} from '@app/admin/tracks-datatable-page/track-form/track-form';
+import {TrackUploadProgress} from '@app/admin/tracks-datatable-page/track-form/track-upload-progress';
+import {
+  UploaderActions,
+  UploaderProps,
+} from '@app/web-player/backstage/upload-page/upload-page';
+import {useTrackUpload} from '@app/web-player/backstage/upload-page/use-track-upload';
+import {
+  TrackUploadPayload,
+  useTrackUploader,
+} from '@app/web-player/backstage/upload-page/use-track-uploader';
+import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
+import {Track} from '@app/web-player/tracks/track';
+import {useFileUploadStore} from '@common/uploads/uploader/file-upload-provider';
+import {Button} from '@ui/buttons/button';
+import {Form} from '@ui/forms/form';
+import {Trans} from '@ui/i18n/trans';
 import {
   forwardRef,
   memo,
@@ -5,26 +24,7 @@ import {
   useImperativeHandle,
   useState,
 } from 'react';
-import {useFileUploadStore} from '@common/uploads/uploader/file-upload-provider';
-import {
-  TrackUploadPayload,
-  useTrackUploader,
-} from '@app/web-player/backstage/upload-page/use-track-uploader';
-import {mergeTrackFormValues} from '@app/admin/tracks-datatable-page/requests/use-extract-track-file-metadata';
-import {
-  UploaderActions,
-  UploaderProps,
-} from '@app/web-player/backstage/upload-page/upload-page';
-import {Track} from '@app/web-player/tracks/track';
 import {useForm} from 'react-hook-form';
-import {useCreateTrack} from '@app/admin/tracks-datatable-page/requests/use-create-track';
-import {useTrackUpload} from '@app/web-player/backstage/upload-page/use-track-upload';
-import {TrackUploadProgress} from '@app/admin/tracks-datatable-page/track-form/track-upload-progress';
-import {Form} from '@ui/forms/form';
-import {TrackForm} from '@app/admin/tracks-datatable-page/track-form/track-form';
-import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
-import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
 
 export const TracksUploader = forwardRef<UploaderActions, UploaderProps>(
   ({onUploadStart, onCancel, onCreate}, ref) => {
@@ -129,7 +129,7 @@ const TrackUploadItem = memo(
             onSuccess: response => onCreate(response.track),
           });
         }}
-        className="mb-30 rounded border bg-paper p-14 md:p-24"
+        className="mb-30 rounded-panel border bg-elevated p-14 md:p-24"
       >
         <TrackForm uploadButton={uploadProgress} showExternalIdFields={false} />
         <Button variant="text" onClick={() => onRemove()} className="mr-10">

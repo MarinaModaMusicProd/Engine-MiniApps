@@ -23,7 +23,7 @@ class EnsureFrontendRequestsAreStateful extends LaravelMiddleware
             return false;
         }
 
-        $domain = parse_url($domain, PHP_URL_HOST);
+        $domain = parse_url($domain, PHP_URL_HOST) ?? $domain;
         $domain = Str::replaceFirst('www.', '', $domain);
         $domain = Str::endsWith($domain, '/') ? $domain : "{$domain}/";
 
@@ -41,5 +41,10 @@ class EnsureFrontendRequestsAreStateful extends LaravelMiddleware
                 ->all(),
             $domain,
         );
+    }
+
+    protected function configureSecureCookieSessions()
+    {
+        //
     }
 }

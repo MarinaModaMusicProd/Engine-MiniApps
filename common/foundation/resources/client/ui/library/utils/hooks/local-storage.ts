@@ -8,12 +8,13 @@ interface StoreEvent {
 }
 
 export function useLocalStorage<T>(key: string, initialValue: T | null = null) {
-  const [storedValue, setStoredValue] = useState<T>(() => {
+  const [storedValue, setStoredValue] = useState<T | null>(() => {
     return getFromLocalStorage<T>(key, initialValue);
   });
 
   const setValue = (value: T | ((val: T) => T)) => {
-    const valueToStore = value instanceof Function ? value(storedValue) : value;
+    const valueToStore =
+      value instanceof Function ? value(storedValue as T) : value;
     setStoredValue(valueToStore);
     setInLocalStorage(key, valueToStore);
   };
@@ -43,7 +44,7 @@ export function getFromLocalStorage<T>(
   }
   try {
     const item = window.localStorage.getItem(key);
-    return item != null ? JSON.parse(item) : initialValue;
+    return item != null ? (JSON.parse(item) as T) : initialValue;
   } catch (error) {
     return initialValue;
   }

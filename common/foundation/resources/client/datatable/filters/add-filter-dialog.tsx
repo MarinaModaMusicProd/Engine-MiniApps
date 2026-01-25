@@ -1,4 +1,16 @@
-import {Dialog} from '@ui/overlays/dialog/dialog';
+import { ChipFieldFilterPanel } from '@common/datatable/filters/panels/chip-field-filter-panel';
+import { Accordion, AccordionItem } from '@ui/accordion/accordion';
+import { Button } from '@ui/buttons/button';
+import { Form } from '@ui/forms/form';
+import { Checkbox } from '@ui/forms/toggle/checkbox';
+import { Trans } from '@ui/i18n/trans';
+import { Dialog } from '@ui/overlays/dialog/dialog';
+import { DialogBody } from '@ui/overlays/dialog/dialog-body';
+import { useDialogContext } from '@ui/overlays/dialog/dialog-context';
+import { DialogHeader } from '@ui/overlays/dialog/dialog-header';
+import clsx from 'clsx';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   BackendFilter,
   CustomFilterControl,
@@ -11,24 +23,12 @@ import {
   FilterSelectModelControl,
   FilterTextInputControl,
 } from './backend-filter';
-import {Trans} from '@ui/i18n/trans';
-import {useState} from 'react';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {useBackendFilterUrlParams} from './backend-filter-url-params';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {Accordion, AccordionItem} from '@ui/accordion/accordion';
-import {Button} from '@ui/buttons/button';
-import {useForm} from 'react-hook-form';
-import {Form} from '@ui/forms/form';
-import {Checkbox} from '@ui/forms/toggle/checkbox';
-import {SelectFilterPanel} from './panels/select-filter-panel';
-import {DateRangeFilterPanel} from './panels/date-range-filter-panel';
-import {NormalizedModelFilterPanel} from './panels/normalized-model-filter-panel';
-import {InputFilterPanel} from './panels/input-filter-panel';
-import {BooleanFilterPanel} from './panels/boolean-filter-panel';
-import clsx from 'clsx';
-import {ChipFieldFilterPanel} from '@common/datatable/filters/panels/chip-field-filter-panel';
+import { useBackendFilterUrlParams } from './backend-filter-url-params';
+import { BooleanFilterPanel } from './panels/boolean-filter-panel';
+import { DateRangeFilterPanel } from './panels/date-range-filter-panel';
+import { InputFilterPanel } from './panels/input-filter-panel';
+import { NormalizedModelFilterPanel } from './panels/normalized-model-filter-panel';
+import { SelectFilterPanel } from './panels/select-filter-panel';
 
 export interface FilterItemFormValue<T = any> {
   value: T;
@@ -145,6 +145,7 @@ function FilterList({
       }}
     >
       <Accordion
+      size="md"
         mode="multiple"
         expandedValues={expandedFilters}
         onExpandedChange={setExpandedFilters}

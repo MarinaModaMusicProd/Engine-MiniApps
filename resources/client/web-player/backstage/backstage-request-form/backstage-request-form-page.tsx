@@ -1,23 +1,23 @@
-import {Trans} from '@ui/i18n/trans';
-import {Form} from '@ui/forms/form';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {FormImageSelector} from '@common/uploads/components/image-selector';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import React from 'react';
-import {Link, useLocation} from 'react-router-dom';
-import {Button} from '@ui/buttons/button';
+import {UploadType} from '@app/site-config';
+import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
+import {BackstageFormAttachments} from '@app/web-player/backstage/backstage-request-form/backstage-form-attachments';
+import {BackstageRoleSelect} from '@app/web-player/backstage/backstage-request-form/backstage-role-select';
+import {useBackstageRequestForm} from '@app/web-player/backstage/backstage-request-form/use-backstage-request-form';
 import {
   CreateBackstageRequestPayload,
   useCreateBackstageRequest,
 } from '@app/web-player/backstage/requests/use-create-backstage-request';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {useBackstageRequestForm} from '@app/web-player/backstage/backstage-request-form/use-backstage-request-form';
-import {BackstageRoleSelect} from '@app/web-player/backstage/backstage-request-form/backstage-role-select';
-import {BackstageFormAttachments} from '@app/web-player/backstage/backstage-request-form/backstage-form-attachments';
-import {BackstageLayout} from '@app/web-player/backstage/backstage-layout';
 import {FormNormalizedModelField} from '@common/ui/normalized-model/normalized-model-field';
+import {FormImageSelector} from '@common/uploads/components/image-selector';
+import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {Button} from '@ui/buttons/button';
+import {Form} from '@ui/forms/form';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {Trans} from '@ui/i18n/trans';
+import {Link, useLocation} from 'react-router';
 
-export function BackstageRequestFormPage() {
+export function Component() {
   const {pathname} = useLocation();
   const requestType = pathname
     .split('/')
@@ -59,7 +59,7 @@ function ClaimForm({requestType}: ClaimFormProps) {
       >
         <FormImageSelector
           name="image"
-          diskPrefix="artist_media"
+          uploadType={UploadType.artwork}
           variant="avatar"
           previewSize="w-160 h-160"
           className="mx-auto my-30 max-w-max"
@@ -86,20 +86,12 @@ function ClaimForm({requestType}: ClaimFormProps) {
             className="mb-24"
           />
         )}
-        <div className="mb-24 items-center gap-24 md:flex">
-          <FormTextField
-            required
-            name="first_name"
-            label={<Trans message="First name" />}
-            className="mb-24 flex-auto md:mb-0"
-          />
-          <FormTextField
-            required
-            name="last_name"
-            label={<Trans message="Last name" />}
-            className="flex-auto"
-          />
-        </div>
+        <FormTextField
+          required
+          name="name"
+          label={<Trans message="Your name" />}
+          className="mb-24"
+        />
         {requestType === 'claim-artist' && <BackstageRoleSelect />}
         <FormTextField
           name="company"

@@ -24,7 +24,9 @@ class LrclibLyricsProvider implements LyricsProvider
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
             'Accept-Language' => 'en-US, en;q=0.5',
             'Content-Language' => 'en-us',
-        ])->get($url);
+        ])
+            ->timeout(10)
+            ->get($url);
 
         $results = $response->json();
         $bestMatch = null;
@@ -53,7 +55,7 @@ class LrclibLyricsProvider implements LyricsProvider
     function getLyricsWithBestDurationMatch(
         array $results,
         int $targetDuration,
-    ): array {
+    ): array|null {
         return array_reduce($results, function (
             $closestItem,
             $currentItem,

@@ -1,29 +1,20 @@
-<?php namespace Common\Database\Seeds;
+<?php namespace Common\Database\Seeders;
 
 use Common\Auth\Permissions\Permission;
-use Common\Core\Values\GetStaticPermissions;
+use Common\Core\Values\PermissionConfig;
 use Illuminate\Database\Seeder;
 
 class PermissionTableSeeder extends Seeder
 {
     public function run(): void
     {
-        $allPermissions = app(GetStaticPermissions::class)->execute();
-        $allPermissions['admin'][] = [
-            'name' => 'admin',
-            'display_name' => 'Super Admin',
-            'description' => 'Give all permissions to user.',
-            'group' => 'admin',
-        ];
+        $allPermissions = (new PermissionConfig())->get();
 
-        foreach ($allPermissions as $groupName => $group) {
-            foreach ($group as $permission) {
-                $permission['group'] = $groupName;
-                app(Permission::class)->updateOrCreate(['name' => $permission['name']], $permission);
-            }
+        foreach ($allPermissions as $permission) {
+            app(Permission::class)->updateOrCreate([
+                'name' => $permission['name'],
+                'type' => $permission['type'],
+            ]);
         }
-
-        // delete legacy permissions
-        app(Permission::class)->whereNull('group')->delete();
     }
 }

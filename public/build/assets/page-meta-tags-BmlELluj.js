@@ -1,0 +1,1 @@
+import{j as o,cB as f}from"./main-BEfQELxr.js";import{D as i}from"./default-meta-tags-Bj5ecgXc.js";function r({query:e,data:s}){return s||(s=e==null?void 0:e.data),s!=null&&s.set_seo?null:s!=null&&s.seo?o.jsx(f,{tags:s.seo}):o.jsx(i,{})}export{r as P};

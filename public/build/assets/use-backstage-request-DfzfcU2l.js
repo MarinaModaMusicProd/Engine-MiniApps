@@ -1,0 +1,1 @@
+import{al as a,a as s,b as u}from"./main-BEfQELxr.js";function c(){const{requestId:e}=a();return s({queryKey:["backstage-request",+e],queryFn:()=>r(e)})}function r(e){return u.get(`backstage-request/${e}`).then(t=>t.data)}export{c as u};

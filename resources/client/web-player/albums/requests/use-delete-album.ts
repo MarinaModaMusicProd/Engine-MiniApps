@@ -4,7 +4,7 @@ import {toast} from '@ui/toast/toast';
 import {message} from '@ui/i18n/message';
 import {apiClient, queryClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
-import {useLocation} from 'react-router-dom';
+import {useLocation} from 'react-router';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {useAuth} from '@common/auth/use-auth';
 

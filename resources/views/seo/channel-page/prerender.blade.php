@@ -5,17 +5,17 @@
 @endsection
 
 @section('body')
-    <h1>{{ $channel->name }}</h1>
+    <h1>{{ $channel['name'] }}</h1>
 
     <ul style="display: flex; flex-wrap: wrap">
-        @foreach ($channel->content as $item)
+        @foreach ($channel['content']['data'] as $item)
             <li>
                 @if ($item['model_type'] === 'channel')
-                    @foreach ($item->content as $subItem)
-                        @include($seoTagsView ?? 'seo.channel-page.channel-content', ['item' => $subItem])
+                    @foreach ($item['content']['data'] as $subItem)
+                        @include('seo.channel-page.channel-content', ['item' => $subItem])
                     @endforeach
                 @else
-                    @include($seoTagsView ?? 'seo.channel-page.channel-content', ['item' => $item])
+                    @include('seo.channel-page.channel-content', ['item' => $item])
                 @endif
             </li>
         @endforeach

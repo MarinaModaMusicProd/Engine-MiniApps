@@ -5,18 +5,18 @@ import {
   offset as offsetMiddleware,
   OffsetOptions,
   Placement,
-  ReferenceType,
   shift,
   size,
   useFloating,
   UseFloatingOptions,
+  VirtualElement,
 } from '@floating-ui/react-dom';
 import {CSSProperties, Ref, useMemo, useRef} from 'react';
 import {mergeRefs} from 'react-merge-refs';
 
 interface Props {
   floatingWidth?: 'auto' | 'matchTrigger';
-  ref?: Ref<HTMLElement>;
+  ref?: Ref<HTMLElement | null>;
   disablePositioning?: boolean;
   placement?: Placement;
   offset?: OffsetOptions;
@@ -25,6 +25,7 @@ interface Props {
   shiftMainAxis?: boolean;
   shiftCrossAxis?: boolean;
   fallbackPlacements?: Placement[];
+  strategy?: 'fixed' | 'absolute';
 }
 export function useFloatingPosition({
   floatingWidth,
@@ -35,12 +36,13 @@ export function useFloatingPosition({
   showArrow = false,
   maxHeight,
   shiftMainAxis = true,
-  shiftCrossAxis = true,
+  shiftCrossAxis = false,
   fallbackPlacements,
+  strategy = 'fixed',
 }: Props) {
   const arrowRef = useRef<HTMLElement>(null);
 
-  const floatingConfig: UseFloatingOptions = {placement, strategy: 'fixed'};
+  const floatingConfig: UseFloatingOptions = {placement, strategy};
 
   if (!disablePositioning) {
     floatingConfig.whileElementsMounted = autoUpdate;
@@ -76,9 +78,9 @@ export function useFloatingPosition({
   const floatingProps = useFloating(floatingConfig);
 
   const mergedReferenceRef = useMemo(
-    () => mergeRefs<ReferenceType>([ref!, floatingProps.refs.setReference]),
+    () => mergeRefs([ref, floatingProps.refs.setReference]),
     [floatingProps.refs.setReference, ref],
-  );
+  ) as (ref: HTMLElement | VirtualElement | null) => void;
 
   const {x: arrowX, y: arrowY} = floatingProps.middlewareData.arrow || {};
 

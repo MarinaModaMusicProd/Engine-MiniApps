@@ -1,34 +1,27 @@
 <?php namespace App\Services\Providers\Spotify;
 
-use App;
 use App\Models\Album;
 use App\Models\Artist;
 use App\Models\Track;
 use App\Services\Providers\ContentProvider;
-use App\Services\Providers\SaveOrUpdate;
+use App\Services\Providers\UpsertsDataIntoDB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\App;
 
 class SpotifyTopTracks implements ContentProvider
 {
-    use SaveOrUpdate;
+    use UpsertsDataIntoDB;
 
-    /**
-     * @var SpotifyHttpClient
-     */
-    private $httpClient;
-
-    public function __construct(protected SpotifyNormalizer $normalizer)
+    public function __construct()
     {
-        $this->httpClient = App::make(SpotifyHttpClient::class);
-
         @ini_set('max_execution_time', 0);
     }
 
     public function getContent(): Collection
     {
-        $useTop50Playlist = true;
+        $useTop50Playlist = false;
         if ($useTop50Playlist) {
-            $response = $this->httpClient->get(
+            $response = (new SpotifyHttpClient())->get(
                 'playlists/37i9dQZEVXbMDoHDwVN2tF',
             );
             $tracks = array_map(function ($track) {
@@ -36,20 +29,25 @@ class SpotifyTopTracks implements ContentProvider
             }, $response['tracks']['items']);
             return $this->saveAndLoad($tracks);
         } else {
-            $ids = $this->getTrackIdsViaCsvDownload();
-            $response = $this->httpClient->get('tracks?ids=' . $ids);
+            $ids = (new SpotifyCharts())->getTrackIds();
+            if (!$ids) {
+                return collect();
+            }
+            $idString = collect($ids)->implode(',');
+            $response = (new SpotifyHttpClient())->get("tracks?ids=$idString");
             return $this->saveAndLoad($response['tracks']);
         }
     }
 
     public function saveAndLoad(array $spotifyTracks): Collection
     {
-        $normalizedTracks = collect($spotifyTracks)->map(function ($track) {
-            return $this->normalizer->track($track);
-        });
-        $normalizedAlbums = $normalizedTracks->map(function ($normalizedTrack) {
-            return $normalizedTrack['album'];
-        });
+        $normalizer = new SpotifyNormalizer();
+        $normalizedTracks = collect($spotifyTracks)
+            ->filter()
+            ->map(fn($track) => $normalizer->track($track));
+        $normalizedAlbums = $normalizedTracks->map(
+            fn($normalizedTrack) => $normalizedTrack['album'],
+        );
 
         $savedArtists = $this->saveArtists(
             $normalizedTracks->merge($normalizedAlbums),
@@ -73,7 +71,7 @@ class SpotifyTopTracks implements ContentProvider
             ->flatten(1)
             ->unique('spotify_id');
 
-        $this->saveOrUpdate($normalizedArtists, 'artists');
+        $this->upsert($normalizedArtists, 'artists');
         return app(Artist::class)
             ->whereIn('spotify_id', $normalizedArtists->pluck('spotify_id'))
             ->get();
@@ -86,7 +84,7 @@ class SpotifyTopTracks implements ContentProvider
      */
     private function saveAlbums($normalizedAlbums, $savedArtists)
     {
-        $this->saveOrUpdate($normalizedAlbums, 'albums');
+        $this->upsert($normalizedAlbums, 'albums');
 
         $savedAlbums = app(Album::class)
             ->whereIn('spotify_id', $normalizedAlbums->pluck('spotify_id'))
@@ -119,7 +117,7 @@ class SpotifyTopTracks implements ContentProvider
             })
             ->flatten(1);
 
-        $this->saveOrUpdate($pivots, 'artist_album');
+        $this->upsert($pivots, 'artist_album');
 
         $savedAlbums->load('artists');
 
@@ -149,7 +147,7 @@ class SpotifyTopTracks implements ContentProvider
             })
             ->filter();
 
-        $this->saveOrUpdate($tracksForInsert, 'tracks');
+        $this->upsert($tracksForInsert, 'tracks');
 
         $loadedTracks = app(Track::class)
             ->whereIn('spotify_id', $tracksForInsert->pluck('spotify_id'))
@@ -183,7 +181,7 @@ class SpotifyTopTracks implements ContentProvider
             })
             ->flatten(1);
 
-        $this->saveOrUpdate($pivots, 'artist_track');
+        $this->upsert($pivots, 'artist_track');
 
         $loadedTracks->load(['artists', 'album.artists']);
 
@@ -200,35 +198,5 @@ class SpotifyTopTracks implements ContentProvider
             }
             return $originalAIndex < $originalBIndex ? -1 : 1;
         });
-    }
-
-    private function getTrackIdsViaCsvDownload(): string
-    {
-        $ch = curl_init(
-            'https://spotifycharts.com/regional/global/daily/latest/download',
-        );
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
-        curl_close($ch);
-
-        $split = explode("\n", $response);
-        $ids = '';
-
-        foreach ($split as $k => $line) {
-            if ($k === 0) {
-                continue;
-            }
-            if ($k > 50) {
-                break;
-            }
-
-            preg_match('/.+?\/track\/(.+)/', $line, $matches);
-
-            if (isset($matches[1])) {
-                $ids .= $matches[1] . ',';
-            }
-        }
-
-        return trim($ids, ',');
     }
 }

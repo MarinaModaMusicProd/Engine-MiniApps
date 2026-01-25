@@ -1,20 +1,26 @@
+import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
+import {TableBodyProps} from '@common/ui/tables/table';
+import {TableContext} from '@common/ui/tables/table-context';
+import {TableRow} from '@common/ui/tables/table-row';
+import {TableDataItem} from '@common/ui/tables/types/table-data-item';
+import {getScrollParent} from '@react-aria/utils';
+import {
+  UseInfiniteQueryResult,
+  UseSuspenseInfiniteQueryResult,
+} from '@tanstack/react-query/src/types';
 import {observeElementOffset, useVirtualizer} from '@tanstack/react-virtual';
 import React, {Fragment, useContext, useEffect, useRef} from 'react';
-import {TableRow} from '@common/ui/tables/table-row';
-import {TableBodyProps} from '@common/ui/tables/table';
-import {getScrollParent} from '@react-aria/utils';
-import {TableContext} from '@common/ui/tables/table-context';
-import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
-import {UseInfiniteQueryResult} from '@tanstack/react-query/src/types';
 
 interface VirtualTableBodyProps extends TableBodyProps {
   totalItems?: number;
-  query: UseInfiniteQueryResult;
+  query: UseInfiniteQueryResult | UseSuspenseInfiniteQueryResult | null;
+  rowKeyGenerator?: (item: TableDataItem) => string | number;
 }
 export function VirtualTableBody({
   renderRowAs,
   totalItems = 0,
   query,
+  rowKeyGenerator,
 }: VirtualTableBodyProps) {
   const {data} = useContext(TableContext);
 
@@ -30,21 +36,29 @@ export function VirtualTableBody({
       placeholderRowCount={placeholderRowCount}
       renderRowAs={renderRowAs}
       query={query}
+      rowKeyGenerator={rowKeyGenerator}
     />
   ) : (
     <VirtualizedBody
       placeholderRowCount={placeholderRowCount}
       renderRowAs={renderRowAs}
       query={query}
+      rowKeyGenerator={rowKeyGenerator}
     />
   );
 }
 
 interface BodyProps extends TableBodyProps {
   placeholderRowCount: number;
-  query: UseInfiniteQueryResult;
+  query: UseInfiniteQueryResult | UseSuspenseInfiniteQueryResult | null;
+  rowKeyGenerator?: (item: TableDataItem) => string | number;
 }
-function Body({renderRowAs, placeholderRowCount, query}: BodyProps) {
+function Body({
+  renderRowAs,
+  placeholderRowCount,
+  query,
+  rowKeyGenerator,
+}: BodyProps) {
   const {data} = useContext(TableContext);
   return (
     <Fragment>
@@ -52,20 +66,29 @@ function Body({renderRowAs, placeholderRowCount, query}: BodyProps) {
         <TableRow
           item={track}
           index={index}
-          key={track.id}
+          key={rowKeyGenerator ? rowKeyGenerator(track) : track.id}
           renderAs={renderRowAs}
         />
       ))}
-      <Sentinel
-        dataCount={data.length}
-        placeholderRowCount={placeholderRowCount}
-        query={query}
-      />
+      {query ? (
+        <Sentinel
+          dataCount={data.length}
+          placeholderRowCount={placeholderRowCount}
+          query={query}
+        />
+      ) : null}
     </Fragment>
   );
 }
 
-function VirtualizedBody({renderRowAs, placeholderRowCount, query}: BodyProps) {
+const ROW_HEIGHT = 56;
+
+function VirtualizedBody({
+  renderRowAs,
+  placeholderRowCount,
+  query,
+  rowKeyGenerator,
+}: BodyProps) {
   const {data} = useContext(TableContext);
   const bodyRef = useRef<HTMLTableSectionElement>(null);
   const scrollableRef = useRef<Element>(null!);
@@ -95,11 +118,11 @@ function VirtualizedBody({renderRowAs, placeholderRowCount, query}: BodyProps) {
     overscan: 10,
     count: data.length,
     getScrollElement,
-    estimateSize: () => 48,
+    estimateSize: () => ROW_HEIGHT,
     // getScrollElement: () => scrollableRef.current,
-    observeElementOffset: (instance: any, cb: (arg0: number, arg1: boolean) => void) => {
-      return observeElementOffset(instance, (offset: number) => {
-        cb(offset - scrollOffset.current, false);
+    observeElementOffset: (instance, cb) => {
+      return observeElementOffset(instance, (offset, isScrolling) => {
+        cb(offset - scrollOffset.current, isScrolling);
       });
     },
   });
@@ -108,7 +131,7 @@ function VirtualizedBody({renderRowAs, placeholderRowCount, query}: BodyProps) {
   const virtualHeight = `${
     virtualizer.getTotalSize() +
     // if showing placeholder rows, extended height of virtual list to show them
-    (query.isFetchingNextPage ? placeholderRowCount * 48 : 0)
+    (query && query.isFetchingNextPage ? placeholderRowCount * ROW_HEIGHT : 0)
   }px`;
 
   return (
@@ -126,7 +149,7 @@ function VirtualizedBody({renderRowAs, placeholderRowCount, query}: BodyProps) {
           <TableRow
             item={item}
             index={virtualItem.index}
-            key={item.id}
+            key={rowKeyGenerator ? rowKeyGenerator(item) : item.id}
             renderAs={renderRowAs}
             className="absolute left-0 top-0 w-full"
             style={{
@@ -136,21 +159,23 @@ function VirtualizedBody({renderRowAs, placeholderRowCount, query}: BodyProps) {
           />
         );
       })}
-      <Sentinel
-        dataCount={virtualizer.range?.endIndex ?? 0}
-        placeholderRowCount={placeholderRowCount}
-        query={query}
-        style={{
-          top: `${virtualizer.getTotalSize()}px`,
-        }}
-      />
+      {query ? (
+        <Sentinel
+          dataCount={virtualizer.range?.endIndex ?? 0}
+          placeholderRowCount={placeholderRowCount}
+          query={query}
+          style={{
+            top: `${virtualizer.getTotalSize()}px`,
+          }}
+        />
+      ) : null}
     </div>
   );
 }
 
 interface SentinelProps extends BodyProps {
   dataCount: number;
-  query: UseInfiniteQueryResult;
+  query: UseInfiniteQueryResult | UseSuspenseInfiniteQueryResult;
   style?: React.CSSProperties;
 }
 function Sentinel({

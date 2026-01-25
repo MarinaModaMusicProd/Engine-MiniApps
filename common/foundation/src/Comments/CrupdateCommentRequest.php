@@ -2,7 +2,7 @@
 
 namespace Common\Comments;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Core\BaseFormRequest;
 
 class CrupdateCommentRequest extends BaseFormRequest

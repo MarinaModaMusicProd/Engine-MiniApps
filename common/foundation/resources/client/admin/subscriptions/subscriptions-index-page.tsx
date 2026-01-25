@@ -1,30 +1,44 @@
-import React, {Fragment} from 'react';
-import {DataTablePage} from '../../datatable/page/data-table-page';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
+import {DocsLink} from '@common/admin/settings/layout/settings-links';
+import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
+import {DataTableHeader} from '@common/datatable/data-table-header';
+import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
+import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
+import {validateDatatableSearch} from '@common/datatable/filters/utils/validate-datatable-search';
+import {DatatableFilters} from '@common/datatable/page/datatable-filters';
+import {
+  DatatablePageHeaderBar,
+  DatatablePageScrollContainer,
+  DatatablePageWithHeaderBody,
+  DatatablePageWithHeaderLayout,
+} from '@common/datatable/page/datatable-page-with-header-layout';
+import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
+import {Table} from '@common/ui/tables/table';
 import {IconButton} from '@ui/buttons/icon-button';
-import {EditIcon} from '@ui/icons/material/Edit';
-import {ColumnConfig} from '../../datatable/column-config';
-import {Trans} from '@ui/i18n/trans';
-import {DeleteSelectedItemsAction} from '../../datatable/page/delete-selected-items-action';
-import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
-import {SubscriptionIndexPageFilters} from './subscription-index-page-filters';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
-import subscriptionsSvg from './subscriptions.svg';
-import {NameWithAvatar} from '../../datatable/column-templates/name-with-avatar';
-import {Subscription} from '../../billing/subscription';
-import {CloseIcon} from '@ui/icons/material/Close';
+import {Chip} from '@ui/forms/input-field/chip-field/chip';
 import {FormattedDate} from '@ui/i18n/formatted-date';
-import {UpdateSubscriptionDialog} from './update-subscription-dialog';
-import {CreateSubscriptionDialog} from './create-subscription-dialog';
-import {useCancelSubscription} from '../../billing/billing-page/requests/use-cancel-subscription';
+import {Trans} from '@ui/i18n/trans';
+import {CloseIcon} from '@ui/icons/material/Close';
+import {EditIcon} from '@ui/icons/material/Edit';
 import {PauseIcon} from '@ui/icons/material/Pause';
-import {queryClient} from '../../http/query-client';
-import {DatatableDataQueryKey} from '../../datatable/requests/paginated-resources';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {useResumeSubscription} from '../../billing/billing-page/requests/use-resume-subscription';
 import {PlayArrowIcon} from '@ui/icons/material/PlayArrow';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import {Chip} from '@ui/forms/input-field/chip-field/chip';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import {Fragment} from 'react';
+import {useCancelSubscription} from '../../billing/billing-page/requests/use-cancel-subscription';
+import {useResumeSubscription} from '../../billing/billing-page/requests/use-resume-subscription';
+import {Subscription} from '../../billing/subscription';
+import {ColumnConfig} from '../../datatable/column-config';
+import {NameWithAvatar} from '../../datatable/column-templates/name-with-avatar';
+import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
+import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
+import {queryClient} from '../../http/query-client';
+import {CreateSubscriptionDialog} from './create-subscription-dialog';
+import {SubscriptionIndexPageFilters} from './subscription-index-page-filters';
+import subscriptionsSvg from './subscriptions.svg';
+import {UpdateSubscriptionDialog} from './update-subscription-dialog';
 
 const endpoint = 'billing/subscriptions';
 
@@ -51,7 +65,7 @@ const columnConfig: ColumnConfig<Subscription>[] = [
     body: subscription => (
       <Chip
         size="xs"
-        color={subscription.valid ? 'positive' : undefined}
+        color={subscription.valid ? 'positive' : 'danger'}
         radius="rounded"
         className="w-max"
       >
@@ -104,38 +118,80 @@ const columnConfig: ColumnConfig<Subscription>[] = [
   },
 ];
 
-export function SubscriptionsIndexPage() {
-  return (
-    <DataTablePage
-      endpoint={endpoint}
-      title={<Trans message="Subscriptions" />}
-      columns={columnConfig}
-      filters={SubscriptionIndexPageFilters}
-      actions={<PageActions />}
-      enableSelection={false}
-      selectedActions={<DeleteSelectedItemsAction />}
-      queryParams={{with: 'product'}}
-      emptyStateMessage={
-        <DataTableEmptyStateMessage
-          image={subscriptionsSvg}
-          title={<Trans message="No subscriptions have been created yet" />}
-          filteringTitle={<Trans message="No matching subscriptions" />}
-        />
-      }
-    />
-  );
-}
+export function Component() {
+  const {
+    searchParams,
+    sortDescriptor,
+    mergeIntoSearchParams,
+    setSearchQuery,
+    isFiltering,
+  } = useDatatableSearchParams(validateDatatableSearch);
 
-function PageActions() {
+  const query = useDatatableQuery(
+    commonAdminQueries.subscriptions.index({
+      ...searchParams,
+      with: 'product',
+    }),
+  );
+
+  const actions = (
+    <DialogTrigger type="modal">
+      <DataTableAddItemButton>
+        <Trans message="Add new subscription" />
+      </DataTableAddItemButton>
+      <CreateSubscriptionDialog />
+    </DialogTrigger>
+  );
+
   return (
-    <>
-      <DialogTrigger type="modal">
-        <DataTableAddItemButton>
-          <Trans message="Add new subscription" />
-        </DataTableAddItemButton>
-        <CreateSubscriptionDialog />
-      </DialogTrigger>
-    </>
+    <DatatablePageWithHeaderLayout>
+      <GlobalLoadingProgress query={query} />
+      <DatatablePageHeaderBar
+        title={<Trans message="Subscriptions" />}
+        showSidebarToggleButton
+        rightContent={
+          AdminDocsUrls.pages.subscriptions ? (
+            <DocsLink
+              variant="button"
+              link={AdminDocsUrls.pages.subscriptions}
+              size="xs"
+            />
+          ) : null
+        }
+      />
+      <DatatablePageWithHeaderBody>
+        <DataTableHeader
+          searchValue={searchParams.query}
+          onSearchChange={setSearchQuery}
+          actions={actions}
+          filters={SubscriptionIndexPageFilters}
+        />
+        <DatatableFilters filters={SubscriptionIndexPageFilters} />
+        <DatatablePageScrollContainer>
+          <Table
+            columns={columnConfig}
+            data={query.items}
+            sortDescriptor={sortDescriptor}
+            onSortChange={mergeIntoSearchParams}
+            enableSelection={false}
+          />
+          {query.isEmpty && (
+            <DataTableEmptyStateMessage
+              className="mt-50"
+              isFiltering={isFiltering}
+              image={subscriptionsSvg}
+              title={<Trans message="No subscriptions have been created yet" />}
+              filteringTitle={<Trans message="No matching subscriptions" />}
+            />
+          )}
+          <DataTablePaginationFooter
+            query={query}
+            onPageChange={page => mergeIntoSearchParams({page})}
+            onPerPageChange={perPage => mergeIntoSearchParams({perPage})}
+          />
+        </DatatablePageScrollContainer>
+      </DatatablePageWithHeaderBody>
+    </DatatablePageWithHeaderLayout>
   );
 }
 
@@ -171,7 +227,7 @@ function SuspendSubscriptionButton({subscription}: SubscriptionActionsProps) {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({
-            queryKey: DatatableDataQueryKey(endpoint),
+            queryKey: commonAdminQueries.subscriptions.invalidateKey,
           });
         },
       },
@@ -220,7 +276,7 @@ function ResumeSubscriptionButton({subscription}: SubscriptionActionsProps) {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({
-            queryKey: DatatableDataQueryKey(endpoint),
+            queryKey: commonAdminQueries.subscriptions.invalidateKey,
           });
         },
       },
@@ -271,7 +327,7 @@ function CancelSubscriptionButton({subscription}: SubscriptionActionsProps) {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({
-            queryKey: DatatableDataQueryKey(endpoint),
+            queryKey: commonAdminQueries.subscriptions.invalidateKey,
           });
         },
       },

@@ -1,22 +1,22 @@
-import {Track} from '@app/web-player/tracks/track';
-import {Album, ALBUM_MODEL} from '@app/web-player/albums/album';
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {ALBUM_MODEL, FullAlbum} from '@app/web-player/albums/album';
 import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
-import {ArtistLinks} from '@app/web-player/artists/artist-links';
-import {ChipList} from '@ui/forms/input-field/chip-field/chip-list';
-import {Chip} from '@ui/forms/input-field/chip-field/chip';
-import {Trans} from '@ui/i18n/trans';
-import {Link} from 'react-router-dom';
-import {getTrackLink} from '@app/web-player/tracks/track-link';
 import {getAlbumLink} from '@app/web-player/albums/album-link';
-import {LinkStyle} from '@ui/buttons/external-link';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import clsx from 'clsx';
-import albumBorderImage from './album-border.png';
+import {ArtistLinks} from '@app/web-player/artists/artist-links';
 import {ShareMediaButtons} from '@app/web-player/sharing/share-media-buttons';
+import {Track} from '@app/web-player/tracks/track';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {getTrackLink} from '@app/web-player/tracks/track-link';
+import {LinkStyle} from '@ui/buttons/external-link';
+import {Chip} from '@ui/forms/input-field/chip-field/chip';
+import {ChipList} from '@ui/forms/input-field/chip-field/chip-list';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {Trans} from '@ui/i18n/trans';
+import clsx from 'clsx';
+import {Link} from 'react-router';
+import albumBorderImage from './album-border.png';
 
 interface UploadedMediaPreviewProps {
-  media: Track | Album;
+  media: Track | FullAlbum;
 }
 export function UploadedMediaPreview({media}: UploadedMediaPreviewProps) {
   const isAlbum = media.model_type === ALBUM_MODEL;
@@ -25,7 +25,7 @@ export function UploadedMediaPreview({media}: UploadedMediaPreviewProps) {
     : getTrackLink(media, {absolute: true});
 
   return (
-    <div className="mx-auto my-20 flex w-780 max-w-full items-center gap-28 rounded border bg-paper p-20">
+    <div className="mx-auto my-20 flex w-780 max-w-full items-center gap-28 rounded-panel border bg-elevated p-20">
       <div className={clsx(isAlbum && 'relative isolate mx-18 my-14')}>
         {isAlbum ? (
           <AlbumImage

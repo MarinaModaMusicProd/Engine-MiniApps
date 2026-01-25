@@ -5,8 +5,13 @@ use App\Models\Artist;
 use App\Models\Playlist;
 use App\Models\Track;
 use App\Models\User;
-use App\Services\Providers\ProviderResolver;
+use App\Services\Providers\Local\LocalSearch;
+use App\Services\Providers\LocalAndSpotify\LocalAndSpotifySearch;
+use App\Services\Providers\Spotify\SpotifySearch;
+use App\Services\Providers\Youtube\YoutubeAudioSearch;
+use App\Services\Search\SearchInterface;
 use Common\Core\BaseController;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
@@ -44,10 +49,28 @@ class SearchController extends BaseController
                 )->allowed();
             });
 
-            $data['results'] = (new ProviderResolver())
-                ->get('search')
-                ->search($query, request('page') ?? 1, $perPage, $modelTypes);
+            $data['results'] = $this->getSearchProvider()->search(
+                $query,
+                request('page') ?? 1,
+                $perPage,
+                $modelTypes,
+            );
+
+            $data['results'] = $this->filterOutBlockedArtists($data['results']);
         }
+
+        // sort data['results'], by key, tracks first, then albums, then artists, playlists, users
+        $data['results'] = collect($data['results'])
+            ->sortBy(function ($value, $key) {
+                return array_search($key, [
+                    'tracks',
+                    'artists',
+                    'albums',
+                    'playlists',
+                    'users',
+                ]);
+            })
+            ->toArray();
 
         return $this->renderClientOrApi([
             'pageName' => $loader === 'searchPage' ? 'search-page' : null,
@@ -59,14 +82,15 @@ class SearchController extends BaseController
     {
         $this->authorize('index', modelTypeToNamespace($modelType));
 
-        $data = (new ProviderResolver())
-            ->get('search')
-            ->search(request('query'), request('page'), request('perPage'), [
-                $modelType,
-            ]);
+        $data = $this->getSearchProvider()->search(
+            request('query'),
+            request('page'),
+            request('perPage', 20),
+            [$modelType],
+        );
 
         return $this->success([
-            'pagination' => $data[Str::plural($modelType)]->toArray(),
+            'pagination' => $data[Str::plural($modelType)],
         ]);
     }
 
@@ -77,9 +101,11 @@ class SearchController extends BaseController
     ) {
         $this->authorize('index', Track::class);
 
-        $results = (new ProviderResolver())
-            ->get('audio_search')
-            ->search($trackId, $artistName, $trackName, 1);
+        $results = (new YoutubeAudioSearch())->search(
+            $trackId,
+            $artistName,
+            $trackName,
+        );
 
         return $this->success(['results' => $results]);
     }
@@ -87,64 +113,46 @@ class SearchController extends BaseController
     /**
      * Remove artists that were blocked by admin from search results.
      */
-    private function filterOutBlockedArtists(array $results): array
+    private function filterOutBlockedArtists(Collection $results): Collection
     {
-        if ($artists = settings('artists.blocked')) {
-            $artists = json_decode($artists);
-
-            if (isset($results['artists'])) {
-                foreach ($results['artists'] as $k => $artist) {
-                    if ($this->shouldBeBlocked($artist['name'], $artists)) {
-                        unset($results['artists'][$k]);
-                    }
-                }
+        return $results->map(function ($pagination, $type) {
+            if ($type === 'artists') {
+                $pagination['data'] = array_filter(
+                    $pagination['data'],
+                    fn($a) => !$a['disabled'],
+                );
             }
 
-            if (isset($results['albums'])) {
-                foreach ($results['albums'] as $k => $album) {
-                    if (isset($album['artists'])) {
-                        if (
-                            $this->shouldBeBlocked(
-                                $album['artists'][0]['name'],
-                                $artists,
-                            )
-                        ) {
-                            unset($results['albums'][$k]);
-                        }
-                    }
-                }
+            if ($type === 'albums') {
+                $pagination['data'] = array_filter(
+                    $pagination['data'],
+                    fn($album) => !array_find(
+                        $album['artists'],
+                        fn($artist) => $artist['disabled'],
+                    ),
+                );
             }
 
-            if (isset($results['tracks'])) {
-                foreach ($results['tracks'] as $k => $track) {
-                    if (isset($track['album']['artists'])) {
-                        if (
-                            $this->shouldBeBlocked(
-                                $track['album']['artists'][0]['name'],
-                                $artists,
-                            )
-                        ) {
-                            unset($results['tracks'][$k]);
-                        }
-                    }
-                }
+            if ($type === 'tracks') {
+                $pagination['data'] = array_filter(
+                    $pagination['data'],
+                    fn($track) => !array_find(
+                        $track['artists'],
+                        fn($artist) => $artist['disabled'],
+                    ),
+                );
             }
-        }
 
-        return $results;
+            return $pagination;
+        });
     }
 
-    /**
-     * Check if given artist should be blocked.
-     */
-    private function shouldBeBlocked(string $name, array $toBlock): bool
+    protected function getSearchProvider(): SearchInterface
     {
-        foreach ($toBlock as $blockedName) {
-            $pattern =
-                '/' . str_replace('*', '.*?', strtolower($blockedName)) . '/i';
-            if (preg_match($pattern, $name)) {
-                return true;
-            }
-        }
+        return match (settings('search_provider', 'local')) {
+            'local' => new LocalSearch(),
+            'spotify' => app(SpotifySearch::class),
+            'localAndSpotify' => app(LocalAndSpotifySearch::class),
+        };
     }
 }

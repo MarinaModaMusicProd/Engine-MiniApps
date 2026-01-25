@@ -1,6 +1,6 @@
-import {FilterOperator} from './backend-filter';
 import {message} from '@ui/i18n/message';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {FilterOperator} from './backend-filter';
 
 export const FilterOperatorNames: {[op in FilterOperator]: MessageDescriptor} =
   {
@@ -10,7 +10,7 @@ export const FilterOperatorNames: {[op in FilterOperator]: MessageDescriptor} =
     '>=': message('is greater than or equal to'),
     '<': message('is less than'),
     '<=': message('is less than or equal to'),
-    notNull: message('has any value'),
+    notNull: message('is not empty'),
     contains: message('contains'),
     notContains: message('does not contain'),
     startsWith: message('starts with'),

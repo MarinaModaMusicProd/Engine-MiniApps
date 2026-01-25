@@ -18,7 +18,7 @@ class CreateThumbnailForUploadedFile implements ShouldQueue
             !$event->fileEntry->public &&
             $event->fileEntry->type === 'image' &&
             $event->fileEntry->file_size > 500000 &&
-            !config('common.site.disable_thumbnail_creation')
+            !config('filesystems.disable_thumbnail_creation')
         ) {
             try {
                 $this->maybeCreateThumbnail($event->fileEntry);
@@ -46,7 +46,7 @@ class CreateThumbnailForUploadedFile implements ShouldQueue
             ->getDisk()
             ->put("{$entry->file_name}/thumbnail.$extension", $encodedImg, [
                 'mimetype' => $encodedImg->mimetype(),
-                'visibility' => config('common.site.remote_file_visibility'),
+                'visibility' => 'public',
             ]);
 
         $entry->fill(['thumbnail' => true])->save();

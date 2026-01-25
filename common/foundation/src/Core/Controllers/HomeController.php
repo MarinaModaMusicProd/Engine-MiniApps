@@ -10,8 +10,7 @@ class HomeController extends BaseController
     public function __construct(
         protected BootstrapData $bootstrapData,
         protected Settings $settings,
-    ) {
-    }
+    ) {}
 
     public function show()
     {
@@ -48,10 +47,11 @@ class HomeController extends BaseController
     }
 
     /**
-     * Render basic client side page with optional SSR when page has no data or seo tags.
+     * Render basic client side page when page has no data or seo tags.
      * (contact page, login, register, etc.)
      */
-    public function render() {
+    public function render()
+    {
         return $this->renderClientOrApi([]);
     }
 }

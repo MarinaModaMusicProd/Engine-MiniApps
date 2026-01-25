@@ -15,26 +15,20 @@ class SitemapGenerator extends BaseSitemapGenerator
     {
         return [
             app(Artist::class)
-                ->where("fully_scraped", true)
-                ->orWhereNull("spotify_id")
-                ->select(["id", "name", "updated_at"]),
+                ->where('fully_scraped', true)
+                ->orWhereNull('spotify_id')
+                ->select(['id', 'name', 'updated_at']),
             app(Album::class)
-                ->where("fully_scraped", true)
-                ->orWhereNull("spotify_id")
+                ->where('fully_scraped', true)
+                ->orWhereNull('spotify_id')
                 ->with(['artists'])
-                ->select(["id", "name", "updated_at"]),
-            app(Track::class)->select(["id", "name", "updated_at"]),
+                ->select(['id', 'name', 'updated_at']),
+            app(Track::class)->select(['id', 'name', 'updated_at']),
             app(Playlist::class)
-                ->where("public", true)
-                ->select(["id", "name", "updated_at"]),
-            app(Genre::class)->select(["id", "name", "updated_at"]),
-            app(User::class)->select([
-                "id",
-                "first_name",
-                "last_name",
-                "email",
-                "updated_at",
-            ]),
+                ->where('public', true)
+                ->select(['id', 'name', 'updated_at']),
+            app(Genre::class)->select(['id', 'name', 'updated_at']),
+            app(User::class)->select(['id', 'name', 'email', 'updated_at']),
         ];
     }
 
@@ -43,10 +37,10 @@ class SitemapGenerator extends BaseSitemapGenerator
         return Channel::all()
             ->map(function (Channel $channel) {
                 return [
-                    "path" => app(UrlGenerator::class)->channel(
+                    'path' => app(UrlGenerator::class)->channel(
                         $channel->toArray(),
                     ),
-                    "updated_at" => $channel->updated_at,
+                    'updated_at' => $channel->updated_at,
                 ];
             })
             ->toArray();

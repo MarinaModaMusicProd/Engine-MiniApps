@@ -13,7 +13,7 @@ class TntFilterer extends BaseFilterer
     public function apply(): ?Builder
     {
         $constrains = $this->applyMysqlFilters(
-            $this->filters,
+            $this->filters->getAll(),
             $this->query->getModel()->newInstance(),
         );
 

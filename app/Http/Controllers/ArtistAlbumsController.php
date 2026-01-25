@@ -1,23 +1,20 @@
 <?php namespace App\Http\Controllers;
 
 use App\Models\Artist;
-use App\Services\Artists\PaginateArtistAlbums;
+use App\Services\Artists\ArtistLoader;
 use Common\Core\BaseController;
 
 class ArtistAlbumsController extends BaseController
 {
-    public function __construct(protected PaginateArtistAlbums $paginator)
-    {
-    }
-
     public function index(Artist $artist)
     {
         $this->authorize('show', $artist);
 
         return $this->success([
-            'pagination' => $this->paginator->execute(
+            'pagination' => (new ArtistLoader())->paginateArtistAlbums(
                 $artist,
-                request()->all(),
+                viewMode: request('viewMode', 'grid'),
+                page: request('page', 1),
             ),
         ]);
     }

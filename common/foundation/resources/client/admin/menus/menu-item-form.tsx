@@ -1,28 +1,30 @@
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {Trans} from '@ui/i18n/trans';
-import {useValueLists} from '../../http/value-lists';
-import {useTrans} from '@ui/i18n/use-trans';
-import {FormChipField} from '@ui/forms/input-field/chip-field/form-chip-field';
-import {Item} from '@ui/forms/listbox/item';
-import {Fragment, useEffect, useMemo} from 'react';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
 import {
   buildPermissionList,
   prettyName,
 } from '@common/auth/ui/permission-selector';
-import {Section} from '@ui/forms/listbox/section';
-import {useFormContext} from 'react-hook-form';
-import {FormSelect, Option} from '@ui/forms/select/select';
-import {useAvailableRoutes} from '../appearance/sections/menus/hooks/available-routes';
-import {ButtonBaseProps} from '@ui/buttons/button-base';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {IconButton} from '@ui/buttons/icon-button';
-import {EditIcon} from '@ui/icons/material/Edit';
-import {IconPickerDialog} from '../../ui/icon-picker/icon-picker-dialog';
-import {message} from '@ui/i18n/message';
-import {usePrevious} from '@ui/utils/hooks/use-previous';
-import {useSettings} from '@ui/settings/use-settings';
 import {MenuItemConfig} from '@common/menus/menu-config';
+import {useQuery} from '@tanstack/react-query';
+import {ButtonBaseProps} from '@ui/buttons/button-base';
+import {IconButton} from '@ui/buttons/icon-button';
+import {FormChipField} from '@ui/forms/input-field/chip-field/form-chip-field';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {Item} from '@ui/forms/listbox/item';
+import {Section} from '@ui/forms/listbox/section';
+import {FormSelect, Option} from '@ui/forms/select/select';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
 import {createSvgIconFromTree, IconTree} from '@ui/icons/create-svg-icon';
+import {EditIcon} from '@ui/icons/material/Edit';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useSettings} from '@ui/settings/use-settings';
+import {usePrevious} from '@ui/utils/hooks/use-previous';
+import {Fragment, ReactNode, useEffect, useMemo} from 'react';
+import {useFormContext} from 'react-hook-form';
+import {useValueLists} from '../../http/value-lists';
+import {IconPickerDialog} from '../../ui/icon-picker/icon-picker-dialog';
+import {useAvailableRoutes} from '../settings/pages/menu-settings/use-available-routes';
 
 interface NameProps {
   prefixName: (name: string) => string;
@@ -31,10 +33,12 @@ interface NameProps {
 interface MenuItemFormProps {
   formPathPrefix?: string;
   hideRoleAndPermissionFields?: boolean;
+  children?: ReactNode;
 }
 export function MenuItemForm({
   formPathPrefix,
   hideRoleAndPermissionFields,
+  children,
 }: MenuItemFormProps) {
   const {trans} = useTrans();
   const prefixName = (name: string): string => {
@@ -50,6 +54,7 @@ export function MenuItemForm({
         placeholder={trans(message('No label...'))}
         startAppend={<IconDialogTrigger prefixName={prefixName} />}
       />
+      {children}
       <DestinationSelector prefixName={prefixName} />
       <TargetSelect prefixName={prefixName} />
       {!hideRoleAndPermissionFields && (
@@ -109,7 +114,11 @@ function DestinationSelector({prefixName}: NameProps) {
 
   // clear "action" field when "type" field changes
   useEffect(() => {
-    if (previousType && previousType !== currentType) {
+    if (
+      previousType &&
+      previousType !== currentType &&
+      form.getValues(prefixName('type') as 'type')
+    ) {
       form.setValue(prefixName('action') as 'action', '');
     }
   }, [currentType, previousType, form, prefixName]);
@@ -120,10 +129,10 @@ function DestinationSelector({prefixName}: NameProps) {
         className="mb-20"
         name={prefixName('type')}
         selectionMode="single"
-        label={<Trans message="Type" />}
+        label={<Trans message="Link type" />}
       >
         <Option value="link">
-          <Trans message="Custom link" />
+          <Trans message="External link" />
         </Option>
         <Option value="route">
           <Trans message="Site page" />
@@ -185,7 +194,7 @@ function DestinationSelector({prefixName}: NameProps) {
 }
 
 function RoleSelector({prefixName}: NameProps) {
-  const {data} = useValueLists(['roles', 'permissions']);
+  const {data} = useValueLists(['roles']);
   const roles = data?.roles || [];
   const {trans} = useTrans();
 
@@ -210,12 +219,12 @@ function RoleSelector({prefixName}: NameProps) {
 }
 
 function PermissionSelector({prefixName}: NameProps) {
-  const {data} = useValueLists(['roles', 'permissions']);
+  const permissionQuery = useQuery(commonAdminQueries.permissions.index());
   const {trans} = useTrans();
 
   const groupedPermissions = useMemo(() => {
-    return buildPermissionList(data?.permissions || [], [], false);
-  }, [data?.permissions]);
+    return buildPermissionList(permissionQuery.data?.permissions || [], []);
+  }, [permissionQuery.data?.permissions]);
 
   return (
     <FormChipField

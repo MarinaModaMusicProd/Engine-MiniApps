@@ -1,18 +1,19 @@
-import React, {ReactNode} from 'react';
 import {Button} from '@ui/buttons/button';
-import {ErrorOutlineIcon} from '@ui/icons/material/ErrorOutline';
-import {DialogFooter} from './dialog-footer';
-import {useDialogContext} from './dialog-context';
-import {Dialog} from './dialog';
-import {DialogHeader} from './dialog-header';
-import {DialogBody} from './dialog-body';
 import {Trans} from '@ui/i18n/trans';
+import {ErrorOutlineIcon} from '@ui/icons/material/ErrorOutline';
+import {ReactNode} from 'react';
+import {Dialog} from './dialog';
+import {DialogBody} from './dialog-body';
+import {useDialogContext} from './dialog-context';
+import {DialogFooter} from './dialog-footer';
+import {DialogHeader} from './dialog-header';
 
 interface Props {
   className?: string;
   title: ReactNode;
   body: ReactNode;
   close?: ReactNode;
+  hideClose?: boolean;
   confirm: ReactNode;
   isDanger?: boolean;
   isLoading?: boolean;
@@ -23,6 +24,7 @@ export function ConfirmationDialog({
   title,
   body,
   close: closeText,
+  hideClose,
   confirm,
   isDanger,
   isLoading,
@@ -30,7 +32,7 @@ export function ConfirmationDialog({
 }: Props) {
   const {close} = useDialogContext();
   return (
-    <Dialog className={className} size="sm" role="alertdialog">
+    <Dialog className={className} role="alertdialog">
       <DialogHeader
         color={isDanger ? 'text-danger' : null}
         leftAdornment={<ErrorOutlineIcon className="icon-sm" />}
@@ -39,14 +41,16 @@ export function ConfirmationDialog({
       </DialogHeader>
       <DialogBody>{body}</DialogBody>
       <DialogFooter>
-        <Button
-          variant="text"
-          onClick={() => {
-            close(false);
-          }}
-        >
-          {closeText || <Trans message="Cancel" />}
-        </Button>
+        {!hideClose && (
+          <Button
+            variant="text"
+            onClick={() => {
+              close(false);
+            }}
+          >
+            {closeText || <Trans message="Cancel" />}
+          </Button>
+        )}
         <Button
           disabled={isLoading}
           variant="flat"

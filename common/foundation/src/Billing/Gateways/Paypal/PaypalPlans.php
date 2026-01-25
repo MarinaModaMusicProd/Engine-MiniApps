@@ -46,6 +46,44 @@ class PaypalPlans
 
     protected function create(Product $product, Price $price): bool
     {
+        $currencyCode = Str::upper($price->currency);
+
+        $billingCycles = [];
+
+        if ($product->trial_period_days) {
+            $billingCycles[] = [
+                'frequency' => [
+                    'interval_unit' => 'DAY',
+                    'interval_count' => $product->trial_period_days,
+                ],
+                'tenure_type' => 'TRIAL',
+                'sequence' => 1,
+                'total_cycles' => 1,
+                'pricing_scheme' => [
+                    'fixed_price' => [
+                        'value' => '0',
+                        'currency_code' => $currencyCode,
+                    ],
+                ],
+            ];
+        }
+
+        $billingCycles[] = [
+            'frequency' => [
+                'interval_unit' => Str::upper($price->interval),
+                'interval_count' => $price->interval_count,
+            ],
+            'tenure_type' => 'REGULAR',
+            'sequence' => $product->trial_period_days ? 2 : 1,
+            'total_cycles' => 0, // infinite
+            'pricing_scheme' => [
+                'fixed_price' => [
+                    'value' => number_format($price->amount, 2, '.', ''),
+                    'currency_code' => $currencyCode,
+                ],
+            ],
+        ];
+
         $response = $this->paypal()->post('billing/plans', [
             'name' => $product->name,
             'product_id' => config('services.paypal.product_id'),
@@ -54,28 +92,7 @@ class PaypalPlans
                 'auto_bill_outstanding' => true,
                 'payment_failure_threshold' => 2,
             ],
-            'billing_cycles' => [
-                [
-                    'frequency' => [
-                        'interval_unit' => Str::upper($price->interval),
-                        'interval_count' => $price->interval_count,
-                    ],
-                    'tenure_type' => 'REGULAR',
-                    'sequence' => 1,
-                    'total_cycles' => 0, // infinite
-                    'pricing_scheme' => [
-                        'fixed_price' => [
-                            'value' => number_format(
-                                $price->amount,
-                                2,
-                                '.',
-                                '',
-                            ),
-                            'currency_code' => Str::upper($price->currency),
-                        ],
-                    ],
-                ],
-            ],
+            'billing_cycles' => $billingCycles,
         ]);
 
         if (!$response->successful()) {

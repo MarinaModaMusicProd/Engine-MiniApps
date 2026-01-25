@@ -1,6 +1,6 @@
-import {useEffect, useRef, useState} from 'react';
 import {usePlayerActions} from '@common/player/hooks/use-player-actions';
 import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {useEffect, useRef, useState} from 'react';
 
 interface Props {
   precision: 'ms' | 'seconds';
@@ -11,11 +11,10 @@ export function useCurrentTime(
 ) {
   const timeRef = useRef(0);
   const {subscribe, getCurrentTime} = usePlayerActions();
-  const providerKey = usePlayerStore(s =>
-    s.providerName && s.cuedMedia?.id
-      ? `${s.providerName}+${s.cuedMedia.id}`
-      : null,
-  );
+  const providerName = usePlayerStore(s => s.providerName);
+  const cuedMediaId = usePlayerStore(s => s.cuedMedia?.id);
+  const providerKey =
+    providerName && cuedMediaId ? `${providerName}+${cuedMediaId}` : null;
 
   const [currentTime, setCurrentTime] = useState(() => getCurrentTime());
 

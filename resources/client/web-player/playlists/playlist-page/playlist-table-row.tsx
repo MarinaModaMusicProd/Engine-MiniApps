@@ -1,17 +1,17 @@
-import {RowElementProps} from '@common/ui/tables/table-row';
-import {Track} from '@app/web-player/tracks/track';
-import {useIsTouchDevice} from '@ui/utils/hooks/is-touch-device';
-import React, {Fragment, useContext, useRef} from 'react';
-import {TableContext} from '@common/ui/tables/table-context';
-import {DragPreviewRenderer} from '@ui/interactions/dnd/use-draggable';
-import {useReorderPlaylistTracks} from '@app/web-player/playlists/requests/use-reorder-playlist-tracks';
-import {usePlaylist} from '@app/web-player/playlists/requests/use-playlist';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {mergeProps} from '@react-aria/utils';
+import {FullPlaylist} from '@app/web-player/playlists/playlist';
 import {PlaylistTrackContextDialog} from '@app/web-player/playlists/playlist-page/playlist-track-context-dialog';
+import {useReorderPlaylistTracks} from '@app/web-player/playlists/requests/use-reorder-playlist-tracks';
+import {Track} from '@app/web-player/tracks/track';
+import {TableContext} from '@common/ui/tables/table-context';
+import {RowElementProps} from '@common/ui/tables/table-row';
+import {mergeProps} from '@react-aria/utils';
 import {Trans} from '@ui/i18n/trans';
 import {DragPreview} from '@ui/interactions/dnd/drag-preview';
 import {useSortable} from '@ui/interactions/dnd/sortable/use-sortable';
+import {DragPreviewRenderer} from '@ui/interactions/dnd/use-draggable';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useIsTouchDevice} from '@ui/utils/hooks/is-touch-device';
+import React, {Fragment, useContext, useRef} from 'react';
 
 export function PlaylistTableRow({
   item,
@@ -25,11 +25,12 @@ export function PlaylistTableRow({
     selectRow,
     selectedRows,
     sortDescriptor,
+    meta,
   } = useContext(TableContext);
   const domRef = useRef<HTMLTableRowElement>(null);
   const previewRef = useRef<DragPreviewRenderer>(null);
   const reorderTracks = useReorderPlaylistTracks();
-  const {data} = usePlaylist({loader: 'playlistPage'});
+  const playlist = meta?.playlist as FullPlaylist;
 
   const {sortableProps} = useSortable({
     ref: domRef,
@@ -79,7 +80,7 @@ export function PlaylistTableRow({
         >
           {children}
         </div>
-        <PlaylistTrackContextDialog playlist={data!.playlist} />
+        <PlaylistTrackContextDialog playlist={playlist} />
       </DialogTrigger>
       {!item.isPlaceholder && <RowDragPreview track={item} ref={previewRef} />}
     </Fragment>

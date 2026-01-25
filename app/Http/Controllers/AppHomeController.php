@@ -20,19 +20,7 @@ class AppHomeController extends HomeController
                 settings('homepage.value'),
             );
         } else {
-            return $this->renderClientOrApi([
-                'pageName' => 'landing-page',
-                'data' => [
-                    'loader' => 'landingPage',
-                    'products' => Product::with(['permissions', 'prices'])
-                        ->limit(15)
-                        ->orderBy('position', 'asc')
-                        ->get(),
-                    'trendingArtists' => Artist::orderBy('views', 'desc')
-                        ->take(8)
-                        ->get(),
-                ],
-            ]);
+            return app(LandingPageController::class)->__invoke();
         }
     }
 }

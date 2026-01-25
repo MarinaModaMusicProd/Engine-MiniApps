@@ -5,10 +5,11 @@ namespace App\Services\Tracks\Queries;
 use App\Models\Artist;
 use App\Services\Artists\SyncArtistWithSpotify;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 
 class ArtistTrackQuery extends BaseTrackQuery
 {
-    const ORDER_COL = 'spotify_popularity';
+    const ORDER_COL = 'popularity';
 
     public function get(int $artistId): Builder
     {

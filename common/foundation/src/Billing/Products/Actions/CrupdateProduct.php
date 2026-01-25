@@ -15,7 +15,7 @@ class CrupdateProduct
 
     public function execute(
         array $data,
-        Product $originalProduct = null,
+        Product|null $originalProduct = null,
         $syncProduct = true,
     ): Product {
         $product =
@@ -30,8 +30,8 @@ class CrupdateProduct
             'hidden' => $data['hidden'] ?? false,
             'free' => $data['free'] ?? false,
             'recommended' => $data['recommended'] ?? false,
+            'trial_period_days' => $data['trial_period_days'] ?? 0,
             'position' => $data['position'] ?? 0,
-            'available_space' => $data['available_space'] ?? null,
             'feature_list' => $data['feature_list'] ?? [],
         ];
 

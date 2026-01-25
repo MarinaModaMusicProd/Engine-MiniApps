@@ -4,11 +4,11 @@ import {
   FilterControlType,
   FilterOperator,
 } from '@common/datatable/filters/backend-filter';
-import {message} from '@ui/i18n/message';
 import {
   createdAtFilter,
   updatedAtFilter,
 } from '@common/datatable/filters/timestamp-filters';
+import {message} from '@ui/i18n/message';
 
 export const ArtistDatatableFilters: BackendFilter[] = [
   {
@@ -28,6 +28,28 @@ export const ArtistDatatableFilters: BackendFilter[] = [
         {
           key: '02',
           label: message('Not verified'),
+          value: false,
+        },
+      ],
+    },
+  },
+  {
+    key: 'disabled',
+    label: message('Visibility'),
+    description: message('Whether artist is hidden on the site'),
+    defaultOperator: FilterOperator.eq,
+    control: {
+      type: FilterControlType.Select,
+      defaultValue: '01',
+      options: [
+        {
+          key: '01',
+          label: message('Hidden'),
+          value: true,
+        },
+        {
+          key: '02',
+          label: message('Visible'),
           value: false,
         },
       ],

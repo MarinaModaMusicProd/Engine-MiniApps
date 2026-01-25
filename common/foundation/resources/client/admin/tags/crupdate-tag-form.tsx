@@ -1,12 +1,12 @@
-import {Tag} from '../../tags/tag';
-import {UseFormReturn} from 'react-hook-form';
 import {Form} from '@ui/forms/form';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {Item} from '@ui/forms/listbox/item';
 import {FormSelect} from '@ui/forms/select/select';
 import {Trans} from '@ui/i18n/trans';
-import {Item} from '@ui/forms/listbox/item';
 import {useContext} from 'react';
+import {UseFormReturn} from 'react-hook-form';
 import {SiteConfigContext} from '../../core/settings/site-config-context';
+import {Tag} from '../../tags/tag';
 
 interface CrupdateTagFormProps {
   onSubmit: (values: Partial<Tag>) => void;
@@ -24,6 +24,8 @@ export function CrupdateTagForm({
   const watchedType = form.watch('type');
   const isSystem = !!types.find(t => t.name === watchedType && t.system);
 
+  const allTypes = types.filter(t => !t.system);
+
   return (
     <Form id={formId} form={form} onSubmit={onSubmit}>
       <FormTextField
@@ -40,20 +42,20 @@ export function CrupdateTagForm({
         description={<Trans message="User friendly tag name." />}
         className="mb-20"
       />
-      <FormSelect
-        label={<Trans message="Type" />}
-        name="type"
-        selectionMode="single"
-        disabled={isSystem}
-      >
-        {types
-          .filter(t => !t.system)
-          .map(type => (
+      {allTypes.length > 1 && (
+        <FormSelect
+          label={<Trans message="Type" />}
+          name="type"
+          selectionMode="single"
+          disabled={isSystem}
+        >
+          {allTypes.map(type => (
             <Item key={type.name} value={type.name}>
               <Trans message={type.name} />
             </Item>
           ))}
-      </FormSelect>
+        </FormSelect>
+      )}
     </Form>
   );
 }

@@ -1,14 +1,15 @@
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {useMutation} from '@tanstack/react-query';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {apiClient, queryClient} from '@common/http/query-client';
+import {appQueries} from '@app/app-queries';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
 import {Track} from '@app/web-player/tracks/track';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
 
 interface Response extends BackendResponse {
-  playlist: Playlist;
+  playlist: PartialPlaylist;
 }
 
 interface Payload {
@@ -26,10 +27,7 @@ export function useRemoveTracksFromPlaylist() {
         }),
       );
       queryClient.invalidateQueries({
-        queryKey: ['playlists', response.playlist.id],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['tracks', 'playlist', response.playlist.id],
+        queryKey: appQueries.playlists.show(response.playlist.id).invalidateKey,
       });
     },
     onError: r => showHttpErrorToast(r),

@@ -1,9 +1,11 @@
-import {useCallback, useRef} from 'react';
-import {useFileUploadStore} from './file-upload-provider';
-import {UploadedFile} from '@ui/utils/files/uploaded-file';
-import {UploadStrategyConfig} from './strategy/upload-strategy';
-import {openUploadWindow} from '@ui/utils/files/open-upload-window';
 import {useDeleteFileEntries} from '@common/uploads/requests/delete-file-entries';
+import {restrictionsFromConfig} from '@common/uploads/uploader/create-file-upload';
+import {openUploadWindow} from '@ui/utils/files/open-upload-window';
+import {UploadedFile} from '@ui/utils/files/uploaded-file';
+import {useCallback, useRef} from 'react';
+import {useShallow} from 'zustand/react/shallow';
+import {useFileUploadStore} from './file-upload-provider';
+import {UploadStrategyConfig} from './strategy/upload-strategy';
 
 interface DeleteEntryProps {
   onSuccess: () => void;
@@ -15,26 +17,29 @@ export function useActiveUpload() {
 
   // use ref for setting ID to avoid extra renders, zustand selector
   // will pick up changed selector on first progress event
-  const uploadIdRef = useRef<string>();
+  const uploadIdRef = useRef<string>(null);
 
   const uploadSingle = useFileUploadStore(s => s.uploadSingle);
   const _abortUpload = useFileUploadStore(s => s.abortUpload);
   const updateFileUpload = useFileUploadStore(s => s.updateFileUpload);
-  const activeUpload = useFileUploadStore(s =>
-    uploadIdRef.current ? s.fileUploads.get(uploadIdRef.current) : null,
+  const activeUpload = useFileUploadStore(
+    useShallow(s =>
+      uploadIdRef.current ? s.fileUploads.get(uploadIdRef.current) : null,
+    ),
   );
 
   const uploadFile = useCallback(
-    (file: File | UploadedFile, config?: UploadStrategyConfig) => {
+    (file: File | UploadedFile, config: UploadStrategyConfig) => {
       uploadIdRef.current = uploadSingle(file, config);
     },
     [uploadSingle],
   );
 
   const selectAndUploadFile = useCallback(
-    async (config?: UploadStrategyConfig) => {
+    async (config: UploadStrategyConfig) => {
+      const restrictions = restrictionsFromConfig(config);
       const files = await openUploadWindow({
-        types: config?.restrictions?.allowedFileTypes,
+        types: restrictions?.allowedFileTypes,
       });
       uploadFile(files[0], config);
       return files[0];

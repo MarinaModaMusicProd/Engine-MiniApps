@@ -1,13 +1,13 @@
+import {Channel, ChannelConfig} from '@common/channels/channel';
+import {channelQueries} from '@common/channels/channel-queries';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
 import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
 import {useTrans} from '@ui/i18n/use-trans';
 import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {showHttpErrorToast} from '@common/http/show-http-error-toast';
 import {NormalizedModel} from '@ui/types/normalized-model';
-import {Channel, ChannelConfig} from '@common/channels/channel';
-import {channelQueryKey} from '@common/channels/requests/use-channel';
 
 interface Response extends BackendResponse {
   channel: Channel<NormalizedModel>;
@@ -23,7 +23,7 @@ export function useUpdateChannelContent(channelId: number | string) {
     mutationFn: (payload: Payload) => updateChannel(channelId, payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: channelQueryKey(channelId),
+        queryKey: channelQueries.invalidateKey,
       });
       toast(trans(message('Channel content updated')));
     },

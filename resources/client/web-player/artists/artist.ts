@@ -1,32 +1,28 @@
-import {Genre} from '../genres/genre';
-import {Track} from '../tracks/track';
-import {UserProfile} from '../user-profile/user-profile';
-import {UserLink} from '../user-profile/user-link';
-import {User} from '@ui/types/user';
-import {Album} from '@app/web-player/albums/album';
+import {ProfileLink} from '../users/user-profile';
+import {ProfileDetails} from '../users/user-profile/profile-details';
 
 export const ARTIST_MODEL = 'artist';
 
-export interface Artist {
-  id: number;
-  name: string;
-  model_type: 'artist';
-  verified?: boolean;
+export type FullArtist = PartialArtist & {
   spotify_id?: string;
   followers_count?: number;
-  followers?: User[];
-  spotify_popularity?: boolean;
   likes_count?: number;
   albums_count?: number;
-  image_small?: string;
   updated_at?: string;
-  top_tracks?: Track[];
-  albums?: Album[];
-  similar?: Omit<Artist, 'similar' | 'top_tracks' | 'albums'>[];
-  genres?: Genre[];
+  similar?: PartialArtist[];
+  genres?: {id: number; name: string; display_name: string}[];
   views: number;
   plays: number;
-  profile?: UserProfile;
-  profile_images?: {url: string}[];
-  links?: UserLink[];
-}
+  profile?: ProfileDetails;
+  profile_images?: {url: string; id: number}[];
+  links?: ProfileLink[];
+  disabled?: boolean;
+};
+
+export type PartialArtist = {
+  id: number;
+  name: string;
+  image_small: string | undefined;
+  verified: boolean;
+  model_type: 'artist';
+};

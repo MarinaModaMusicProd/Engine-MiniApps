@@ -1,11 +1,11 @@
-import clsx from 'clsx';
-import {Trans} from '@ui/i18n/trans';
-import {CustomMenuItem} from '../../menus/custom-menu';
-import {Button} from '@ui/buttons/button';
-import {useSettings} from '@ui/settings/use-settings';
-import {useState} from 'react';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
+import {useSettings} from '@ui/settings/use-settings';
 import {useCookie} from '@ui/utils/hooks/use-cookie';
+import clsx from 'clsx';
+import {useState} from 'react';
+import {CustomMenuItem} from '../../menus/custom-menu';
 
 export function CookieNotice() {
   const {cookie_notice} = useSettings();

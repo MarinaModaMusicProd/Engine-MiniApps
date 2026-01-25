@@ -32,6 +32,10 @@ class PaypalCredentialsValidator implements SettingsValidator
 
     public function fails($values)
     {
+        if (!isset($values['billing.paypal_test_mode'])) {
+            $values['billing.paypal_test_mode'] = false;
+        }
+
         $this->setConfigDynamically($values);
 
         // create gateway after setting config dynamically

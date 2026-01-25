@@ -1,13 +1,13 @@
-import {useTrans} from '@ui/i18n/use-trans';
+import {PartialArtist} from '@app/web-player/artists/artist';
 import {message} from '@ui/i18n/message';
-import {Artist} from '@app/web-player/artists/artist';
 import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
 import {CheckIcon} from '@ui/icons/material/Check';
-import clsx from 'clsx';
 import {MicIcon} from '@ui/icons/material/Mic';
+import clsx from 'clsx';
 
 interface SmallArtistImageProps {
-  artist: Artist;
+  artist: PartialArtist;
   className?: string;
   wrapperClassName?: string;
   size?: string;
@@ -21,7 +21,7 @@ export function SmallArtistImage({
   showVerifiedBadge = false,
 }: SmallArtistImageProps) {
   const {trans} = useTrans();
-  const src = getSmallArtistImage(artist);
+  const src = artist.image_small;
   const imgClassName = clsx(
     size,
     className,
@@ -61,8 +61,4 @@ export function SmallArtistImage({
       )}
     </div>
   );
-}
-
-export function getSmallArtistImage(artist: Artist) {
-  return artist.image_small || artist.albums?.[0]?.image;
 }

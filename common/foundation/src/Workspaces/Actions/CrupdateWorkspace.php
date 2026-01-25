@@ -2,7 +2,7 @@
 
 namespace Common\Workspaces\Actions;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Workspaces\Workspace;
 
 class CrupdateWorkspace
@@ -13,7 +13,7 @@ class CrupdateWorkspace
 
     public function execute(
         array $data,
-        Workspace|null $initialWorkspace = null
+        Workspace|null $initialWorkspace = null,
     ): Workspace {
         if ($initialWorkspace) {
             $workspace = $initialWorkspace;

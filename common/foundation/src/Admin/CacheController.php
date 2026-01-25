@@ -2,31 +2,21 @@
 
 namespace Common\Admin;
 
-use Artisan;
-use Cache;
 use Common\Core\BaseController;
-use Common\Settings\Setting;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class CacheController extends BaseController
 {
-    /**
-     * @var Request
-     */
-    private $request;
-
-    /**
-     * @param Request $request
-     */
-    public function __construct(Request $request)
+    public function __construct()
     {
-        $this->request = $request;
         $this->middleware('isAdmin');
     }
 
     public function flush()
     {
-        Cache::flush();
+        $this->blockOnDemoSite();
+
+        Artisan::call('optimize:clear');
 
         return $this->success();
     }

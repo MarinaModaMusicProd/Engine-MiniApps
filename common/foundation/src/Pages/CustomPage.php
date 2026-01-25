@@ -2,7 +2,9 @@
 
 use App\Models\User;
 use Common\Core\BaseModel;
-use Common\Pages\CustomPageFactory;
+use Common\Files\FileEntry;
+use Common\Files\FileEntryPivot;
+use Common\Files\Traits\HasAttachedFileEntries;
 use Common\Tags\Tag;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +14,7 @@ use Illuminate\Support\Str;
 
 class CustomPage extends BaseModel
 {
-    use HasFactory;
+    use HasFactory, HasAttachedFileEntries;
 
     const PAGE_TYPE = 'default';
     const MODEL_TYPE = 'customPage';
@@ -29,9 +31,7 @@ class CustomPage extends BaseModel
 
     protected function slug(): Attribute
     {
-        return Attribute::make(
-            set: fn (string $value) => slugify($value),
-        );
+        return Attribute::make(set: fn(string $value) => slugify($value));
     }
 
     public function user(): BelongsTo
@@ -42,6 +42,11 @@ class CustomPage extends BaseModel
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable');
+    }
+
+    public function inlineImages()
+    {
+        return $this->attachedFileEntriesRelation('inline_image');
     }
 
     public function toSearchableArray(): array

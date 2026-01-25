@@ -1,31 +1,37 @@
-import {ReactElement, ReactNode} from 'react';
-import clsx from 'clsx';
 import {useAuth} from '@common/auth/use-auth';
-import {NotificationDialogTrigger} from '@common/notifications/dialog/notification-dialog-trigger';
-import {Menu, MenuTrigger} from '@ui/menu/menu-trigger';
-import {useCustomMenu} from '@common/menus/use-custom-menu';
-import {createSvgIconFromTree} from '@ui/icons/create-svg-icon';
-import {Trans} from '@ui/i18n/trans';
-import {IconButton} from '@ui/buttons/icon-button';
-import {Item} from '@ui/forms/listbox/item';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {useIsDarkMode} from '@ui/themes/use-is-dark-mode';
 import {CustomMenu} from '@common/menus/custom-menu';
-import {useSettings} from '@ui/settings/use-settings';
-import {ButtonColor} from '@ui/buttons/get-shared-button-style';
-import {MenuIcon} from '@ui/icons/material/Menu';
+import {MenuItemConfig} from '@common/menus/menu-config';
+import {useCustomMenu} from '@common/menus/use-custom-menu';
+import {NotificationDialogTrigger} from '@common/notifications/dialog/notification-dialog-trigger';
+import {Logo} from '@common/ui/navigation/navbar/logo';
+import {NavbarAuthButtons} from '@common/ui/navigation/navbar/navbar-auth-buttons';
 import {
   NavbarAuthUser,
   NavbarAuthUserProps,
 } from '@common/ui/navigation/navbar/navbar-auth-user';
-import {NavbarAuthButtons} from '@common/ui/navigation/navbar/navbar-auth-buttons';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {ButtonColor} from '@ui/buttons/get-shared-button-style';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Item} from '@ui/forms/listbox/item';
+import {Trans} from '@ui/i18n/trans';
+import {createSvgIconFromTree} from '@ui/icons/create-svg-icon';
+import {MenuIcon} from '@ui/icons/material/Menu';
+import {Menu, MenuTrigger} from '@ui/menu/menu-trigger';
+import {useSettings} from '@ui/settings/use-settings';
 import {useDarkThemeVariables} from '@ui/themes/use-dark-theme-variables';
-import {Logo} from '@common/ui/navigation/navbar/logo';
-import {useLightThemeVariables} from '@ui/themes/use-light-theme-variables';
+import {useIsDarkMode} from '@ui/themes/use-is-dark-mode';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
 import {isAbsoluteUrl} from '@ui/utils/urls/is-absolute-url';
-import {MenuItemConfig} from '@common/menus/menu-config';
+import clsx from 'clsx';
+import {ReactElement, ReactNode} from 'react';
 
-type NavbarColor = 'primary' | 'bg' | 'bg-alt' | 'transparent' | string;
+type NavbarColor =
+  | 'primary'
+  | 'bg'
+  | 'bg-alt'
+  | 'transparent'
+  | 'bg-elevated'
+  | string;
 
 export interface NavbarProps {
   hideLogo?: boolean | null;
@@ -35,11 +41,11 @@ export interface NavbarProps {
   color?: NavbarColor;
   bgOpacity?: number | string;
   darkModeColor?: NavbarColor;
-  logoColor?: 'dark' | 'light';
+  logoColor?: 'dark' | 'light' | 'matchMode';
   textColor?: string;
   primaryButtonColor?: ButtonColor;
   border?: string;
-  size?: 'xs' | 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md' | null;
   rightChildren?: ReactNode;
   menuPosition?: string;
   authMenuItems?: NavbarAuthUserProps['items'];
@@ -54,26 +60,29 @@ export function Navbar(props: NavbarProps) {
     className,
     border,
     size = 'md',
-    color,
+    color = 'bg',
     textColor,
     darkModeColor,
     rightChildren,
     menuPosition,
-    logoColor,
     primaryButtonColor,
     authMenuItems,
+    logoColor,
     alwaysDarkMode = false,
     wrapInContainer = false,
   } = props;
   const isDarkMode = useIsDarkMode() || alwaysDarkMode;
+  const isMobile = useIsMobileMediaQuery();
   const {notifications} = useSettings();
   const {isLoggedIn} = useAuth();
   const darkThemeVars = useDarkThemeVariables();
-  const lightThemeVars = useLightThemeVariables();
   const showNotifButton = isLoggedIn && notifications?.integrated;
-  color = color ?? lightThemeVars?.['--be-navbar-color'] ?? 'primary';
-  darkModeColor =
-    darkModeColor ?? darkThemeVars?.['--be-navbar-color'] ?? 'bg-alt';
+  color = color ?? 'primary';
+  darkModeColor = darkModeColor ?? 'bg-elevated';
+
+  if (logoColor === 'matchMode') {
+    logoColor = isDarkMode ? 'light' : 'dark';
+  }
 
   if (isDarkMode) {
     color = darkModeColor;
@@ -93,12 +102,20 @@ export function Navbar(props: NavbarProps) {
     >
       <div
         className={clsx(
-          'flex h-full items-center justify-end gap-10 pl-14 pr-8 md:pl-20 md:pr-20',
+          'flex h-full items-center justify-end gap-10 px-14 md:px-20',
           wrapInContainer && 'container mx-auto',
         )}
       >
         {!hideLogo && (
-          <Logo isDarkMode={isDarkMode} color={color} logoColor={logoColor} />
+          <Logo
+            size="h-full max-h-26 md:max-h-36"
+            className="mr-4 md:mr-24"
+            color={resolveLogoColor({
+              navbarColor: color,
+              logoColor,
+              isDarkMode,
+            })}
+          />
         )}
         {toggleButton}
         {children}
@@ -108,7 +125,10 @@ export function Navbar(props: NavbarProps) {
           {rightChildren}
           {showNotifButton && <NotificationDialogTrigger />}
           {isLoggedIn ? (
-            <NavbarAuthUser items={authMenuItems} />
+            <NavbarAuthUser
+              variant={isMobile ? 'compact' : 'wide'}
+              items={authMenuItems}
+            />
           ) : (
             <NavbarAuthButtons
               navbarColor={color}
@@ -188,6 +208,8 @@ function getColorStyle(color: string, textColor?: string): string {
       return `bg-primary ${textColor || 'text-on-primary'} border-b-primary`;
     case 'bg':
       return `bg ${textColor || 'text-main'} border-b`;
+    case 'bg-elevated':
+      return `bg-elevated ${textColor || 'text-main'} border-b`;
     case 'bg-alt':
       return `bg-alt ${textColor || 'text-main'} border-b`;
     case 'transparent':
@@ -195,4 +217,28 @@ function getColorStyle(color: string, textColor?: string): string {
     default:
       return `${color} ${textColor}`;
   }
+}
+
+function resolveLogoColor({
+  logoColor,
+  navbarColor,
+  isDarkMode,
+}: {
+  logoColor?: 'light' | 'dark';
+  navbarColor: NavbarColor;
+  isDarkMode: boolean;
+}): 'dark' | 'light' {
+  if (logoColor != null) {
+    return logoColor;
+  }
+
+  if (isDarkMode) {
+    return 'light';
+  }
+
+  if (navbarColor === 'bg' || navbarColor === 'bg-alt') {
+    return 'dark';
+  }
+
+  return 'light';
 }

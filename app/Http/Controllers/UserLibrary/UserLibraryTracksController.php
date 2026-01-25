@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers\UserLibrary;
 
 use App\Models\User;
+use App\Services\Tracks\PaginateTracks;
 use App\Services\Tracks\Queries\LibraryTracksQuery;
 use Carbon\Carbon;
 use Common\Core\BaseController;
@@ -16,51 +17,58 @@ class UserLibraryTracksController extends BaseController
         $this->middleware('auth')->only(['addToLibrary', 'removeFromLibrary']);
     }
 
-    public function index(User $user = null)
+    public function index(User $user)
     {
-        $user = $user ?? Auth::user();
         $this->authorize('show', $user);
 
-        $query = (new LibraryTracksQuery([
-            'orderBy' => request('orderBy', 'likes.created_at'),
-            'orderDir' => request('orderDir', 'desc'),
+        $params = $this->validate(request(), [
+            'orderBy' => 'string',
+            'orderDir' => 'string',
+            'query' => 'string|nullable',
+        ]);
+        $params['perPage'] = 30;
+
+        $builder = (new LibraryTracksQuery([
+            'orderBy' => $params['orderBy'] ?? 'likes.created_at',
+            'orderDir' => $params['orderDir'] ?? 'desc',
         ]))->get($user->id);
-        $paginator = new Paginator($query, request()->all());
-        $paginator->dontSort = true;
-        $paginator->defaultPerPage = 30;
 
-        $paginator->searchCallback = function (Builder $builder, $query) {
-            $builder->where(function ($builder) use ($query) {
-                $builder->where('name', 'LIKE', $query . '%');
-                $builder->orWhereHas('album', function (Builder $q) use (
-                    $query,
-                ) {
-                    return $q
-                        ->where('name', 'LIKE', $query . '%')
-                        ->orWhereHas('artists', function (Builder $q) use (
-                            $query,
-                        ) {
-                            return $q->where('name', 'LIKE', $query . '%');
-                        });
-                });
-            });
-        };
+        $paginator = (new PaginateTracks())->asApiResponse(
+            $params,
+            $builder,
+            hasCustomOrder: true,
+        );
 
-        $pagination = $paginator->paginate();
-
-        return $this->success(['pagination' => $pagination]);
+        return $this->success(['pagination' => $paginator]);
     }
 
     public function addToLibrary()
     {
-        $likeables = collect(request()->get('likeables'))->map(function (
-            $likeable,
-        ) {
-            $likeable['user_id'] = Auth::user()->id;
-            $likeable['created_at'] = Carbon::now();
-            return $likeable;
-        });
-        DB::table('likes')->insert($likeables->toArray());
+        $likeableIds = collect(request('likeables'))->pluck('likeable_id');
+        $likeableType = request('likeables')[0]['likeable_type'];
+
+        $existing = DB::table('likes')
+            ->where('user_id', Auth::id())
+            ->whereIn('likeable_id', $likeableIds)
+            ->where('likeable_type', $likeableType)
+            ->get();
+
+        $idsToAttach = $likeableIds->diff($existing->pluck('likeable_id'));
+
+        DB::table('likes')->insert(
+            $idsToAttach
+                ->map(
+                    fn($id) => [
+                        'user_id' => Auth::id(),
+                        'likeable_id' => $id,
+                        'likeable_type' => $likeableType,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                )
+                ->toArray(),
+        );
+
         return $this->success();
     }
 

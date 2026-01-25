@@ -18,9 +18,10 @@ use App\Http\Controllers\FallbackRouteController;
 use App\Http\Controllers\PlaylistController;
 use App\Http\Controllers\Search\SearchController;
 use App\Http\Controllers\TrackController as TrackControllerAlias;
-use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\UserProfile\UserProfileController;
 use Common\Channels\ChannelController;
 use Common\Core\Controllers\HomeController;
+use Illuminate\Support\Facades\Route;
 
 //FRONT-END ROUTES THAT NEED TO BE PRE-RENDERED
 Route::get('/', AppHomeController::class);

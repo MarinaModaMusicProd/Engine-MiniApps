@@ -1,5 +1,5 @@
-import React, {ElementType, HTMLProps, ReactElement, ReactNode} from 'react';
 import {InputSize} from '@ui/forms/input-field/input-size';
+import React, {ElementType, HTMLProps, ReactElement, ReactNode} from 'react';
 
 export interface BaseFieldProps {
   disabled?: boolean;
@@ -11,7 +11,10 @@ export interface BaseFieldProps {
   labelElementType?: ElementType;
   label?: ReactNode;
   labelPosition?: 'top' | 'side';
+  labelClassName?: string;
   labelDisplay?: string;
+  inputDisplay?: string;
+  wrapLabel?: boolean;
   size?: InputSize;
   inputRadius?: 'rounded-full' | 'rounded' | 'rounded-none' | string;
   inputRing?: string;
@@ -34,10 +37,17 @@ export interface BaseFieldProps {
   inputWrapperClassName?: string;
   inputClassName?: string;
   unstyled?: boolean;
-  background?: 'bg-transparent' | 'bg-alt' | 'bg' | 'bg-white';
+  background?:
+    | 'bg-transparent'
+    | 'bg-alt'
+    | 'bg'
+    | 'bg-white'
+    | 'bg-elevated'
+    | string;
   inputTestId?: string;
 }
 
 export interface BaseFieldPropsWithDom<T>
-  extends BaseFieldProps,
+  extends
+    BaseFieldProps,
     Omit<HTMLProps<T>, 'label' | 'size' | 'ref' | 'children'> {}

@@ -3,7 +3,6 @@
 namespace Common\Core\Middleware;
 
 use Closure;
-use Common\Settings\Settings;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified as LaravelMiddleware;
 
 class EnsureEmailIsVerified extends LaravelMiddleware
@@ -12,10 +11,7 @@ class EnsureEmailIsVerified extends LaravelMiddleware
     {
         // bail if user is not logged in, it will be handled by policies
         // also bail if email verification is disabled from settings page
-        if (
-            !$request->user() ||
-            !app(Settings::class)->get('require_email_confirmation')
-        ) {
+        if (!$request->user() || !settings('require_email_confirmation')) {
             return $next($request);
         }
 

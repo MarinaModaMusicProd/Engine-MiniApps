@@ -1,7 +1,7 @@
 import {FontConfig} from '@ui/fonts/font-picker/font-config';
 
 export interface CssTheme {
-  id: number | string;
+  id: number;
   name: string;
   is_dark?: boolean;
   default_dark?: boolean;

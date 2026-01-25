@@ -1,10 +1,10 @@
-import {ComponentType} from 'react';
-import {MessageDescriptor} from '@ui/i18n/message-descriptor';
-import {NormalizedModel} from '@ui/types/normalized-model';
+import {FilterListControlProps} from '@common/datatable/filters/filter-list/filter-list-control';
+import {DateValue} from '@internationalized/date';
 import {ChipValue} from '@ui/forms/input-field/chip-field/chip-field';
 import {AbsoluteDateRange} from '@ui/forms/input-field/date/date-range-picker/form-date-range-picker';
-import {DateValue} from '@internationalized/date';
-import {FilterListControlProps} from '@common/datatable/filters/filter-list/filter-list-control';
+import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {NormalizedModel} from '@ui/types/normalized-model';
+import {ComponentType} from 'react';
 
 export interface FilterSelectControl {
   type: FilterControlType.Select;
@@ -12,11 +12,14 @@ export interface FilterSelectControl {
     label: MessageDescriptor | string;
     key: string | number;
     value: any;
+    image?: string;
+    description?: string;
   }[];
   defaultValue?: string | number | boolean;
   placeholder?: MessageDescriptor;
   searchPlaceholder?: MessageDescriptor;
   showSearchField?: boolean;
+  showAvatar?: boolean;
 }
 
 export interface FilterNumberInputControl {
@@ -46,9 +49,10 @@ export interface FilterSelectModelControl {
 
 export interface FilterChipFieldControl {
   type: FilterControlType.ChipField;
-  options: FilterSelectControl['options'];
+  options?: FilterSelectControl['options'];
   placeholder?: MessageDescriptor;
   defaultValue: ChipValue[];
+  autocompleteEndpoint?: string;
 }
 
 export interface FilterBooleanToggleControl {
@@ -84,7 +88,7 @@ export type FilterControl =
 export interface BackendFilter<T = FilterControl> {
   key: string;
   label: MessageDescriptor;
-  description?: MessageDescriptor;
+  description?: MessageDescriptor | null;
   control: T;
   defaultOperator: FilterOperator;
   operators?: FilterOperator[];
@@ -136,5 +140,19 @@ export const ALL_NUMBER_OPERATORS = [
   FilterOperator.gte,
   FilterOperator.lt,
   FilterOperator.lte,
+  FilterOperator.notNull,
+];
+
+export const ALL_PRIMITIVE_OPERATORS = [
+  FilterOperator.eq,
+  FilterOperator.ne,
+  FilterOperator.gt,
+  FilterOperator.gte,
+  FilterOperator.lt,
+  FilterOperator.lte,
+  FilterOperator.contains,
+  FilterOperator.notContains,
+  FilterOperator.startsWith,
+  FilterOperator.endsWith,
   FilterOperator.notNull,
 ];

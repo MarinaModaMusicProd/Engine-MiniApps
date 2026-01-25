@@ -1,13 +1,17 @@
-import {User} from '@ui/types/user';
-import {useContext, useMemo} from 'react';
-import {SiteConfigContext} from '../core/settings/site-config-context';
-import {getFromLocalStorage} from '@ui/utils/hooks/local-storage';
 import {Permission} from '@common/auth/permission';
+import {BootstrapData} from '@ui/bootstrap-data/bootstrap-data';
 import {
   getBootstrapData,
   useBootstrapDataStore,
 } from '@ui/bootstrap-data/bootstrap-data-store';
-import {BootstrapData} from '@ui/bootstrap-data/bootstrap-data';
+import {User} from '@ui/types/user';
+import {getFromLocalStorage} from '@ui/utils/hooks/local-storage';
+import {useMemo} from 'react';
+
+type OnboardingState = {
+  productId: number;
+  priceId: number;
+} | null;
 
 interface UseAuthReturn {
   user: User | null;
@@ -31,12 +35,9 @@ interface UseAuthReturn {
   isSubscribed: boolean;
   getRedirectUri: () => string;
 }
+
 export function useAuth(): UseAuthReturn {
   const data = useBootstrapDataStore(s => s.data);
-  const {
-    auth: {redirectUri = '/'},
-  } = useContext(SiteConfigContext);
-
   return useMemo(() => {
     const auth = new _Auth(data);
     return {
@@ -49,16 +50,9 @@ export function useAuth(): UseAuthReturn {
       hasRole: auth.hasRole.bind(auth),
       isLoggedIn: auth.isLoggedIn,
       isSubscribed: auth.isSubscribed,
-      // where to redirect user after successful login
-      getRedirectUri: () => {
-        const onboarding = getFromLocalStorage('be.onboarding.selected');
-        if (onboarding) {
-          return `/checkout/${onboarding.productId}/${onboarding.priceId}`;
-        }
-        return redirectUri;
-      },
+      getRedirectUri: auth.getRedirectUri.bind(auth),
     };
-  }, [data, redirectUri]);
+  }, [data]);
 }
 
 class _Auth {
@@ -130,6 +124,17 @@ class _Auth {
       restrictionValue = restriction ? restriction.value : undefined;
     }
     return restrictionValue;
+  }
+
+  // where to redirect user after successful login
+  getRedirectUri(): string {
+    const onboarding = getFromLocalStorage<OnboardingState>(
+      'be.onboarding.selected',
+    );
+    if (onboarding) {
+      return `/checkout/${onboarding.productId}/${onboarding.priceId}`;
+    }
+    return getBootstrapData().auth_redirect_uri ?? '/';
   }
 }
 

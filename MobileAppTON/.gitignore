@@ -1,8 +1,0 @@
-
-node_modules/
-build/
-.DS_Store
-.flutter-plugins
-.flutter-plugins-dependencies
-.dart_tool/
-.packages

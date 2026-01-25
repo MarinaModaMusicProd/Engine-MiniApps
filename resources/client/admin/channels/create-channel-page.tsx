@@ -1,20 +1,19 @@
-import React from 'react';
-import {TRACK_MODEL} from '@app/web-player/tracks/track';
-import {CreateChannelPageLayout} from '@common/admin/channels/channel-editor/create-channel-page-layout';
-import {ChannelNameField} from '@common/admin/channels/channel-editor/controls/channel-name-field';
-import {FormSwitch} from '@ui/forms/toggle/switch';
-import {Trans} from '@ui/i18n/trans';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {ContentTypeField} from '@common/admin/channels/channel-editor/controls/content-type-field';
-import {channelContentConfig} from '@app/admin/channels/channel-content-config';
-import {ContentModelField} from '@common/admin/channels/channel-editor/controls/content-model-field';
-import {ContentOrderField} from '@common/admin/channels/channel-editor/controls/content-order-field';
-import {ContentLayoutFields} from '@common/admin/channels/channel-editor/controls/content-layout-fields';
-import {ChannelEditorTabs} from '@common/admin/channels/channel-editor/channel-editor-tabs';
 import {AppChannelAutoUpdateField} from '@app/admin/channels/app-channel-auto-update-field';
 import {AppChannelRestrictionField} from '@app/admin/channels/app-channel-restriction-field';
+import {channelContentConfig} from '@app/admin/channels/channel-content-config';
+import {TRACK_MODEL} from '@app/web-player/tracks/track';
+import {ChannelEditorTabs} from '@common/admin/channels/channel-editor/channel-editor-tabs';
+import {ChannelNameField} from '@common/admin/channels/channel-editor/controls/channel-name-field';
+import {ContentLayoutFields} from '@common/admin/channels/channel-editor/controls/content-layout-fields';
+import {ContentModelField} from '@common/admin/channels/channel-editor/controls/content-model-field';
+import {ContentOrderField} from '@common/admin/channels/channel-editor/controls/content-order-field';
+import {ContentTypeField} from '@common/admin/channels/channel-editor/controls/content-type-field';
+import {CreateChannelPageLayout} from '@common/admin/channels/channel-editor/create-channel-page-layout';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {FormSwitch} from '@ui/forms/toggle/switch';
+import {Trans} from '@ui/i18n/trans';
 
-export function CreateChannelPage() {
+export function Component() {
   return (
     <CreateChannelPageLayout
       defaultValues={{

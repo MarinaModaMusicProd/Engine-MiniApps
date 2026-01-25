@@ -1,19 +1,10 @@
 import {useEffect, useState} from 'react';
 
-export interface UseMediaQueryOptions {
-  noSSR?: boolean;
-}
-
-export function useMediaQuery(
-  query: string,
-  {noSSR}: UseMediaQueryOptions = {noSSR: true}
-) {
+export function useMediaQuery(query: string) {
   const supportsMatchMedia =
     typeof window !== 'undefined' && typeof window.matchMedia === 'function';
-  const [matches, setMatches] = useState(
-    noSSR
-      ? () => (supportsMatchMedia ? window.matchMedia(query).matches : false)
-      : null
+  const [matches, setMatches] = useState(() =>
+    supportsMatchMedia ? window.matchMedia(query).matches : false,
   );
 
   useEffect(() => {
@@ -27,16 +18,12 @@ export function useMediaQuery(
     };
 
     mq.addEventListener('change', onChange);
-    if (!noSSR) {
-      onChange();
-    }
+    onChange();
 
     return () => {
       mq.removeEventListener('change', onChange);
     };
-  }, [supportsMatchMedia, query, noSSR]);
+  }, [supportsMatchMedia, query]);
 
-  // If in SSR, the media query should never match. Once the page hydrates,
-  // this will update and the real value will be returned.
   return typeof window === 'undefined' ? null : matches;
 }

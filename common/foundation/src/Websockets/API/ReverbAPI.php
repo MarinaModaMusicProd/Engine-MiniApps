@@ -20,11 +20,7 @@ class ReverbAPI extends WebsocketProviderAPI
             "apps/$appId/channels/presence-$channel/users",
         );
 
-        return collect($response['users'] ?? [])->map(
-            fn($user) => ctype_digit($user['id'])
-                ? (int) $user['id']
-                : $user['id'],
-        );
+        return collect($response['users'] ?? []);
     }
 
     protected function makeReverbRequest(string $path)
@@ -32,6 +28,19 @@ class ReverbAPI extends WebsocketProviderAPI
         $scheme = config('broadcasting.connections.reverb.options.scheme');
         $host = config('broadcasting.connections.reverb.options.host');
         $port = config('broadcasting.connections.reverb.options.port');
-        return $this->makeRequestWithCaching("$scheme://$host:$port/$path");
+
+        $params = [
+            'auth_signature' => hash_hmac(
+                'sha256',
+                "GET\n" . "/$path" . "\n",
+                config('broadcasting.connections.reverb.secret'),
+                false,
+            ),
+        ];
+
+        return $this->makeRequestWithCaching(
+            "$scheme://$host:$port/$path",
+            $params,
+        );
     }
 }

@@ -17,6 +17,5 @@ export interface BillingPlan {
   hidden: boolean;
   position: number;
   features: string[];
-  available_space: number;
   updated_at: string;
 }

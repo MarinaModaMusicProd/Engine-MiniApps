@@ -1,98 +1,54 @@
-import clsx from 'clsx';
-import {NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom';
-import {SettingsNavConfig, SettingsNavItem} from './settings-nav-config';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {Option, Select} from '@ui/forms/select/select';
+import {useAdminSettingsPageNavConfig} from '@common/admin/settings/use-admin-settings-page-nav-config';
+import {DatatablePageHeaderBar} from '@common/datatable/page/datatable-page-with-header-layout';
 import {Trans} from '@ui/i18n/trans';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import clsx from 'clsx';
+import {NavLink, Outlet, useLocation} from 'react-router';
+import {Fragment} from 'react/jsx-runtime';
 import {StaticPageTitle} from '../../seo/static-page-title';
-import {useMemo} from 'react';
-import {PrimitiveValue} from "@ui/forms/listbox/types";
 
-interface Props {
-  className?: string;
-  navConfig?: SettingsNavItem[];
-}
-export function AdminSettingsPage({
-  className,
-  navConfig: propsNavConfig,
-}: Props) {
+export function Component() {
   const isMobile = useIsMobileMediaQuery();
 
-  const navConfig = useMemo(() => {
-    const config = propsNavConfig ?? SettingsNavConfig;
-    return config.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-  }, [propsNavConfig]);
-
   return (
-    <div
-      className={clsx(
-        className,
-        'container mx-auto min-h-full items-start gap-30 p-24 md:flex',
-      )}
-    >
+    <Fragment>
       <StaticPageTitle>
         <Trans message="Settings" />
       </StaticPageTitle>
-      {isMobile ? (
-        <MobileNav navConfig={navConfig} />
-      ) : (
-        <DesktopNav navConfig={navConfig} />
-      )}
-      <div className="relative max-w-500 flex-auto md:px-30">
-        <Outlet />
+      {!isMobile && <DesktopNav />}
+      <Outlet />
+    </Fragment>
+  );
+}
+
+function DesktopNav() {
+  const {pathname} = useLocation();
+  const navConfig = useAdminSettingsPageNavConfig();
+  return (
+    <div className="dashboard-rounded-panel dashboard-grid-sidenav-left-2 flex w-256 flex-col lg:mr-8">
+      <DatatablePageHeaderBar
+        title={<Trans message="Settings" />}
+        showSidebarToggleButton
+      />
+      <div className="compact-scrollbar flex-auto overflow-y-auto p-12 md:py-24">
+        {navConfig.map(item => (
+          <NavLink
+            key={item.to as string}
+            to={item.to}
+            state={{prevPath: pathname}}
+            className={({isActive}) =>
+              clsx(
+                'mb-8 block whitespace-nowrap rounded-panel px-12 py-8 text-sm transition-bg-color',
+                isActive
+                  ? 'bg-primary/6 font-semibold text-primary'
+                  : 'hover:bg-hover',
+              )
+            }
+          >
+            <Trans {...item.label} />
+          </NavLink>
+        ))}
       </div>
-    </div>
-  );
-}
-
-interface NavProps {
-  navConfig: SettingsNavItem[];
-}
-function MobileNav({navConfig}: NavProps) {
-  const {pathname} = useLocation();
-  const navigate = useNavigate();
-  const value = pathname.split('/').pop();
-
-  return (
-    <Select
-      minWidth="min-w-none"
-      className="mb-24 w-full bg"
-      selectionMode="single"
-      selectedValue={value}
-      onSelectionChange={(newPage: PrimitiveValue) => {
-        navigate(newPage as string, {state: {prevPath: pathname}});
-      }}
-    >
-      {navConfig.map(item => (
-        <Option key={item.to as string} value={item.to}>
-          <Trans {...item.label} />
-        </Option>
-      ))}
-    </Select>
-  );
-}
-
-function DesktopNav({navConfig}: NavProps) {
-  const {pathname} = useLocation();
-  return (
-    <div className="sticky top-24 w-240 flex-shrink-0">
-      {navConfig.map(item => (
-        <NavLink
-          key={item.to as string}
-          to={item.to}
-          state={{prevPath: pathname}}
-          className={({isActive}) =>
-            clsx(
-              'mb-8 block whitespace-nowrap rounded-button p-14 text-sm transition-bg-color',
-              isActive
-                ? 'bg-primary/6 font-semibold text-primary'
-                : 'hover:bg-hover',
-            )
-          }
-        >
-          <Trans {...item.label} />
-        </NavLink>
-      ))}
     </div>
   );
 }

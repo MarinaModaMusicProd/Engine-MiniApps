@@ -1,23 +1,23 @@
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {IconButton} from '@ui/buttons/icon-button';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {List, ListItem} from '@ui/list/list';
-import {Trans} from '@ui/i18n/trans';
-import {ReactNode, useState} from 'react';
+import {usePlayerActions} from '@common/player/hooks/use-player-actions';
 import {usePlayerStore} from '@common/player/hooks/use-player-store';
 import {Button, ButtonProps} from '@ui/buttons/button';
-import {AnimatePresence, m} from 'framer-motion';
-import {usePlayerActions} from '@common/player/hooks/use-player-actions';
+import {IconButton} from '@ui/buttons/icon-button';
+import {Trans} from '@ui/i18n/trans';
 import {ArrowRightIcon} from '@ui/icons/material/ArrowRight';
-import {useDarkThemeVariables} from '@ui/themes/use-dark-theme-variables';
-import {MediaSettingsIcon} from '@ui/icons/media/media-settings';
-import {MediaPlaybackSpeedCircleIcon} from '@ui/icons/media/media-playback-speed-circle';
-import {MediaSettingsMenuIcon} from '@ui/icons/media/media-settings-menu';
-import {MediaClosedCaptionsIcon} from '@ui/icons/media/media-closed-captions';
 import {MediaArrowLeftIcon} from '@ui/icons/media/media-arrow-left';
+import {MediaClosedCaptionsIcon} from '@ui/icons/media/media-closed-captions';
 import {MediaLanguageIcon} from '@ui/icons/media/media-language';
+import {MediaPlaybackSpeedCircleIcon} from '@ui/icons/media/media-playback-speed-circle';
+import {MediaSettingsIcon} from '@ui/icons/media/media-settings';
+import {MediaSettingsMenuIcon} from '@ui/icons/media/media-settings-menu';
+import {List, ListItem} from '@ui/list/list';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useDarkThemeVariables} from '@ui/themes/use-dark-theme-variables';
 import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {AnimatePresence, m} from 'framer-motion';
+import {ReactNode, useState} from 'react';
 
 type OptionsPanel = 'rate' | 'quality' | 'captions' | 'options' | 'language';
 

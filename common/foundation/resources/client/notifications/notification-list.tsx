@@ -1,22 +1,22 @@
-import React, {JSXElementConstructor, useContext} from 'react';
+import {SiteConfigContext} from '@common/core/settings/site-config-context';
+import {Line} from '@common/notifications/notification-line';
+import {useMarkNotificationsAsRead} from '@common/notifications/requests/use-mark-notifications-as-read';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {Button} from '@ui/buttons/button';
+import {FileDownloadDoneIcon} from '@ui/icons/material/FileDownloadDone';
 import {GroupAddIcon} from '@ui/icons/material/GroupAdd';
 import {PeopleIcon} from '@ui/icons/material/People';
-import {FileDownloadDoneIcon} from '@ui/icons/material/FileDownloadDone';
+import {SvgIconProps} from '@ui/icons/svg-icon';
+import {MixedImage} from '@ui/images/mixed-image';
+import {useSettings} from '@ui/settings/use-settings';
+import {isAbsoluteUrl} from '@ui/utils/urls/is-absolute-url';
+import clsx from 'clsx';
+import React, {JSXElementConstructor, useContext} from 'react';
+import {Link} from 'react-router';
 import {
   DatabaseNotification,
   DatabaseNotificationAction,
 } from './database-notification';
-import {MixedImage} from '@ui/images/mixed-image';
-import {Button} from '@ui/buttons/button';
-import {SiteConfigContext} from '@common/core/settings/site-config-context';
-import {Line} from '@common/notifications/notification-line';
-import clsx from 'clsx';
-import {useMarkNotificationsAsRead} from '@common/notifications/requests/use-mark-notifications-as-read';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {isAbsoluteUrl} from '@ui/utils/urls/is-absolute-url';
-import {Link} from 'react-router-dom';
-import {useSettings} from '@ui/settings/use-settings';
-import {SvgIconProps} from '@ui/icons/svg-icon';
 
 const iconMap = {
   'group-add': GroupAddIcon,
@@ -89,7 +89,7 @@ export function NotificationListItem({
         !isLast && 'border-b',
         mainAction?.action && 'cursor-pointer',
         !notification.read_at
-          ? 'bg-paper hover:bg-primary/10'
+          ? 'bg-elevated hover:bg-primary/10'
           : 'hover:bg-hover',
       )}
       title={mainAction?.label ? mainAction.label : undefined}

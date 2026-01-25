@@ -11,49 +11,37 @@ class GenreController extends BaseController
 {
     public function __construct(
         protected Genre $genre,
-        protected Request $request
-    )
-    {}
+        protected Request $request,
+    ) {}
 
     public function index()
     {
         $this->authorize('index', Genre::class);
 
-        $pagination = app(PaginateGenres::class)
-            ->execute($this->request->all());
+        $pagination = (new PaginateGenres())->asApiResponse(
+            $this->request->all(),
+        );
 
         return $this->success(['pagination' => $pagination]);
-    }
-
-    public function show(string $name)
-    {
-        $this->authorize('index', Genre::class);
-
-        $genre = $this->genre->where('name', str_replace('-', ' ', $name))
-            ->orWhere('name', $name)
-            ->firstOrFail();
-
-        $params = $this->request->all();
-        $params['genre'] = $genre;
-
-        $channel = Channel::where('slug', 'genre')->first()->loadContent($params);
-
-        return $this->success(['channel' => $channel, 'genre' => $genre]);
     }
 
     public function store()
     {
         $this->authorize('store', Genre::class);
 
+        $this->blockOnDemoSite();
+
         $this->validate($this->request, [
             'name' => 'required|unique:genres',
             'image' => 'string',
-            'popularity' => 'nullable|integer|min:1|max:100'
+            'popularity' => 'nullable|integer|min:1|max:100',
         ]);
 
         $newGenre = $this->genre->create([
             'name' => slugify($this->request->get('name')),
-            'display_name' => $this->request->get('display_name') ?: $this->request->get('name'),
+            'display_name' =>
+                $this->request->get('display_name') ?:
+                $this->request->get('name'),
             'image' => $this->request->get('image'),
             'popularity' => $this->request->get('popularity'),
         ]);
@@ -65,10 +53,12 @@ class GenreController extends BaseController
     {
         $this->authorize('update', Genre::class);
 
+        $this->blockOnDemoSite();
+
         $this->validate($this->request, [
             'name' => Rule::unique('genres')->ignore($id),
             'image' => 'string',
-            'popularity' => 'nullable|integer|min:1|max:100'
+            'popularity' => 'nullable|integer|min:1|max:100',
         ]);
 
         $data = $this->request->all();
@@ -76,9 +66,7 @@ class GenreController extends BaseController
             $data['name'] = slugify($data['name']);
         }
 
-        $genre = $this->genre
-            ->find($id)
-            ->update($data);
+        $genre = $this->genre->find($id)->update($data);
 
         return $this->success(['genre' => $genre]);
     }
@@ -87,6 +75,8 @@ class GenreController extends BaseController
     {
         $genreIds = explode(',', $ids);
         $this->authorize('destroy', [Genre::class, $genreIds]);
+
+        $this->blockOnDemoSite();
 
         $count = $this->genre->destroy($genreIds);
 

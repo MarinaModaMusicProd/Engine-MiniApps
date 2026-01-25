@@ -1,9 +1,9 @@
-import {useCallback} from 'react';
+import { handlePluralMessage } from '@ui/i18n/handle-plural-message';
+import { MessageDescriptor } from '@ui/i18n/message-descriptor';
+import { useSelectedLocale } from '@ui/i18n/selected-locale';
+import { shallowEqual } from '@ui/utils/shallow-equal';
 import memoize from 'nano-memoize';
-import {useSelectedLocale} from '@ui/i18n/selected-locale';
-import {handlePluralMessage} from '@ui/i18n/handle-plural-message';
-import {MessageDescriptor} from '@ui/i18n/message-descriptor';
-import {shallowEqual} from '@ui/utils/shallow-equal';
+import { useCallback } from 'react';
 
 export interface UseTransReturn {
   trans: (props: MessageDescriptor) => string;
@@ -47,5 +47,5 @@ const translate = memoize(
 
     return message;
   },
-  {equals: shallowEqual, callTimeout: 0},
+  {equals: shallowEqual},
 );

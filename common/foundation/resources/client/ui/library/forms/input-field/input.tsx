@@ -1,6 +1,6 @@
 import {FocusScope} from '@react-aria/focus';
-import React, {ComponentPropsWithoutRef, CSSProperties, ReactNode} from 'react';
 import clsx from 'clsx';
+import React, {ComponentPropsWithoutRef, CSSProperties, ReactNode} from 'react';
 
 interface InputProps {
   className?: string;
@@ -32,7 +32,7 @@ export const Input = React.forwardRef<HTMLDivElement, InputProps>(
           role="group"
           className={clsx(
             className,
-            'flex items-center focus-within:ring focus-within:ring-primary/focus focus-within:border-primary/60'
+            'flex items-center focus-within:border-primary/90 focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/90',
           )}
           ref={ref}
           style={style}
@@ -41,5 +41,5 @@ export const Input = React.forwardRef<HTMLDivElement, InputProps>(
         </div>
       </div>
     );
-  }
+  },
 );

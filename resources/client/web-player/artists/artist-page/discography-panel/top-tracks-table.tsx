@@ -1,8 +1,8 @@
-import {useMemo, useState} from 'react';
-import {Trans} from '@ui/i18n/trans';
+import {Track} from '@app/web-player/tracks/track';
 import {TrackTable} from '@app/web-player/tracks/track-table/track-table';
 import {Button} from '@ui/buttons/button';
-import {Track} from '@app/web-player/tracks/track';
+import {Trans} from '@ui/i18n/trans';
+import {useMemo, useState} from 'react';
 
 interface TopTracksTableProps {
   tracks?: Track[];
@@ -24,7 +24,6 @@ export function TopTracksTable({tracks: initialTracks}: TopTracksTableProps) {
       </h2>
       <TrackTable
         tracks={showingAll ? topTracks.all : topTracks.sliced}
-        hideArtist
         hideAlbum
         hideHeaderRow
       />

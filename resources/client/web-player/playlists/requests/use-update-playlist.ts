@@ -1,17 +1,18 @@
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {UseFormReturn} from 'react-hook-form';
-import {useMutation} from '@tanstack/react-query';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {appQueries} from '@app/app-queries';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
 import {CreatePlaylistPayload} from '@app/web-player/playlists/requests/use-create-playlist';
+import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
 import {showHttpErrorToast} from '@common/http/show-http-error-toast';
-import {useParams} from 'react-router-dom';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
+import {UseFormReturn} from 'react-hook-form';
+import {useParams} from 'react-router';
 
 interface Response extends BackendResponse {
-  playlist: Playlist;
+  playlist: PartialPlaylist;
 }
 
 interface UseUpdatePlaylistProps {
@@ -31,7 +32,9 @@ export function useUpdatePlaylist({
       updatePlaylist(playlistId!, props),
     onSuccess: () => {
       toast(message('Playlist updated'));
-      queryClient.invalidateQueries({queryKey: ['playlists']});
+      queryClient.invalidateQueries({
+        queryKey: appQueries.playlists.invalidateKey,
+      });
     },
     onError: r => (form ? onFormQueryError(r, form) : showHttpErrorToast(r)),
   });

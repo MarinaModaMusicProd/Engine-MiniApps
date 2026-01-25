@@ -1,11 +1,11 @@
+import {invalidateWaveData} from '@app/web-player/tracks/requests/use-track-wave-data';
+import {CommentBarContext} from '@app/web-player/tracks/waveform/comment-bar-context';
+import {useAuth} from '@common/auth/use-auth';
 import {
   NewCommentForm,
   NewCommentFormProps,
 } from '@common/comments/new-comment-form';
-import React, {useContext} from 'react';
-import {CommentBarContext} from '@app/web-player/tracks/waveform/comment-bar-context';
-import {invalidateWaveData} from '@app/web-player/tracks/requests/use-track-wave-data';
-import {useAuth} from '@common/auth/use-auth';
+import {useContext} from 'react';
 
 export function CommentBarNewCommentForm({
   commentable,

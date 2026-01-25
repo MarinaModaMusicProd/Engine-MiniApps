@@ -1,36 +1,37 @@
-import React from 'react';
-import clsx from 'clsx';
 import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
 import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
 import {Keyboard} from '@ui/keyboard/keyboard';
-import {MenubarButtonProps} from './menubar-button-props';
 import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {Trans} from '@ui/i18n/trans';
+import clsx from 'clsx';
+import {useCurrentTextEditor} from '../tiptap-editor-context';
+import {MenubarButtonProps} from './menubar-button-props';
 
 type Level = 1 | 2 | 3 | 4;
 
-export function FormatMenuTrigger({editor, size}: MenubarButtonProps) {
+export function FormatMenuTrigger({size}: MenubarButtonProps) {
+  const editor = useCurrentTextEditor();
   return (
     <MenuTrigger
       floatingMinWidth="w-256"
       onItemSelected={key => {
-        editor.commands.focus();
+        editor?.commands.focus();
         if (typeof key === 'string' && key.startsWith('h')) {
-          editor.commands.toggleHeading({
+          editor?.commands.toggleHeading({
             level: parseInt(key.replace('h', '')) as Level,
           });
         } else if (key === 'code') {
-          editor.commands.toggleCode();
+          editor?.commands.toggleCode();
         } else if (key === 'strike') {
-          editor.commands.toggleStrike();
+          editor?.commands.toggleStrike();
         } else if (key === 'super') {
-          editor.commands.toggleSuperscript();
+          editor?.commands.toggleSuperscript();
         } else if (key === 'sub') {
-          editor.commands.toggleSubscript();
+          editor?.commands.toggleSubscript();
         } else if (key === 'blockquote') {
-          editor.commands.toggleBlockquote();
+          editor?.commands.toggleBlockquote();
         } else if (key === 'paragraph') {
-          editor.commands.setParagraph();
+          editor?.commands.setParagraph();
         }
       }}
     >
@@ -39,6 +40,7 @@ export function FormatMenuTrigger({editor, size}: MenubarButtonProps) {
         variant="text"
         size={size}
         endIcon={<KeyboardArrowDownIcon />}
+        disabled={!editor}
       >
         <Trans message="Format" />
       </Button>

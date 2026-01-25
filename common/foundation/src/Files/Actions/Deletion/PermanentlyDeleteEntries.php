@@ -2,7 +2,6 @@
 
 namespace Common\Files\Actions\Deletion;
 
-use Common\Files\Actions\Deletion\SoftDeleteEntries;
 use Common\Files\Events\FileEntriesDeleted;
 use Common\Files\FileEntry;
 use Illuminate\Support\Collection;
@@ -40,7 +39,9 @@ class PermanentlyDeleteEntries extends SoftDeleteEntries
             ->whereIn('taggable_id', $entryIds)
             ->delete();
 
-        $this->entry->whereIn('id', $entries->pluck('id'))->forceDelete();
+        FileEntry::query()
+            ->whereIn('id', $entries->pluck('id'))
+            ->forceDelete();
     }
 
     /**

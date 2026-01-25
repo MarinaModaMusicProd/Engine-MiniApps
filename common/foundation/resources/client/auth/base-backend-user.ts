@@ -1,26 +1,22 @@
-import {Permission} from '@common/auth/permission';
-import {Subscription} from '@common/billing/subscription';
-import {Role} from '@common/auth/role';
-import {SocialProfile} from '@common/auth/social-profile';
 import {AccessToken} from '@common/auth/access-token';
-import type {ActiveSession} from '@common/auth/ui/account-settings/sessions-panel/requests/use-user-sessions';
+import {Permission} from '@common/auth/permission';
+import {SocialProfile} from '@common/auth/social-profile';
+import {Subscription} from '@common/billing/subscription';
 import {User, USER_MODEL} from '@ui/types/user';
 
 export interface BaseBackendUser {
-  first_name?: string;
-  last_name?: string;
-  image?: string;
+  name?: string;
+  image?: string | null;
   email_verified_at: string;
   permissions?: Permission[];
   password: string;
   created_at: string;
   updated_at: string;
   subscriptions?: Omit<Subscription, 'user'>[];
-  roles: Role[];
+  roles?: {id: number; name: string}[];
   social_profiles: SocialProfile[];
   tokens?: AccessToken[];
   has_password: boolean;
-  available_space: number | null;
   unread_notifications_count?: number;
   card_last_four?: number;
   card_brand?: string;
@@ -31,7 +27,10 @@ export interface BaseBackendUser {
   followers_count?: number;
   followed_users_count?: number;
   followers?: Omit<User, 'followed_users' | 'followers'>[];
-  last_login?: ActiveSession;
+  latest_active_session?: {
+    id: number;
+    updated_at: string;
+  };
   bans?: {
     id: number;
     comment: string;

@@ -10,10 +10,15 @@ class Invoice extends Model
 {
     protected $guarded = ['id'];
 
+    public const STATUS_PAID = 'paid';
+    public const STATUS_DRAFT = 'draft';
+
     protected $casts = [
         'id' => 'integer',
         'subscription_id' => 'integer',
-        'paid' => 'boolean',
+        'status' => 'string',
+        'currency' => 'string',
+        'amount_paid' => 'integer', // in cents
         'notified' => 'boolean',
     ];
 

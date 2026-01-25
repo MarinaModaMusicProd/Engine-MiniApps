@@ -9,13 +9,18 @@ class WebsocketAPI
 {
     protected array $resolvedProviders = [];
 
-    public function __construct(protected array $options = [])
-    {
-    }
+    public function __construct(protected array $options = []) {}
 
+    /**
+     * @return Collection<int, array>
+     */
     public function getActiveUsersInChannel(string $channel): Collection
     {
-        return $this->resolveProvider()->getActiveUsersInChannel($channel);
+        return $this->resolveProvider()
+            ->getActiveUsersInChannel($channel)
+            // reverb API does not include data from "channels.php" file for some reason, only id
+            ->map(fn($item) => $item['id'] ?? $item['modelId'])
+            ->unique();
     }
 
     public function getAllChannels(): Collection
@@ -35,6 +40,7 @@ class WebsocketAPI
             'reverb' => new ReverbAPI($this->options),
             'pusher' => new PusherAPI($this->options),
             'ably' => new AblyAPI($this->options),
+            'null', 'log' => new NullAPI($this->options),
             default => throw new Exception('Unsupported websocket provider'),
         };
     }

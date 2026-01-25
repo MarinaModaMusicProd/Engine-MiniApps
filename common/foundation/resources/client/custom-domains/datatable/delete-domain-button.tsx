@@ -1,10 +1,9 @@
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {CustomDomain} from '@common/custom-domains/custom-domain';
+import {useDeleteDomain} from '@common/custom-domains/datatable/requests/use-delete-domain';
 import {Button} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import React from 'react';
-import {useDeleteDomain} from '@common/custom-domains/datatable/requests/use-delete-domain';
-import {CustomDomain} from '@common/custom-domains/custom-domain';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 
 interface DeleteDomainButtonProps {
   domain: CustomDomain;

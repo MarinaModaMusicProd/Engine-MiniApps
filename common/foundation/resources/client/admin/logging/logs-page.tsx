@@ -1,29 +1,84 @@
-import {Tabs} from '@ui/tabs/tabs';
-import {Tab} from '@ui/tabs/tab';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {DocsLink} from '@common/admin/settings/layout/settings-links';
+import {DatatablePageHeaderBar} from '@common/datatable/page/datatable-page-with-header-layout';
+import {
+  UrlBackedTabConfig,
+  useUrlBackedTabs,
+} from '@common/http/use-url-backed-tabs';
+import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
+import {Tab} from '@ui/tabs/tab';
 import {TabList} from '@ui/tabs/tab-list';
-import {Link, Outlet, useLocation} from 'react-router-dom';
+import {Tabs} from '@ui/tabs/tabs';
+import {Fragment} from 'react';
+import {Link, Outlet} from 'react-router';
 
-const tabs = ['schedule', 'error', 'outgoing-email'];
+const tabs: UrlBackedTabConfig[] = [
+  {uri: 'schedule', label: message('Schedule')},
+  {uri: 'error', label: message('Error')},
+  {uri: 'outgoing-email', label: message('Email')},
+];
 
-export function LogsPage() {
-  const {pathname} = useLocation();
-  const activeTab = pathname.split('/').pop() as string;
-  const activeIndex = tabs.includes(activeTab) ? tabs.indexOf(activeTab) : 0;
+export function Component() {
+  const [activeTab, setActiveTab] = useUrlBackedTabs(tabs);
+
   return (
-    <Tabs className="p-12 md:p-24" selectedTab={activeIndex}>
-      <TabList className="mb-24">
-        <Tab elementType={Link} to="/admin/logs/schedule" replace>
-          <Trans message="Schedule" />
-        </Tab>
-        <Tab elementType={Link} to="/admin/logs/error" replace>
-          <Trans message="Error" />
-        </Tab>
-        <Tab elementType={Link} to="/admin/logs/outgoing-email" replace>
-          <Trans message="Email" />
-        </Tab>
-      </TabList>
-      <Outlet />
-    </Tabs>
+    <Fragment>
+      <DatatablePageHeaderBar
+        title={<Title tab={tabs[activeTab].uri} />}
+        showSidebarToggleButton
+        border="border-none"
+        rightContent={
+          <DocsLink
+            variant="button"
+            link={AdminDocsUrls.pages.logs}
+            size="xs"
+          />
+        }
+      />
+      <Tabs selectedTab={activeTab} onTabChange={setActiveTab}>
+        <TabList className="px-24">
+          <Tab
+            elementType={Link}
+            to="/admin/logs/schedule"
+            className="min-w-100"
+            replace
+          >
+            <Trans message="Schedule" />
+          </Tab>
+          <Tab
+            elementType={Link}
+            to="/admin/logs/error"
+            className="min-w-100"
+            replace
+          >
+            <Trans message="Error" />
+          </Tab>
+          <Tab
+            elementType={Link}
+            to="/admin/logs/outgoing-email"
+            className="min-w-100"
+            replace
+          >
+            <Trans message="Email" />
+          </Tab>
+        </TabList>
+        <Outlet />
+      </Tabs>
+    </Fragment>
   );
+}
+
+interface TitleProps {
+  tab: string;
+}
+function Title({tab}: TitleProps) {
+  switch (tab) {
+    case 'schedule':
+      return <Trans message="CRON schedule log" />;
+    case 'error':
+      return <Trans message="Error log" />;
+    case 'outgoing-email':
+      return <Trans message="Outgoing email log" />;
+  }
 }

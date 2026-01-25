@@ -5,11 +5,11 @@ namespace App\Services\Providers\Spotify;
 use App\Models\Artist;
 use App\Models\Genre;
 use App\Services\Providers\ContentProvider;
-use App\Services\Providers\SaveOrUpdate;
+use App\Services\Providers\UpsertsDataIntoDB;
 
 class SpotifyGenreArtists implements ContentProvider
 {
-    use SaveOrUpdate;
+    use UpsertsDataIntoDB;
 
     /**
      * @var SpotifyHttpClient
@@ -21,8 +21,10 @@ class SpotifyGenreArtists implements ContentProvider
      */
     private $spotifyNormalizer;
 
-    public function __construct(SpotifyHttpClient $client, SpotifyNormalizer $spotifyNormalizer)
-    {
+    public function __construct(
+        SpotifyHttpClient $client,
+        SpotifyNormalizer $spotifyNormalizer,
+    ) {
         $this->client = $client;
         $this->spotifyNormalizer = $spotifyNormalizer;
     }
@@ -30,7 +32,9 @@ class SpotifyGenreArtists implements ContentProvider
     public function getContent(Genre $genre = null)
     {
         $genreName = slugify($genre->name);
-        $response = $this->client->get("recommendations?seed_genres=$genreName&target_popularity=100&limit=100");
+        $response = $this->client->get(
+            "recommendations?seed_genres=$genreName&target_popularity=100&limit=100",
+        );
 
         $ids = collect($response['tracks'])
             ->pluck('artists')
@@ -41,21 +45,25 @@ class SpotifyGenreArtists implements ContentProvider
             ->unique()
             ->implode(',');
 
-        if ( ! $ids) {
+        if (!$ids) {
             return [];
         }
 
         $response = $this->client->get("artists?ids=$ids");
-        $artists = collect($response['artists'])->map(function($spotifyArtist) {
+        $artists = collect($response['artists'])->map(function (
+            $spotifyArtist,
+        ) {
             return $this->spotifyNormalizer->artist($spotifyArtist);
         });
 
-        $this->saveOrUpdate($artists, 'artists');
+        $this->upsert($artists, 'artists');
         $artists = Artist::whereIn('spotify_id', $artists->pluck('spotify_id'))
             ->orderByPopularity('desc')
             ->get();
 
-        $genre->artists()->syncWithoutDetaching($artists->pluck('id')->toArray());
+        $genre
+            ->artists()
+            ->syncWithoutDetaching($artists->pluck('id')->toArray());
 
         return $artists;
     }

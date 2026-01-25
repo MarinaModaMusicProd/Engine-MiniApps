@@ -1,3 +1,5 @@
+import { Placement, VirtualElement } from '@floating-ui/react-dom';
+import { FocusScopeProps } from '@react-aria/focus';
 import {
   CSSProperties,
   PointerEventHandler,
@@ -5,8 +7,6 @@ import {
   Ref,
   RefObject,
 } from 'react';
-import {FocusScopeProps} from '@react-aria/focus';
-import {Placement, VirtualElement} from '@floating-ui/react-dom';
 
 export interface OverlayProps
   extends Omit<FocusScopeProps, 'children' | 'contain'> {
@@ -16,10 +16,13 @@ export interface OverlayProps
   isContextMenu?: boolean;
   isOpen: boolean;
   onClose: (value?: any) => void;
-  triggerRef: RefObject<HTMLElement> | RefObject<VirtualElement>;
+  triggerRef: RefObject<HTMLElement | VirtualElement | null>;
   arrowRef?: Ref<HTMLElement>;
   arrowStyle?: CSSProperties;
   onPointerLeave?: PointerEventHandler<HTMLElement>;
   onPointerEnter?: PointerEventHandler<HTMLElement>;
   placement?: Placement;
+  underlayTransparent?: boolean;
+  underlayBlurred?: boolean;
+  position?: 'fixed' | 'absolute';
 }

@@ -3,9 +3,9 @@
 namespace Common\Auth\Actions;
 
 use App\Models\User;
-use Common\Auth\ActiveSession;
 use Common\Auth\Ban;
 use Common\Auth\Events\UsersDeleted;
+use Common\Auth\UserSession;
 use Common\Billing\Subscription;
 use Common\Csv\CsvExport;
 use Common\Domains\Actions\DeleteCustomDomains;
@@ -17,7 +17,7 @@ class DeleteUsers
 {
     public function execute(array $ids): int
     {
-        $users = User::whereIn('id', $ids)->get();
+        $users = User::with('subscriptions')->whereIn('id', $ids)->get();
 
         $users->each(function (User $user) {
             $user->social_profiles()->delete();
@@ -51,7 +51,7 @@ class DeleteUsers
         CustomPage::whereIn('user_id', $ids)->delete();
 
         // delete sessions
-        ActiveSession::whereIn('user_id', $ids)->delete();
+        UserSession::whereIn('user_id', $ids)->delete();
 
         // csv exports
         CsvExport::whereIn('user_id', $ids)->delete();

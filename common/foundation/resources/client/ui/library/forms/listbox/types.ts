@@ -1,16 +1,15 @@
-import React, {MutableRefObject, ReactElement, ReactNode} from 'react';
 import {
   OffsetOptions,
   Placement,
-  ReferenceType,
   UseFloatingReturn,
-  VirtualElement,
+  VirtualElement
 } from '@floating-ui/react-dom';
+import React, { ReactElement, ReactNode, RefObject } from 'react';
 import {
   buildListboxCollection,
   ListboxCollection,
 } from './build-listbox-collection';
-import {ListboxItemProps} from './item';
+import { ListboxItemProps } from './item';
 
 export type PrimitiveValue = string | number;
 type SingleSelectionProps = {
@@ -50,6 +49,8 @@ export type ListboxProps = SelectionProps & {
   placement?: Placement;
   offset?: OffsetOptions;
   isAsync?: boolean;
+  isLoading?: boolean;
+  isPending?: boolean;
   maxItems?: number;
   allowEmptySelection?: boolean;
   // fired whenever user selects an item (via click or keyboard), regardless of current selection mode
@@ -61,7 +62,6 @@ export type ListboxProps = SelectionProps & {
   defaultInputValue?: string;
   onInputValueChange?: (value: string) => void;
   allowCustomValue?: boolean; // for combobox
-  isLoading?: boolean;
   showEmptyMessage?: boolean;
   showCheckmark?: boolean;
   isOpen?: boolean;
@@ -89,15 +89,15 @@ export interface UseListboxReturn {
   virtualFocus: ListboxProps['virtualFocus'];
   showEmptyMessage: ListboxProps['showEmptyMessage'];
   refs: {
-    reference: React.MutableRefObject<HTMLElement | VirtualElement | null>;
-    floating: React.MutableRefObject<HTMLElement | null>;
+    reference: RefObject<HTMLElement | VirtualElement | null>;
+    floating: RefObject<HTMLElement | null>;
   };
-  reference: (instance: ReferenceType | null) => void;
+  reference: (ref: HTMLElement | VirtualElement | null) => void;
   floating: UseFloatingReturn['refs']['setFloating'];
   listboxId: string;
   role: ListboxProps['role'];
   listContent: (string | null)[];
-  listItemsRef: MutableRefObject<(HTMLElement | null)[]>;
+  listItemsRef: RefObject<(HTMLElement | null)[]>;
   positionStyle: {
     position: 'absolute' | 'fixed';
     top: string | number;

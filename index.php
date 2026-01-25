@@ -1,7 +1,7 @@
 <?php
 
-if (version_compare(PHP_VERSION, '8.1') === -1) {
-    exit('You need at least PHP 8.1 to install this application.');
+if (version_compare(PHP_VERSION, '8.2') === -1) {
+    exit('You need at least PHP 8.2 to install this application.');
 }
 
 // if not installed yet, redirect to public dir
@@ -81,7 +81,6 @@ if (
 <?php if (!$shouldReload): ?>
     <div class="panel">
         <h1>Could not find .htaccess file</h1>
-        <p>See this article <a href="https://support.MarinaModa.com/hc/articles/21/27/172/site-not-loading">https://support.MarinaModa.com/hc/articles/21/27/172/site-not-loading</a> for possible solutions.</p>
     </div>
 <?php else: ?>
     <script>

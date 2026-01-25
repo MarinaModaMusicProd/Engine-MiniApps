@@ -39,6 +39,7 @@ class Subscription extends BaseModel
         'trial_ends_at' => 'datetime',
         'ends_at' => 'datetime',
         'renews_at' => 'datetime',
+        'user_id' => 'integer',
     ];
 
     public function getOnGracePeriodAttribute(): bool
@@ -201,7 +202,7 @@ class Subscription extends BaseModel
         $this->delete();
         $this->invoices()->delete();
 
-        $this->user->update([
+        $this->user?->update([
             'card_last_four' => null,
             'card_brand' => null,
             'card_expires' => null,

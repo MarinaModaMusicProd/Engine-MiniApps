@@ -1,14 +1,13 @@
-import {keepPreviousData, useQuery} from '@tanstack/react-query';
-import {BackendResponse} from './backend-response/backend-response';
+import {MenuItemCategory} from '@common/menus/menu-item-category';
+import {keepPreviousData, queryOptions, useQuery} from '@tanstack/react-query';
+import {FontConfig} from '@ui/fonts/font-picker/font-config';
 import {Localization} from '@ui/i18n/localization';
 import {CssTheme} from '@ui/themes/css-theme';
-import {Role} from '../auth/role';
-import {Permission} from '../auth/permission';
-import {apiClient, queryClient} from './query-client';
-import {MenuItemCategory} from '../admin/appearance/sections/menus/menu-item-category';
 import {CustomPage} from '../admin/custom-pages/custom-page';
+import {Role} from '../auth/role';
 import {CustomDomain} from '../custom-domains/custom-domain';
-import {FontConfig} from '@ui/fonts/font-picker/font-config';
+import {BackendResponse} from './backend-response/backend-response';
+import {apiClient, queryClient} from './query-client';
 
 export interface FetchValueListsResponse extends BackendResponse {
   countries?: CountryListItem[];
@@ -19,8 +18,6 @@ export interface FetchValueListsResponse extends BackendResponse {
   domains?: CustomDomain[];
   pages?: CustomPage[];
   themes?: CssTheme[];
-  permissions?: Permission[];
-  workspacePermissions?: Permission[];
   roles?: Role[];
   menuItemCategories?: MenuItemCategory[];
   googleFonts?: FontConfig[];
@@ -60,17 +57,29 @@ export function useValueLists(
   options: Options = {},
 ) {
   return useQuery({
+    ...valueListsQueryOptions(names, params),
+    ...options,
+  });
+}
+
+export function valueListsQueryOptions(
+  names: (keyof FetchValueListsResponse)[],
+  params?: Record<string, string | number | undefined | null>,
+) {
+  return queryOptions<FetchValueListsResponse>({
     queryKey: ['value-lists', names, params],
-    queryFn: () => fetchValueLists(names, params),
+    queryFn: () =>
+      apiClient
+        .get(`value-lists/${names}`, {params})
+        .then(response => response.data),
     // if there are params, make sure we update lists when they change
     staleTime: !params ? Infinity : undefined,
     placeholderData: keepPreviousData,
-    enabled: !options.disabled,
     initialData: () => {
       // check if we have already fetched value lists for all specified names previously,
       // if so, return cached response for this query, as there's no need to fetch it again
       const previousData = queryClient
-        .getQueriesData<FetchValueListsResponse>({queryKey: ['ValueLists']})
+        .getQueriesData<FetchValueListsResponse>({queryKey: ['value-lists']})
         .find(([, response]) => {
           if (response && names.every(n => response[n])) {
             return response;
@@ -88,17 +97,5 @@ export function prefetchValueLists(
   names: (keyof FetchValueListsResponse)[],
   params?: Record<string, string | number | undefined>,
 ) {
-  return queryClient.ensureQueryData({
-    queryKey: ['value-lists', names, params],
-    queryFn: () => fetchValueLists(names, params),
-  });
-}
-
-function fetchValueLists(
-  names: (keyof FetchValueListsResponse)[],
-  params?: Record<string, string | number | undefined | null>,
-): Promise<FetchValueListsResponse> {
-  return apiClient
-    .get(`value-lists/${names}`, {params})
-    .then(response => response.data);
+  return queryClient.ensureQueryData(valueListsQueryOptions(names, params));
 }

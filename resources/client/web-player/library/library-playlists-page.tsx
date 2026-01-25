@@ -1,29 +1,30 @@
-import {StaticPageTitle} from '@common/seo/static-page-title';
-import {Trans} from '@ui/i18n/trans';
-import React from 'react';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {SearchIcon} from '@ui/icons/material/Search';
-import {message} from '@ui/i18n/message';
-import {useTrans} from '@ui/i18n/use-trans';
-import {PageErrorMessage} from '@common/errors/page-error-message';
-import {ContentGrid} from '@app/web-player/playable-item/content-grid';
-import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
-import {AnimatePresence, m} from 'framer-motion';
-import {opacityAnimation} from '@ui/animation/opacity-animation';
+import {appQueries} from '@app/app-queries';
 import {MediaPageNoResultsMessage} from '@app/web-player/layout/media-page-no-results-message';
-import {PlayableMediaGridSkeleton} from '@app/web-player/playable-item/player-media-grid-skeleton';
+import {PlayerPageSuspense} from '@app/web-player/layout/player-page-suspsense';
+import {usePlayerPagePaginationParams} from '@app/web-player/layout/use-player-page-pagination-params';
 import {LibraryPageSortDropdown} from '@app/web-player/library/library-page-sort-dropdown';
-import {useUserPlaylists} from '@app/web-player/library/requests/use-user-playlists';
-import {PlaylistGridItem} from '@app/web-player/playlists/playlist-grid-item';
-import {useAuthUserPlaylists} from '@app/web-player/playlists/requests/use-auth-user-playlists';
-import {getPlaylistLink} from '@app/web-player/playlists/playlist-link';
-import {IconButton} from '@ui/buttons/icon-button';
-import {PlaylistAddIcon} from '@ui/icons/material/PlaylistAdd';
+import {defaultLibrarySortDescriptor} from '@app/web-player/library/library-search-params';
+import {ContentGrid} from '@app/web-player/playable-item/content-grid';
 import {CreatePlaylistDialog} from '@app/web-player/playlists/crupdate-dialog/create-playlist-dialog';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {PlaylistGridItem} from '@app/web-player/playlists/playlist-grid-item';
+import {getPlaylistLink} from '@app/web-player/playlists/playlist-link';
 import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
 import {AdHost} from '@common/admin/ads/ad-host';
+import {StaticPageTitle} from '@common/seo/static-page-title';
+import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
+import {useFlatInfiniteQueryItems} from '@common/ui/infinite-scroll/use-flat-infinite-query-items';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {SortDescriptor} from '@common/ui/tables/types/sort-descriptor';
+import {useQuery, useSuspenseInfiniteQuery} from '@tanstack/react-query';
+import {IconButton} from '@ui/buttons/icon-button';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {PlaylistAddIcon} from '@ui/icons/material/PlaylistAdd';
+import {SearchIcon} from '@ui/icons/material/Search';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {ProgressCircle} from '@ui/progress/progress-circle';
 
 const sortItems = {
   'updated_at:desc': message('Recently updated'),
@@ -32,26 +33,39 @@ const sortItems = {
   'plays:desc': message('Most played'),
 };
 
-export function LibraryPlaylistsPage() {
+const defaultSortDescriptor = {
+  orderBy: 'updated_at',
+  orderDir: 'desc',
+} satisfies SortDescriptor;
+
+export function Component() {
+  return (
+    <PlayerPageSuspense>
+      <LibraryPlaylistsPage />
+    </PlayerPageSuspense>
+  );
+}
+
+function LibraryPlaylistsPage() {
   const navigate = useNavigate();
   const authHandler = useAuthClickCapture();
   const {trans} = useTrans();
-  const {data} = useAuthUserPlaylists();
-  const totalItems = data.playlists.length;
-  const query = useUserPlaylists('me', {willSortOrFilter: true});
+  const {data} = useQuery(appQueries.playlists.compactAuthUserPlaylists());
+  const totalItems = data.length;
+
   const {
-    isInitialLoading,
-    sortDescriptor,
-    setSortDescriptor,
     searchQuery,
     setSearchQuery,
-    items,
-    isError,
-  } = query;
+    sortDescriptor,
+    setSortDescriptor,
+    isDefferedLoading,
+    queryParams,
+  } = usePlayerPagePaginationParams(defaultLibrarySortDescriptor);
 
-  if (isError) {
-    return <PageErrorMessage />;
-  }
+  const query = useSuspenseInfiniteQuery(
+    appQueries.playlists.userPlaylists('me', queryParams),
+  );
+  const playlists = useFlatInfiniteQueryItems(query);
 
   return (
     <div>
@@ -87,12 +101,16 @@ export function LibraryPlaylistsPage() {
 
       <div className="flex items-center justify-between gap-24">
         <TextField
-          value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           className="max-w-512 flex-auto"
           size="sm"
           startAdornment={<SearchIcon />}
           placeholder={trans(message('Search within playlists'))}
+          endAdornment={
+            isDefferedLoading ? (
+              <ProgressCircle size="xs" isIndeterminate />
+            ) : null
+          }
         />
         <LibraryPageSortDropdown
           items={sortItems}
@@ -101,22 +119,14 @@ export function LibraryPlaylistsPage() {
         />
       </div>
       <div className="mt-34">
-        <AnimatePresence initial={false} mode="wait">
-          {isInitialLoading ? (
-            <PlayableMediaGridSkeleton itemCount={totalItems} />
-          ) : (
-            <m.div key="media-grid" {...opacityAnimation}>
-              <ContentGrid>
-                {items.map(playlist => (
-                  <PlaylistGridItem key={playlist.id} playlist={playlist} />
-                ))}
-                <InfiniteScrollSentinel query={query} />
-              </ContentGrid>
-            </m.div>
-          )}
-        </AnimatePresence>
+        <ContentGrid>
+          {playlists.map(playlist => (
+            <PlaylistGridItem key={playlist.id} playlist={playlist} />
+          ))}
+          <InfiniteScrollSentinel query={query} />
+        </ContentGrid>
       </div>
-      {!items.length && !isInitialLoading && (
+      {!playlists.length ? (
         <MediaPageNoResultsMessage
           className="mt-34"
           searchQuery={searchQuery}
@@ -124,7 +134,7 @@ export function LibraryPlaylistsPage() {
             <Trans message="You have not added any playlists to your library yet." />
           }
         />
-      )}
+      ) : null}
     </div>
   );
 }

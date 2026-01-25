@@ -1,11 +1,11 @@
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {useMutation} from '@tanstack/react-query';
-import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {showHttpErrorToast} from '@common/http/show-http-error-toast';
 import {Likeable} from '@app/web-player/library/likeable';
 import {userLibrary} from '@app/web-player/library/state/likes-store';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
 
 interface Response extends BackendResponse {}
 
@@ -19,9 +19,9 @@ export function useAddItemsToLibrary() {
     onSuccess: (response, payload) => {
       toast(getMessage(payload.likeables[0]));
       userLibrary().add(payload.likeables);
-      // tracks/albums/artists
+      // track/album/artist
       queryClient.invalidateQueries({
-        queryKey: [`${payload.likeables[0].model_type}s`, 'library'],
+        queryKey: [`${payload.likeables[0].model_type}s`, 'liked'],
       });
     },
     onError: r => showHttpErrorToast(r),

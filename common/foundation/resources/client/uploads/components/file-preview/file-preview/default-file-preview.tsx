@@ -1,11 +1,11 @@
-import {ReactNode, useContext} from 'react';
-import clsx from 'clsx';
 import {Button} from '@ui/buttons/button';
-import {downloadFileFromUrl} from '@ui/utils/files/download-file-from-url';
-import {FilePreviewContext} from '../file-preview-context';
 import {Trans} from '@ui/i18n/trans';
-import {FilePreviewProps} from './file-preview-props';
+import {downloadFileFromUrl} from '@ui/utils/files/download-file-from-url';
+import clsx from 'clsx';
+import {ReactNode, useContext} from 'react';
 import {useFileEntryUrls} from '../../../file-entry-urls';
+import {FilePreviewContext} from '../file-preview-context';
+import {FilePreviewProps} from './file-preview-props';
 
 interface Props extends FilePreviewProps {
   message?: ReactNode;
@@ -19,7 +19,7 @@ export function DefaultFilePreview({message, className, allowDownload}: Props) {
     <div
       className={clsx(
         className,
-        'w-[calc(100%-40px)] max-w-400 rounded bg-paper p-40 text-center shadow',
+        'w-[calc(100%-40px)] max-w-400 rounded-panel bg-elevated p-40 text-center shadow',
       )}
     >
       <div className="text-lg">{content}</div>

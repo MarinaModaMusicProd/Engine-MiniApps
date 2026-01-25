@@ -1,12 +1,11 @@
-import React from 'react';
-import {useDialogContext} from './dialog-context';
-import {Dialog} from './dialog';
-import {DialogBody} from './dialog-body';
+import {useControlledState} from '@react-stately/utils';
 import {IconButton} from '@ui/buttons/icon-button';
 import {CloseIcon} from '@ui/icons/material/Close';
 import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
 import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
-import {useControlledState} from '@react-stately/utils';
+import {Dialog} from './dialog';
+import {DialogBody} from './dialog-body';
+import {useDialogContext} from './dialog-context';
 
 interface Props {
   image?: string;
@@ -30,7 +29,7 @@ export function ImageZoomDialog(props: Props) {
       <DialogBody padding="p-0" className="h-full w-full">
         <IconButton
           size="lg"
-          color="paper"
+          color="elevated"
           className="absolute right-0 top-0 z-20 text-white"
           onClick={() => {
             close();
@@ -56,7 +55,7 @@ export function ImageZoomDialog(props: Props) {
           <img
             src={src}
             alt=""
-            className="max-h-full w-auto object-contain shadow"
+            className="max-h-full w-auto rounded-panel object-contain shadow"
           />
           {images?.length ? (
             <IconButton

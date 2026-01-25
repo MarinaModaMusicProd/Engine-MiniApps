@@ -1,3 +1,12 @@
+import {PlaylistPanel} from '@app/web-player/context-dialog/playlist-panel';
+import {Track} from '@app/web-player/tracks/track';
+import {useIsOffline} from '@app/web-player/use-is-offline';
+import {SvgIconProps} from '@ui/icons/svg-icon';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {usePrevious} from '@ui/utils/hooks/use-previous';
+import clsx from 'clsx';
 import {AnimatePresence} from 'framer-motion';
 import {
   cloneElement,
@@ -10,15 +19,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import {SvgIconProps} from '@ui/icons/svg-icon';
-import clsx from 'clsx';
-import {PlaylistPanel} from '@app/web-player/context-dialog/playlist-panel';
-import {Track} from '@app/web-player/tracks/track';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {Link, To, useLocation} from 'react-router-dom';
-import {usePrevious} from '@ui/utils/hooks/use-previous';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {Link, To, useLocation} from 'react-router';
 
 interface ContextMenuLayoutStateValue {
   playlistPanelIsActive: boolean;
@@ -103,13 +104,17 @@ export function ContextDialogLayout({
   );
 }
 
-interface ButtonMenuItemProps
-  extends Omit<ComponentPropsWithRef<'button'>, 'type'> {
+interface ButtonMenuItemProps extends Omit<
+  ComponentPropsWithRef<'button'>,
+  'type'
+> {
   type?: 'button';
 }
 
-interface LinkMenuItemProps
-  extends Omit<ComponentPropsWithRef<'link'>, 'type'> {
+interface LinkMenuItemProps extends Omit<
+  ComponentPropsWithRef<'link'>,
+  'type'
+> {
   type?: 'link';
 }
 
@@ -119,6 +124,8 @@ type ContextMenuListItemProps = (ButtonMenuItemProps | LinkMenuItemProps) & {
   startIcon?: ReactElement<SvgIconProps>;
   className?: string;
   to?: To;
+  disabled?: boolean;
+  enableWhileOffline?: boolean;
 };
 export const ContextMenuButton = forwardRef<any, ContextMenuListItemProps>(
   (
@@ -129,19 +136,24 @@ export const ContextMenuButton = forwardRef<any, ContextMenuListItemProps>(
       className,
       type = 'button',
       to,
+      disabled,
+      enableWhileOffline = false,
       ...buttonProps
     },
     ref,
   ) => {
-    const Element = type === 'button' ? 'button' : Link;
+    const isOffline = useIsOffline();
+    const isDisabled = disabled || (isOffline && !enableWhileOffline);
+    const Element = type === 'button' || isDisabled ? 'button' : Link;
     return (
       <li>
         <Element
           {...(buttonProps as any)}
-          to={to as any}
+          disabled={isDisabled}
+          to={isDisabled ? undefined : (to as any)}
           ref={ref}
           className={clsx(
-            'flex w-full cursor-pointer items-center gap-12 px-20 py-12 text-left outline-none hover:bg-hover focus-visible:ring focus-visible:ring-inset',
+            'flex w-full cursor-pointer items-center gap-12 px-20 py-12 text-left outline-none hover:bg-hover focus-visible:ring focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50',
             className,
           )}
         >

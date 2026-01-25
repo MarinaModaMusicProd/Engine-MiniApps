@@ -9,15 +9,13 @@ class SyncArtistWithSpotify
 {
     public function execute(Artist $artist, ?array $options = []): Artist
     {
-        $spotifyArtist = app(SpotifyArtist::class)->getContent(
-            $artist,
-            $options,
-        );
-        if ($spotifyArtist) {
-            $artist = app(ArtistSaver::class)->save($spotifyArtist);
-            $artist = app(ArtistBio::class)->get($artist);
+        $data = app(SpotifyArtist::class)->getContent($artist, $options);
+
+        if ($data) {
+            $artist = (new SpotifyArtistSaver())->save($artist, $data);
             unset($artist['albums']);
         }
+
         return $artist;
     }
 }

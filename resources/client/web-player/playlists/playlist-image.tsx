@@ -1,18 +1,17 @@
-import {useTrans} from '@ui/i18n/use-trans';
+import {PartialPlaylist} from '@app/web-player/playlists/playlist';
 import {message} from '@ui/i18n/message';
-import {Playlist} from '@app/web-player/playlists/playlist';
-import {getTrackImageSrc} from '@app/web-player/tracks/track-image/track-image';
-import clsx from 'clsx';
+import {useTrans} from '@ui/i18n/use-trans';
 import {PlaylistPlayIcon} from '@ui/icons/material/PlaylistPlay';
+import clsx from 'clsx';
 
 interface PlaylistImageProps {
-  playlist: Playlist;
+  playlist: PartialPlaylist;
   className?: string;
   size?: string;
 }
 export function PlaylistImage({playlist, className, size}: PlaylistImageProps) {
   const {trans} = useTrans();
-  const src = getPlaylistImageSrc(playlist);
+  const src = playlist.image;
   const imgClassName = clsx(
     className,
     size,
@@ -33,16 +32,4 @@ export function PlaylistImage({playlist, className, size}: PlaylistImageProps) {
       <PlaylistPlayIcon className="max-w-[60%] text-divider" size="text-9xl" />
     </span>
   );
-}
-
-export function getPlaylistImageSrc(playlist: Playlist) {
-  if (playlist.image) {
-    return playlist.image;
-  }
-  const firstTrackImage = playlist.tracks?.[0]
-    ? getTrackImageSrc(playlist.tracks[0])
-    : null;
-  if (firstTrackImage) {
-    return firstTrackImage;
-  }
 }

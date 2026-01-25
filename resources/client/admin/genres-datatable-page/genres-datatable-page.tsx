@@ -1,25 +1,48 @@
-import {Genre} from '@app/web-player/genres/genre';
-import {ColumnConfig} from '@common/datatable/column-config';
-import {DataTableEmptyStateMessage} from '@common/datatable/page/data-table-emty-state-message';
-import {DataTablePage} from '@common/datatable/page/data-table-page';
-import {DeleteSelectedItemsAction} from '@common/datatable/page/delete-selected-items-action';
-import React, {Fragment} from 'react';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {IconButton} from '@ui/buttons/icon-button';
-import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
-import {Trans} from '@ui/i18n/trans';
-import {GenreDatatablePageFilters} from '@app/admin/genres-datatable-page/genre-datatable-page-filters';
-import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
-import {GenreLink} from '@app/web-player/genres/genre-link';
-import {EditIcon} from '@ui/icons/material/Edit';
-import {UpdateGenreDialog} from '@app/admin/genres-datatable-page/update-genre-dialog';
-import GenreImage from './../tracks-datatable-page/music.svg';
 import {CreateGenreDialog} from '@app/admin/genres-datatable-page/create-genre-dialog';
+import {GenreDatatablePageFilters} from '@app/admin/genres-datatable-page/genre-datatable-page-filters';
+import {UpdateGenreDialog} from '@app/admin/genres-datatable-page/update-genre-dialog';
+import {appQueries} from '@app/app-queries';
+import {Genre} from '@app/web-player/genres/genre';
+import {GenreLink} from '@app/web-player/genres/genre-link';
+import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
+import {ColumnConfig} from '@common/datatable/column-config';
+import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
+import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
+import {DataTableHeader} from '@common/datatable/data-table-header';
+import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
+import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
+import {validateDatatableSearch} from '@common/datatable/filters/utils/validate-datatable-search';
+import {DataTableEmptyStateMessage} from '@common/datatable/page/data-table-emty-state-message';
+import {DatatableFilters} from '@common/datatable/page/datatable-filters';
+import {
+  DatatablePageHeaderBar,
+  DatatablePageScrollContainer,
+  DatatablePageWithHeaderBody,
+  DatatablePageWithHeaderLayout,
+} from '@common/datatable/page/datatable-page-with-header-layout';
+import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {StaticPageTitle} from '@common/seo/static-page-title';
+import {Table} from '@common/ui/tables/table';
+import {useMutation} from '@tanstack/react-query';
+import {Button} from '@ui/buttons/button';
+import {IconButton} from '@ui/buttons/icon-button';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {EditIcon} from '@ui/icons/material/Edit';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {toast} from '@ui/toast/toast';
+import {Fragment, useState} from 'react';
+import GenreImage from './../tracks-datatable-page/music.svg';
 
-const columnConfig: ColumnConfig<
-  Genre & {artists_count: number; updated_at: string}
->[] = [
+type TableGenre = Genre & {artists_count: number; updated_at: string};
+
+const columnConfig: ColumnConfig<TableGenre>[] = [
   {
     key: 'name',
     allowsSorting: true,
@@ -40,7 +63,10 @@ const columnConfig: ColumnConfig<
     key: 'artists_count',
     allowsSorting: true,
     header: () => <Trans message="Number of artists" />,
-    body: genre => genre.artists_count,
+    body: genre =>
+      genre.artists_count ? (
+        <FormattedNumber value={genre.artists_count} />
+      ) : null,
   },
   {
     key: 'updated_at',
@@ -69,26 +95,81 @@ const columnConfig: ColumnConfig<
   },
 ];
 
-export function GenresDatatablePage() {
+export function Component() {
+  const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
+  const {
+    searchParams,
+    sortDescriptor,
+    mergeIntoSearchParams,
+    setSearchQuery,
+    isFiltering,
+  } = useDatatableSearchParams(validateDatatableSearch);
+
+  const query = useDatatableQuery(
+    appQueries.genres.index({
+      ...searchParams,
+      withCount: 'artists',
+    }),
+  );
+
+  const selectedActions = (
+    <DialogTrigger type="modal">
+      <Button variant="flat" color="danger">
+        <Trans message="Delete" />
+      </Button>
+      <DeleteGenresDialog
+        selectedIds={selectedIds}
+        onDelete={() => setSelectedIds([])}
+      />
+    </DialogTrigger>
+  );
+
   return (
-    <DataTablePage
-      endpoint="genres"
-      title={<Trans message="Genres" />}
-      columns={columnConfig}
-      filters={GenreDatatablePageFilters}
-      queryParams={{
-        withCount: 'artists',
-      }}
-      actions={<Actions />}
-      selectedActions={<DeleteSelectedItemsAction />}
-      emptyStateMessage={
-        <DataTableEmptyStateMessage
-          image={GenreImage}
-          title={<Trans message="No genres have been created yet" />}
-          filteringTitle={<Trans message="No matching genres" />}
+    <DatatablePageWithHeaderLayout>
+      <GlobalLoadingProgress query={query} />
+      <StaticPageTitle>
+        <Trans message="Genres" />
+      </StaticPageTitle>
+      <DatatablePageHeaderBar
+        title={<Trans message="Genres" />}
+        showSidebarToggleButton
+      />
+      <DatatablePageWithHeaderBody>
+        <DataTableHeader
+          searchValue={searchParams.query}
+          onSearchChange={setSearchQuery}
+          actions={<Actions />}
+          selectedItems={selectedIds}
+          selectedActions={selectedActions}
+          filters={GenreDatatablePageFilters}
         />
-      }
-    />
+        <DatatableFilters filters={GenreDatatablePageFilters} />
+        <DatatablePageScrollContainer>
+          <Table
+            columns={columnConfig}
+            data={query.items as TableGenre[]}
+            sortDescriptor={sortDescriptor}
+            onSortChange={mergeIntoSearchParams}
+            enableSelection
+            selectedRows={selectedIds}
+            onSelectionChange={setSelectedIds}
+          />
+          {query.isEmpty && (
+            <DataTableEmptyStateMessage
+              isFiltering={isFiltering}
+              image={GenreImage}
+              title={<Trans message="No genres have been created yet" />}
+              filteringTitle={<Trans message="No matching genres" />}
+            />
+          )}
+          <DataTablePaginationFooter
+            query={query}
+            onPageChange={page => mergeIntoSearchParams({page})}
+            onPerPageChange={perPage => mergeIntoSearchParams({perPage})}
+          />
+        </DatatablePageScrollContainer>
+      </DatatablePageWithHeaderBody>
+    </DatatablePageWithHeaderLayout>
   );
 }
 
@@ -102,5 +183,40 @@ function Actions() {
         <CreateGenreDialog />
       </DialogTrigger>
     </Fragment>
+  );
+}
+
+interface DeleteGenresDialogProps {
+  selectedIds: (number | string)[];
+  onDelete: () => void;
+}
+function DeleteGenresDialog({selectedIds, onDelete}: DeleteGenresDialogProps) {
+  const {close} = useDialogContext();
+  const deleteSelectedGenres = useMutation({
+    mutationFn: () => apiClient.delete(`genres/${selectedIds.join(',')}`),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: appQueries.genres.invalidateKey,
+      });
+      toast(message('Genres deleted'));
+      onDelete();
+      close();
+    },
+    onError: err => showHttpErrorToast(err),
+  });
+  return (
+    <ConfirmationDialog
+      isDanger
+      isLoading={deleteSelectedGenres.isPending}
+      title={<Trans message="Delete genres" />}
+      body={
+        <Trans
+          message="Are you sure you want to delete selected genres?"
+          values={{count: selectedIds.length}}
+        />
+      }
+      confirm={<Trans message="Delete" />}
+      onConfirm={() => deleteSelectedGenres.mutate()}
+    />
   );
 }

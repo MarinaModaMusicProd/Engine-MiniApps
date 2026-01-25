@@ -1,11 +1,11 @@
+import {channelQueries} from '@common/channels/channel-queries';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
 import {useMutation} from '@tanstack/react-query';
+import {message} from '@ui/i18n/message';
 import {useTrans} from '@ui/i18n/use-trans';
 import {toast} from '@ui/toast/toast';
-import {message} from '@ui/i18n/message';
-import {apiClient, queryClient} from '@common/http/query-client';
-import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {showHttpErrorToast} from '@common/http/show-http-error-toast';
 
 interface Response extends BackendResponse {}
 
@@ -19,7 +19,7 @@ export function useApplyChannelPreset() {
     mutationFn: (payload: Payload) => resetChannels(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: DatatableDataQueryKey('channel'),
+        queryKey: channelQueries.invalidateKey,
       });
       toast(trans(message('Channel preset applied')));
     },

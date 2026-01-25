@@ -1,8 +1,8 @@
-import React, {Children, ReactElement, ReactNode} from 'react';
 import {AvatarProps} from '@ui/avatar/avatar';
-import clsx from 'clsx';
 import {Trans} from '@ui/i18n/trans';
-import {Link} from 'react-router-dom';
+import clsx from 'clsx';
+import {Children, ReactElement, ReactNode} from 'react';
+import {Link} from 'react-router';
 
 interface AvatarGroupProps {
   children: ReactNode;

@@ -1,8 +1,8 @@
-import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 import {getLocalTimeZone} from '@internationalized/date';
+import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 
 export function getUserTimezone(): string {
-  const defaultTimezone = getBootstrapData()?.settings.dates.default_timezone;
+  const defaultTimezone = getBootstrapData()?.settings.dates?.default_timezone;
   const preferredTimezone =
     getBootstrapData()?.user?.timezone || defaultTimezone || 'auto';
 

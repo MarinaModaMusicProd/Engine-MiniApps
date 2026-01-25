@@ -1,7 +1,6 @@
 <?php
 
 use Common\Auth\Controllers\SocialAuthController;
-use Common\Auth\Controllers\TonConnectController;
 use Common\Auth\Controllers\TwoFactorQrCodeController;
 use Common\Billing\Invoices\InvoiceController;
 use Common\Core\Controllers\HomeController;
@@ -12,6 +11,7 @@ use Common\Domains\CustomDomainController;
 use Common\Files\Controllers\DownloadFileController;
 use Common\Settings\Mail\ConnectGmailAccountController;
 use Common\Workspaces\Controllers\WorkspaceMembersController;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'web'], function () {
@@ -23,7 +23,7 @@ Route::group(['middleware' => 'web'], function () {
 
     // UPDATE
     Route::get('update', [UpdateController::class, 'show']);
-    Route::get('update/perform', [UpdateController::class, 'performUpdate']);
+    Route::get('update/perform', [UpdateController::class, 'runManualUpdateActions']);
 
     // make sure workspace version of login and register pages are shown on frontend
     Route::get('workspace/join/login', [HomeController::class, 'show']);
@@ -104,19 +104,9 @@ Route::group(['middleware' => 'web'], function () {
     // Laravel Auth routes with names so route('login') and similar calls don't error out
     Route::get('login', [HomeController::class, 'show'])->name('login');
     Route::get('register', [HomeController::class, 'show'])->name('register');
-
-    // Web3 auth
-    Route::prefix('auth/web3')->group(function ()
-    {
-        Route::prefix('ton')->group(function ()
-        {
-            Route::get('generate-payload', [TonConnectController::class, 'generatePayload'])->withoutMiddleware('verifyApiAccess');
-            Route::post('check-ton-proof', [TonConnectController::class, 'checkTonProof'])->withoutMiddleware('verifyApiAccess');
-        });
-    });
 });
 
-if (!config('common.site.installed')) {
+if (!config('app.installed')) {
     Route::get('install', [InstallController::class, 'introductionStep'])->name(
         'install',
     );
@@ -128,11 +118,19 @@ if (!config('common.site.installed')) {
     Route::post('install/database/validate', [
         InstallController::class,
         'insertAndValidateDatabaseCredentials',
-    ]);
+    ])->withoutMiddleware(ValidateCsrfToken::class);
     Route::get('install/admin', [InstallController::class, 'adminStep']);
     Route::post('install/admin/validate', [
         InstallController::class,
         'validateAdminCredentials',
-    ]);
+    ])->withoutMiddleware(ValidateCsrfToken::class);
     Route::get('install/finalize', [InstallController::class, 'finalizeStep']);
 }
+
+Route::get('sw.js', function () {
+    return response()
+    ->file(public_path('build/sw.js'), [
+        'Content-Type' => 'application/javascript; charset=utf-8',
+        'Service-Worker-Allowed' => '/',
+    ]);
+})->withoutMiddleware('web');

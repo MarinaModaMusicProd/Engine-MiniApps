@@ -1,90 +1,27 @@
 <?php namespace App\Services\Providers\Spotify;
 
-use App\Models\Album;
-use App\Models\Artist;
-use App\Services\Artists\ArtistSaver;
 use App\Services\Providers\ContentProvider;
-use App\Services\Providers\SaveOrUpdate;
+use App\Services\Providers\UpsertsDataIntoDB;
+use Illuminate\Support\Collection;
 
 class SpotifyNewAlbums implements ContentProvider
 {
-    use SaveOrUpdate;
+    use UpsertsDataIntoDB;
 
-    public function __construct(
-        protected SpotifyArtist $spotifyArtist,
-        protected ArtistSaver $saver,
-        protected SpotifyHttpClient $httpClient,
-    ) {
-        @ini_set('max_execution_time', 0);
-    }
-
-    public function getContent()
+    public function getContent(): Collection
     {
-        $response = $this->httpClient->get(
+        @ini_set('max_execution_time', 0);
+
+        $response = app(SpotifyHttpClient::class)->get(
             'browse/new-releases?country=US&limit=40',
         );
-        $spotifyAlbums = $this->spotifyArtist->getFullAlbums(
-            $response['albums'],
+        $spotifyAlbums = app(SpotifyArtist::class)->getFullAlbums(
+            $response['albums']['items'],
         );
 
-        $this->saveOrUpdate($spotifyAlbums, 'albums');
-        $savedAlbums = app(Album::class)
-            ->whereIn('spotify_id', $spotifyAlbums->pluck('spotify_id'))
-            ->orderBy('release_date', 'desc')
-            ->limit(40)
-            ->get()
-            ->keyBy('spotify_id');
-
-        // attach artists to albums
-        $spotifyArtists = $spotifyAlbums
-            ->pluck('artists')
-            ->flatten(1)
-            ->unique('spotify_id');
-        $this->saveOrUpdate($spotifyArtists, 'artists');
-        $savedArtists = app(Artist::class)
-            ->whereIn('spotify_id', $spotifyArtists->pluck('spotify_id'))
-            ->get(['spotify_id', 'id', 'name'])
-            ->keyBy('spotify_id');
-
-        $pivots = collect($spotifyAlbums)
-            ->map(function ($normalizedAlbum) use (
-                $savedArtists,
-                $savedAlbums,
-            ) {
-                return $normalizedAlbum['artists']->map(function (
-                    $normalizedArtist,
-                ) use ($normalizedAlbum, $savedArtists, $savedAlbums) {
-                    $savedAlbum = $savedAlbums[$normalizedAlbum['spotify_id']];
-                    $savedArtist =
-                        $savedArtists[$normalizedArtist['spotify_id']];
-                    if (!$savedAlbum) {
-                        $savedAlbum = $savedAlbums->first(function (
-                            Album $album,
-                        ) use ($normalizedAlbum) {
-                            return $album->name === $normalizedAlbum['name'];
-                        });
-                    }
-                    if (!$savedArtist) {
-                        $savedArtist = $savedArtists->first(function (
-                            Artist $artist,
-                        ) use ($normalizedArtist) {
-                            return $artist->name === $normalizedArtist['name'];
-                        });
-                    }
-                    return [
-                        'album_id' => $savedAlbum->id,
-                        'artist_id' => $savedArtist->id,
-                    ];
-                });
-            })
-            ->flatten(1);
-        $this->saveOrUpdate($pivots, 'artist_album');
-
-        app(SpotifyTrackSaver::class)->save($spotifyAlbums, $savedAlbums);
-
-        return $savedAlbums
-            ->load('artists', 'tracks')
-            ->sortByDesc('artist.spotify_popularity')
-            ->values();
+        return (new SaveMultipleSpotifyAlbums())->execute(
+            $spotifyAlbums,
+            orderBy: 'release_date',
+        );
     }
 }

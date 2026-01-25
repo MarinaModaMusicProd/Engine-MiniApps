@@ -4,17 +4,18 @@ namespace App\Services\Albums;
 
 use App\Models\Album;
 use App\Models\Artist;
-use App\Services\Providers\SaveOrUpdate;
+use App\Services\Providers\UpsertsDataIntoDB;
 use App\Services\Providers\Spotify\SpotifyAlbum;
 use App\Services\Providers\Spotify\SpotifyTrackSaver;
+use Illuminate\Support\Arr;
 
 class SyncAlbumWithSpotify
 {
-    use SaveOrUpdate;
+    use UpsertsDataIntoDB;
 
     public function execute(Album $album): Album
     {
-        $spotifyAlbum = app(SpotifyAlbum::class)->getContent($album);
+        $spotifyAlbum = (new SpotifyAlbum())->getContent($album);
         if (!$spotifyAlbum) {
             return $album;
         }
@@ -28,7 +29,7 @@ class SyncAlbumWithSpotify
                 ->first();
         });
         if (!empty($notSavedArtists)) {
-            $this->saveOrUpdate($notSavedArtists, 'artists');
+            $this->upsert($notSavedArtists, 'artists');
             $artistIds = Artist::whereIn(
                 'spotify_id',
                 $notSavedArtists->pluck('spotify_id'),
@@ -36,8 +37,9 @@ class SyncAlbumWithSpotify
             $album->artists()->syncWithoutDetaching($artistIds);
         }
 
-        $this->saveOrUpdate(collect([$spotifyAlbum]), 'albums');
-        app(SpotifyTrackSaver::class)->save(
+        $album->fill(Arr::except($spotifyAlbum, ['tracks', 'artists']))->save();
+
+        (new SpotifyTrackSaver())->save(
             collect([$spotifyAlbum]),
             collect([$album]),
         );

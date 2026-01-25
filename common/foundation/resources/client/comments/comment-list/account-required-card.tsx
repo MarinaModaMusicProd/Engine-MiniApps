@@ -1,6 +1,6 @@
 import {useAuth} from '@common/auth/use-auth';
 import {Trans} from '@ui/i18n/trans';
-import {Link} from 'react-router-dom';
+import {Link} from 'react-router';
 import {LinkStyle} from '@ui/buttons/external-link';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 

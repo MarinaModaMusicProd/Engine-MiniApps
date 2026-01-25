@@ -1,36 +1,18 @@
-import {useForm, useFormContext} from 'react-hook-form';
-import {FormSwitch} from '@ui/forms/toggle/switch';
+import {AdminDocsUrls} from '@app/admin/admin-config';
 import {AdminSettings} from '@common/admin/settings/admin-settings';
+import {OutoingEmailNotSetupWarning} from '@common/admin/settings/layout/outoing-email-not-configured-warning';
+import {SettingsErrorGroup} from '@common/admin/settings/layout/settings-error-group';
+import {AdminSettingsLayout} from '@common/admin/settings/layout/settings-layout';
+import {SettingsPanel} from '@common/admin/settings/layout/settings-panel';
+import {useAdminSettings} from '@common/admin/settings/requests/use-admin-settings';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {SettingsErrorGroup} from '@common/admin/settings/form/settings-error-group';
+import {FormSwitch} from '@ui/forms/toggle/switch';
 import {Trans} from '@ui/i18n/trans';
-import React, {Fragment} from 'react';
-import {Link} from 'react-router-dom';
 import {useSettings} from '@ui/settings/use-settings';
-import {Button} from '@ui/buttons/button';
-import {
-  AdminSettingsForm,
-  AdminSettingsLayout,
-} from '@common/admin/settings/form/admin-settings-form';
-import {SettingsSeparator} from '@common/admin/settings/form/settings-separator';
+import {useForm, useFormContext} from 'react-hook-form';
 
-export function AuthenticationSettings() {
-  return (
-    <AdminSettingsLayout
-      title={<Trans message="Authentication" />}
-      description={
-        <Trans message="Configure registration, social login and related 3rd party integrations." />
-      }
-    >
-      {data => <Form data={data} />}
-    </AdminSettingsLayout>
-  );
-}
-
-interface FormProps {
-  data: AdminSettings;
-}
-function Form({data}: FormProps) {
+export function Component() {
+  const {data} = useAdminSettings();
   const form = useForm<AdminSettings>({
     defaultValues: {
       client: {
@@ -55,11 +37,6 @@ function Form({data}: FormProps) {
             enable: data.client.social?.twitter?.enable ?? false,
           },
         },
-        web3: {
-          ton: {
-            enable: data.client.web3?.ton?.enable ?? false,
-          },
-        },
         single_device_login: data.client.single_device_login ?? false,
         auth: {
           domain_blacklist: data.client.auth?.domain_blacklist ?? '',
@@ -75,15 +52,40 @@ function Form({data}: FormProps) {
         facebook_secret: data.server?.facebook_secret ?? '',
         twitter_id: data.server?.twitter_id ?? '',
         twitter_secret: data.server?.twitter_secret ?? '',
+        mail_setup: data.server?.mail_setup ?? false,
       },
     },
   });
 
   return (
-    <AdminSettingsForm form={form}>
-      <EmailConfirmationSection />
+    <AdminSettingsLayout
+      form={form}
+      title={<Trans message="Authentication" />}
+      docsLink={AdminDocsUrls.settings.authentication}
+    >
+      <OutoingEmailNotSetupWarning />
+      <RegistrationPanel />
+      <SocialLoginSettingsPanel />
+      <SingleDeviceLoginPanel />
+      <DomainBlacklistPanel />
+      <EnvatoSection />
+      <GoogleSection />
+      <FacebookSection />
+      <TwitterSection />
+    </AdminSettingsLayout>
+  );
+}
+
+function RegistrationPanel() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Registration" />}
+      description={<Trans message="Configure user registration settings." />}
+    >
       <FormSwitch
-        className="mb-24"
+        size="sm"
+        className="mb-20"
         name="client.registration.disable"
         description={
           <Trans message="All registration related functionality will be disabled and hidden from users." />
@@ -92,109 +94,77 @@ function Form({data}: FormProps) {
         <Trans message="Disable registration" />
       </FormSwitch>
       <FormSwitch
-        className="mb-24"
+        size="sm"
+        name="client.require_email_confirmation"
+        description={
+          <Trans message="Require newly registered users to validate their email address before being able to login." />
+        }
+      >
+        <Trans message="Require email confirmation" />
+      </FormSwitch>
+    </SettingsPanel>
+  );
+}
+
+function SocialLoginSettingsPanel() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Social Login Settings" />}
+      description={
+        <Trans message="Configure general settings for social login." />
+      }
+    >
+      <FormSwitch
+        size="sm"
+        className="mb-20"
         name="client.social.requireAccount"
         description={
-          <Trans message="If enabled, user will only be able to login via particular social site, if they have connected it from their account settings page." />
+          <Trans message="User will only be able to login via socials, if they have connected it from their account settings page." />
         }
       >
         <Trans message="Social login requires existing account" />
       </FormSwitch>
-      <FormSwitch
-        className="mb-24"
-        name="client.single_device_login"
-        description={
-          <Trans message="Only allow one device to be logged into user account at the same time." />
-        }
-      >
-        <Trans message="Single device login" />
+      <FormSwitch size="sm" name="client.social.compact_buttons">
+        <Trans message="Use compact social login buttons" />
       </FormSwitch>
-
-      <SettingsSeparator />
-
-      <FormSwitch
-        name="client.social.compact_buttons"
-        description={
-          <Trans message="Use compact design for social login buttons." />
-        }
-      >
-        <Trans message="Social compact buttons" />
-      </FormSwitch>
-      <EnvatoSection />
-      <GoogleSection />
-      <FacebookSection />
-      <TwitterSection />
-
-      <SettingsSeparator />
-
-      <FormSwitch
-        name="client.web3.compact_buttons"
-        description={
-          <Trans message="Use compact design for web3 login buttons." />
-        }
-      >
-        <Trans message="Web3 compact buttons" />
-      </FormSwitch>
-      <TonSection/>
-
-      <SettingsSeparator />
-
-      <FormTextField
-        inputElementType="textarea"
-        rows={3}
-        className="mt-24"
-        name="client.auth.domain_blacklist"
-        label={<Trans message="Domain blacklist" />}
-        description={
-          <Trans message="Comma separated list of domains. Users will not be able to register or login using any email adress from specified domains." />
-        }
-      />
-    </AdminSettingsForm>
+    </SettingsPanel>
   );
 }
 
-export function MailNotSetupWarning() {
-  const {watch} = useFormContext<AdminSettings>();
-  const mailSetup = watch('server.mail_setup');
-  if (mailSetup) return null;
-
+function SingleDeviceLoginPanel() {
   return (
-    <p className="mt-10 rounded-panel border p-10 text-sm text-danger">
-      <Trans
-        message="Outgoing mail method needs to be setup before enabling this setting. <a>Fix now</a>"
-        values={{
-          a: text => (
-            <Button
-              elementType={Link}
-              variant="outline"
-              size="xs"
-              display="flex"
-              className="mt-10 max-w-max"
-              to="/admin/settings/outgoing-email"
-            >
-              {text}
-            </Button>
-          ),
-        }}
-      />
-    </p>
-  );
-}
-
-function EmailConfirmationSection() {
-  return (
-    <FormSwitch
-      className="mb-30"
-      name="client.require_email_confirmation"
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Single Device Login" />}
       description={
-        <Fragment>
-          <Trans message="Require newly registered users to validate their email address before being able to login." />
-          <MailNotSetupWarning />
-        </Fragment>
+        <Trans message="Control how many devices can access an account simultaneously." />
       }
     >
-      <Trans message="Require email confirmation" />
-    </FormSwitch>
+      <FormSwitch size="sm" name="client.single_device_login">
+        <Trans message="Single device login" />
+      </FormSwitch>
+    </SettingsPanel>
+  );
+}
+
+function DomainBlacklistPanel() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Domain Blacklist" />}
+      description={
+        <Trans message="Comma separated list of domains. Users will not be able to register or login using any email adress from specified domains." />
+      }
+    >
+      <FormTextField
+        size="sm"
+        name="client.auth.domain_blacklist"
+        label={<Trans message="Domains" />}
+        inputElementType="textarea"
+        rows={1}
+      />
+    </SettingsPanel>
   );
 }
 
@@ -206,46 +176,62 @@ function EnvatoSection() {
   if (!(settings as any).envato?.enable) return null;
 
   return (
-    <SettingsErrorGroup name="envato_group" separatorTop={false} separatorBottom={false}>
-      {isInvalid => (
-        <>
-          <FormSwitch
-            invalid={isInvalid}
-            name="client.social.envato.enable"
-            description={
-              <Trans message="Enable logging into the site via envato." />
-            }
-          >
-            <Trans message="Envato login" />
-          </FormSwitch>
-          {!!envatoLoginEnabled && (
-            <>
-              <FormTextField
-                invalid={isInvalid}
-                className="mt-30"
-                name="server.envato_id"
-                label={<Trans message="Envato ID" />}
-                required
-              />
-              <FormTextField
-                invalid={isInvalid}
-                className="mt-30"
-                name="server.envato_secret"
-                label={<Trans message="Envato secret" />}
-                required
-              />
-              <FormTextField
-                invalid={isInvalid}
-                className="mt-30"
-                name="server.envato_personal_token"
-                label={<Trans message="Envato personal token" />}
-                required
-              />
-            </>
-          )}
-        </>
-      )}
-    </SettingsErrorGroup>
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Envato Login" />}
+      description={
+        <Trans message="Configure Envato authentication settings." />
+      }
+    >
+      <SettingsErrorGroup
+        separatorBottom={false}
+        separatorTop={false}
+        name="envato_group"
+      >
+        {isInvalid => (
+          <>
+            <FormSwitch
+              size="sm"
+              invalid={isInvalid}
+              name="client.social.envato.enable"
+              description={
+                <Trans message="Enable logging into the site via envato." />
+              }
+            >
+              <Trans message="Envato login" />
+            </FormSwitch>
+            {!!envatoLoginEnabled && (
+              <>
+                <FormTextField
+                  size="sm"
+                  invalid={isInvalid}
+                  className="mt-20"
+                  name="server.envato_id"
+                  label={<Trans message="Envato ID" />}
+                  required
+                />
+                <FormTextField
+                  size="sm"
+                  invalid={isInvalid}
+                  className="mt-20"
+                  name="server.envato_secret"
+                  label={<Trans message="Envato secret" />}
+                  required
+                />
+                <FormTextField
+                  size="sm"
+                  invalid={isInvalid}
+                  className="mt-20"
+                  name="server.envato_personal_token"
+                  label={<Trans message="Envato personal token" />}
+                  required
+                />
+              </>
+            )}
+          </>
+        )}
+      </SettingsErrorGroup>
+    </SettingsPanel>
   );
 }
 
@@ -254,39 +240,53 @@ function GoogleSection() {
   const googleLoginEnabled = watch('client.social.google.enable');
 
   return (
-    <SettingsErrorGroup name="google_group" separatorTop={false} separatorBottom={false}>
-      {isInvalid => (
-        <>
-          <FormSwitch
-            invalid={isInvalid}
-            name="client.social.google.enable"
-            className="mt-24"
-            description={
-              <Trans message="Enable logging into the site via google." />
-            }
-          >
-            <Trans message="Google login" />
-          </FormSwitch>
-          {!!googleLoginEnabled && (
-            <>
-              <FormTextField
-                invalid={isInvalid}
-                className="mt-30"
-                name="server.google_id"
-                label={<Trans message="Google client ID" />}
-                required
-              />
-              <FormTextField
-                className="mt-30"
-                name="server.google_secret"
-                label={<Trans message="Google client secret" />}
-                required
-              />
-            </>
-          )}
-        </>
-      )}
-    </SettingsErrorGroup>
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Google Login" />}
+      description={
+        <Trans message="Configure Google authentication settings." />
+      }
+    >
+      <SettingsErrorGroup
+        separatorBottom={false}
+        separatorTop={false}
+        name="google_group"
+      >
+        {isInvalid => (
+          <>
+            <FormSwitch
+              size="sm"
+              invalid={isInvalid}
+              name="client.social.google.enable"
+              description={
+                <Trans message="Enable logging into the site via google." />
+              }
+            >
+              <Trans message="Google login" />
+            </FormSwitch>
+            {!!googleLoginEnabled && (
+              <>
+                <FormTextField
+                  size="sm"
+                  invalid={isInvalid}
+                  className="mt-20"
+                  name="server.google_id"
+                  label={<Trans message="Google client ID" />}
+                  required
+                />
+                <FormTextField
+                  size="sm"
+                  className="mt-20"
+                  name="server.google_secret"
+                  label={<Trans message="Google client secret" />}
+                  required
+                />
+              </>
+            )}
+          </>
+        )}
+      </SettingsErrorGroup>
+    </SettingsPanel>
   );
 }
 
@@ -295,40 +295,54 @@ function FacebookSection() {
   const facebookLoginEnabled = watch('client.social.facebook.enable');
 
   return (
-    <SettingsErrorGroup name="facebook_group" separatorTop={false} separatorBottom={false}>
-      {isInvalid => (
-        <>
-          <FormSwitch
-            invalid={isInvalid}
-            name="client.social.facebook.enable"
-            className="mt-24"
-            description={
-              <Trans message="Enable logging into the site via facebook." />
-            }
-          >
-            <Trans message="Facebook login" />
-          </FormSwitch>
-          {!!facebookLoginEnabled && (
-            <>
-              <FormTextField
-                invalid={isInvalid}
-                className="mt-30"
-                name="server.facebook_id"
-                label={<Trans message="Facebook app ID" />}
-                required
-              />
-              <FormTextField
-                invalid={isInvalid}
-                className="mt-30"
-                name="server.facebook_secret"
-                label={<Trans message="Facebook app secret" />}
-                required
-              />
-            </>
-          )}
-        </>
-      )}
-    </SettingsErrorGroup>
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Facebook Login" />}
+      description={
+        <Trans message="Configure Facebook authentication settings." />
+      }
+    >
+      <SettingsErrorGroup
+        separatorBottom={false}
+        separatorTop={false}
+        name="facebook_group"
+      >
+        {isInvalid => (
+          <>
+            <FormSwitch
+              size="sm"
+              invalid={isInvalid}
+              name="client.social.facebook.enable"
+              description={
+                <Trans message="Enable logging into the site via facebook." />
+              }
+            >
+              <Trans message="Facebook login" />
+            </FormSwitch>
+            {!!facebookLoginEnabled && (
+              <>
+                <FormTextField
+                  size="sm"
+                  invalid={isInvalid}
+                  className="mt-20"
+                  name="server.facebook_id"
+                  label={<Trans message="Facebook app ID" />}
+                  required
+                />
+                <FormTextField
+                  size="sm"
+                  invalid={isInvalid}
+                  className="mt-20"
+                  name="server.facebook_secret"
+                  label={<Trans message="Facebook app secret" />}
+                  required
+                />
+              </>
+            )}
+          </>
+        )}
+      </SettingsErrorGroup>
+    </SettingsPanel>
   );
 }
 
@@ -337,59 +351,53 @@ function TwitterSection() {
   const twitterLoginEnabled = watch('client.social.twitter.enable');
 
   return (
-    <SettingsErrorGroup name="twitter_group" separatorTop={false} separatorBottom={false}
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Twitter Login" />}
+      description={
+        <Trans message="Configure Twitter authentication settings." />
+      }
     >
-      {isInvalid => (
-        <>
-          <FormSwitch
-            invalid={isInvalid}
-            name="client.social.twitter.enable"
-            className="mt-24"
-            description={
-              <Trans message="Enable logging into the site via twitter." />
-            }
-          >
-            <Trans message="Twitter login" />
-          </FormSwitch>
-          {!!twitterLoginEnabled && (
-            <>
-              <FormTextField
-                invalid={isInvalid}
-                className="mt-30"
-                name="server.twitter_id"
-                label={<Trans message="Twitter ID" />}
-                required
-              />
-              <FormTextField
-                invalid={isInvalid}
-                className="mt-30"
-                name="server.twitter_secret"
-                label={<Trans message="Twitter secret" />}
-                required
-              />
-            </>
-          )}
-        </>
-      )}
-    </SettingsErrorGroup>
-  );
-}
-
-function TonSection() {
-  return (
-    <SettingsErrorGroup name="ton_group" separatorTop={false} separatorBottom={false}>
-      {isInvalid => (
-          <FormSwitch
-            invalid={isInvalid}
-            name="client.web3.ton.enable"
-            className="mt-24"
-            description={
-              <Trans message="Enable logging into the site via ton." />
-            }
-          >
-            <Trans message="TON login" />
-          </FormSwitch>
-      )}
-    </SettingsErrorGroup>
+      <SettingsErrorGroup
+        name="twitter_group"
+        separatorTop={false}
+        separatorBottom={false}
+      >
+        {isInvalid => (
+          <>
+            <FormSwitch
+              size="sm"
+              invalid={isInvalid}
+              name="client.social.twitter.enable"
+              description={
+                <Trans message="Enable logging into the site via twitter." />
+              }
+            >
+              <Trans message="Twitter login" />
+            </FormSwitch>
+            {!!twitterLoginEnabled && (
+              <>
+                <FormTextField
+                  size="sm"
+                  invalid={isInvalid}
+                  className="mt-20"
+                  name="server.twitter_id"
+                  label={<Trans message="Twitter ID" />}
+                  required
+                />
+                <FormTextField
+                  size="sm"
+                  invalid={isInvalid}
+                  className="mt-20"
+                  name="server.twitter_secret"
+                  label={<Trans message="Twitter secret" />}
+                  required
+                />
+              </>
+            )}
+          </>
+        )}
+      </SettingsErrorGroup>
+    </SettingsPanel>
   );
 }

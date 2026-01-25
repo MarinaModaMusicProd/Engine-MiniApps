@@ -4,6 +4,7 @@ namespace Common\Database\Datasource\Filters\Traits;
 
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 trait NormalizesFiltersForFulltextEngines
@@ -12,7 +13,7 @@ trait NormalizesFiltersForFulltextEngines
     {
         $normalizedFilters = [];
 
-        foreach ($filters as $index => $filter) {
+        foreach ($filters as $filter) {
             // flatten "between" filter
             if ($filter['operator'] === 'between') {
                 if ($start = Arr::get($filter, 'value.start')) {
@@ -29,6 +30,14 @@ trait NormalizesFiltersForFulltextEngines
                         'value' => Carbon::parse($end)->timestamp,
                     ];
                 }
+            } elseif (Str::endsWith($filter['key'], '_at_hours')) {
+                // filter by hours instead of absolute timestamp
+                $normalizedFilters[] = [
+                    'key' => str_replace('_at_hours', '_at', $filter['key']),
+                    'operator' => $filter['operator'] === '>' ? '<' : '>',
+                    'value' => now('UTC')->subHours($filter['value'])
+                        ->timestamp,
+                ];
             } else {
                 // normalize value and operator, so it's accepted by meilisearch, elastic and algolia
                 $normalizedFilters[] = [
@@ -54,6 +63,11 @@ trait NormalizesFiltersForFulltextEngines
             return 'false';
         } elseif ($value === true) {
             return 'true';
+        } elseif (is_array($value) && isset($value[0]['id'])) {
+            // [['id' => 1, 'name' => 'foo']] to [1]
+            return array_map(fn($v) => $v['id'], $value);
+        } elseif ($value === 'currentUser') {
+            return Auth::id();
         } elseif (
             in_array($filter['key'], $this->query->getModel()->getDates())
         ) {

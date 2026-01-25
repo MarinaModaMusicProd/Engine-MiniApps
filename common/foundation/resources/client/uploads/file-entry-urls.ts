@@ -1,9 +1,9 @@
-import React, {useContext, useMemo} from 'react';
+import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 import {useSettings} from '@ui/settings/use-settings';
 import {isAbsoluteUrl} from '@ui/utils/urls/is-absolute-url';
-import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {createContext, useContext, useMemo} from 'react';
 
-export const FileEntryUrlsContext = React.createContext<
+export const FileEntryUrlsContext = createContext<
   Record<string, string | number | null | undefined>
 >(null!);
 

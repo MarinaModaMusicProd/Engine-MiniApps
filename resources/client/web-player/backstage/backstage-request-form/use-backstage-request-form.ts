@@ -1,7 +1,7 @@
-import {useAuth} from '@common/auth/use-auth';
-import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
-import {useForm} from 'react-hook-form';
 import {CreateBackstageRequestPayload} from '@app/web-player/backstage/requests/use-create-backstage-request';
+import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
+import {useAuth} from '@common/auth/use-auth';
+import {useForm} from 'react-hook-form';
 
 export function useBackstageRequestForm(
   requestType: CreateBackstageRequestPayload['type'],
@@ -9,19 +9,16 @@ export function useBackstageRequestForm(
   const {user} = useAuth();
   const primaryArtist = usePrimaryArtistForCurrentUser();
 
-  let artistId: number | 'CURRENT_USER' | undefined;
-  if (requestType === 'verify-artist') {
-    artistId = primaryArtist?.id as number;
-  } else if (requestType === 'become-artist') {
-    artistId = 'CURRENT_USER';
-  }
+  const artistId =
+    requestType === 'verify-artist'
+      ? (primaryArtist?.id as number | null)
+      : null;
 
   return useForm<CreateBackstageRequestPayload>({
     defaultValues: {
       artist_id: artistId,
       artist_name: user?.name,
-      first_name: user?.first_name,
-      last_name: user?.last_name,
+      name: user?.name,
       image: primaryArtist?.image || user?.image,
       type: requestType,
       role: requestType === 'claim-artist' ? 'artist' : undefined,

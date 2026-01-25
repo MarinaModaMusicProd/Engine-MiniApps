@@ -1,10 +1,10 @@
+import {commentQueries} from '@common/comments/comment-queries';
+import {useRestoreComments} from '@common/comments/requests/use-restore-comments';
 import {queryClient} from '@common/http/query-client';
 import {Button} from '@ui/buttons/button';
-import {Trans} from '@ui/i18n/trans';
-import React from 'react';
-import {ButtonVariant} from '@ui/buttons/get-shared-button-style';
 import {ButtonSize} from '@ui/buttons/button-size';
-import {useRestoreComments} from '@common/comments/requests/use-restore-comments';
+import {ButtonVariant} from '@ui/buttons/get-shared-button-style';
+import {Trans} from '@ui/i18n/trans';
 
 interface Props {
   commentIds: number[];
@@ -29,7 +29,9 @@ export function RestoreCommentsButton({
           {commentIds},
           {
             onSuccess: () => {
-              queryClient.invalidateQueries({queryKey: ['comment']});
+              queryClient.invalidateQueries({
+                queryKey: commentQueries.invalidateKey,
+              });
             },
           },
         );

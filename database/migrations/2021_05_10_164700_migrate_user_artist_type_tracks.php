@@ -1,9 +1,10 @@
 <?php
 
 use App\Models\User;
-use App\Models\UserProfile;
+use App\Models\ProfileDetails;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class MigrateUserArtistTypeTracks extends Migration
@@ -15,22 +16,34 @@ class MigrateUserArtistTypeTracks extends Migration
      */
     public function up()
     {
-        if ( ! Schema::hasColumn('artist_track', 'artist_type')) return;
+        if (!Schema::hasColumn('artist_track', 'artist_type')) {
+            return;
+        }
 
-        DB::table('artist_track')->where('artist_type', User::class)
-            ->chunkById(100, function(Collection $rows) {
+        DB::table('artist_track')
+            ->where('artist_type', User::class)
+            ->chunkById(100, function (Collection $rows) {
                 $groupedRows = $rows->groupBy('artist_id');
                 $userIds = $rows->pluck('artist_id')->unique()->values();
                 $users = User::whereIn('id', $userIds)->get();
 
-                $groupedRows->each(function(Collection $group, int $userId) use($users) {
+                $groupedRows->each(function (
+                    Collection $group,
+                    int $userId,
+                ) use ($users) {
                     $user = $users->get($userId);
-                    if ( ! $user) return;
+                    if (!$user) {
+                        return;
+                    }
 
                     $userArtist = $user->getOrCreateArtist();
-                    UserProfile::where('user_id', $user->id)->update(['artist_id' => $userArtist->id]);
+                    ProfileDetails::where('user_id', $user->id)->update([
+                        'artist_id' => $userArtist->id,
+                    ]);
 
-                    DB::table('artist_track')->where('artist_id', $user->id)->update(['artist_id' => $userArtist->id]);
+                    DB::table('artist_track')
+                        ->where('artist_id', $user->id)
+                        ->update(['artist_id' => $userArtist->id]);
                 });
             });
     }

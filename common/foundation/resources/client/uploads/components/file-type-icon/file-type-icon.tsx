@@ -18,8 +18,9 @@ interface Props {
   mime?: string | null;
   className?: string;
   size?: IconSize;
+  color?: string;
 }
-export function FileTypeIcon({type, mime, className, size}: Props) {
+export function FileTypeIcon({type, mime, className, size, color}: Props) {
   if (!type && mime) {
     type = mime.split('/')[0];
   }
@@ -28,7 +29,7 @@ export function FileTypeIcon({type, mime, className, size}: Props) {
   return (
     <Icon
       size={size}
-      className={clsx(className, `${type}-file-color`)}
+      className={clsx(className, color ?? `${type}-file-color`)}
       viewBox="0 0 64 64"
     />
   );

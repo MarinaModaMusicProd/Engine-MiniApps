@@ -1,6 +1,9 @@
 <?php namespace App\Services;
 
 use App\Models\Artist;
+use App\Models\Playlist;
+use App\Models\User;
+use App\Services\Playlists\PlaylistLoader;
 use Common\Core\Bootstrap\BaseBootstrapData;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -19,10 +22,12 @@ class AppBootstrapData extends BaseBootstrapData
         }
 
         $this->data['settings']['spotify_is_setup'] =
-            config('common.site.spotify.id') &&
-            config('common.site.spotify.secret');
+            config('services.spotify.id') && config('services.spotify.secret');
+        $this->data['settings']['spotify_use_deprecated_api'] = config(
+            'services.spotify.use_deprecated_api',
+        );
         $this->data['settings']['lastfm_is_setup'] = !!config(
-            'common.site.lastfm.key',
+            'services.lastfm.key',
         );
 
         return $this;
@@ -48,10 +53,15 @@ class AppBootstrapData extends BaseBootstrapData
     {
         $this->data['playlists'] = $this->data['user']
             ->playlists()
-            ->compact()
+            ->with(['editors'])
             ->limit(30)
             ->orderBy('playlists.updated_at', 'desc')
             ->get()
+            ->map(
+                fn(Playlist $playlist) => (new PlaylistLoader())->toApiResource(
+                    $playlist,
+                ),
+            )
             ->toArray();
     }
 

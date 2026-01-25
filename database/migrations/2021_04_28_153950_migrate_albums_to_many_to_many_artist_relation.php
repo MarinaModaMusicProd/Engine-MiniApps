@@ -2,13 +2,15 @@
 
 use App\Models\Album;
 use App\Models\Artist;
-use App\Services\Providers\SaveOrUpdate;
+use App\Services\Providers\UpsertsDataIntoDB;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class MigrateAlbumsToManyToManyArtistRelation extends Migration
 {
-    use SaveOrUpdate;
+    use UpsertsDataIntoDB;
 
     /**
      * Run the migrations.
@@ -17,20 +19,24 @@ class MigrateAlbumsToManyToManyArtistRelation extends Migration
      */
     public function up()
     {
-        if ( ! Schema::hasColumn('albums', 'artist_type')) return;
+        if (!Schema::hasColumn('albums', 'artist_type')) {
+            return;
+        }
 
         Album::where('artist_type', Artist::class)
             ->where('artist_id', '!=', 0)
-            ->chunkById(500, function(Collection $albums) {
-                $records = $albums->map(function(Album $album) {
+            ->chunkById(500, function (Collection $albums) {
+                $records = $albums->map(function (Album $album) {
                     return [
                         'artist_id' => $album->artist_id,
                         'album_id' => $album->id,
                         'primary' => true,
                     ];
                 });
-                $this->saveOrUpdate($records->toArray(), 'artist_album');
-                DB::table('albums')->whereIn('id', $albums->pluck('id'))->update(['artist_id' => null]);
+                $this->upsert($records->toArray(), 'artist_album');
+                DB::table('albums')
+                    ->whereIn('id', $albums->pluck('id'))
+                    ->update(['artist_id' => null]);
             });
     }
 
@@ -41,6 +47,6 @@ class MigrateAlbumsToManyToManyArtistRelation extends Migration
      */
     public function down()
     {
-       //
+        //
     }
 }

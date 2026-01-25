@@ -4,7 +4,7 @@ export interface Settings {
   locale?: {
     default?: string;
   };
-  dates: {
+  dates?: {
     format: string;
     default_timezone: string;
   };

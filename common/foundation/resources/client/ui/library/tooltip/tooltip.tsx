@@ -1,3 +1,11 @@
+import { OffsetOptions, Placement } from '@floating-ui/react-dom';
+import { mergeProps } from '@react-aria/utils';
+import { MessageDescriptor } from '@ui/i18n/message-descriptor';
+import { useFloatingPosition } from '@ui/overlays/floating-position';
+import { PopoverAnimation } from '@ui/overlays/popover-animation';
+import { rootEl } from '@ui/root-el';
+import clsx from 'clsx';
+import { AnimatePresence, m } from 'framer-motion';
 import {
   cloneElement,
   forwardRef,
@@ -11,15 +19,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import {AnimatePresence, m} from 'framer-motion';
-import clsx from 'clsx';
-import {createPortal} from 'react-dom';
-import {mergeProps} from '@react-aria/utils';
-import {OffsetOptions, Placement} from '@floating-ui/react-dom';
-import {MessageDescriptor} from '@ui/i18n/message-descriptor';
-import {useFloatingPosition} from '@ui/overlays/floating-position';
-import {PopoverAnimation} from '@ui/overlays/popover-animation';
-import {rootEl} from '@ui/root-el';
+import { createPortal } from 'react-dom';
 
 const TOOLTIP_COOLDOWN = 500;
 const tooltips: Record<string, ((immediate?: boolean) => void) | undefined> =
@@ -72,7 +72,7 @@ export const Tooltip = forwardRef<HTMLElement, Props>(
 
     const [isOpen, setIsOpen] = useState(false);
     const tooltipId = useId();
-    const closeTimeout = useRef<ReturnType<typeof setTimeout>>();
+    const closeTimeout = useRef<any>(null);
 
     const showTooltip = () => {
       clearTimeout(closeTimeout.current);
@@ -238,7 +238,9 @@ export const Tooltip = forwardRef<HTMLElement, Props>(
                 hideTooltip();
               },
               'aria-label':
-                typeof label === 'string' ? label : label.props.message,
+                typeof label === 'object' && 'props' in label
+                  ? label.props.message
+                  : `${label}`,
             } as HTMLAttributes<HTMLElement>,
             domProps,
           ),

@@ -1,19 +1,19 @@
-import {useEffect, useRef, useState} from 'react';
-import {useSearchParams} from 'react-router-dom';
+import {billingQueries} from '@common/billing/billing-queries';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {loadStripe, SetupIntent} from '@stripe/stripe-js';
 import {message} from '@ui/i18n/message';
-import {apiClient} from '@common/http/query-client';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {useSettings} from '@ui/settings/use-settings';
+import {useEffect, useRef, useState} from 'react';
+import {useSearchParams} from 'react-router';
 import {
   BillingRedirectMessage,
   BillingRedirectMessageConfig,
 } from '../../billing-redirect-message';
-import {invalidateBillingUserQuery} from '../use-billing-user';
-import {useSettings} from '@ui/settings/use-settings';
 
 const previousUrl = '/billing';
 
-export function ChangePaymentMethodDone() {
+export function Component() {
   const {
     billing: {stripe_public_key},
   } = useSettings();
@@ -25,7 +25,7 @@ export function ChangePaymentMethodDone() {
   const [messageConfig, setMessageConfig] =
     useState<BillingRedirectMessageConfig>();
 
-  const stripeInitiated = useRef<boolean>();
+  const stripeInitiated = useRef(false);
 
   useEffect(() => {
     if (stripeInitiated.current || !clientSecret) return;
@@ -38,7 +38,9 @@ export function ChangePaymentMethodDone() {
         if (setupIntent?.status === 'succeeded') {
           changeDefaultPaymentMethod(setupIntent.payment_method as string).then(
             () => {
-              invalidateBillingUserQuery();
+              queryClient.invalidateQueries({
+                queryKey: billingQueries.user().queryKey,
+              });
             },
           );
         }

@@ -1,8 +1,7 @@
 <?php
 
-use Common\Files\FileEntry;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 class MaterializeOwnerIdInFileEntriesTable extends Migration
 {
@@ -13,16 +12,14 @@ class MaterializeOwnerIdInFileEntriesTable extends Migration
      */
     public function up()
     {
-        FileEntry::with([
-            'users' => function (MorphToMany $builder) {
-                $builder->where('owner', true)->limit(1);
-            },
-        ])
+        DB::table('file_entry_models')
+            ->where('owner', true)
+            ->where('model_type', 'user')
             ->lazyById(100)
-            ->each(function ($entry) {
-                if ($owner = $entry->users->first()) {
-                    $entry->update(['owner_id' => $owner->id]);
-                }
+            ->each(function ($row) {
+                DB::table('file_entries')
+                    ->where('id', $row->file_entry_id)
+                    ->update(['owner_id' => $row->model_id]);
             });
     }
 

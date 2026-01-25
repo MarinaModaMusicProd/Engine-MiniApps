@@ -6,10 +6,6 @@ const workspaceInviteNotif =
   'Common\\Workspaces\\Notifications\\WorkspaceInvitation';
 
 export const BaseSiteConfig: SiteConfigContextValue = {
-  auth: {
-    redirectUri: '/',
-    adminRedirectUri: '/admin',
-  },
   tags: {
     types: [{name: 'custom'}],
   },
@@ -23,14 +19,5 @@ export const BaseSiteConfig: SiteConfigContextValue = {
   },
   admin: {
     ads: [],
-  },
-  demo: {
-    loginPageDefaults: 'singleAccount',
-  },
-  homepage: {
-    options: [
-      {label: message('Login page'), value: 'loginPage'},
-      {label: message('Registration page'), value: 'registerPage'},
-    ],
   },
 };

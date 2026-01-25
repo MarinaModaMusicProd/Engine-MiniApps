@@ -1,3 +1,22 @@
+import {PolicyFailMessage} from '@common/billing/upgrade/policy-fail-message';
+import {Button, ButtonProps} from '@ui/buttons/button';
+import {ButtonBase} from '@ui/buttons/button-base';
+import {Trans} from '@ui/i18n/trans';
+import {AddIcon} from '@ui/icons/material/Add';
+import {CheckIcon} from '@ui/icons/material/Check';
+import {DeleteIcon} from '@ui/icons/material/Delete';
+import {EditIcon} from '@ui/icons/material/Edit';
+import {ExitToAppIcon} from '@ui/icons/material/ExitToApp';
+import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
+import {PersonAddIcon} from '@ui/icons/material/PersonAdd';
+import {UnfoldMoreIcon} from '@ui/icons/material/UnfoldMore';
+import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {openDialog} from '@ui/overlays/store/dialog-store';
 import clsx from 'clsx';
 import {
   cloneElement,
@@ -7,38 +26,19 @@ import {
   useEffect,
   useState,
 } from 'react';
-import {ButtonBase} from '@ui/buttons/button-base';
-import {PersonalWorkspace, useUserWorkspaces} from './user-workspaces';
-import {UnfoldMoreIcon} from '@ui/icons/material/UnfoldMore';
-import {AddIcon} from '@ui/icons/material/Add';
-import {NewWorkspaceDialog} from './new-workspace-dialog';
-import {WorkspaceMembersDialog} from './workspace-members-dialog';
+import {useAuth} from '../auth/use-auth';
 import {
   useActiveWorkspace,
   useActiveWorkspaceId,
 } from './active-workspace-id-context';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {Workspace} from './types/workspace';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {Button, ButtonProps} from '@ui/buttons/button';
-import {CheckIcon} from '@ui/icons/material/Check';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
-import {PersonAddIcon} from '@ui/icons/material/PersonAdd';
-import {DeleteIcon} from '@ui/icons/material/Delete';
-import {ExitToAppIcon} from '@ui/icons/material/ExitToApp';
-import {EditIcon} from '@ui/icons/material/Edit';
+import {LeaveWorkspaceConfirmation} from './leave-workspace-confirmation';
+import {NewWorkspaceDialog} from './new-workspace-dialog';
 import {RenameWorkspaceDialog} from './rename-workspace-dialog';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {useDeleteWorkspace} from './requests/delete-workspace';
 import {useRemoveMember} from './requests/remove-member';
-import {useAuth} from '../auth/use-auth';
-import {Trans} from '@ui/i18n/trans';
-import {LeaveWorkspaceConfirmation} from './leave-workspace-confirmation';
-import {openDialog} from '@ui/overlays/store/dialog-store';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {PolicyFailMessage} from '@common/billing/upgrade/policy-fail-message';
+import {Workspace} from './types/workspace';
+import {PersonalWorkspace, useUserWorkspaces} from './user-workspaces';
+import {WorkspaceMembersDialog} from './workspace-members-dialog';
 
 interface WorkspaceSelectorProps {
   className?: string;

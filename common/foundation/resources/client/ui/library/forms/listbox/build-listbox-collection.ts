@@ -1,9 +1,9 @@
-import {Children, isValidElement, ReactElement, ReactNode} from 'react';
+import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 import memoize from 'nano-memoize';
+import {Children, isValidElement, ReactElement, ReactNode} from 'react';
 import {ListboxItemProps} from './item';
 import {ListboxSectionProps, Section} from './section';
 import {ListBoxChildren} from './types';
-import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 
 export type ListboxCollection = Map<string | number, CollectionItem<any>>;
 
@@ -103,9 +103,15 @@ const childrenToCollection = memoize(
       if (!isValidElement(child)) return;
       if (child.type === Section) {
         Children.forEach(
-          child.props.children,
+          (child as ReactElement<ListboxSectionProps>).props.children,
           (nestedChild, nestedChildIndex) => {
-            setOption(nestedChild, child, childIndex, nestedChildIndex);
+            if (!isValidElement(nestedChild)) return;
+            setOption(
+              nestedChild as ReactElement<ListboxItemProps>,
+              child,
+              childIndex,
+              nestedChildIndex,
+            );
           },
         );
       } else {

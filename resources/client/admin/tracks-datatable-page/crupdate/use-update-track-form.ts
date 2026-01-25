@@ -1,11 +1,11 @@
-import {useForm} from 'react-hook-form';
+import {CreateTrackPayload} from '@app/admin/tracks-datatable-page/requests/use-create-track';
 import {
   UpdateTrackPayload,
   UpdateTrackResponse,
   useUpdateTrack,
 } from '@app/admin/tracks-datatable-page/requests/use-update-track';
 import {Track} from '@app/web-player/tracks/track';
-import {CreateTrackPayload} from '@app/admin/tracks-datatable-page/requests/use-create-track';
+import {useForm} from 'react-hook-form';
 
 interface Options {
   onTrackUpdated?: (response: UpdateTrackResponse) => void;
@@ -13,7 +13,7 @@ interface Options {
 
 export function useUpdateTrackForm(
   track: UpdateTrackPayload | CreateTrackPayload | Omit<Track, 'lyric'>,
-  options: Options = {}
+  options: Options = {},
 ) {
   const form = useForm<UpdateTrackPayload>({
     defaultValues: {

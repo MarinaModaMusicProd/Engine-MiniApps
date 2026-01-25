@@ -3,8 +3,6 @@
 use Common\Billing\GatewayException;
 use Common\Billing\Notifications\PaymentFailed;
 use Common\Billing\Subscription;
-use Common\Billing\Gateways\Paypal\InteractsWithPaypalRestApi;
-use Common\Billing\Gateways\Paypal\Paypal;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
@@ -24,10 +22,7 @@ class PaypalWebhookController extends Controller
     {
         $payload = $request->all();
 
-        if (
-            config('common.site.verify_paypal_webhook') &&
-            !$this->webhookIsValid()
-        ) {
+        if (config('app.verify_paypal_webhook') && !$this->webhookIsValid()) {
             return response('Webhook validation failed', 422);
         }
 

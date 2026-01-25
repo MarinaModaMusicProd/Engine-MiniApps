@@ -1,6 +1,6 @@
 <?php
 
-use Common\Settings\Setting;
+use Common\Settings\Models\Setting;
 use Common\Settings\Settings;
 use Illuminate\Database\Migrations\Migration;
 

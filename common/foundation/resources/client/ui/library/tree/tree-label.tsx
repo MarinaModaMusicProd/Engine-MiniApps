@@ -1,12 +1,7 @@
-import React, {
-  forwardRef,
-  MouseEventHandler,
-  ReactNode,
-  useContext,
-} from 'react';
-import {TreeContext} from './tree-context';
-import clsx from 'clsx';
 import {ArrowRightIcon} from '@ui/icons/material/ArrowRight';
+import clsx from 'clsx';
+import {forwardRef, MouseEventHandler, ReactNode, useContext} from 'react';
+import {TreeContext} from './tree-context';
 
 interface TreeLabelProps {
   level?: number;
@@ -43,7 +38,7 @@ export const TreeLabel = forwardRef<HTMLDivElement, TreeLabelProps>(
           setSelectedKeys([node.id]);
         }}
         className={clsx(
-          'header tree-label flex cursor-pointer flex-nowrap items-center gap-4 overflow-hidden text-ellipsis whitespace-nowrap rounded py-6',
+          'header tree-label flex cursor-pointer flex-nowrap items-center gap-4 overflow-hidden text-ellipsis whitespace-nowrap rounded-button py-6',
           className,
           isSelected && 'bg-primary/selected font-bold text-primary',
           !isSelected && 'hover:bg-hover',

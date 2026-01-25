@@ -1,10 +1,10 @@
+import {FocusEventHandler, ReactNode} from 'react';
 import {
   FieldValues,
   FormProvider,
   SubmitHandler,
   UseFormReturn,
 } from 'react-hook-form';
-import {FocusEventHandler, ReactNode} from 'react';
 
 interface Props<T extends FieldValues> {
   children: ReactNode;
@@ -14,6 +14,7 @@ interface Props<T extends FieldValues> {
   onBeforeSubmit?: () => void;
   onBlur?: FocusEventHandler<HTMLFormElement>;
   id?: string;
+  disableNativeValidation?: boolean;
 }
 export function Form<T extends FieldValues>({
   children,
@@ -23,10 +24,12 @@ export function Form<T extends FieldValues>({
   className,
   id,
   onBlur,
+  disableNativeValidation,
 }: Props<T>) {
   return (
     <FormProvider {...form}>
       <form
+        noValidate={disableNativeValidation}
         id={id}
         onBlur={onBlur}
         className={className}

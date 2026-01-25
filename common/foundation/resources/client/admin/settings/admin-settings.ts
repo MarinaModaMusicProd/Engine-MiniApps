@@ -1,10 +1,15 @@
 import {Settings} from '@ui/settings/settings';
+import {CssTheme} from '@ui/themes/css-theme';
 
 export interface AdminServerSettings {
+  app_version: string;
+  app_name: string;
   app_url: string;
   app_timezone: string;
   app_locale: string;
   newAppUrl?: string;
+  enable_contact_page?: boolean;
+  envato_purchase_code?: string;
 
   // subscriptions
   paypal_client_id?: string;
@@ -66,7 +71,7 @@ export interface AdminServerSettings {
   // mail
   mail_from_address?: string;
   mail_from_name?: string;
-  mail_driver?: string;
+  mail_mailer?: string;
   mail_setup?: boolean;
   connectedGmailAccount?: string;
 
@@ -91,7 +96,7 @@ export interface AdminServerSettings {
   postmark_token?: string;
 
   // cache
-  cache_driver?: string;
+  cache_store?: string;
 
   // memcached
   memcached_host?: string;
@@ -101,15 +106,15 @@ export interface AdminServerSettings {
   sentry_dsn?: string;
 
   // queue
-  queue_driver?: string;
-  sqs_queue_key?: string;
-  sqs_queue_secret?: string;
-  sqs_queue_prefix?: string;
-  sqs_queue_name?: string;
-  sqs_queue_region?: string;
+  queue_connection?: string;
+  aws_access_key_id?: string;
+  aws_secret_access_key?: string;
+  sqs_prefix?: string;
+  sqs_queue?: string;
+  aws_default_region?: string;
 
   // websockets
-  broadcast_driver?: string;
+  broadcast_connection?: string;
   pusher_app_id?: string;
   pusher_app_key?: string;
   pusher_app_secret?: string;
@@ -120,9 +125,7 @@ export interface AdminServerSettings {
   reverb_host?: string;
   reverb_port?: string;
   reverb_scheme?: string;
-  ably_app_id?: string;
-  ably_app_key?: string;
-  ably_app_secret?: string;
+  ably_key?: string;
 
   // analytics
   analytics_property_id?: string;
@@ -134,7 +137,16 @@ export interface AdminServerSettings {
   algolia_secret?: string;
 
   // AI
+  llm_provider?: string;
+  embeddings_provider?: string;
+  openai_text_model?: string;
   openai_api_key?: string;
+  anthropic_text_model?: string;
+  anthropic_api_key?: string;
+  gemini_text_model?: string;
+  gemini_api_key?: string;
+  openrouter_text_model?: string;
+  openrouter_api_key?: string;
 
   // mtdb
   tmdb_api_key?: string;
@@ -147,7 +159,50 @@ export interface AdminServerSettings {
 }
 
 export interface AdminSettings {
-  client: Omit<Settings, 'menus' | 'base_url' | 'site'>;
+  update_available?: boolean;
+  client: Settings;
   server: AdminServerSettings;
-  files: Record<string, any>;
+  files: Record<string, File>;
+  themes: CssTheme[];
+  license?: {
+    purchase_code?: string;
+    item_id?: number;
+  };
+  modules?: Record<
+    string,
+    {
+      label: string;
+      built_in?: boolean;
+      installed?: boolean;
+      envato_item_id?: number;
+      envato_purchase_code?: string;
+    }
+  >;
+  custom_code: {
+    css: string;
+    html: string;
+  };
+  seo: Record<string, string>;
+  defaults: {
+    client: Settings;
+    themes: {
+      light: Record<string, string>;
+      dark: Record<string, string>;
+    };
+  };
+  uploading: {
+    types: Record<
+      string,
+      {
+        visibility: string;
+        label: string;
+        description: string;
+      }
+    >;
+    file_counts?: {
+      backend_id: string;
+      file_count: number;
+      total_size: number;
+    }[];
+  };
 }

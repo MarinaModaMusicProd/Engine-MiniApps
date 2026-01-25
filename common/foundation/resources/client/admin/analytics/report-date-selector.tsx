@@ -1,15 +1,14 @@
-import {useDateRangePickerState} from '@ui/forms/input-field/date/date-range-picker/use-date-range-picker-state';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {Button} from '@ui/buttons/button';
-import {DateRangeIcon} from '@ui/icons/material/DateRange';
-import {FormattedDateTimeRange} from '@ui/i18n/formatted-date-time-range';
-import {DateRangeDialog} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-dialog';
-import React from 'react';
-import {DateRangeValue} from '@ui/forms/input-field/date/date-range-picker/date-range-value';
-import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {DateFormatPresets} from '@ui/i18n/formatted-date';
-import {DateRangeComparePresets} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-compare-presets';
 import {Granularity} from '@ui/forms/input-field/date/date-picker/use-date-picker-state';
+import {DateRangeValue} from '@ui/forms/input-field/date/date-range-picker/date-range-value';
+import {DateRangeComparePresets} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-compare-presets';
+import {DateRangeDialog} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-dialog';
+import {useDateRangePickerState} from '@ui/forms/input-field/date/date-range-picker/use-date-range-picker-state';
+import {DateFormatPresets} from '@ui/i18n/formatted-date';
+import {FormattedDateTimeRange} from '@ui/i18n/formatted-date-time-range';
+import {DateRangeIcon} from '@ui/icons/material/DateRange';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
 
 const monthDayFormat: Intl.DateTimeFormatOptions = {
   month: 'short',

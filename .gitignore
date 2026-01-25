@@ -7,14 +7,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-vendor
-dist
-dist-ssr
+/node_modules
+/vendor
+/dist
+/dist-ssr
 *.local
-*.lock
-*.sql
-package-lock.json
 
 # Editor directories and files
 .vscode/*
@@ -31,12 +28,10 @@ Thumbs.db
 # misc
 /storage/tntsearch/*.index
 .htaccess
-public/.htaccess
-public/favicon
-public/favicon.ico
-install_files
+/public/.htaccess
+/public/favicon
+/public/favicon.ico
 /public/hot
-/public/build
 /storage/*.key
 Homestead.json
 Homestead.yaml
@@ -50,5 +45,3 @@ storageState.json
 resources/lang/*.json
 # manifest file will be created during installation
 public/manifest.json
-
-public/error_log

@@ -1,40 +1,24 @@
-import {useCustomPage} from '@common/custom-page/use-custom-page';
-import React, {Fragment, Suspense} from 'react';
-import {PageMetaTags} from '@common/http/page-meta-tags';
-import {PageStatus} from '@common/http/page-status';
-import {CustomPage} from '@common/admin/custom-pages/custom-page';
-import {FormProvider, useForm} from 'react-hook-form';
-import {useUpdateCustomPage} from '@common/admin/custom-pages/requests/use-update-custom-page';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {ArticleEditorTitle} from '@common/article-editor/article-editor-title';
-import {ArticleEditorStickyHeader} from '@common/article-editor/article-editor-sticky-header';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {UploadType} from '@app/site-config';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
 import {CreateCustomPagePayload} from '@common/admin/custom-pages/requests/use-create-custom-page';
-import {FullPageLoader} from '@ui/progress/full-page-loader';
+import {useUpdateCustomPage} from '@common/admin/custom-pages/requests/use-update-custom-page';
+import ArticleEditorPage from '@common/article-editor/article-editor-page';
+import {PageMetaTags} from '@common/http/page-meta-tags';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
+import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
+import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
+import {FormProvider, useForm} from 'react-hook-form';
+import {Fragment} from 'react/jsx-runtime';
 
-const ArticleBodyEditor = React.lazy(
-  () => import('@common/article-editor/article-body-editor'),
-);
+export function Component() {
+  const {pageId} = useRequiredParams(['pageId']);
+  const query = useSuspenseQuery(commonAdminQueries.customPages.get(pageId));
+  const page = query.data.page;
 
-export function EditCustomPage() {
-  const query = useCustomPage();
-
-  return query.data ? (
-    <Fragment>
-      <PageMetaTags query={query} />
-      <PageContent page={query.data.page} />
-    </Fragment>
-  ) : (
-    <div className="relative w-full h-full">
-      <PageStatus query={query} />
-    </div>
-  );
-}
-
-interface PageContentProps {
-  page: CustomPage;
-}
-function PageContent({page}: PageContentProps) {
   const navigate = useNavigate();
   const crupdatePage = useUpdateCustomPage();
   const form = useForm<CreateCustomPagePayload>({
@@ -45,40 +29,49 @@ function PageContent({page}: PageContentProps) {
     },
   });
 
-  const handleSave = (editorContent: string) => {
-    crupdatePage.mutate(
-      {
-        ...form.getValues(),
-        body: editorContent,
-      },
-      {
-        onSuccess: () => navigate('../..', {relative: 'path'}),
-      },
-    );
+  const handleSave = () => {
+    crupdatePage.mutate(form.getValues(), {
+      onSuccess: () => navigate('../..', {relative: 'path'}),
+    });
   };
 
+  const saveButton = (
+    <Button
+      variant="flat"
+      color="primary"
+      size="xs"
+      onClick={() => handleSave()}
+      disabled={crupdatePage.isPending}
+    >
+      <Trans message="Save" />
+    </Button>
+  );
+
+  const breadCrumb = (
+    <Breadcrumb size="xl">
+      <BreadcrumbItem to="../.." relative="path">
+        <Trans message="Custom pages" />
+      </BreadcrumbItem>
+      <BreadcrumbItem>
+        <Trans message="Edit" />
+      </BreadcrumbItem>
+    </Breadcrumb>
+  );
+
   return (
-    <Suspense fallback={<FullPageLoader />}>
-      <ArticleBodyEditor initialContent={page.body}>
-        {(content, editor) => (
-          <FileUploadProvider>
-            <FormProvider {...form}>
-              <ArticleEditorStickyHeader
-                editor={editor}
-                backLink="../.."
-                isLoading={crupdatePage.isPending}
-                onSave={handleSave}
-              />
-              <div className="mx-20">
-                <div className="prose dark:prose-invert mx-auto flex-auto">
-                  <ArticleEditorTitle />
-                  {content}
-                </div>
-              </div>
-            </FormProvider>
-          </FileUploadProvider>
-        )}
-      </ArticleBodyEditor>
-    </Suspense>
+    <Fragment>
+      <PageMetaTags query={query} />
+      <FormProvider {...form}>
+        <ArticleEditorPage
+          title={breadCrumb}
+          saveButton={saveButton}
+          imageUploadType={UploadType.articleImages}
+          initialContent={page.body}
+          onChange={value => {
+            form.setValue('body', value, {shouldDirty: true});
+          }}
+        />
+      </FormProvider>
+    </Fragment>
   );
 }

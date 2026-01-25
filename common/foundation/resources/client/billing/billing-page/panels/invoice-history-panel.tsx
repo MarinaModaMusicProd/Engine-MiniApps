@@ -1,52 +1,40 @@
-import {useBillingUser} from '../use-billing-user';
-import {BillingPlanPanel} from '../billing-plan-panel';
-import {Trans} from '@ui/i18n/trans';
-import {useInvoices} from '../requests/use-invoices';
-import {FormattedDate} from '@ui/i18n/formatted-date';
+import {BillingPageUserResponse} from '@common/billing/billing-page/billin-page-user-response';
+import {billingQueries} from '@common/billing/billing-queries';
+import {useSuspenseQuery} from '@tanstack/react-query';
 import {Chip} from '@ui/forms/input-field/chip-field/chip';
-import {OpenInNewIcon} from '@ui/icons/material/OpenInNew';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {AnimatePresence, m} from 'framer-motion';
-import {Invoice} from '../../invoice';
-import {opacityAnimation} from '@ui/animation/opacity-animation';
-import {useSettings} from '@ui/settings/use-settings';
 import {FormattedCurrency} from '@ui/i18n/formatted-currency';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {Trans} from '@ui/i18n/trans';
+import {OpenInNewIcon} from '@ui/icons/material/OpenInNew';
+import {useSettings} from '@ui/settings/use-settings';
+import {Invoice} from '../../invoice';
+import {BillingPlanPanel} from '../billing-plan-panel';
 
 export function InvoiceHistoryPanel() {
-  const {user} = useBillingUser();
-  const query = useInvoices(user?.id!);
-  if (!user) return null;
-
-  const invoices = query.data?.invoices;
+  const query = useSuspenseQuery(billingQueries.user());
 
   return (
-    <BillingPlanPanel title={<Trans message="Payment history" />}>
+    <BillingPlanPanel title={<Trans message="Invoices" />}>
       <div className="max-w-[464px]">
-        <AnimatePresence initial={false} mode="wait">
-          {query.isLoading ? (
-            <LoadingSkeleton key="loading-skeleton" />
-          ) : (
-            <InvoiceList key="invoices" invoices={invoices} />
-          )}
-        </AnimatePresence>
+        <InvoiceList data={query.data} />
       </div>
     </BillingPlanPanel>
   );
 }
 
 interface InvoiceListProps {
-  invoices?: Invoice[];
+  data: BillingPageUserResponse;
 }
-function InvoiceList({invoices}: InvoiceListProps) {
+function InvoiceList({data}: InvoiceListProps) {
   const {base_url} = useSettings();
   return (
-    <m.div {...opacityAnimation}>
-      {!invoices?.length ? (
+    <div>
+      {!data.invoices.length ? (
         <div className="italic text-muted">
           <Trans message="No invoices yet" />
         </div>
       ) : undefined}
-      {invoices?.map(invoice => (
+      {data.invoices.map(invoice => (
         <div
           className="mb-14 flex items-center justify-between gap-10 whitespace-nowrap text-base"
           key={invoice.id}
@@ -60,40 +48,48 @@ function InvoiceList({invoices}: InvoiceListProps) {
             <FormattedDate date={invoice.created_at} />
             <OpenInNewIcon size="xs" />
           </a>
-          {invoice.subscription.price && (
-            <div>
-              <FormattedCurrency
-                value={invoice.subscription.price.amount}
-                currency={invoice.subscription.price.currency}
-              />
-            </div>
-          )}
+          <AmountPaid invoice={invoice} />
           <Chip
             size="xs"
-            color={invoice.paid ? 'positive' : 'danger'}
+            color={invoice.status === 'paid' ? 'positive' : 'danger'}
             radius="rounded"
           >
-            {invoice.paid ? (
+            {invoice.status === 'paid' ? (
               <Trans message="Paid" />
             ) : (
               <Trans message="Unpaid" />
             )}
           </Chip>
-          <div>{invoice.subscription.product?.name}</div>
+          <div>{data.subscription.product.name}</div>
         </div>
       ))}
-    </m.div>
+    </div>
   );
 }
 
-function LoadingSkeleton() {
-  return (
-    <m.div {...opacityAnimation}>
-      <Skeleton className="mb-14" />
-      <Skeleton className="mb-14" />
-      <Skeleton className="mb-14" />
-      <Skeleton className="mb-14" />
-      <Skeleton />
-    </m.div>
-  );
+type AmountPaidProps = {
+  invoice: Invoice;
+};
+function AmountPaid({invoice}: AmountPaidProps) {
+  const currency =
+    invoice.currency || invoice.subscription.price?.currency || 'USD';
+  if (invoice.amount_paid != null) {
+    return (
+      <FormattedCurrency
+        valueInCents={invoice.amount_paid}
+        currency={currency}
+      />
+    );
+  }
+
+  if (invoice.subscription.price) {
+    return (
+      <FormattedCurrency
+        value={invoice.subscription.price.amount}
+        currency={currency}
+      />
+    );
+  }
+
+  return null;
 }

@@ -3,18 +3,18 @@
 namespace Common\Logging\Error;
 
 use Common\Core\BaseController;
+use Illuminate\Support\Facades\Auth;
 use Opcodes\LogViewer\Facades\LogViewer;
 
 class ErrorLogController extends BaseController
 {
-    public function __construct()
-    {
-        $this->middleware('isAdmin');
-    }
-
     public function index()
     {
-        if (config('common.site.demo')) {
+        if (!Auth::user()?->hasPermission('reports.view')) {
+            abort(403);
+        }
+
+        if (config('app.demo')) {
             return $this->success([
                 'selectedFile' => null,
                 'files' => [],
@@ -22,9 +22,7 @@ class ErrorLogController extends BaseController
             ]);
         }
 
-        $files = LogViewer::getFiles()
-            ->sortByLatestFirst()
-            ->values();
+        $files = LogViewer::getFiles()->sortByLatestFirst()->values();
 
         $perPage = request('perPage', 20);
 
@@ -43,10 +41,7 @@ class ErrorLogController extends BaseController
                     $logQuery->search(request('query'));
                 }
 
-                $pagination = $logQuery
-                    ->reverse()
-                    ->scan()
-                    ->paginate($perPage);
+                $pagination = $logQuery->reverse()->scan()->paginate($perPage);
 
                 $pagination->through(
                     fn($log) => [
@@ -76,6 +71,10 @@ class ErrorLogController extends BaseController
 
     public function download(string $identifier)
     {
+        if (!Auth::user()->hasPermission('reports.view')) {
+            abort(403);
+        }
+
         $file = LogViewer::getFile($identifier);
 
         return $file->download();
@@ -83,15 +82,22 @@ class ErrorLogController extends BaseController
 
     public function downloadLatest()
     {
-        $file = LogViewer::getFiles()
-            ->sortByLatestFirst()
-            ->first();
+        if (!Auth::user()->hasPermission('reports.view')) {
+            abort(403);
+        }
+        $file = LogViewer::getFiles()->sortByLatestFirst()->first();
 
         return $file->download();
     }
 
     public function destroy(string $fileIdentifier)
     {
+        if (!Auth::user()->hasPermission('reports.view')) {
+            abort(403);
+        }
+
+        $this->blockOnDemoSite();
+
         $file = LogViewer::getFile($fileIdentifier);
 
         if (!is_null($file)) {

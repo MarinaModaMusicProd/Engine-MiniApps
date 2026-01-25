@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Album;
 use App\Models\Artist;
 use App\Models\Playlist;
+use App\Models\Track;
 use App\Models\User;
 use App\Services\Tracks\Queries\AlbumTrackQuery;
 use App\Services\Tracks\Queries\ArtistTrackQuery;
@@ -12,6 +13,7 @@ use App\Services\Tracks\Queries\BaseTrackQuery;
 use App\Services\Tracks\Queries\HistoryTrackQuery;
 use App\Services\Tracks\Queries\LibraryTracksQuery;
 use App\Services\Tracks\Queries\PlaylistTrackQuery;
+use App\Services\Tracks\TrackLoader;
 use Common\Core\BaseController;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -66,7 +68,14 @@ class PlayerTracksController extends BaseController
             );
         }
 
-        return $this->success(['tracks' => $dbQuery->limit($perPage)->get()]);
+        $tracks = $dbQuery
+            ->limit($perPage)
+            ->get()
+            ->map(
+                fn(Track $track) => (new TrackLoader())->toApiResource($track),
+            );
+
+        return $this->success(['tracks' => $tracks]);
     }
 
     private function getTrackQuery(

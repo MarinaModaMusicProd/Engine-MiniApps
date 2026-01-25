@@ -1,4 +1,6 @@
-import React, {
+import {mergeProps} from '@react-aria/utils';
+import clsx from 'clsx';
+import {
   Children,
   cloneElement,
   ComponentPropsWithoutRef,
@@ -8,10 +10,8 @@ import React, {
   ReactNode,
   useContext,
 } from 'react';
-import clsx from 'clsx';
-import {mergeProps} from '@react-aria/utils';
-import {DialogContext} from './dialog-context';
 import {InputSize} from '../../forms/input-field/input-size';
+import {DialogContext} from './dialog-context';
 import {DismissButton} from './dismiss-button';
 
 export type DialogSize =
@@ -46,7 +46,7 @@ export function Dialog(props: DialogProps) {
     className,
     size = 'md',
     background,
-    radius = 'rounded',
+    radius = 'rounded-panel',
     maxWidth = 'max-w-dialog',
     maxHeight = 'max-h-dialog',
     shadow = 'shadow-2xl',
@@ -63,10 +63,12 @@ export function Dialog(props: DialogProps) {
   const isTrayOrFullScreen = size === 'fullscreenTakeover' || type === 'tray';
   const mergedClassName = clsx(
     'mx-auto pointer-events-auto outline-none flex flex-col overflow-hidden',
-    background || 'bg',
+    background || 'bg-elevated',
+    type === 'drawer' && 'h-full',
     type !== 'tray' && sizeStyle(size),
     type === 'tray' && 'rounded-t border-b-bg',
-    size !== 'fullscreenTakeover' && `${shadow} border ${maxHeight}`,
+    size !== 'fullscreenTakeover' && `${shadow} border`,
+    size !== 'fullscreenTakeover' && type !== 'drawer' && maxHeight,
     !isTrayOrFullScreen && `${radius} ${maxWidth}`,
     className,
   );

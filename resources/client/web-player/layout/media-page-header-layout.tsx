@@ -1,5 +1,5 @@
-import React, {cloneElement, ReactElement, ReactNode} from 'react';
 import clsx from 'clsx';
+import {cloneElement, ReactElement, ReactNode} from 'react';
 
 interface MediaPageHeaderLayoutProps {
   className?: string;
@@ -7,7 +7,7 @@ interface MediaPageHeaderLayoutProps {
   title: ReactNode;
   subtitle?: ReactNode;
   description?: ReactNode;
-  actionButtons?: ReactNode;
+  actionsBar?: ReactNode;
   centerItems?: boolean;
   footer?: ReactNode;
 }
@@ -17,36 +17,42 @@ export function MediaPageHeaderLayout({
   title,
   subtitle,
   description,
-  actionButtons,
+  actionsBar,
   footer,
-  centerItems = false,
+  centerItems = true,
 }: MediaPageHeaderLayoutProps) {
   return (
-    <header
-      className={clsx(
-        'flex flex-col md:flex-row gap-24 md:gap-34',
-        centerItems && 'items-center',
-        className
-      )}
-    >
-      {cloneElement(image, {
-        size: image.props.size || 'w-256 h-256',
-        className: clsx(image.props.className, 'mx-auto flex-shrink-0'),
-      })}
-      <div className="flex-auto min-w-0">
-        <h1 className="text-2xl md:text-4xl font-semibold mb-14 text-center md:text-start">
-          {title}
-        </h1>
-        {subtitle && <div className="w-max mx-auto md:mx-0">{subtitle}</div>}
-        {description ? (
-          <div className="text-muted mt-18 md:mt-26 text-sm w-max mx-auto md:mx-0">
-            {description}
-          </div>
-        ) : null}
-        <div className="mt-30">{actionButtons}</div>
-        {footer ? <div className="mt-30">{footer}</div> : null}
-      </div>
-    </header>
+    <div>
+      <header
+        className={clsx(
+          'flex flex-col gap-24 md:flex-row md:gap-34',
+          centerItems && 'items-center',
+          className,
+        )}
+      >
+        {cloneElement(image, {
+          size: image.props.size || 'size-192 md:size-256',
+          className: clsx(
+            image.props.className,
+            'mx-auto flex-shrink-0 dark:shadow-lg',
+          ),
+        })}
+        <div className="min-w-0 flex-auto pb-8">
+          <h1 className="mb-10 text-center text-2xl font-semibold md:text-start md:text-4xl">
+            {title}
+          </h1>
+          {subtitle && <div className="mx-auto w-max md:mx-0">{subtitle}</div>}
+          {description ? (
+            <div className="mx-auto mt-18 w-max text-sm text-muted md:mx-0 md:mt-26">
+              {description}
+            </div>
+          ) : null}
+
+          {footer ? <div className="mt-24">{footer}</div> : null}
+        </div>
+      </header>
+      {actionsBar ? <div className="my-48">{actionsBar}</div> : null}
+    </div>
   );
 }
 
@@ -56,5 +62,5 @@ interface ActionButtonClassNameProps {
 export function actionButtonClassName({
   isFirst,
 }: ActionButtonClassNameProps = {}) {
-  return clsx('min-h-40', isFirst ? 'min-w-128 mr-20' : 'mr-10 min-w-100');
+  return clsx('min-h-42', isFirst ? 'min-w-128 mr-20' : 'mr-10 min-w-100');
 }

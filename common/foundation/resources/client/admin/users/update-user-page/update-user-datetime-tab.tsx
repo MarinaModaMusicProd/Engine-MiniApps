@@ -1,8 +1,8 @@
-import {useOutletContext} from 'react-router-dom';
+import {UpdateUserPageUser} from '@common/admin/users/update-user-page/update-user-page-user';
 import {LocalizationPanel} from '@common/auth/ui/account-settings/localization-panel';
-import {User} from '@ui/types/user';
+import {useOutletContext} from 'react-router';
 
-export function UpdateUserDatetimeTab() {
-  const user = useOutletContext() as User;
+export function Component() {
+  const user = useOutletContext() as UpdateUserPageUser;
   return <LocalizationPanel user={user} />;
 }

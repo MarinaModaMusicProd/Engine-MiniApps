@@ -3,7 +3,6 @@
 namespace Common\Workspaces\Actions;
 
 use App\Models\User;
-use Common\Workspaces\Actions\DeleteInviteNotification;
 use Common\Workspaces\WorkspaceInvite;
 use Session;
 

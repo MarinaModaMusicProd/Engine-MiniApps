@@ -4,7 +4,6 @@ namespace Common\Comments;
 
 use App\Models\User;
 use Common\Auth\BaseUser;
-use Common\Comments\Comment;
 use Common\Core\Policies\BasePolicy;
 
 class CommentPolicy extends BasePolicy

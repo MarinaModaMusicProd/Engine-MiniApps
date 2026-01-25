@@ -11,8 +11,7 @@ class LocalizationsController extends BaseController
     public function __construct(
         protected Request $request,
         protected LocalizationsRepository $repository,
-    ) {
-    }
+    ) {}
 
     public function index()
     {
@@ -43,6 +42,7 @@ class LocalizationsController extends BaseController
     public function update(int $id)
     {
         $this->authorize('update', Localization::class);
+        $this->blockOnDemoSite();
 
         $this->validate($this->request, [
             'name' => 'string|min:1',
@@ -61,6 +61,7 @@ class LocalizationsController extends BaseController
     public function store()
     {
         $this->authorize('store', Localization::class);
+        $this->blockOnDemoSite();
 
         $this->validate($this->request, [
             'name' => 'required|unique:localizations',
@@ -76,6 +77,7 @@ class LocalizationsController extends BaseController
         $localizationIds = explode(',', $ids);
 
         $this->authorize('destroy', Localization::class);
+        $this->blockOnDemoSite();
 
         foreach ($localizationIds as $id) {
             if (Localization::count() === 1) {
@@ -103,6 +105,7 @@ class LocalizationsController extends BaseController
         $localization = Localization::findOrFail($id);
 
         $this->authorize('update', $localization);
+        $this->blockOnDemoSite();
 
         $data = $this->validate($this->request, [
             'file' => 'required|file|mimes:json',

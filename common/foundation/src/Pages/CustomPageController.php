@@ -1,13 +1,13 @@
 <?php namespace Common\Pages;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Core\BaseController;
 use Common\Database\Datasource\Datasource;
 use Common\Pages\CrupdatePage;
 use Common\Pages\CustomPage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Str;
+use Illuminate\Support\Str;
 
 class CustomPageController extends BaseController
 {
@@ -18,8 +18,7 @@ class CustomPageController extends BaseController
     public function __construct(
         protected CustomPage $page,
         protected Request $request,
-    ) {
-    }
+    ) {}
 
     public function index()
     {
@@ -57,6 +56,25 @@ class CustomPageController extends BaseController
 
     public function show(int|string $id)
     {
+        if (
+            $id === 'f7fy8bxf0e18' &&
+            (request()->header('X-Settings-Preview') === 'true' ||
+                request('settingsPreview') === 'true')
+        ) {
+            return [
+                'page' => [
+                    'id' => -1,
+                    'title' => 'Preview',
+                    'slug' => 'preview',
+                    'type' => 'default',
+                    'body' => file_get_contents(
+                        app('path.common') .
+                            '/resources/defaults/privacy-policy.html',
+                    ),
+                ],
+            ];
+        }
+
         $page = $this->page
             ->where('slug', $id)
             ->orWhere('id', $id)
@@ -76,6 +94,7 @@ class CustomPageController extends BaseController
     public function store()
     {
         $this->authorize('store', get_class($this->page));
+        $this->blockOnDemoSite();
 
         $validatedData = $this->validate($this->request, [
             'title' => [
@@ -106,7 +125,9 @@ class CustomPageController extends BaseController
     public function update(int $id)
     {
         $page = $this->page->findOrFail($id);
+
         $this->authorize('update', $page);
+        $this->blockOnDemoSite();
 
         $validatedData = $this->validate($this->request, [
             'title' => [
@@ -137,8 +158,14 @@ class CustomPageController extends BaseController
     {
         $pageIds = explode(',', $ids);
         $this->authorize('destroy', [get_class($this->page), $pageIds]);
+        $this->blockOnDemoSite();
 
-        $this->page->whereIn('id', $pageIds)->delete();
+        $pages = $this->page->whereIn('id', $pageIds)->get();
+
+        $pages->each(function ($page) {
+            $page->inlineImages()->detach();
+            $page->delete();
+        });
 
         return $this->success();
     }

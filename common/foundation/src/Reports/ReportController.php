@@ -2,7 +2,7 @@
 
 namespace Common\Reports;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Common\Core\BaseController;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;

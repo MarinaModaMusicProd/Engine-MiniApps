@@ -4,27 +4,30 @@ namespace Common\Domains;
 
 use App\Models\User;
 use Common\Core\Policies\BasePolicy;
-use Common\Domains\CustomDomain;
 
 class CustomDomainPolicy extends BasePolicy
 {
     public $permissionName = 'custom_domains';
 
-    public function index(User $user, int $userId = null)
+    public function index(User $user, int|null $userId = null)
     {
-        return $user->hasPermission("$this->permissionName.view") ||
+        return $user->hasPermission("$this->permissionName.update") ||
             $user->id === $userId;
     }
 
     public function show(User $user, CustomDomain $customDomain)
     {
-        return $user->hasPermission("$this->permissionName.view") ||
+        return $user->hasPermission("$this->permissionName.update") ||
             $customDomain->user_id === $user->id;
     }
 
     public function store(User $user)
     {
-        return $this->storeWithCountRestriction($user, CustomDomain::class);
+        return $this->storeWithCountRestriction(
+            $user,
+            CustomDomain::class,
+            'update',
+        );
     }
 
     public function update(User $user)
@@ -34,7 +37,7 @@ class CustomDomainPolicy extends BasePolicy
 
     public function destroy(User $user, array $domainIds)
     {
-        if ($user->hasPermission("$this->permissionName.delete")) {
+        if ($user->hasPermission("$this->permissionName.update")) {
             return true;
         } else {
             $dbCount = app(CustomDomain::class)

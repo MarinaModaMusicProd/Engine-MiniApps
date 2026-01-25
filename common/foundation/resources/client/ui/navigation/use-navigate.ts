@@ -3,8 +3,8 @@ import {
   NavigateFunction,
   resolvePath,
   useLocation,
-  useNavigate as useRouterNavigate
-} from 'react-router-dom';
+  useNavigate as useRouterNavigate,
+} from 'react-router';
 import {useCallback} from 'react';
 
 export function useNavigate() {
@@ -22,6 +22,6 @@ export function useNavigate() {
         replace: options?.replace !== false && replace,
       });
     },
-    [routerNavigate, location]
+    [routerNavigate, location],
   ) as NavigateFunction;
 }

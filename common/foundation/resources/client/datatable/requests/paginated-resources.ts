@@ -1,10 +1,7 @@
-import {
-  keepPreviousData,
-  useQuery,
-  UseQueryOptions,
-} from '@tanstack/react-query';
-import {PaginatedBackendResponse} from '../../http/backend-response/pagination-response';
-import {apiClient} from '../../http/query-client';
+import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { useRef } from 'react';
+import { PaginatedBackendResponse } from '../../http/backend-response/pagination-response';
+import { apiClient } from '../../http/query-client';
 
 export interface GetDatatableDataParams {
   orderBy?: string;
@@ -13,7 +10,7 @@ export interface GetDatatableDataParams {
   query?: string;
   with?: string;
   perPage?: number | string | null;
-  page?: number | string;
+  page?: number | string | null;
   paginate?: 'simple' | 'lengthAware' | 'preferLengthAware' | 'cursor';
   [key: string]: string | number | boolean | undefined | null;
 }
@@ -45,21 +42,26 @@ export function useDatatableData<T = object>(
       any[]
     >,
     'queryKey' | 'queryFn'
-  > & {queryKey?: string[]},
+  > & {baseQueryKey?: string[]},
   onLoad?: (data: PaginatedBackendResponse<T>) => void,
 ) {
   if (!params.paginate) {
     params.paginate = 'preferLengthAware';
   }
   // having queryKey in option will cause unnecessary re-fetching
-  const optionsQueryKey = options?.queryKey;
-  delete options?.queryKey;
-  return useQuery({
+  const optionsQueryKey = options?.baseQueryKey;
+  delete options?.baseQueryKey;
+  const previousData = useRef<PaginatedBackendResponse<T> | undefined>(undefined);
+  const query = useQuery({
     ...options,
     queryKey: DatatableDataQueryKey(endpoint, params, optionsQueryKey),
     queryFn: ({signal}) => paginate<T>(endpoint, params, onLoad, signal),
-    placeholderData: keepPreviousData,
+    // keepPreviousData ignores hits to cache, so it returns previous
+    // data from most recent fetch and not most recently show data
+    placeholderData: options?.enabled ? () => previousData.current : undefined,
   });
+  previousData.current = query.data;
+  return query;
 }
 
 async function paginate<T>(

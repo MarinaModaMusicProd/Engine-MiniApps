@@ -1,3 +1,9 @@
+import {useFocusManager} from '@react-aria/focus';
+import {ButtonBase} from '@ui/buttons/button-base';
+import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {WarningIcon} from '@ui/icons/material/Warning';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import clsx from 'clsx';
 import React, {
   cloneElement,
   JSXElementConstructor,
@@ -5,30 +11,25 @@ import React, {
   ReactNode,
   useRef,
 } from 'react';
-import clsx from 'clsx';
-import {useFocusManager} from '@react-aria/focus';
-import {ButtonBase} from '@ui/buttons/button-base';
+import {To} from 'react-router';
 import {CancelFilledIcon} from './cancel-filled-icon';
-import {WarningIcon} from '@ui/icons/material/Warning';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {To} from 'react-router-dom';
 
 export interface ChipProps {
   onRemove?: () => void;
   disabled?: boolean;
   selectable?: boolean;
   invalid?: boolean;
-  errorMessage?: ReactElement | string;
+  errorMessage?: ReactElement<MessageDescriptor> | string;
   children?: ReactNode;
   className?: string;
   adornment?: null | ReactElement<{
     size: string;
     className?: string;
-    circle?: boolean;
   }>;
   radius?: string;
-  color?: 'chip' | 'primary' | 'danger' | 'positive';
+  color?: 'chip' | 'primary' | 'danger' | 'positive' | string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
+  fontWeight?: string;
   elementType?: 'div' | 'a' | JSXElementConstructor<any>;
   to?: To;
   onClick?: (e: React.MouseEvent) => void;
@@ -44,6 +45,7 @@ export function Chip(props: ChipProps) {
     selectable = false,
     radius = 'rounded-full',
     elementType = 'div',
+    fontWeight: fontSize,
     to,
     onClick,
   } = props;
@@ -89,7 +91,6 @@ export function Chip(props: ChipProps) {
       props.adornment &&
       cloneElement(props.adornment, {
         size: sizeStyle.adornment.size,
-        circle: true,
         className: clsx(
           props.adornment.props.className,
           sizeStyle.adornment.margin,
@@ -115,8 +116,8 @@ export function Chip(props: ChipProps) {
       onKeyDown={selectable ? handleKeyDown : undefined}
       onClick={selectable ? handleClick : undefined}
       className={clsx(
-        'relative flex flex-shrink-0 items-center justify-center gap-10 overflow-hidden whitespace-nowrap outline-none transition-opacity',
-        'min-w-0 max-w-full after:pointer-events-none after:absolute after:inset-0',
+        'relative flex max-w-full flex-shrink-0 items-center justify-center gap-10 overflow-hidden whitespace-nowrap outline-none transition-opacity',
+        'w-max min-w-0 after:pointer-events-none after:absolute after:inset-0',
         onClick && 'cursor-pointer',
         radius,
         colorClassName(props),
@@ -136,7 +137,7 @@ export function Chip(props: ChipProps) {
         <ButtonBase
           ref={deleteButtonRef}
           className={clsx(
-            'text-black/30 dark:text-white/50',
+            'flex-shrink-0 text-black/30 dark:text-white/50',
             sizeStyle.closeButton,
           )}
           onClick={e => {
@@ -152,36 +153,41 @@ export function Chip(props: ChipProps) {
   );
 }
 
-function sizeClassNames({size, onRemove}: ChipProps) {
+function sizeClassNames({size, onRemove, fontWeight}: ChipProps) {
   switch (size) {
     case 'xs':
       return {
         adornment: {size: 'xs', margin: '-ml-3'},
-        chip: clsx('pl-8 h-20 text-xs font-medium w-max', !onRemove && 'pr-8'),
+        chip: clsx(
+          'pl-8 h-20 text-xs w-max',
+          fontWeight ?? 'font-medium',
+          !onRemove && 'pr-8',
+        ),
         closeButton: 'mr-4 w-14 h-14',
       };
     case 'sm':
       return {
         adornment: {size: 'xs', margin: '-ml-3'},
-        chip: clsx('pl-8 h-26 text-xs', !onRemove && 'pr-8'),
+        chip: clsx('pl-8 h-26 text-xs', fontWeight, !onRemove && 'pr-8'),
         closeButton: 'mr-4 w-18 h-18',
       };
     case 'lg':
       return {
         adornment: {size: 'md', margin: '-ml-12'},
-        chip: clsx('pl-18 h-38 text-base', !onRemove && 'pr-18'),
+        chip: clsx('pl-18 h-38 text-base', fontWeight, !onRemove && 'pr-18'),
         closeButton: 'mr-6 w-24 h-24',
       };
     default:
       return {
         adornment: {size: 'sm', margin: '-ml-6'},
-        chip: clsx('pl-12 h-32 text-sm', !onRemove && 'pr-12'),
+        chip: clsx('pl-12 h-32 text-sm', fontWeight, !onRemove && 'pr-12'),
         closeButton: 'mr-6 w-22 h-22',
       };
   }
 }
 
 function colorClassName({color}: ChipProps): string {
+  if (!color) return 'bg-chip text-main';
   switch (color) {
     case 'primary':
       return `bg-primary text-on-primary`;
@@ -190,6 +196,6 @@ function colorClassName({color}: ChipProps): string {
     case 'danger':
       return `bg-danger-lighter text-danger-darker`;
     default:
-      return `bg-chip text-main`;
+      return color;
   }
 }

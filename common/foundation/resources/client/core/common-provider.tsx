@@ -1,58 +1,53 @@
-import React, {Fragment, StrictMode, useEffect, useRef, useState} from 'react';
-import {QueryClientProvider} from '@tanstack/react-query';
-import {domAnimation, LazyMotion} from 'framer-motion';
-import {queryClient} from '@common/http/query-client';
-import {SiteConfigContext} from '@common/core/settings/site-config-context';
 import {SiteConfig} from '@app/site-config';
-import deepMerge from 'deepmerge';
-import {BaseSiteConfig} from '@common/core/settings/base-site-config';
-import {ThemeProvider} from '@common/core/theme-provider';
-import {AppearanceListener} from '@common/admin/appearance/commands/appearance-listener';
-import {CookieNotice} from '@common/ui/cookie-notice/cookie-notice';
-import {ToastContainer} from '@ui/toast/toast-container';
-import {DialogStoreOutlet} from '@ui/overlays/store/dialog-store-outlet';
-import type {Router} from '@remix-run/router/dist/router';
-import {useSettings} from '@ui/settings/use-settings';
-import {useAuth} from '@common/auth/use-auth';
+import {SettingsPreviewListener} from '@common/admin/settings/preview/settings-preview-listener';
 import {verifyEmailRouter} from '@common/auth/ui/email-verification-page/email-verification-page';
+import {userSuspendedRouter} from '@common/auth/ui/user-suspended-page/user-suspended-page';
+import {useAuth} from '@common/auth/use-auth';
+import {BaseSiteConfig} from '@common/core/settings/base-site-config';
+import {SiteConfigContext} from '@common/core/settings/site-config-context';
+import {ThemeProvider} from '@common/core/theme-provider';
+import {useShowGlobalLoadingBar} from '@common/core/use-show-global-loading-bar';
+import {PageErrorMessage} from '@common/errors/page-error-message';
+import {errorStatusIs} from '@common/http/error-status-is';
+import {queryClient} from '@common/http/query-client';
+import {CookieNotice} from '@common/ui/cookie-notice/cookie-notice';
+import {NotFoundPage} from '@common/ui/not-found-page/not-found-page';
+import {QueryClientProvider} from '@tanstack/react-query';
+import {DialogStoreOutlet} from '@ui/overlays/store/dialog-store-outlet';
+import {TopProgressBar} from '@ui/progress/top-progress-bar';
+import {useSettings} from '@ui/settings/use-settings';
+import {ToastContainer} from '@ui/toast/toast-container';
+import deepMerge from 'deepmerge';
+import {domAnimation, LazyMotion} from 'framer-motion';
+import {Fragment, useEffect, useState} from 'react';
 import {
+  createBrowserRouter,
+  Navigate,
   Outlet,
   RouterProvider,
+  ScrollRestoration,
   useNavigation,
   useRouteError,
-  useLocation
-} from 'react-router-dom';
-import {FullPageLoader} from '@ui/progress/full-page-loader';
-import {TopProgressBar} from '@ui/progress/top-progress-bar';
-import {NotFoundPage} from '@common/ui/not-found-page/not-found-page';
-import {PageErrorMessage} from '@common/errors/page-error-message';
-import {userSuspendedRouter} from '@common/auth/ui/user-suspended-page/user-suspended-page';
-import WebApp from '@twa-dev/sdk';
-import {TonConnectUIProvider} from "@tonconnect/ui-react";
+} from 'react-router';
 
 const mergedConfig = deepMerge(BaseSiteConfig, SiteConfig);
+
+type Router = ReturnType<typeof createBrowserRouter>;
 
 interface Props {
   router: Router;
 }
-
 export function CommonProvider({router}: Props) {
-  const {base_url} = useSettings();
-
   return (
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <LazyMotion features={domAnimation}>
-          <SiteConfigContext.Provider value={mergedConfig}>
-            <ThemeProvider>
-              <TonConnectUIProvider manifestUrl={`${base_url}/tonconnect-manifest.json`}>
-                <CommonRouter router={router} />
-              </TonConnectUIProvider>
-            </ThemeProvider>
-          </SiteConfigContext.Provider>
-        </LazyMotion>
-      </QueryClientProvider>
-    </StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <LazyMotion features={domAnimation}>
+        <SiteConfigContext.Provider value={mergedConfig}>
+          <ThemeProvider>
+            <CommonRouter router={router} />
+          </ThemeProvider>
+        </SiteConfigContext.Provider>
+      </LazyMotion>
+    </QueryClientProvider>
   );
 }
 
@@ -64,29 +59,14 @@ function CommonRouter({router}: CommonRouterProps) {
   const {user} = useAuth();
 
   if (user != null && require_email_confirmation && !user.email_verified_at) {
-    return (
-      <RouterProvider
-        router={verifyEmailRouter}
-        fallbackElement={<FullPageLoader screen />}
-      />
-    );
+    return <RouterProvider router={verifyEmailRouter} />;
   }
 
   if (user != null && user.banned_at) {
-    return (
-      <RouterProvider
-        router={userSuspendedRouter}
-        fallbackElement={<FullPageLoader screen />}
-      />
-    );
+    return <RouterProvider router={userSuspendedRouter} />;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      fallbackElement={<FullPageLoader screen />}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 export function RootRoute() {
@@ -94,60 +74,43 @@ export function RootRoute() {
     <Fragment>
       <GlobalTopLoadingBar />
       <Outlet />
-      <AppearanceListener />
+      <SettingsPreviewListener />
       <CookieNotice />
       <ToastContainer />
       <DialogStoreOutlet />
+      <ScrollRestoration />
     </Fragment>
   );
 }
 
 export function RootErrorElement() {
+  const [bar] = useState(() => new TopProgressBar());
+  const {isLoggedIn} = useAuth();
   const error = useRouteError();
-  if ((error as any)?.status === 404) {
+
+  console.log(error);
+
+  // hide loading bar on error page
+  useEffect(() => {
+    bar.hide();
+  }, []);
+
+  if (errorStatusIs(error, 404)) {
     return <NotFoundPage />;
   }
+
+  if ((errorStatusIs(error, 401) || errorStatusIs(error, 403)) && !isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
   return <PageErrorMessage />;
 }
 
 export function GlobalTopLoadingBar() {
-  const [bar] = useState(() => new TopProgressBar());
   const {state} = useNavigation();
-  const timeoutRef = useRef<any>(null);
 
-  useEffect(() => {
-    if (!window && !WebApp?.initData) return;
-    WebApp.ready();
-    WebApp.expand();
-    WebApp.BackButton.onClick(() => {
-      history.back();
-    });
-
-    if (window.location.pathname === '/') {
-      WebApp.BackButton.hide();
-    } else {
-      WebApp.BackButton.show();
-    }
-  });
-
-  useEffect(() => {
-    // react router will always set loading to true when "lazy" is set on route, even if that router is already loaded, this will result in loading bar showing for a few milliseconds
-    if (state === 'loading') {
-      timeoutRef.current = setTimeout(() => {
-        bar.show();
-      }, 50);
-    } else {
-      clearTimeout(timeoutRef.current);
-      bar.hide();
-    }
-
-    return () => {
-      if (state !== 'loading') {
-        clearTimeout(timeoutRef.current);
-        bar.hide();
-      }
-    };
-  }, [state, bar]);
+  // only start showing loader after 50ms, this will prevent it from showing on most js chunk fetches
+  useShowGlobalLoadingBar({isLoading: state === 'loading', delay: 50});
 
   return null;
 }

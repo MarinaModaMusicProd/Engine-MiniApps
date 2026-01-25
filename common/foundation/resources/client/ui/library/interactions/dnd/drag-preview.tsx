@@ -1,17 +1,17 @@
-import {createPortal, flushSync} from 'react-dom';
-import React, {useImperativeHandle, useRef, useState} from 'react';
-import {ConnectedDraggable, DragPreviewRenderer} from './use-draggable';
-import {rootEl} from '@ui/root-el';
+import { rootEl } from '@ui/root-el';
+import React, { ReactElement, useImperativeHandle, useRef, useState } from 'react';
+import { createPortal, flushSync } from 'react-dom';
+import { ConnectedDraggable, DragPreviewRenderer } from './use-draggable';
 
 export interface DragPreviewProps {
-  children: (draggable: ConnectedDraggable) => JSX.Element;
+  children: (draggable: ConnectedDraggable) => ReactElement;
 }
 export const DragPreview = React.forwardRef<
   DragPreviewRenderer,
   DragPreviewProps
 >((props, ref) => {
   const render = props.children;
-  const [children, setChildren] = useState<JSX.Element | null>(null);
+  const [children, setChildren] = useState<ReactElement | null>(null);
   const domRef = useRef<HTMLDivElement>(null!);
 
   useImperativeHandle(

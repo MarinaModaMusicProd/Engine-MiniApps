@@ -1,18 +1,20 @@
 import {Comment} from '@common/comments/comment';
-import {Trans} from '@ui/i18n/trans';
-import {CommentIcon} from '@ui/icons/material/Comment';
+import {AccountRequiredCard} from '@common/comments/comment-list/account-required-card';
+import {CommentListItem} from '@common/comments/comment-list/comment-list-item';
+import {commentQueries} from '@common/comments/comment-queries';
 import {Commentable} from '@common/comments/commentable';
-import {useComments} from '@common/comments/requests/use-comments';
 import {InfiniteScrollSentinel} from '@common/ui/infinite-scroll/infinite-scroll-sentinel';
-import {AnimatePresence, m} from 'framer-motion';
+import {useFlatInfiniteQueryItems} from '@common/ui/infinite-scroll/use-flat-infinite-query-items';
+import {useSuspenseInfiniteQuery} from '@tanstack/react-query';
 import {opacityAnimation} from '@ui/animation/opacity-animation';
 import {FormattedNumber} from '@ui/i18n/formatted-number';
-import {IllustratedMessage} from '@ui/images/illustrated-message';
-import {CommentListItem} from '@common/comments/comment-list/comment-list-item';
-import {Skeleton} from '@ui/skeleton/skeleton';
-import {ReactNode} from 'react';
-import {AccountRequiredCard} from '@common/comments/comment-list/account-required-card';
 import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {CommentIcon} from '@ui/icons/material/Comment';
+import {IllustratedMessage} from '@ui/images/illustrated-message';
+import {Skeleton} from '@ui/skeleton/skeleton';
+import {AnimatePresence, m} from 'framer-motion';
+import {ReactNode, Suspense} from 'react';
 
 const accountRequiredMessage = message(
   'Please <l>login</l> or <r>create account</r> to comment',
@@ -25,46 +27,60 @@ interface CommentListProps {
   children?: ReactNode;
   perPage?: number;
 }
-export function CommentList({
-  className,
+export function CommentList({children, className, ...props}: CommentListProps) {
+  return (
+    <div className={className}>
+      <AnimatePresence initial={false} mode="wait">
+        <Suspense
+          fallback={<CommentListSkeleton>{children}</CommentListSkeleton>}
+        >
+          <CommentListContent {...props}>{children}</CommentListContent>
+        </Suspense>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function CommentListContent({
   commentable,
   canDeleteAllComments = false,
   children,
-  perPage = 25,
+  perPage,
 }: CommentListProps) {
-  const {items, totalItems, ...query} = useComments(commentable, {perPage});
-
-  if (query.isError) {
-    return null;
-  }
+  const query = useSuspenseInfiniteQuery(
+    commentQueries.commentable(commentable).list(perPage),
+  );
+  const items = useFlatInfiniteQueryItems(query);
+  const totalItems = query.data.pages[0]?.pagination?.total || 0;
 
   return (
-    <div className={className}>
-      <div className="mb-8 flex items-center gap-8 border-b pb-8">
-        <CommentIcon size="sm" className="text-muted" />
-        {query.isInitialLoading ? (
-          <Trans message="Loading comments..." />
-        ) : (
-          <Trans
-            message=":count comments"
-            values={{count: <FormattedNumber value={totalItems || 0} />}}
-          />
-        )}
-      </div>
+    <>
+      <Header>
+        <Trans
+          message=":count comments"
+          values={{count: <FormattedNumber value={totalItems} />}}
+        />
+      </Header>
       {children}
       <AccountRequiredCard message={accountRequiredMessage} />
-      <AnimatePresence initial={false} mode="wait">
-        {query.isInitialLoading ? (
-          <CommentSkeletons count={4} />
-        ) : (
-          <CommentListItems
-            comments={items}
-            canDeleteAllComments={canDeleteAllComments}
-            commentable={commentable}
-          />
-        )}
-      </AnimatePresence>
+      <CommentListItems
+        comments={items}
+        canDeleteAllComments={canDeleteAllComments}
+        commentable={commentable}
+      />
       <InfiniteScrollSentinel query={query} variant="loadMore" />
+    </>
+  );
+}
+
+type HeaderProps = {
+  children: ReactNode;
+};
+function Header({children}: HeaderProps) {
+  return (
+    <div className="mb-8 flex items-center gap-8 border-b pb-8">
+      <CommentIcon size="sm" className="text-muted" />
+      {children}
     </div>
   );
 }
@@ -104,10 +120,26 @@ function CommentListItems({
   );
 }
 
-interface CommentSkeletonsProps {
+type CommentListSkeletonProps = {
+  children: ReactNode;
+};
+function CommentListSkeleton({children}: CommentListSkeletonProps) {
+  return (
+    <>
+      <Header>
+        <Trans message="Loading comments..." />
+      </Header>
+      {children}
+      <AccountRequiredCard message={accountRequiredMessage} />
+      <CommentItemSkeletons count={4} />
+    </>
+  );
+}
+
+interface CommentItemSkeletonsProps {
   count: number;
 }
-function CommentSkeletons({count}: CommentSkeletonsProps) {
+function CommentItemSkeletons({count}: CommentItemSkeletonsProps) {
   return (
     <m.div key="loading-skeleton" {...opacityAnimation}>
       {[...new Array(count).keys()].map(index => (

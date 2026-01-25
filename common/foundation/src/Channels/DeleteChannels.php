@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class DeleteChannels
 {
-    public function execute(Collection $channels): int
+    public function execute(Collection $channels, bool $force = false): int
     {
         if (
+            !$force &&
             $channels->some(
                 fn(Channel $channel) => $channel->internal ||
                     Arr::get($channel->config, 'preventDeletion'),

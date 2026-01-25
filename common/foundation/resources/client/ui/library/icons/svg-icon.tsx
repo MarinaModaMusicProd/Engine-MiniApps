@@ -1,13 +1,15 @@
-import React, {forwardRef} from 'react';
 import clsx from 'clsx';
+import React, {forwardRef, RefObject} from 'react';
 
 export type IconSize = '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | string;
 
 export interface SvgIconProps extends React.SVGAttributes<SVGElement> {
   children?: React.ReactNode;
-  size?: IconSize;
+  size?: IconSize | null;
   color?: string;
   title?: string;
+  fill?: string;
+  ref?: RefObject<SVGSVGElement | null>;
 }
 
 export const SvgIcon = forwardRef<SVGSVGElement, SvgIconProps & {attr?: {}}>(
@@ -23,6 +25,7 @@ export const SvgIcon = forwardRef<SVGSVGElement, SvgIconProps & {attr?: {}}>(
       viewBox,
       width,
       height,
+      fill = 'fill-current',
       ...svgProps
     } = props;
 
@@ -34,7 +37,7 @@ export const SvgIcon = forwardRef<SVGSVGElement, SvgIconProps & {attr?: {}}>(
         viewBox={viewBox || '0 0 24 24'}
         {...attr}
         {...svgProps}
-        className={clsx('svg-icon', className, getSizeClassName(size))}
+        className={clsx('svg-icon', fill, className, getSizeClassName(size))}
         style={{
           color,
           ...style,
@@ -50,7 +53,7 @@ export const SvgIcon = forwardRef<SVGSVGElement, SvgIconProps & {attr?: {}}>(
   },
 );
 
-function getSizeClassName(size?: IconSize) {
+function getSizeClassName(size?: IconSize | null) {
   switch (size) {
     case '2xs':
       return 'icon-2xs';

@@ -1,44 +1,38 @@
-import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {toast} from '@ui/toast/toast';
-import {apiClient, queryClient} from '@common/http/query-client';
 import {AdminSettings} from '@common/admin/settings/admin-settings';
-import {onFormQueryError} from '@common/errors/on-form-query-error';
 import {FetchAdminSettingsResponse} from '@common/admin/settings/requests/use-admin-settings';
+import {onFormQueryError} from '@common/errors/on-form-query-error';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {useMutation} from '@tanstack/react-query';
 import {message} from '@ui/i18n/message';
+import {toast} from '@ui/toast/toast';
+import {UseFormReturn} from 'react-hook-form';
 
-export interface AdminSettingsWithFiles {
-  files?: Record<string, File>;
-  client?: Partial<AdminSettings['client']>;
-  server?: Partial<AdminSettings['server']>;
-}
-
-export function useUpdateAdminSettings(
-  form: UseFormReturn<AdminSettingsWithFiles>,
-) {
+export function useUpdateAdminSettings(form: UseFormReturn<AdminSettings>) {
   return useMutation({
-    mutationFn: (props: AdminSettingsWithFiles) => updateAdminSettings(props),
+    mutationKey: ['submitAdminSettings'],
+    mutationFn: (props: AdminSettings) => updateAdminSettings(props),
     onSuccess: response => {
-      toast(message('Settings updated'), {
-        position: 'bottom-right',
-      });
+      toast(message('Settings updated'));
       return queryClient.setQueryData(['fetchAdminSettings'], response);
     },
     onError: r => onFormQueryError(r, form),
   });
 }
 
-function updateAdminSettings({client, server, files}: AdminSettingsWithFiles) {
+function updateAdminSettings({files, ...other}: AdminSettings) {
   const formData = new FormData();
-  if (client) {
-    formData.set('client', JSON.stringify(client));
-  }
-  if (server) {
-    formData.set('server', JSON.stringify(server));
-  }
+
   Object.entries(files || {}).forEach(([key, file]) => {
     formData.set(key, file);
   });
+
+  for (const key in other) {
+    formData.set(
+      key,
+      JSON.stringify(other[key as keyof Omit<AdminSettings, 'files'>]),
+    );
+  }
+
   return apiClient
     .post<FetchAdminSettingsResponse>('settings', formData, {
       headers: {

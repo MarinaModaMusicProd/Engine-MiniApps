@@ -16,9 +16,8 @@ class ProductsController extends BaseController
 {
     public function __construct(
         protected Stripe $stripe,
-        protected Paypal $paypal
-    ) {
-    }
+        protected Paypal $paypal,
+    ) {}
 
     public function index()
     {
@@ -50,13 +49,14 @@ class ProductsController extends BaseController
     public function store()
     {
         $this->authorize('store', Product::class);
+        $this->blockOnDemoSite();
 
         $this->validate(request(), [
             'name' => 'required|string|max:250',
             'permissions' => 'array',
             'recommended' => 'boolean',
             'position' => 'integer',
-            'available_space' => 'nullable|integer|min:1',
+            'trial_period_days' => 'integer|min:0|max:14',
             'prices' => ['array', Rule::requiredIf(!request('free'))],
             'prices.*.currency' => 'required|string|max:255',
             'prices.*.interval' => 'string|max:255',
@@ -71,21 +71,26 @@ class ProductsController extends BaseController
     public function update(Product $product)
     {
         $this->authorize('update', $product);
+        $this->blockOnDemoSite();
 
-        $this->validate(request(), [
+        $data = $this->validate(request(), [
             'name' => 'required|string|max:250',
-            'permissions' => 'array',
+            'description' => 'nullable|string|max:250',
+            'position' => 'integer',
             'recommended' => 'boolean',
+            'hidden' => 'boolean',
+            'free' => 'boolean',
+            'feature_list' => 'array',
+            'permissions' => 'array',
+            'trial_period_days' => 'int|min:0|max:14',
             'prices' => ['array', Rule::requiredIf(!request('free'))],
             'prices.*.currency' => 'required|string|max:255',
             'prices.*.interval' => 'string|max:255',
+            'prices.*.interval_count' => 'integer',
             'prices.*.amount' => 'min:1',
         ]);
 
-        $product = app(CrupdateProduct::class)->execute(
-            request()->all(),
-            $product,
-        );
+        $product = app(CrupdateProduct::class)->execute($data, $product);
 
         return $this->success(['product' => $product]);
     }
@@ -93,6 +98,7 @@ class ProductsController extends BaseController
     public function destroy(Product $product): Response|JsonResponse
     {
         $this->authorize('destroy', $product);
+        $this->blockOnDemoSite();
 
         if ($product->subscriptions_count) {
             return $this->error(

@@ -1,29 +1,30 @@
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {useTrans} from '@ui/i18n/use-trans';
-import {List, ListItem} from '@ui/list/list';
+import {useAttachTagToTaggables} from '@common/tags/use-attach-tag-to-taggables';
+import {useDetachTagFromTaggables} from '@common/tags/use-detach-tag-from-taggables';
 import {useTags} from '@common/tags/use-tags';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import {Trans} from '@ui/i18n/trans';
+import {useTrans} from '@ui/i18n/use-trans';
+import {CheckIcon} from '@ui/icons/material/Check';
 import {PushPinIcon} from '@ui/icons/material/PushPin';
 import {SearchIcon} from '@ui/icons/material/Search';
-import {CheckIcon} from '@ui/icons/material/Check';
+import {List, ListItem} from '@ui/list/list';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {ProgressCircle} from '@ui/progress/progress-circle';
 import clsx from 'clsx';
 import {useMemo, useState} from 'react';
-import {Trans} from '@ui/i18n/trans';
-import {Tag} from '@common/tags/tag';
-import {useDetachTagFromTaggables} from '@common/tags/use-detach-tag-from-taggables';
-import {useAttachTagToTaggables} from '@common/tags/use-attach-tag-to-taggables';
-import {ProgressCircle} from '@ui/progress/progress-circle';
 
 interface Props {
-  attachedTags?: Tag[];
+  attachedTags?: {id: number; name: string}[];
   tagType?: string;
   notTagType?: string;
-  taggableType: string;
-  taggableIds: number[];
+  taggableType?: string;
+  taggableIds?: number[];
   userId?: number;
   isLoading?: boolean;
   onChange?: (tagId: number) => void;
+  onSelected?: (tagName: string) => void;
 }
 export function ManageTagsDialog({
   attachedTags: propsAttachedTags,
@@ -34,9 +35,11 @@ export function ManageTagsDialog({
   userId,
   isLoading,
   onChange,
+  onSelected,
 }: Props) {
   const {trans} = useTrans();
   const [query, setQuery] = useState('');
+  const {close} = useDialogContext();
   const {
     data,
     isPlaceholderData,
@@ -90,6 +93,16 @@ export function ManageTagsDialog({
               <ListItem
                 isDisabled={isDisabled}
                 onSelected={() => {
+                  if (onSelected) {
+                    onSelected(tag.name);
+                    close();
+                    return;
+                  }
+
+                  if (!taggableIds || !taggableType) {
+                    return;
+                  }
+
                   if (isAttached) {
                     detachTag.mutate(
                       {
@@ -130,7 +143,7 @@ export function ManageTagsDialog({
                   )
                 }
               >
-                {tag.display_name || tag.name}
+                {tag.name}
               </ListItem>
             );
           })}
@@ -138,6 +151,16 @@ export function ManageTagsDialog({
             <ListItem
               startIcon={<PushPinIcon size="xs" />}
               onSelected={() => {
+                if (onSelected) {
+                  onSelected(query);
+                  close();
+                  return;
+                }
+
+                if (!taggableIds || !taggableType) {
+                  return;
+                }
+
                 attachTag.mutate(
                   {
                     taggableType,

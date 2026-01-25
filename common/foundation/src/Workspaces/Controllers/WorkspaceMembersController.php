@@ -3,7 +3,6 @@
 namespace Common\Workspaces\Controllers;
 
 use App\Models\User;
-use Auth;
 use Common\Core\BaseController;
 use Common\Workspaces\Actions\JoinWorkspace;
 use Common\Workspaces\Actions\RemoveMemberFromWorkspace;
@@ -11,6 +10,7 @@ use Common\Workspaces\Workspace;
 use Common\Workspaces\WorkspaceInvite;
 use Common\Workspaces\WorkspaceMember;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Session;
 use const App\Providers\WORKSPACE_HOME_ROUTE;
 
@@ -18,7 +18,7 @@ class WorkspaceMembersController extends BaseController
 {
     public function __construct(
         protected Request $request,
-        protected User $user
+        protected User $user,
     ) {
     }
 

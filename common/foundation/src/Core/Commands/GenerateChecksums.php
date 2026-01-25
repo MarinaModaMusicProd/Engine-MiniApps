@@ -4,7 +4,7 @@ namespace Common\Core\Commands;
 
 use File;
 use Illuminate\Console\Command;
-use Str;
+use Illuminate\Support\Str;
 
 class GenerateChecksums extends Command
 {

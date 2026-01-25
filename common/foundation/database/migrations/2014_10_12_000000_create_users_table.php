@@ -3,13 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
+return new class extends Migration {
     public function up()
     {
         if (Schema::hasTable('users')) {
@@ -20,7 +14,6 @@ return new class extends Migration
             $table->increments('id');
             $table->string('username', 100)->nullable();
             $table->string('first_name', 100)->nullable();
-            $table->string('last_name', 100)->nullable();
             $table->string('avatar_url')->nullable();
             $table->string('gender', 20)->nullable();
             $table->text('permissions')->nullable();

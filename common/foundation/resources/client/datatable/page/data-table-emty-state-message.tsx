@@ -1,26 +1,26 @@
-import React, {ReactNode} from 'react';
+import {Trans} from '@ui/i18n/trans';
+import {SvgIconProps} from '@ui/icons/svg-icon';
 import {IllustratedMessage} from '@ui/images/illustrated-message';
 import {SvgImage} from '@ui/images/svg-image';
-import {Trans} from '@ui/i18n/trans';
 import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {cloneElement, ReactElement, ReactNode} from 'react';
 
 export interface DataTableEmptyStateMessageProps {
   isFiltering?: boolean;
   title: ReactNode;
   filteringTitle?: ReactNode;
-  image: string;
+  description?: ReactNode;
+  image?: string;
+  icon?: ReactElement<SvgIconProps>;
   size?: 'sm' | 'md';
   className?: string;
 }
-export function DataTableEmptyStateMessage({
-  isFiltering,
-  title,
-  filteringTitle,
-  image,
-  size,
-  className,
-}: DataTableEmptyStateMessageProps) {
+export function DataTableEmptyStateMessage(
+  props: DataTableEmptyStateMessageProps,
+) {
   const isMobile = useIsMobileMediaQuery();
+  const {isFiltering, title, filteringTitle, image, icon, className} = props;
+  let size = props.size;
   if (!size) {
     size = isMobile ? 'sm' : 'md';
   }
@@ -30,13 +30,33 @@ export function DataTableEmptyStateMessage({
     <IllustratedMessage
       className={className}
       size={size}
-      image={<SvgImage src={image} />}
-      title={isFiltering && filteringTitle ? filteringTitle : title}
-      description={
-        isFiltering && filteringTitle ? (
-          <Trans message="Try another search query or different filters" />
-        ) : undefined
+      imageHeight={icon ? 'h-auto' : undefined}
+      image={
+        image ? (
+          <SvgImage src={image} />
+        ) : (
+          cloneElement(icon!, {
+            size: icon!.props.size || 'xl',
+            className: 'text-muted',
+          })
+        )
       }
+      title={isFiltering && filteringTitle ? filteringTitle : title}
+      description={<Description {...props} />}
     />
   );
+}
+
+function Description({
+  isFiltering,
+  filteringTitle,
+  description,
+}: DataTableEmptyStateMessageProps) {
+  if (isFiltering) {
+    return filteringTitle ? (
+      <Trans message="Try another search query or different filters" />
+    ) : undefined;
+  } else {
+    return description;
+  }
 }

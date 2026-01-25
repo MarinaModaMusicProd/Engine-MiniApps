@@ -1,14 +1,14 @@
-import {useMutation} from '@tanstack/react-query';
-import {apiClient} from '@common/http/query-client';
-import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {showHttpErrorToast} from '@common/http/show-http-error-toast';
-import {Album} from '@app/web-player/albums/album';
-import {Artist} from '@app/web-player/artists/artist';
-import {FileEntry} from '@common/uploads/file-entry';
+import {CreateAlbumPayload} from '@app/admin/albums-datatable-page/requests/use-create-album';
 import {CreateTrackPayload} from '@app/admin/tracks-datatable-page/requests/use-create-track';
+import {PartialAlbum} from '@app/web-player/albums/album';
+import {PartialArtist} from '@app/web-player/artists/artist';
+import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {FileEntry} from '@common/uploads/file-entry';
+import {useMutation} from '@tanstack/react-query';
 import {NormalizedModel} from '@ui/types/normalized-model';
 import {UseFormReturn} from 'react-hook-form';
-import {CreateAlbumPayload} from '@app/admin/albums-datatable-page/requests/use-create-album';
 
 export type ExtractedTrackMetadata = Partial<CreateTrackPayload> & {
   release_date?: string;
@@ -18,9 +18,9 @@ export type ExtractedTrackMetadata = Partial<CreateTrackPayload> & {
 interface Response extends BackendResponse {
   metadata: {
     title?: string;
-    album?: Album;
+    album?: PartialAlbum;
     album_name?: string;
-    artist?: Artist;
+    artist?: PartialArtist;
     artist_name?: string;
     genres?: string[];
     duration?: number;
@@ -38,15 +38,15 @@ interface Payload {
 
 export function useExtractTackFileMetadata() {
   return useMutation({
-    mutationFn: (payload: Payload) => extractMeta(payload),
+    mutationFn: (payload: Payload) =>
+      apiClient
+        .post<Response>(
+          `tracks/${payload.fileEntryId}/extract-metadata`,
+          payload,
+        )
+        .then(r => metadataToFormValues(r.data)),
     onError: err => showHttpErrorToast(err),
   });
-}
-
-function extractMeta(payload: Payload): Promise<ExtractedTrackMetadata> {
-  return apiClient
-    .post<Response>(`tracks/${payload.fileEntryId}/extract-metadata`, payload)
-    .then(r => metadataToFormValues(r.data));
 }
 
 function metadataToFormValues(response: Response): ExtractedTrackMetadata {

@@ -1,32 +1,41 @@
-import {useBlocker} from 'react-router-dom';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {Trans} from '@ui/i18n/trans';
-import {useEffect} from 'react';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {useEffect, useRef} from 'react';
+import {BlockerFunction, useBlocker} from 'react-router';
 
 interface Props {
-  isBlocked: boolean;
-  allowedPath?: string;
+  shouldBlock: boolean | (() => boolean);
+  allowNavigation?: BlockerFunction;
 }
-export function BlockerDialog({isBlocked, allowedPath}: Props) {
-  const {state, reset, proceed} = useBlocker(({nextLocation}) => {
+export function BlockerDialog({shouldBlock, allowNavigation}: Props) {
+  const shouldBlockRef = useRef(shouldBlock);
+  shouldBlockRef.current = shouldBlock;
+
+  const {state, reset, proceed} = useBlocker(args => {
     return (
-      isBlocked &&
+      (typeof shouldBlockRef.current === 'boolean'
+        ? shouldBlockRef.current
+        : shouldBlockRef.current()) &&
       // only block navigation if specified path is not within next location
-      (!allowedPath || !nextLocation.pathname.includes(allowedPath))
+      (!allowNavigation || !allowNavigation(args))
     );
   });
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isBlocked) {
+      if (
+        typeof shouldBlockRef.current === 'boolean'
+          ? shouldBlockRef.current
+          : shouldBlockRef.current()
+      ) {
         e.preventDefault();
         e.returnValue = true;
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isBlocked]);
+  }, []);
 
   return (
     <DialogTrigger

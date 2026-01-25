@@ -1,21 +1,21 @@
-import {keepPreviousData, useQuery} from '@tanstack/react-query';
-import {DateRangeValue} from '@ui/forms/input-field/date/date-range-picker/date-range-value';
-import {apiClient} from '@common/http/query-client';
+import {PartialAlbum} from '@app/web-player/albums/album';
+import {PartialArtist} from '@app/web-player/artists/artist';
+import {Track} from '@app/web-player/tracks/track';
+import {PartialUserProfile} from '@app/web-player/users/user-profile';
 import {
   DatasetItem,
   LocationDatasetItem,
   ReportMetric,
 } from '@common/admin/analytics/report-metric';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
-import {Track} from '@app/web-player/tracks/track';
-import {User} from '@ui/types/user';
-import {Artist} from '@app/web-player/artists/artist';
-import {Album} from '@app/web-player/albums/album';
+import {apiClient} from '@common/http/query-client';
+import {keepPreviousData, useQuery} from '@tanstack/react-query';
+import {DateRangeValue} from '@ui/forms/input-field/date/date-range-picker/date-range-value';
 
 const endpoint = 'reports/insights';
 
 export interface TopModelDatasetItem extends DatasetItem {
-  model: Artist | Album | Track | User;
+  model: PartialArtist | PartialAlbum | Track | PartialUserProfile;
 }
 
 export interface FetchInsightsReportResponse extends BackendResponse {

@@ -1,11 +1,10 @@
-import {useTrans} from '@ui/i18n/use-trans';
 import {message} from '@ui/i18n/message';
-import {Album} from '@app/web-player/albums/album';
-import clsx from 'clsx';
+import {useTrans} from '@ui/i18n/use-trans';
 import {AlbumIcon} from '@ui/icons/material/Album';
+import clsx from 'clsx';
 
 interface AlbumImageProps {
-  album: Album;
+  album: {image: string | null; name: string};
   className?: string;
   size?: string;
 }

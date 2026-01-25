@@ -1,28 +1,50 @@
-import React, {Fragment} from 'react';
-import {Link} from 'react-router-dom';
-import {DataTablePage} from '../../datatable/page/data-table-page';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
+import {DocsLink} from '@common/admin/settings/layout/settings-links';
+import {useUploadTranslationFile} from '@common/admin/translations/use-upload-translation-file';
+import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
+import {DataTableHeader} from '@common/datatable/data-table-header';
+import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
+import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
+import {validateDatatableSearch} from '@common/datatable/filters/utils/validate-datatable-search';
+import {
+  DatatablePageHeaderBar,
+  DatatablePageScrollContainer,
+  DatatablePageWithHeaderBody,
+  DatatablePageWithHeaderLayout,
+} from '@common/datatable/page/datatable-page-with-header-layout';
+import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
+import {apiClient, queryClient} from '@common/http/query-client';
+import {showHttpErrorToast} from '@common/http/show-http-error-toast';
+import {Table} from '@common/ui/tables/table';
+import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
+import {useMutation} from '@tanstack/react-query';
+import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
 import {FormattedDate} from '@ui/i18n/formatted-date';
-import {ColumnConfig} from '../../datatable/column-config';
-import {Trans} from '@ui/i18n/trans';
 import {Localization} from '@ui/i18n/localization';
+import {message} from '@ui/i18n/message';
+import {Trans} from '@ui/i18n/trans';
+import {MoreVertIcon} from '@ui/icons/material/MoreVert';
 import {TranslateIcon} from '@ui/icons/material/Translate';
+import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {UpdateLocalizationDialog} from './update-localization-dialog';
+import {openDialog} from '@ui/overlays/store/dialog-store';
+import {toast} from '@ui/toast/toast';
 import {Tooltip} from '@ui/tooltip/tooltip';
-import {CreateLocationDialog} from './create-localization-dialog';
+import {downloadFileFromUrl} from '@ui/utils/files/download-file-from-url';
+import {FileInputType} from '@ui/utils/files/file-input-config';
+import {openUploadWindow} from '@ui/utils/files/open-upload-window';
+import {useState} from 'react';
+import {Link} from 'react-router';
+import {ColumnConfig} from '../../datatable/column-config';
+import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
 import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
 import aroundTheWorldSvg from './around-the-world.svg';
-import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
-import {DeleteSelectedItemsAction} from '../../datatable/page/delete-selected-items-action';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {openDialog} from '@ui/overlays/store/dialog-store';
-import {downloadFileFromUrl} from '@ui/utils/files/download-file-from-url';
-import {MoreVertIcon} from '@ui/icons/material/MoreVert';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {useUploadTranslationFile} from '@common/admin/translations/use-upload-translation-file';
-import {openUploadWindow} from '@ui/utils/files/open-upload-window';
-import {FileInputType} from '@ui/utils/files/file-input-config';
+import {CreateLocationDialog} from './create-localization-dialog';
+import {UpdateLocalizationDialog} from './update-localization-dialog';
 
 const columnConfig: ColumnConfig<Localization>[] = [
   {
@@ -77,35 +99,90 @@ const columnConfig: ColumnConfig<Localization>[] = [
   },
 ];
 
-export function LocalizationIndex() {
-  return (
-    <DataTablePage
-      endpoint="localizations"
-      title={<Trans message="Localizations" />}
-      columns={columnConfig}
-      actions={<Actions />}
-      selectedActions={<DeleteSelectedItemsAction />}
-      emptyStateMessage={
-        <DataTableEmptyStateMessage
-          image={aroundTheWorldSvg}
-          title={<Trans message="No localizations have been created yet" />}
-          filteringTitle={<Trans message="No matching localizations" />}
-        />
-      }
-    />
-  );
-}
+export function Component() {
+  const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
+  const {
+    searchParams,
+    sortDescriptor,
+    mergeIntoSearchParams,
+    setSearchQuery,
+    isFiltering,
+  } = useDatatableSearchParams(validateDatatableSearch);
 
-function Actions() {
+  const query = useDatatableQuery(
+    commonAdminQueries.localizations.index(searchParams),
+  );
+
+  const selectedActions = (
+    <DialogTrigger type="modal">
+      <Button variant="flat" color="danger">
+        <Trans message="Delete" />
+      </Button>
+      <DeleteLocalizationsDialog
+        selectedIds={selectedIds}
+        onDelete={() => setSelectedIds([])}
+      />
+    </DialogTrigger>
+  );
+
+  const actions = (
+    <DialogTrigger type="modal">
+      <DataTableAddItemButton>
+        <Trans message="Add new localization" />
+      </DataTableAddItemButton>
+      <CreateLocationDialog />
+    </DialogTrigger>
+  );
+
   return (
-    <Fragment>
-      <DialogTrigger type="modal">
-        <DataTableAddItemButton>
-          <Trans message="Add new localization" />
-        </DataTableAddItemButton>
-        <CreateLocationDialog />
-      </DialogTrigger>
-    </Fragment>
+    <DatatablePageWithHeaderLayout>
+      <GlobalLoadingProgress query={query} />
+      <DatatablePageHeaderBar
+        title={<Trans message="Localizations" />}
+        showSidebarToggleButton
+        rightContent={
+          <DocsLink
+            variant="button"
+            link={AdminDocsUrls.pages.translations}
+            size="xs"
+          />
+        }
+      />
+      <DatatablePageWithHeaderBody>
+        <DataTableHeader
+          searchValue={searchParams.query}
+          onSearchChange={setSearchQuery}
+          actions={actions}
+          selectedItems={selectedIds}
+          selectedActions={selectedActions}
+        />
+        <DatatablePageScrollContainer>
+          <Table
+            columns={columnConfig}
+            data={query.items}
+            sortDescriptor={sortDescriptor}
+            onSortChange={mergeIntoSearchParams}
+            enableSelection
+            selectedRows={selectedIds}
+            onSelectionChange={setSelectedIds}
+            cellHeight="h-60"
+          />
+          {query.isEmpty && (
+            <DataTableEmptyStateMessage
+              isFiltering={isFiltering}
+              image={aroundTheWorldSvg}
+              title={<Trans message="No localizations have been created yet" />}
+              filteringTitle={<Trans message="No matching localizations" />}
+            />
+          )}
+          <DataTablePaginationFooter
+            query={query}
+            onPageChange={page => mergeIntoSearchParams({page})}
+            onPerPageChange={perPage => mergeIntoSearchParams({perPage})}
+          />
+        </DatatablePageScrollContainer>
+      </DatatablePageWithHeaderBody>
+    </DatatablePageWithHeaderLayout>
   );
 }
 
@@ -158,5 +235,44 @@ function RowActionsMenuTrigger({locale}: RowActionsMenuTriggerProps) {
         </MenuItem>
       </Menu>
     </MenuTrigger>
+  );
+}
+
+interface DeleteLocalizationsDialogProps {
+  selectedIds: (number | string)[];
+  onDelete: () => void;
+}
+export function DeleteLocalizationsDialog({
+  selectedIds,
+  onDelete,
+}: DeleteLocalizationsDialogProps) {
+  const {close} = useDialogContext();
+  const deleteSelectedLocalizations = useMutation({
+    mutationFn: () =>
+      apiClient.delete(`localizations/${selectedIds.join(',')}`),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: commonAdminQueries.localizations.invalidateKey,
+      });
+      toast(message('Localizations deleted'));
+      onDelete();
+      close();
+    },
+    onError: err => showHttpErrorToast(err),
+  });
+  return (
+    <ConfirmationDialog
+      isDanger
+      isLoading={deleteSelectedLocalizations.isPending}
+      title={<Trans message="Delete localizations" />}
+      body={
+        <Trans
+          message="Are you sure you want to delete selected localizations?"
+          values={{count: selectedIds.length}}
+        />
+      }
+      confirm={<Trans message="Delete" />}
+      onConfirm={() => deleteSelectedLocalizations.mutate()}
+    />
   );
 }

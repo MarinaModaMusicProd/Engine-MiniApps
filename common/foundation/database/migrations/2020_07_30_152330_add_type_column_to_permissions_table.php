@@ -14,7 +14,7 @@ class AddTypeColumnToPermissionsTable extends Migration
     public function up()
     {
         Schema::table('permissions', function (Blueprint $table) {
-            $table->string('type', 20)->default('sitewide');
+            $table->string('type', 20)->default('users');
         });
     }
 

@@ -1,12 +1,11 @@
 import {useMutation} from '@tanstack/react-query';
+import {setBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {message} from '@ui/i18n/message';
+import {useSettingsPreviewMode} from '../../admin/settings/preview/use-settings-preview-mode';
 import {BackendResponse} from '../../http/backend-response/backend-response';
-import {useNavigate} from '../../ui/navigation/use-navigate';
 import {apiClient, queryClient} from '../../http/query-client';
 import {showHttpErrorToast} from '../../http/show-http-error-toast';
-import {useAppearanceEditorMode} from '../../admin/appearance/commands/use-appearance-editor-mode';
-import {message} from '@ui/i18n/message';
-import {setBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
-import {useTonConnectUI} from "@tonconnect/ui-react";
+import {useNavigate} from '../../ui/navigation/use-navigate';
 
 interface Response extends BackendResponse {
   bootstrapData: string;
@@ -16,16 +15,14 @@ const appearanceMessage = "Can't logout while in appearance editor.";
 
 export function useLogout() {
   const navigate = useNavigate();
-  const {isAppearanceEditorActive} = useAppearanceEditorMode();
-  const [tonConnectUI] = useTonConnectUI();
-
+  const {isInsideSettingsPreview: isAppearanceEditorActive} =
+    useSettingsPreviewMode();
   return useMutation({
     mutationFn: () => (isAppearanceEditorActive ? noopLogout() : logout()),
     onSuccess: response => {
       // need to update bootstrap data in order for redirect to login page to work
       setBootstrapData(response.bootstrapData);
       queryClient.clear();
-      tonConnectUI.disconnect()
       navigate('/login');
 
       // need to clear query client and then set bootstrap data again immediately,

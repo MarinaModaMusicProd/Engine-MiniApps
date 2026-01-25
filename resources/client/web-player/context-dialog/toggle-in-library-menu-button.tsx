@@ -1,11 +1,11 @@
 import {ContextMenuButton} from '@app/web-player/context-dialog/context-dialog-layout';
-import {Trans} from '@ui/i18n/trans';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {Likeable} from '@app/web-player/library/likeable';
 import {useAddItemsToLibrary} from '@app/web-player/library/requests/use-add-items-to-library';
 import {useRemoveItemsFromLibrary} from '@app/web-player/library/requests/use-remove-items-from-library';
 import {useLibraryStore} from '@app/web-player/library/state/likes-store';
-import {Likeable} from '@app/web-player/library/likeable';
 import {useAuthClickCapture} from '@app/web-player/use-auth-click-capture';
+import {Trans} from '@ui/i18n/trans';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 
 interface ToggleInLibraryMenuButtonProps {
   items: Likeable[];
@@ -26,7 +26,7 @@ export function ToggleInLibraryMenuButton({
       modelType === 'artist' ? (
         <Trans message="Following" />
       ) : (
-        <Trans message="Remove from your music" />
+        <Trans message="Remove from library" />
       );
     return (
       <ContextMenuButton
@@ -45,7 +45,7 @@ export function ToggleInLibraryMenuButton({
     modelType === 'artist' ? (
       <Trans message="Follow" />
     ) : (
-      <Trans message="Add to your music" />
+      <Trans message="Add to library" />
     );
   return (
     <ContextMenuButton

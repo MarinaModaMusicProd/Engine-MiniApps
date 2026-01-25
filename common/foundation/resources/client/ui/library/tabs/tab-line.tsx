@@ -1,7 +1,7 @@
-import React, {useContext, useState} from 'react';
 import {useLayoutEffect} from '@react-aria/utils';
-import clsx from 'clsx';
 import {TabContext} from '@ui/tabs/tabs-context';
+import clsx from 'clsx';
+import {useContext, useRef, useState} from 'react';
 
 interface TabLineStyle {
   width?: string;
@@ -11,6 +11,7 @@ interface TabLineStyle {
 
 export function TabLine() {
   const {tabsRef, selectedTab} = useContext(TabContext);
+  const positionRef = useRef(-1);
   const [style, setStyle] = useState<TabLineStyle>({
     width: undefined,
     transform: undefined,
@@ -18,7 +19,11 @@ export function TabLine() {
   });
 
   useLayoutEffect(() => {
-    if (selectedTab != null && tabsRef.current) {
+    if (
+      selectedTab != null &&
+      tabsRef.current &&
+      selectedTab !== positionRef.current
+    ) {
       const el = tabsRef.current[selectedTab];
       if (!el) return;
 
@@ -30,6 +35,7 @@ export function TabLine() {
           className: prevState.width === undefined ? '' : 'transition-all',
         };
       });
+      positionRef.current = selectedTab;
     }
   }, [setStyle, selectedTab, tabsRef]);
 
@@ -37,7 +43,7 @@ export function TabLine() {
     <div
       className={clsx(
         'absolute bottom-0 left-0 h-2 bg-primary',
-        style.className
+        style.className,
       )}
       role="presentation"
       style={{width: style.width, transform: style.transform}}

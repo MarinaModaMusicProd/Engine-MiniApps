@@ -1,70 +1,69 @@
-import {useAdminSettings} from '../requests/use-admin-settings';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
-import {FormSelect, Option} from '@ui/forms/select/select';
-import {FormSwitch} from '@ui/forms/toggle/switch';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {UploadType} from '@app/site-config';
+import {AdminSettings} from '@common/admin/settings/admin-settings';
+import {AdminSettingsLayout} from '@common/admin/settings/layout/settings-layout';
+import {DocsLink} from '@common/admin/settings/layout/settings-links';
+import {SettingsPanel} from '@common/admin/settings/layout/settings-panel';
+import {useAdminSettings} from '@common/admin/settings/requests/use-admin-settings';
+import {useGenerateSitemap} from '@common/admin/settings/requests/use-generate-sitemap';
+import {FormImageSelector} from '@common/uploads/components/image-selector';
 import {Button} from '@ui/buttons/button';
 import {ExternalLink} from '@ui/buttons/external-link';
-import {Trans} from '@ui/i18n/trans';
-import React, {Fragment, useContext} from 'react';
-import {SiteConfigContext} from '@common/core/settings/site-config-context';
-import {useSettings} from '@ui/settings/use-settings';
-import {useValueLists} from '@common/http/value-lists';
-import {useForm, useFormContext} from 'react-hook-form';
-import {AdminSettingsWithFiles} from '@common/admin/settings/requests/use-update-admin-settings';
-import {useGenerateSitemap} from '@common/admin/settings/requests/use-generate-sitemap';
-import {useBootstrapDataStore} from '@ui/bootstrap-data/bootstrap-data-store';
-import {AdminSettings} from '@common/admin/settings/admin-settings';
 import {
-  AdminSettingsForm,
-  AdminSettingsLayout,
-} from '@common/admin/settings/form/admin-settings-form';
-import {SettingsSeparator} from '@common/admin/settings/form/settings-separator';
-import {LearnMoreLink} from '@common/admin/settings/form/learn-more-link';
+  FormTextField,
+  TextField,
+} from '@ui/forms/input-field/text-field/text-field';
+import {Trans} from '@ui/i18n/trans';
+import {useSettings} from '@ui/settings/use-settings';
+import deepmerge from 'deepmerge';
+import {ReactNode, useMemo} from 'react';
+import {useForm} from 'react-hook-form';
 
-export function GeneralSettings() {
-  return (
-    <AdminSettingsLayout
-      title={<Trans message="General" />}
-      description={
-        <Trans message="Configure site url, homepage, theme and other general settings." />
-      }
-    >
-      {data => <Form data={data} />}
-    </AdminSettingsLayout>
-  );
+interface Props {
+  children?: ReactNode;
+  defaultValues?: {client?: Partial<AdminSettings['client']>};
 }
+export function Component({children, defaultValues}: Props) {
+  const {data} = useAdminSettings();
 
-interface FormProps {
-  data: AdminSettings;
-}
-function Form({data}: FormProps) {
-  const form = useForm<AdminSettings>({
-    defaultValues: {
+  const mergedDefaultValues = useMemo(() => {
+    return deepmerge(defaultValues ?? {}, {
+      ...defaultValues,
       client: {
-        homepage: {
-          type: data.client.homepage?.type ?? 'landingPage',
-          value: data.client.homepage?.value ?? '',
-        },
-        themes: {
-          default_id: data.client.themes?.default_id
-            ? parseInt(data.client.themes.default_id as string)
-            : 0,
-          user_change: data.client.themes?.user_change ?? false,
+        branding: {
+          favicon: data.client.branding.favicon,
+          logo_light: data.client.branding.logo_light,
+          logo_dark: data.client.branding.logo_dark,
+          logo_light_mobile: data.client.branding.logo_light_mobile,
+          logo_dark_mobile: data.client.branding.logo_dark_mobile,
+          site_description: data.client.branding.site_description,
         },
       },
-    },
+      server: {
+        app_name: data.server.app_name,
+      },
+    });
+  }, [defaultValues, data]);
+
+  const form = useForm<AdminSettings>({
+    defaultValues: mergedDefaultValues,
   });
 
   return (
-    <AdminSettingsForm form={form}>
+    <AdminSettingsLayout
+      form={form}
+      title={<Trans message="General" />}
+      docsLink={AdminDocsUrls.settings.general}
+    >
       <SiteUrlSection />
-      <SettingsSeparator />
-      <HomepageSection />
-      <SettingsSeparator />
-      <ThemeSection />
-      <SettingsSeparator />
+      <SiteNameSection />
+      <FaviconSection />
+      <LightModeLogo />
+      <DarkModeLogo />
+      <MobileLogos />
+      {children}
       <SitemapSection />
-    </AdminSettingsForm>
+    </AdminSettingsLayout>
   );
 }
 
@@ -78,7 +77,7 @@ function SiteUrlSection() {
   const isInvalid = server.newAppUrl && server.newAppUrl !== server.app_url;
   if (isInvalid) {
     append = (
-      <div className="mt-20 text-sm text-danger">
+      <div className="mt-20 text-xs text-danger">
         <Trans
           values={{
             baseUrl: server.app_url,
@@ -92,102 +91,134 @@ function SiteUrlSection() {
   }
 
   return (
-    <Fragment>
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Site URL" />}
+      description={
+        <div>
+          <Trans message="The primary domain for your site." />
+        </div>
+      }
+      link={
+        <DocsLink link="https://support.vebto.com/hc/articles/35/primary-site-url">
+          <Trans message="What is a primary site url?" />
+        </DocsLink>
+      }
+    >
       <TextField
         readOnly
         invalid={!!isInvalid}
         value={server.app_url}
         label={<Trans message="Primary site url" />}
-        description={
-          <LearnMoreLink link="https://support.MarinaModa.com/hc/articles/35/primary-site-url" />
-        }
       />
       {append}
-    </Fragment>
+    </SettingsPanel>
   );
 }
 
-function HomepageSection() {
-  const {watch} = useFormContext<AdminSettingsWithFiles>();
-  const {homepage} = useContext(SiteConfigContext);
-  const {data} = useValueLists(['menuItemCategories']);
-  const selectedType = watch('client.homepage.type');
-
+function SiteNameSection() {
   return (
-    <div>
-      <FormSelect
-        name="client.homepage.type"
-        selectionMode="single"
-        label={<Trans message="Site home page" />}
-        description={
-          <Trans message="Which page should be used as site homepage." />
-        }
-      >
-        {homepage.options.map(option => (
-          <Option key={option.value} value={option.value}>
-            <Trans {...option.label} />
-          </Option>
-        ))}
-        {data?.menuItemCategories?.map(category => (
-          <Option key={category.type} value={category.type}>
-            {category.name}
-          </Option>
-        ))}
-      </FormSelect>
-      {data?.menuItemCategories?.map(category => {
-        return selectedType === category.type ? (
-          <FormSelect
-            className="mt-24"
-            name="client.homepage.value"
-            key={category.name}
-            selectionMode="single"
-            label={
-              <Trans message="Homepage :name" values={{name: category.name}} />
-            }
-          >
-            {category.items.map(item => (
-              <Option key={item.label} value={`${item.model_id}`}>
-                {item.label}
-              </Option>
-            ))}
-          </FormSelect>
-        ) : null;
-      })}
-    </div>
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Site name" />}
+      description={
+        <div>
+          <Trans message="Short name for the site that will appear in browser tabs, seo tags, PWA app and other places." />
+        </div>
+      }
+    >
+      <FormTextField
+        name="server.app_name"
+        label={<Trans message="Site name" />}
+      />
+    </SettingsPanel>
   );
 }
 
-function ThemeSection() {
-  const themes = useBootstrapDataStore(s => s.data.themes);
+function FaviconSection() {
   return (
-    <Fragment>
-      <FormSelect
-        className="mb-20"
-        name="client.themes.default_id"
-        selectionMode="single"
-        label={<Trans message="Default site theme" />}
-        description={
-          <Trans message="Which theme to use for users that have not chosen a theme manually." />
-        }
-      >
-        <Option value={0}>
-          <Trans message="System" />
-        </Option>
-        {themes.map(theme => (
-          <Option key={theme.id} value={theme.id}>
-            {theme.name}
-          </Option>
-        ))}
-      </FormSelect>
-      <FormSwitch
-        name="client.themes.user_change"
-        description={
-          <Trans message="Allow users to manually change site theme." />
-        }
-      >
-        <Trans message="Allow theme change" />
-      </FormSwitch>
-    </Fragment>
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Favicon" />}
+      description={
+        <div>
+          <Trans message="This will generate different size favicons. Image should be at least 512x512 in size." />
+        </div>
+      }
+    >
+      <div className="w-max">
+        <BrandingImageSelector type="favicon" />
+      </div>
+    </SettingsPanel>
+  );
+}
+
+function LightModeLogo() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Light mode logo" />}
+      description={
+        <div>
+          <Trans message="Logo used in light mode and when enough screen space is available. Default logo is 516x117px size." />
+        </div>
+      }
+    >
+      <BrandingImageSelector type="logo_dark" />
+    </SettingsPanel>
+  );
+}
+
+function DarkModeLogo() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Dark mode logo" />}
+      description={
+        <div>
+          <Trans message="Will show light mode logo, if left empty." />
+        </div>
+      }
+    >
+      <BrandingImageSelector type="logo_light" />
+    </SettingsPanel>
+  );
+}
+
+function MobileLogos() {
+  return (
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Compact logos" />}
+      description={
+        <div>
+          <Trans message="Will show these logos if there's not enough space. For example on mobile or when screen is too small." />
+        </div>
+      }
+    >
+      <div className="flex items-center gap-24">
+        <BrandingImageSelector type="logo_dark_mobile" title="Light mode" />
+        <BrandingImageSelector type="logo_light_mobile" title="Dark mode" />
+      </div>
+    </SettingsPanel>
+  );
+}
+
+interface ImageSelectorProps {
+  type: keyof AdminSettings['client']['branding'];
+  title?: string;
+}
+function BrandingImageSelector({type, title}: ImageSelectorProps) {
+  const {data} = useAdminSettings();
+  return (
+    <FormImageSelector
+      className="max-w-max"
+      showEditButtonOnHover
+      name={`client.branding.${type}`}
+      uploadType={UploadType.brandingImages}
+      defaultValue={data?.defaults?.client.branding[type]}
+      label={title}
+    />
   );
 }
 
@@ -199,7 +230,15 @@ function SitemapSection() {
   const link = <ExternalLink href={url}>{url}</ExternalLink>;
 
   return (
-    <>
+    <SettingsPanel
+      className="mb-24"
+      title={<Trans message="Sitemap" />}
+      description={
+        <div>
+          <Trans message="Generate a sitemap to help search engines discover and index your site content." />
+        </div>
+      }
+    >
       <Button
         variant="outline"
         size="xs"
@@ -211,7 +250,7 @@ function SitemapSection() {
       >
         <Trans message="Generate sitemap" />
       </Button>
-      <div className="mt-14 text-sm text-muted">
+      <div className="mt-14 text-xs text-muted">
         <Trans
           message="Once generated, sitemap url will be: :url"
           values={{
@@ -219,6 +258,6 @@ function SitemapSection() {
           }}
         />
       </div>
-    </>
+    </SettingsPanel>
   );
 }

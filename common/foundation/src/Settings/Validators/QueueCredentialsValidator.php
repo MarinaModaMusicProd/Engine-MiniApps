@@ -9,21 +9,25 @@ use Throwable;
 class QueueCredentialsValidator
 {
     const KEYS = [
-        'queue_driver',
+        'queue_connection',
 
         // sqs
-        'SQS_QUEUE_KEY',
-        'SQS_QUEUE_SECRET',
-        'SQS_QUEUE_PREFIX',
-        'SQS_QUEUE_NAME',
-        'SQS_QUEUE_REGION',
+        'AWS_ACCESS_KEY_ID',
+        'AWS_SECRET_ACCESS_KEY',
+        'SQS_PREFIX',
+        'SQS_QUEUE',
+        'AWS_DEFAULT_REGION',
     ];
 
     public function fails($settings)
     {
         $this->setConfigDynamically($settings);
 
-        $driver = Arr::get($settings, 'queue_driver', config('queue.default'));
+        $driver = Arr::get(
+            $settings,
+            'queue_connection',
+            config('queue.default'),
+        );
         try {
             Queue::connection($driver)->size();
         } catch (Throwable $e) {

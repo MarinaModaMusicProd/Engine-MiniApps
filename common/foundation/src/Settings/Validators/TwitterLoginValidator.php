@@ -9,7 +9,7 @@ use Config;
 use Exception;
 use Illuminate\Support\Arr;
 use Socialite;
-use Str;
+use Illuminate\Support\Str;
 
 class TwitterLoginValidator implements SettingsValidator
 {

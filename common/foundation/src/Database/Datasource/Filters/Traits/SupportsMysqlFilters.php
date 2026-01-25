@@ -2,26 +2,29 @@
 
 namespace Common\Database\Datasource\Filters\Traits;
 
-use Common\Database\Datasource\DatasourceFilters;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 trait SupportsMysqlFilters
 {
-    public function applyMysqlFilters(DatasourceFilters $filters, $query)
+    public function applyMysqlFilters(iterable $filters, $query)
     {
-        foreach ($filters->getAll() as $filter) {
+        foreach ($filters as $filter) {
             if ($filter['value'] === 'null') {
                 $filter['value'] = null;
             } elseif ($filter['value'] === 'false') {
                 $filter['value'] = false;
-            }
-            if ($filter['value'] === 'true') {
+            } elseif ($filter['value'] === 'true') {
                 $filter['value'] = true;
+            } elseif ($filter['value'] === 'currentUser') {
+                $filter['value'] = Auth::id();
             }
 
             $method = 'where' . ucfirst(str_replace('_id', '', $filter['key']));
@@ -33,7 +36,7 @@ trait SupportsMysqlFilters
                 );
             } elseif ($filter['operator'] === 'between') {
                 $query->whereBetween(
-                    $this->maybeQualifyFilterColumn($filter['key']),
+                    $this->maybeQualifyFilterColumn($filter['key'], $query),
                     [$filter['value']['start'], $filter['value']['end']],
                 );
             } elseif (
@@ -93,7 +96,7 @@ trait SupportsMysqlFilters
                 ])
             ) {
                 $query = $query->where(
-                    $this->maybeQualifyFilterColumn($filter['key']),
+                    $this->maybeQualifyFilterColumn($filter['key'], $query),
                     $filter['operator'] === 'notContains' ? 'not like' : 'like',
                     match ($filter['operator']) {
                         'contains', 'notContains' => "%{$filter['value']}%",
@@ -103,11 +106,11 @@ trait SupportsMysqlFilters
                 );
             } elseif ($filter['operator'] === 'notNull') {
                 $query->whereNotNull(
-                    $this->maybeQualifyFilterColumn($filter['key']),
+                    $this->maybeQualifyFilterColumn($filter['key'], $query),
                 );
             } else {
                 $query = $query->where(
-                    $this->maybeQualifyFilterColumn($filter['key']),
+                    $this->maybeQualifyFilterColumn($filter['key'], $query),
                     $filter['operator'],
                     $filter['value'],
                 );
@@ -140,14 +143,16 @@ trait SupportsMysqlFilters
         } else {
             $query
                 ->leftJoin($related, $foreignKey, '=', $parentKey)
-                ->where(
-                    "$related.id",
-                    $filter['operator'] === 'has' ? '=' : '!=',
-                    $filter['value'],
-                );
-            if ($filter['operator'] === 'doesntHave') {
-                $this->query->orWhere("$related.id", null);
-            }
+                ->where(function ($q) use ($filter, $related) {
+                    $q->where(
+                        "$related.id",
+                        $filter['operator'] === 'has' ? '=' : '!=',
+                        $filter['value'],
+                    );
+                    if ($filter['operator'] === 'doesntHave') {
+                        $q->orWhere("$related.id", null);
+                    }
+                });
         }
 
         return $query;
@@ -207,21 +212,24 @@ trait SupportsMysqlFilters
         return $query;
     }
 
-    protected function maybeQualifyFilterColumn(string $key): string
+    protected function maybeQualifyFilterColumn(string $key, $query): string
     {
         if (str_contains($key, '.')) {
             return $key;
         }
 
-        $model = $this->query->getModel();
+        $model = $query->getModel();
 
         if (
             !method_exists($model, 'filterableFields') ||
-            !in_array($key, $model::filterableFields())
+            !Arr::first(
+                $model::filterableFields(),
+                fn($ff) => Str::is($ff, $key),
+            )
         ) {
             return $key;
         }
 
-        return $this->query->getModel()->qualifyColumn($key);
+        return $query->getModel()->qualifyColumn($key);
     }
 }

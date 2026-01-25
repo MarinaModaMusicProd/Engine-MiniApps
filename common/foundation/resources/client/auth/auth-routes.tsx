@@ -1,68 +1,73 @@
-import {RegisterPage} from './ui/register-page';
-import {AuthRoute} from './guards/auth-route';
-import {AccountSettingsPage} from './ui/account-settings/account-settings-page';
-import {GuestRoute} from './guards/guest-route';
-import {ForgotPasswordPage} from './ui/forgot-password-page';
-import {ResetPasswordPage} from './ui/reset-password-page';
-import React from 'react';
-import {RouteObject} from 'react-router-dom';
-import {LoginPageWrapper} from '@common/auth/ui/login-page-wrapper';
+import {NonIndexRouteObject, RouteObject} from 'react-router';
 
-export const authRoutes: RouteObject[] = [
-  {
-    path: '/register',
-    element: (
-      <GuestRoute>
-        <RegisterPage />
-      </GuestRoute>
-    ),
+interface Config {
+  loginRoute?: Omit<NonIndexRouteObject, 'path'>;
+  registerRoute?: Omit<NonIndexRouteObject, 'path'>;
+  accountSettingsRoute?: Omit<NonIndexRouteObject, 'path'>;
+}
+
+export function authRoutes({
+  loginRoute,
+  registerRoute,
+  accountSettingsRoute,
+}: Config = {}): RouteObject[] {
+  return [
+    {
+      path: '/register',
+      ...(registerRoute ? registerRoute : defaultRegisterRoute),
+    },
+    {
+      path: '/login',
+      ...(loginRoute ? loginRoute : defaultLoginRoute),
+    },
+    {
+      path: '/workspace/join/register',
+      ...(registerRoute ? registerRoute : defaultRegisterRoute),
+    },
+    {
+      path: '/workspace/join/login',
+      ...(loginRoute ? loginRoute : defaultLoginRoute),
+    },
+    {
+      path: '/forgot-password',
+      lazy: () => import('@common/auth/ui/forgot-password-page'),
+    },
+    {
+      path: '/password/reset/:token',
+      lazy: () => import('@common/auth/ui/reset-password-page'),
+    },
+    {
+      path: '/account-settings',
+      ...(accountSettingsRoute
+        ? accountSettingsRoute
+        : defaultAccountSettingsRoute),
+    },
+  ];
+}
+
+const defaultLoginRoute: NonIndexRouteObject = {
+  lazy: async () => {
+    const {LoginPageWrapper: Component} = await import(
+      '@common/auth/ui/login-page-wrapper'
+    );
+    return {Component};
   },
-  {
-    path: '/login',
-    element: (
-      <GuestRoute>
-        <LoginPageWrapper />
-      </GuestRoute>
-    ),
+};
+
+const defaultRegisterRoute: NonIndexRouteObject = {
+  lazy: async () => {
+    const {RegisterPage: Component} = await import(
+      '@common/auth/ui/register-page'
+    );
+    return {Component};
   },
-  {
-    path: '/workspace/join/register',
-    element: (
-      <GuestRoute>
-        <RegisterPage />
-      </GuestRoute>
-    ),
+};
+
+const defaultAccountSettingsRoute: NonIndexRouteObject = {
+  lazy: async () => {
+    const {AccountSettingsPage: Component} = await import(
+      '@common/auth/ui/account-settings/account-settings-page'
+    );
+    return {Component};
   },
-  {
-    path: '/workspace/join/login',
-    element: (
-      <GuestRoute>
-        <LoginPageWrapper />
-      </GuestRoute>
-    ),
-  },
-  {
-    path: '/forgot-password',
-    element: (
-      <GuestRoute>
-        <ForgotPasswordPage />
-      </GuestRoute>
-    ),
-  },
-  {
-    path: '/password/reset/:token',
-    element: (
-      <GuestRoute>
-        <ResetPasswordPage />
-      </GuestRoute>
-    ),
-  },
-  {
-    path: '/account-settings',
-    element: (
-      <AuthRoute>
-        <AccountSettingsPage />
-      </AuthRoute>
-    ),
-  },
-];
+};

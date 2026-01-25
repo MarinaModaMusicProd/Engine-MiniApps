@@ -1,14 +1,14 @@
-import {useGlobalListeners} from '@react-aria/utils';
-import {useCallback, useContext, useEffect, useRef} from 'react';
 import {PlayerStoreContext} from '@common/player/player-context';
+import {handleYoutubeEmbedMessage} from '@common/player/providers/youtube/handle-youtube-embed-message';
+import {useYoutubeProviderSrc} from '@common/player/providers/youtube/use-youtube-provider-src';
 import {
   YoutubeCommand,
   YouTubeCommandArg,
   YoutubeInternalState,
   YoutubeProviderInternalApi,
 } from '@common/player/providers/youtube/youtube-types';
-import {handleYoutubeEmbedMessage} from '@common/player/providers/youtube/handle-youtube-embed-message';
-import {useYoutubeProviderSrc} from '@common/player/providers/youtube/use-youtube-provider-src';
+import {useGlobalListeners} from '@react-aria/utils';
+import {useCallback, useContext, useEffect, useRef} from 'react';
 
 export function YoutubeProvider() {
   const {addGlobalListener, removeAllGlobalListeners} = useGlobalListeners();
@@ -17,7 +17,7 @@ export function YoutubeProvider() {
   const youtubeApi = useCallback(
     <T extends keyof YouTubeCommandArg>(
       command: T,
-      arg?: YouTubeCommandArg[T]
+      arg?: YouTubeCommandArg[T],
     ) =>
       iframeRef.current?.contentWindow?.postMessage(
         JSON.stringify({
@@ -25,9 +25,9 @@ export function YoutubeProvider() {
           func: command,
           args: arg ? [arg] : undefined,
         }),
-        '*'
+        '*',
       ),
-    []
+    [],
   );
 
   const loadVideoById = useCallback(
@@ -36,7 +36,7 @@ export function YoutubeProvider() {
       // it requires double click on play button without this
       youtubeApi(YoutubeCommand.CueAndPlay, videoId);
     },
-    [youtubeApi]
+    [youtubeApi],
   );
 
   const {initialVideoUrl, origin} = useYoutubeProviderSrc(loadVideoById);
@@ -124,17 +124,18 @@ export function YoutubeProvider() {
 
   return (
     <iframe
-      className="w-full h-full"
+      className="h-full w-full"
       ref={iframeRef}
       src={initialVideoUrl}
       allowFullScreen
       allow="autoplay; encrypted-media; picture-in-picture;"
+      referrerPolicy="strict-origin-when-cross-origin"
       onLoad={() => {
         // window does not receive "message" events on safari without waiting a small amount of time for some reason
         setTimeout(() => {
           iframeRef.current?.contentWindow?.postMessage(
             JSON.stringify({event: 'listening'}),
-            '*'
+            '*',
           );
           registerApi();
         });

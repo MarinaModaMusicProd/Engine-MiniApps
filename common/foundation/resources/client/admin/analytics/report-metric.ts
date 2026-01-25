@@ -11,6 +11,7 @@ export interface ReportMetric<T = unknown, E = unknown> {
   granularity?: RangedDatasetGranularity;
   total?: number;
   datasets: ({label: string; data: T[]} & E)[];
+  generatedAt?: string;
 }
 
 export interface DatasetItem {

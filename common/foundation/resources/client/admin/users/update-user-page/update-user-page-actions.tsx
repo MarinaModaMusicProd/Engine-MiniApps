@@ -1,25 +1,24 @@
-import {Menu, MenuTrigger} from '@ui/menu/menu-trigger';
-import {Button} from '@ui/buttons/button';
-import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
-import {Trans} from '@ui/i18n/trans';
-import {Item} from '@ui/forms/listbox/item';
-import React, {Fragment, ReactNode, useState} from 'react';
-import {BanUserDialog} from '@common/admin/users/ban-user-dialog';
-import {openDialog} from '@ui/overlays/store/dialog-store';
-import {User} from '@ui/types/user';
-import {useUnbanUser} from '@common/admin/users/requests/use-unban-user';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {BanUsersDialog} from '@common/admin/users/ban-users-dialog';
 import {useDeleteUser} from '@common/admin/users/requests/use-delete-user';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {useUnbanUsers} from '@common/admin/users/requests/use-unban-users';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {Button} from '@ui/buttons/button';
+import {Item} from '@ui/forms/listbox/item';
+import {Trans} from '@ui/i18n/trans';
+import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
+import {Menu, MenuTrigger} from '@ui/menu/menu-trigger';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {openDialog} from '@ui/overlays/store/dialog-store';
+import {Fragment, ReactNode, useState} from 'react';
 
 interface Props {
-  user: User;
+  user: {id: number; banned_at?: string | null};
   children?: ReactNode;
 }
 export function UpdateUserPageActions({user, children}: Props) {
-  const unban = useUnbanUser(user.id);
+  const unban = useUnbanUsers([user.id]);
   const isSuspended = user.banned_at !== null;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   return (
@@ -48,7 +47,7 @@ export function UpdateUserPageActions({user, children}: Props) {
               if (isSuspended) {
                 unban.mutate();
               } else {
-                openDialog(BanUserDialog, {user});
+                openDialog(BanUsersDialog, {userIds: [user.id]});
               }
             }}
           >

@@ -16,8 +16,14 @@ class BackstageRequestPolicy extends BasePolicy
 
     public function show(User $user, BackstageRequest $backstageRequest)
     {
-        return $this->hasPermission($user, 'backstageRequests.view') ||
-            $backstageRequest->user_id === $user->id;
+        if (
+            $this->hasPermission($user, 'backstageRequests.update') ||
+            $this->hasPermission($user, 'backstageRequests.view')
+        ) {
+            return true;
+        }
+
+        return $backstageRequest->user_id === $user->id;
     }
 
     public function store(User $user)
@@ -27,13 +33,13 @@ class BackstageRequestPolicy extends BasePolicy
 
     public function update(User $user, BackstageRequest $backstageRequest)
     {
-        return $user->hasPermission('backstageRequests.update') ||
+        return $this->hasPermission($user, 'backstageRequests.update') ||
             $backstageRequest->user_id === $user->id;
     }
 
     public function destroy(User $user, $backstageRequestIds)
     {
-        if ($user->hasPermission('backstageRequests.delete')) {
+        if ($user->hasPermission('backstageRequests.update')) {
             return true;
         } else {
             $dbCount = app(BackstageRequest::class)
@@ -44,8 +50,8 @@ class BackstageRequestPolicy extends BasePolicy
         }
     }
 
-    public function handle(User $user)
+    public function approve(User $user, BackstageRequest $backstageRequest)
     {
-        return $user->hasPermission('backstageRequests.handle');
+        return $this->hasPermission($user, 'backstageRequests.update');
     }
 }

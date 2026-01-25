@@ -1,19 +1,20 @@
-import {UseQueryResult} from '@tanstack/react-query';
-import {Helmet} from '@common/seo/helmet';
-import {DefaultMetaTags} from '@common/seo/default-meta-tags';
-import React from 'react';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {DefaultMetaTags} from '@common/seo/default-meta-tags';
+import {Helmet} from '@common/seo/helmet';
+import {UseQueryResult, UseSuspenseQueryResult} from '@tanstack/react-query';
 
 interface Props {
-  query: UseQueryResult<BackendResponse>;
+  query?:
+    | UseQueryResult<BackendResponse>
+    | UseSuspenseQueryResult<BackendResponse>;
+  data?: BackendResponse;
 }
-export function PageMetaTags({query}: Props) {
-  if (query.data?.set_seo) {
+export function PageMetaTags({query, data}: Props) {
+  if (!data) {
+    data = query?.data;
+  }
+  if (data?.set_seo) {
     return null;
   }
-  return query.data?.seo ? (
-    <Helmet tags={query.data.seo} />
-  ) : (
-    <DefaultMetaTags />
-  );
+  return data?.seo ? <Helmet tags={data.seo} /> : <DefaultMetaTags />;
 }

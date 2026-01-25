@@ -1,9 +1,9 @@
+import {droppables} from '@ui/interactions/dnd/drag-state';
+import {SortableStrategy} from '@ui/interactions/dnd/sortable/sortable-strategy';
 import {
   DropPosition,
   SortSession,
 } from '@ui/interactions/dnd/sortable/use-sortable';
-import {SortableStrategy} from '@ui/interactions/dnd/sortable/sortable-strategy';
-import {droppables} from '@ui/interactions/dnd/drag-state';
 
 export const sortableLineStrategy: SortableStrategy = {
   onDragStart: () => {},

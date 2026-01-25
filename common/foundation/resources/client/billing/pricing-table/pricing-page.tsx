@@ -1,21 +1,21 @@
-import {useProducts} from './use-products';
+import {billingQueries} from '@common/billing/billing-queries';
+import {PricingTable} from '@common/billing/pricing-table/pricing-table';
+import {useSuspenseQuery} from '@tanstack/react-query';
 import {Button} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
 import {ForumIcon} from '@ui/icons/material/Forum';
-import {Navbar} from '../../ui/navigation/navbar/navbar';
-import {Link} from 'react-router-dom';
-import {Footer} from '../../ui/footer/footer';
 import {Fragment, useState} from 'react';
-import {UpsellBillingCycle} from './find-best-price';
-import {BillingCycleRadio} from './billing-cycle-radio';
+import {Link} from 'react-router';
 import {StaticPageTitle} from '../../seo/static-page-title';
-import {PricingTable} from '@common/billing/pricing-table/pricing-table';
+import {Footer} from '../../ui/footer/footer';
+import {Navbar} from '../../ui/navigation/navbar/navbar';
+import {BillingCycleRadio} from './billing-cycle-radio';
+import {UpsellBillingCycle} from './find-best-price';
 
-export function PricingPage() {
-  const query = useProducts('pricingPage');
+export function Component() {
+  const query = useSuspenseQuery(billingQueries.products.index('pricingPage'));
   const [selectedCycle, setSelectedCycle] =
     useState<UpsellBillingCycle>('yearly');
-
   return (
     <Fragment>
       <StaticPageTitle>
@@ -42,7 +42,7 @@ export function PricingPage() {
 
         <PricingTable
           selectedCycle={selectedCycle}
-          productLoader="pricingPage"
+          products={query.data?.products}
         />
         <ContactSection />
       </div>

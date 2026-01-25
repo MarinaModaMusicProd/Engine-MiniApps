@@ -1,9 +1,9 @@
-import React, {ReactElement, useId, useMemo, useRef} from 'react';
-import clsx from 'clsx';
 import {useControlledState} from '@react-stately/utils';
 import {TabListProps} from '@ui/tabs/tab-list';
 import {TabPanelsProps} from '@ui/tabs/tab-panels';
 import {TabContext, TabsContext} from '@ui/tabs/tabs-context';
+import clsx from 'clsx';
+import {ReactElement, useId, useMemo, useRef} from 'react';
 
 export interface TabsProps {
   children:
@@ -49,7 +49,9 @@ export function Tabs(props: TabsProps) {
 
   return (
     <TabContext.Provider value={ContextValue}>
-      <div className={clsx(className, overflow, 'max-w-full')}>{children}</div>
+      <div className={clsx(className, overflow, 'max-w-full flex-shrink-0')}>
+        {children}
+      </div>
     </TabContext.Provider>
   );
 }

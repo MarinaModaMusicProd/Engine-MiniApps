@@ -11,7 +11,7 @@ use Throwable;
 
 class CacheConfigValidator
 {
-    const KEYS = ['cache_driver'];
+    const KEYS = ['cache_store'];
 
     public function fails($settings)
     {
@@ -20,7 +20,7 @@ class CacheConfigValidator
         try {
             $driverName = Arr::get(
                 $settings,
-                'cache_driver',
+                'cache_store',
                 config('cache.default'),
             );
             $driver = Cache::driver($driverName);
@@ -38,7 +38,7 @@ class CacheConfigValidator
     private function setConfigDynamically($settings)
     {
         app(DotEnvEditor::class)->write(
-            Arr::except($settings, ['cache_driver']),
+            Arr::except($settings, ['cache_store']),
         );
     }
 

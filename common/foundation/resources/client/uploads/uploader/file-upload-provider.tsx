@@ -1,14 +1,14 @@
-import {createContext, ReactNode, useContext, useState} from 'react';
 import {
   createFileUploadStore,
   FileUploadState,
   FileUploadStoreOptions,
 } from '@common/uploads/uploader/file-upload-store';
 import {useSettings} from '@ui/settings/use-settings';
+import {createContext, ReactNode, useContext, useState} from 'react';
 import {useStoreWithEqualityFn} from 'zustand/traditional';
 
 type FileUploadStore = ReturnType<typeof createFileUploadStore>;
-const FileUploadContext = createContext<FileUploadStore>(null!);
+export const FileUploadContext = createContext<FileUploadStore>(null!);
 
 export function useFileUploadStore<T>(
   selector: (s: FileUploadState) => T,
@@ -18,7 +18,7 @@ export function useFileUploadStore<T>(
   return useStoreWithEqualityFn(store, selector, equalityFn);
 }
 
-interface FileUploadProviderProps {
+export interface FileUploadProviderProps {
   children: ReactNode;
   options?: FileUploadStoreOptions;
 }

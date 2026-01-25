@@ -1,26 +1,42 @@
-import React, {Fragment} from 'react';
-import {DataTablePage} from '../../datatable/page/data-table-page';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {commonAdminQueries} from '@common/admin/common-admin-queries';
+import {DocsLink} from '@common/admin/settings/layout/settings-links';
+import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
+import {DataTableHeader} from '@common/datatable/data-table-header';
+import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
+import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
+import {validateDatatableSearch} from '@common/datatable/filters/utils/validate-datatable-search';
+import {DatatableFilters} from '@common/datatable/page/datatable-filters';
+import {
+  DatatablePageHeaderBar,
+  DatatablePageScrollContainer,
+  DatatablePageWithHeaderBody,
+  DatatablePageWithHeaderLayout,
+} from '@common/datatable/page/datatable-page-with-header-layout';
+import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
+import {Table} from '@common/ui/tables/table';
 import {IconButton} from '@ui/buttons/icon-button';
-import {EditIcon} from '@ui/icons/material/Edit';
 import {FormattedDate} from '@ui/i18n/formatted-date';
-import {ColumnConfig} from '../../datatable/column-config';
 import {Trans} from '@ui/i18n/trans';
-import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
-import softwareEngineerSvg from './../tags/software-engineer.svg';
-import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
-import {Product} from '../../billing/product';
-import {NameWithAvatar} from '../../datatable/column-templates/name-with-avatar';
-import {Link} from 'react-router-dom';
-import {FormattedPrice} from '../../billing/formatted-price';
-import {SyncIcon} from '@ui/icons/material/Sync';
-import {useSyncProducts} from './requests/use-sync-products';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {useDeleteProduct} from './requests/use-delete-product';
 import {DeleteIcon} from '@ui/icons/material/Delete';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {EditIcon} from '@ui/icons/material/Edit';
+import {SyncIcon} from '@ui/icons/material/Sync';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {Tooltip} from '@ui/tooltip/tooltip';
+import {Fragment} from 'react';
+import {Link} from 'react-router';
+import {FormattedPrice} from '../../billing/formatted-price';
+import {Product} from '../../billing/product';
+import {ColumnConfig} from '../../datatable/column-config';
+import {NameWithAvatar} from '../../datatable/column-templates/name-with-avatar';
+import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
+import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
 import {useNavigate} from '../../ui/navigation/use-navigate';
+import softwareEngineerSvg from './../tags/software-engineer.svg';
 import {PlansIndexPageFilters} from './plans-index-page-filters';
+import {useDeleteProduct} from './requests/use-delete-product';
+import {useSyncProducts} from './requests/use-sync-products';
 
 const columnConfig: ColumnConfig<Product>[] = [
   {
@@ -83,27 +99,73 @@ const columnConfig: ColumnConfig<Product>[] = [
   },
 ];
 
-export function PlansIndexPage() {
+export function Component() {
   const navigate = useNavigate();
+  const {
+    searchParams,
+    sortDescriptor,
+    mergeIntoSearchParams,
+    setSearchQuery,
+    isFiltering,
+  } = useDatatableSearchParams(validateDatatableSearch);
+
+  const query = useDatatableQuery(
+    commonAdminQueries.products.index(searchParams),
+  );
+
   return (
-    <DataTablePage
-      endpoint="billing/products"
-      title={<Trans message="Subscription plans" />}
-      columns={columnConfig}
-      actions={<Actions />}
-      enableSelection={false}
-      filters={PlansIndexPageFilters}
-      onRowAction={item => {
-        navigate(`/admin/plans/${item.id}/edit`);
-      }}
-      emptyStateMessage={
-        <DataTableEmptyStateMessage
-          image={softwareEngineerSvg}
-          title={<Trans message="No plans have been created yet" />}
-          filteringTitle={<Trans message="No matching plans" />}
+    <DatatablePageWithHeaderLayout>
+      <GlobalLoadingProgress query={query} />
+      <DatatablePageHeaderBar
+        title={<Trans message="Subscription plans" />}
+        showSidebarToggleButton
+        rightContent={
+          AdminDocsUrls.pages.subscriptions ? (
+            <DocsLink
+              variant="button"
+              link={AdminDocsUrls.pages.subscriptions}
+              size="xs"
+            />
+          ) : null
+        }
+      />
+      <DatatablePageWithHeaderBody>
+        <DataTableHeader
+          searchValue={searchParams.query}
+          onSearchChange={setSearchQuery}
+          actions={<Actions />}
+          filters={PlansIndexPageFilters}
         />
-      }
-    />
+        <DatatableFilters filters={PlansIndexPageFilters} />
+        <DatatablePageScrollContainer>
+          <Table
+            columns={columnConfig}
+            data={query.items}
+            sortDescriptor={sortDescriptor}
+            onSortChange={mergeIntoSearchParams}
+            enableSelection={false}
+            cellHeight="h-64"
+            onAction={item => {
+              navigate(`/admin/plans/${item.id}/edit`);
+            }}
+          />
+          {query.isEmpty && (
+            <DataTableEmptyStateMessage
+              className="mt-50"
+              isFiltering={isFiltering}
+              image={softwareEngineerSvg}
+              title={<Trans message="No plans have been created yet" />}
+              filteringTitle={<Trans message="No matching plans" />}
+            />
+          )}
+          <DataTablePaginationFooter
+            query={query}
+            onPageChange={page => mergeIntoSearchParams({page})}
+            onPerPageChange={perPage => mergeIntoSearchParams({perPage})}
+          />
+        </DatatablePageScrollContainer>
+      </DatatablePageWithHeaderBody>
+    </DatatablePageWithHeaderLayout>
   );
 }
 

@@ -1,4 +1,4 @@
-import {useParams} from 'react-router-dom';
+import {useParams} from 'react-router';
 
 type RequiredParams<Key extends string = string> = {
   readonly [key in Key]: string;

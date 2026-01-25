@@ -34,7 +34,7 @@ class LoadChannelContent
             // If restriction could not be loaded bail. This is used to cancel content loading and return 404,
             // if, for example, loading genre channel, but specified genre does not exist.
             if (!$channel->restriction) {
-                return new Paginator([], 50);
+                return new Paginator([], $params['perPage']);
             }
         }
 
@@ -124,13 +124,17 @@ class LoadChannelContent
         $pagination
             ->filter(fn($model) => $model->pivot)
             ->transform(function (Model $model) use ($channel, $params) {
-                $model['channelable_id'] = $model->pivot->id;
-                $model['channelable_order'] = $model->pivot->order;
-                if ($model instanceof Channel) {
+                if (
+                    $model instanceof Channel &&
+                    !Arr::get($params, 'normalizeContent')
+                ) {
                     $model->loadContent(
                         array_merge($params, [
                             // clear parent channel pagination params and only load 15 items per nested channel
-                            'perPage' => 15,
+                            'perPage' => $model->getNestedChannelPerPage(
+                                $params,
+                                $channel,
+                            ),
                             'page' => 1,
                             'paginate' => 'simple',
                             // clear this so nested channel always uses sorting order set in that channel's config

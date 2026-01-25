@@ -1,12 +1,16 @@
-import clsx from 'clsx';
-import {CustomMenu} from '../../menus/custom-menu';
 import {LocaleSwitcher} from '@common/locale-switcher/locale-switcher';
 import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
 import {DarkModeIcon} from '@ui/icons/material/DarkMode';
 import {LightbulbIcon} from '@ui/icons/material/Lightbulb';
-import {Trans} from '@ui/i18n/trans';
-import {useThemeSelector} from '@ui/themes/theme-selector-context';
+import {FacebookIcon} from '@ui/icons/social/facebook';
+import {InstagramIcon} from '@ui/icons/social/instagram';
+import {TwitterIcon} from '@ui/icons/social/twitter';
+import {YoutubeIcon} from '@ui/icons/social/youtube';
 import {useSettings} from '@ui/settings/use-settings';
+import {useThemeSelector} from '@ui/themes/theme-selector-context';
+import clsx from 'clsx';
+import {CustomMenu, CustomMenuItem} from '../../menus/custom-menu';
 
 interface Props {
   className?: string;
@@ -42,8 +46,8 @@ export function Footer({className, padding}: Props) {
 function Menus() {
   const settings = useSettings();
   const primaryMenu = settings.menus.find(m => m.positions?.includes('footer'));
-  const secondaryMenu = settings.menus.find(
-    m => m.positions?.includes('footer-secondary'),
+  const secondaryMenu = settings.menus.find(m =>
+    m.positions?.includes('footer-secondary'),
   );
 
   if (!primaryMenu && !secondaryMenu) return null;
@@ -54,10 +58,43 @@ function Menus() {
         <CustomMenu menu={primaryMenu} className="text-primary" />
       )}
       {secondaryMenu && (
-        <CustomMenu menu={secondaryMenu} className="mb:mt-0 mt-14 text-muted" />
+        <CustomMenu menu={secondaryMenu} className="mb:mt-0 mt-14 text-muted">
+          {(item, props) => {
+            const icon =
+              typeof item.icon === 'string' ? (
+                <SocialIcon icon={item.icon} />
+              ) : null;
+            return (
+              <CustomMenuItem
+                key={item.id}
+                {...props}
+                item={item}
+                icon={icon}
+              />
+            );
+          }}
+        </CustomMenu>
       )}
     </div>
   );
+}
+
+interface SocialIconProps {
+  icon: string;
+}
+function SocialIcon({icon}: SocialIconProps) {
+  switch (icon) {
+    case 'facebook':
+      return <FacebookIcon size="sm" />;
+    case 'twitter':
+      return <TwitterIcon size="sm" />;
+    case 'instagram':
+      return <InstagramIcon size="sm" />;
+    case 'youtube':
+      return <YoutubeIcon />;
+    default:
+      return null;
+  }
 }
 
 function ThemeSwitcher() {

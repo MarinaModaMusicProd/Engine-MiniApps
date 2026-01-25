@@ -5,10 +5,10 @@ use App\Models\Playlist;
 use App\Services\IncrementModelViews;
 use App\Services\Playlists\DeletePlaylists;
 use App\Services\Playlists\PaginatePlaylists;
-use App\Services\Playlists\PlaylistTracksPaginator;
-use Auth;
+use App\Services\Playlists\PlaylistLoader;
 use Common\Core\BaseController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class PlaylistController extends BaseController
@@ -16,43 +16,27 @@ class PlaylistController extends BaseController
     public function __construct(
         protected Request $request,
         protected Playlist $playlist,
-        protected PlaylistTracksPaginator $tracksPaginator,
-    ) {
-    }
+    ) {}
 
     public function index()
     {
         $this->authorize('index', Playlist::class);
 
-        $pagination = app(PaginatePlaylists::class)->execute(
-            $this->request->all(),
+        $pagination = (new PaginatePlaylists())->asApiResponse(
+            request()->all(),
         );
-
-        $pagination->makeVisible(['updated_at', 'views', 'description']);
 
         return $this->success(['pagination' => $pagination]);
     }
 
     public function show(int $id)
     {
-        $playlist = $this->playlist
-            ->with('editors')
-            ->withCount('tracks')
-            ->findOrFail($id);
-
-        $playlist->makeVisible(['description']);
+        $playlist = Playlist::findOrFail($id);
 
         $this->authorize('show', $playlist);
 
         $loader = request('loader', 'playlistPage');
-        $data = [
-            'playlist' => $playlist,
-            'tracks' => $this->tracksPaginator->paginate($playlist->id),
-            'totalDuration' => (int) $playlist
-                ->tracks()
-                ->sum('tracks.duration'),
-            'loader' => $loader,
-        ];
+        $data = (new PlaylistLoader())->load($playlist, $loader);
 
         app(IncrementModelViews::class)->execute($playlist->id, 'playlist');
 
@@ -66,17 +50,20 @@ class PlaylistController extends BaseController
     {
         $this->authorize('store', Playlist::class);
 
-        $params = $this->request->all();
+        $params = request()->all();
         $params['owner_id'] = Auth::id();
-        Playlist::unguard();
-        $newPlaylist = $this->request
+        $newPlaylist = request()
             ->user()
             ->playlists()
             ->create($params, ['editor' => true]);
 
+        $newPlaylist->syncUploadedImage();
+
         $newPlaylist->load('editors');
 
-        return $this->success(['playlist' => $newPlaylist]);
+        return $this->success([
+            'playlist' => (new PlaylistLoader())->toApiResource($newPlaylist),
+        ]);
     }
 
     public function update(
@@ -85,12 +72,16 @@ class PlaylistController extends BaseController
     ): Response {
         $this->authorize('update', $playlist);
 
+        $initialImage = $playlist->image;
+
         $playlist->fill($this->request->all())->save();
         $playlist->load('editors');
-        $playlist->loadCount('tracks');
-        $playlist->makeVisible(['description']);
 
-        return $this->success(['playlist' => $playlist]);
+        $playlist->syncUploadedImage($initialImage);
+
+        return $this->success([
+            'playlist' => (new PlaylistLoader())->toApiResource($playlist),
+        ]);
     }
 
     public function destroy(string $ids): Response
@@ -102,6 +93,8 @@ class PlaylistController extends BaseController
             ->get();
 
         $this->authorize('destroy', [Playlist::class, $playlists]);
+
+        $this->blockOnDemoSite();
 
         app(DeletePlaylists::class)->execute($playlists);
 
@@ -122,18 +115,12 @@ class PlaylistController extends BaseController
 
     public function unfollow(int $id)
     {
-        $playlist = $this->request
-            ->user()
-            ->playlists()
-            ->find($id);
+        $playlist = $this->request->user()->playlists()->find($id);
 
         $this->authorize('show', $playlist);
 
         if ($playlist) {
-            $this->request
-                ->user()
-                ->playlists()
-                ->detach($id);
+            $this->request->user()->playlists()->detach($id);
         }
 
         return $this->success();

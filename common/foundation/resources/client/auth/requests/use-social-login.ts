@@ -1,11 +1,11 @@
-import {useCallback, useState} from 'react';
-import {toast} from '@ui/toast/toast';
-import {useDisconnectSocial} from './disconnect-social';
-import {useTrans} from '@ui/i18n/use-trans';
 import {
   getBootstrapData,
   setBootstrapData,
 } from '@ui/bootstrap-data/bootstrap-data-store';
+import {useTrans} from '@ui/i18n/use-trans';
+import {toast} from '@ui/toast/toast';
+import {useCallback, useState} from 'react';
+import {useDisconnectSocial} from './disconnect-social';
 
 export type SocialService = 'google' | 'twitter' | 'facebook' | 'envato';
 
@@ -86,22 +86,24 @@ function openNewSocialAuthWindow(url: string): Promise<SocialMessageEvent> {
       `menubar=0, location=0, toolbar=0, titlebar=0, status=0, scrollbars=1, width=${windowWidth}, height=${windowHeight}, left=${left}, top=${top}`,
     );
 
+    const channel = new BroadcastChannel('social-auth');
+
     const messageListener = (e: MessageEvent) => {
       const baseUrl = getBootstrapData().settings.base_url;
       if (e.data.type === 'social-auth' && baseUrl.indexOf(e.origin) > -1) {
         resolve(e.data);
-        window.removeEventListener('message', messageListener);
+        channel.removeEventListener('message', messageListener);
       }
     };
 
-    window.addEventListener('message', messageListener);
+    channel.addEventListener('message', messageListener);
 
     // if user closes social login callback without interacting with it, remove message event listener
     const timer = setInterval(() => {
       if (!win || win.closed) {
         clearInterval(timer);
         resolve({});
-        window.removeEventListener('message', messageListener);
+        channel.removeEventListener('message', messageListener);
       }
     }, 1000);
   });

@@ -1,13 +1,14 @@
-import {UseFormReturn} from 'react-hook-form';
+import {billingQueries} from '@common/billing/billing-queries';
+import {useQuery} from '@tanstack/react-query';
 import {Form} from '@ui/forms/form';
+import {FormDatePicker} from '@ui/forms/input-field/date/date-picker/date-picker';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
+import {Item} from '@ui/forms/listbox/item';
 import {FormSelect} from '@ui/forms/select/select';
 import {Trans} from '@ui/i18n/trans';
-import {Item} from '@ui/forms/listbox/item';
-import {Subscription} from '../../billing/subscription';
-import {FormDatePicker} from '@ui/forms/input-field/date/date-picker/date-picker';
-import {useProducts} from '../../billing/pricing-table/use-products';
+import {UseFormReturn} from 'react-hook-form';
 import {FormattedPrice} from '../../billing/formatted-price';
+import {Subscription} from '../../billing/subscription';
 import {FormNormalizedModelField} from '../../ui/normalized-model/normalized-model-field';
 
 interface CrupdateSubscriptionForm {
@@ -20,7 +21,7 @@ export function CrupdateSubscriptionForm({
   onSubmit,
   formId,
 }: CrupdateSubscriptionForm) {
-  const query = useProducts();
+  const query = useQuery(billingQueries.products.index());
   // @ts-ignore
   const watchedProductId = form.watch('product_id');
   const selectedProduct = query.data?.products.find(

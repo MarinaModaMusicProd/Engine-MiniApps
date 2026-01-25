@@ -3,14 +3,14 @@
 namespace Common\Generators\Request;
 
 use Illuminate\Foundation\Console\RequestMakeCommand;
-use Str;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 
 class GenerateRequest extends RequestMakeCommand
 {
     protected function getStub()
     {
-        return __DIR__.'/stubs/request.stub';
+        return __DIR__ . '/stubs/request.stub';
     }
 
     /**
@@ -36,7 +36,12 @@ class GenerateRequest extends RequestMakeCommand
     protected function getOptions()
     {
         return [
-            ['model', 'm', InputOption::VALUE_OPTIONAL, 'The model that the request applies to.'],
+            [
+                'model',
+                'm',
+                InputOption::VALUE_OPTIONAL,
+                'The model that the request applies to.',
+            ],
         ];
     }
 }

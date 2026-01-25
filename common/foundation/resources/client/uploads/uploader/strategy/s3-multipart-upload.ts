@@ -1,15 +1,18 @@
-import {UploadStrategy, UploadStrategyConfig} from './upload-strategy';
+import {getAxiosErrorMessage} from '@common/http/get-axios-error-message';
+import {apiClient} from '@common/http/query-client';
 import {UploadedFile} from '@ui/utils/files/uploaded-file';
-import axios, {AxiosInstance, AxiosProgressEvent} from 'axios';
-import {FileEntry} from '../../file-entry';
 import {
   getFromLocalStorage,
   removeFromLocalStorage,
   setInLocalStorage,
 } from '@ui/utils/hooks/local-storage';
-import {apiClient} from '@common/http/query-client';
-import {getAxiosErrorMessage} from '@common/http/get-axios-error-message';
+import axios, {AxiosInstance, AxiosProgressEvent} from 'axios';
 import axiosRetry from 'axios-retry';
+import {FileEntry} from '../../file-entry';
+import {
+  UploadStrategy,
+  UploadStrategyConfigWithBackend,
+} from './upload-strategy';
 
 const oneMB = 1024 * 1024;
 // chunk size that will be uploaded to s3 per request
@@ -60,7 +63,7 @@ export class S3MultipartUpload implements UploadStrategy {
 
   constructor(
     private file: UploadedFile,
-    private config: UploadStrategyConfig,
+    private config: UploadStrategyConfigWithBackend,
   ) {
     this.abortController = new AbortController();
     this.chunkAxios = axios.create();
@@ -68,7 +71,7 @@ export class S3MultipartUpload implements UploadStrategy {
   }
 
   async start() {
-    const storedUrl = getFromLocalStorage(this.storageKey);
+    const storedUrl = getFromLocalStorage<StoredUrl>(this.storageKey);
     if (storedUrl) {
       await this.getUploadedParts(storedUrl);
     }
@@ -142,6 +145,8 @@ export class S3MultipartUpload implements UploadStrategy {
       .post(
         'api/v1/s3/multipart/batch-sign-part-urls',
         {
+          backendId: this.config.backendId,
+          uploadType: this.config.uploadType,
           partNumbers: batch.map(i => i.partNumber),
           uploadId: this.uploadId,
           key: this.fileKey,
@@ -201,10 +206,12 @@ export class S3MultipartUpload implements UploadStrategy {
   private async createMultipartUpload(): Promise<void> {
     const response = await apiClient
       .post('s3/multipart/create', {
-        filename: this.file.name,
-        mime: this.file.mime,
-        size: this.file.size,
-        extension: this.file.extension,
+        clientName: this.file.name,
+        clientMime: this.file.mime,
+        clientSize: this.file.size,
+        clientExtension: this.file.extension,
+        uploadType: this.config.uploadType,
+        backendId: this.config.backendId,
         ...this.config.metadata,
       })
       .then(r => r.data as {uploadId: string; key: string})
@@ -228,6 +235,8 @@ export class S3MultipartUpload implements UploadStrategy {
   private async getUploadedParts({fileKey, uploadId}: StoredUrl) {
     const response = await apiClient
       .post('s3/multipart/get-uploaded-parts', {
+        backendId: this.config.backendId,
+        uploadType: this.config.uploadType,
         key: fileKey,
         uploadId,
       })
@@ -246,6 +255,8 @@ export class S3MultipartUpload implements UploadStrategy {
   private async completeMultipartUpload(): Promise<{location: string} | null> {
     return apiClient
       .post('s3/multipart/complete', {
+        backendId: this.config.backendId,
+        uploadType: this.config.uploadType,
         key: this.fileKey,
         uploadId: this.uploadId,
         parts: this.chunks.map(c => {
@@ -271,9 +282,11 @@ export class S3MultipartUpload implements UploadStrategy {
         ...this.config.metadata,
         clientMime: this.file.mime,
         clientName: this.file.name,
-        filename: this.fileKey!.split('/').pop(),
-        size: this.file.size,
+        clientSize: this.file.size,
         clientExtension: this.file.extension,
+        filename: this.fileKey!.split('/').pop(),
+        uploadType: this.config.uploadType,
+        backendId: this.config.backendId,
       })
       .then(r => r.data)
       .catch();
@@ -324,7 +337,7 @@ export class S3MultipartUpload implements UploadStrategy {
 
   static async create(
     file: UploadedFile,
-    config: UploadStrategyConfig,
+    config: UploadStrategyConfigWithBackend,
   ): Promise<S3MultipartUpload> {
     return new S3MultipartUpload(file, config);
   }

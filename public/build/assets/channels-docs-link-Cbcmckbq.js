@@ -1,0 +1,1 @@
+import{j as a}from"./main-BEfQELxr.js";import{a as s}from"./admin-config-BaCrw7Kt.js";import{D as i}from"./settings-links-BagG4yO6.js";function m({className:o,hash:n,variant:r}){if(!s.pages.channels)return null;const e=n?`${s.pages.channels}#${n}`:s.pages.channels;return a.jsx(i,{link:e,className:o,variant:r,size:"xs"})}export{m as C};

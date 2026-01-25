@@ -3,29 +3,17 @@
 namespace App\Http\Controllers\Artist;
 
 use App\Models\Artist;
+use App\Services\Artists\ArtistLoader;
 use Common\Core\BaseController;
 use Illuminate\Http\Request;
 
 class ArtistFollowersController extends BaseController
 {
-    /**
-     * @var Request
-     */
-    private $request;
-
-    public function __construct(Request $request)
-    {
-        $this->request = $request;
-    }
-
     public function index(Artist $artist)
     {
-        $userId = $this->request->get('userId');
-        $this->authorize('index', [$artist, $userId]);
+        $this->authorize('show', $artist);
 
-        $pagination = $artist->followers()
-            ->withCount(['followers'])
-            ->paginate(request('perPage') ?? 25);
+        $pagination = (new ArtistLoader())->loadArtistFollowers($artist);
 
         return $this->success(['pagination' => $pagination]);
     }

@@ -10,10 +10,10 @@ trait SyncsPermissions
 {
     public function syncPermissions(
         Model $model,
-        array|Collection $permissions
+        array|Collection $permissions,
     ): void {
         $permissionIds = collect($permissions)->mapWithKeys(function (
-            $permission
+            $permission,
         ) {
             $restrictions = Arr::get($permission, 'restrictions', []);
             return [

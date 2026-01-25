@@ -1,13 +1,14 @@
-import clsx from 'clsx';
-import {useContext, useEffect, useState} from 'react';
-import {PlayerStoreContext} from '@common/player/player-context';
 import {isSearchingForYoutubeVideo} from '@app/web-player/tracks/requests/find-youtube-videos-for-track';
+import {PlayerStoreContext} from '@common/player/player-context';
+import clsx from 'clsx';
+import {useContext, useEffect, useRef, useState} from 'react';
 
 export function BufferingIndicator() {
   const store = useContext(PlayerStoreContext);
 
   const [isVisible, setIsVisible] = useState(false);
   const [animationActive, setAnimationActive] = useState(false);
+  const timeoutRef = useRef<any>(null);
 
   useEffect(() => {
     return store.subscribe(
@@ -17,13 +18,14 @@ export function BufferingIndicator() {
         if (isLoading) {
           // make loader visible only after animation is running
           setAnimationActive(true);
-          setTimeout(() => {
+          timeoutRef.current = setTimeout(() => {
             setIsVisible(true);
           });
         } else {
+          clearTimeout(timeoutRef.current);
           setIsVisible(false);
         }
-      }
+      },
     );
   }, [store]);
 
@@ -34,9 +36,9 @@ export function BufferingIndicator() {
       height="48"
       fill="none"
       className={clsx(
-        'absolute -top-3 -left-3 z-10 transition-opacity duration-300 pointer-events-none',
+        'pointer-events-none absolute -left-3 -top-3 z-10 transition-opacity duration-300',
         isVisible ? 'opacity-100' : 'opacity-0',
-        animationActive && 'animate-spin'
+        animationActive && 'animate-spin',
       )}
       onTransitionEnd={() => {
         // stop animation only after opacity transition is done to avoid flickering

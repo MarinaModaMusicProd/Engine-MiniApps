@@ -1,13 +1,13 @@
-import {Fragment} from 'react';
-import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {Breadcrumb} from '@ui/breadcrumbs/breadcrumb';
 import {BreadcrumbItem} from '@ui/breadcrumbs/breadcrumb-item';
 import {Trans} from '@ui/i18n/trans';
-import {Outlet} from 'react-router-dom';
+import {Fragment} from 'react';
+import {Outlet} from 'react-router';
 
 const previousUrl = '/billing';
 
-export function ChangePaymentMethodLayout() {
+export function Component() {
   const navigate = useNavigate();
 
   return (

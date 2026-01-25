@@ -1,16 +1,16 @@
-import {DateFormatter, parseAbsoluteToLocal} from '@internationalized/date';
+import { DateFormatter, parseAbsoluteToLocal } from '@internationalized/date';
+import { shallowEqual } from '@ui/utils/shallow-equal';
+import { ChartType } from 'chart.js';
 import memoize from 'nano-memoize';
-import {ChartType} from 'chart.js';
-import {
-  FormattedDatasetItem,
-  FormattedReportData,
-} from './formatted-dataset-item';
 import {
   DatasetItem,
   RangedDatasetGranularity,
   ReportMetric,
 } from '../../admin/analytics/report-metric';
-import {shallowEqual} from '@ui/utils/shallow-equal';
+import {
+  FormattedDatasetItem,
+  FormattedReportData,
+} from './formatted-dataset-item';
 
 interface Options {
   localeCode: string;
@@ -160,6 +160,5 @@ const getFormatter = memoize(
     equals: (a, b) => {
       return shallowEqual(a, b);
     },
-    callTimeout: undefined as any,
   },
 );

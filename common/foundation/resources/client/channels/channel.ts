@@ -3,10 +3,7 @@ import {User} from '@ui/types/user';
 
 export const CHANNEL_MODEL = 'channel';
 
-export type ChannelContentItem<T = unknown> = T & {
-  channelable_id?: number;
-  channelable_order?: number;
-};
+export type ChannelContentItem<T = unknown> = T;
 
 export interface ChannelConfig {
   autoUpdateMethod?: string;
@@ -19,7 +16,7 @@ export interface ChannelConfig {
   contentType: 'listAll' | 'manual' | 'autoUpdate';
   contentOrder: string;
   // layout user selected manually, it's stored in a cookie and set as this
-  // prop in channel controller so there are no mismatches during SSR
+  // prop in channel controller so there are no mismatches during initial load
   selectedLayout?: string;
   layout: string;
   nestedLayout: string;
@@ -49,3 +46,8 @@ export interface Channel<T = ChannelContentItem> {
   restriction?: {id: number; name: string; model_type: string};
   content?: PaginationResponse<T>;
 }
+
+export type ChannelLoader =
+  | 'channelPage'
+  | 'editChannelPage'
+  | 'editUserListPage';

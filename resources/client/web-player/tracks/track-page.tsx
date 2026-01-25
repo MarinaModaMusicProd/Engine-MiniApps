@@ -1,113 +1,81 @@
-import {IllustratedMessage} from '@ui/images/illustrated-message';
-import {Trans} from '@ui/i18n/trans';
-import {TrackTable} from '@app/web-player/tracks/track-table/track-table';
-import React, {Fragment} from 'react';
-import {queueGroupId} from '@app/web-player/queue-group-id';
+import {appQueries} from '@app/app-queries';
+import {
+  offlinedEntitiesStore,
+  useOfflineEntitiesStore,
+} from '@app/offline/offline-entities-store';
+import {OfflineEntityButtonLayout} from '@app/offline/offline-media-item-button';
+import {offlineQueue} from '@app/offline/offline-queue';
+import {offlinedTracks} from '@app/offline/offlined-tracks';
+import {useCanOffline} from '@app/offline/use-can-offline';
+import {FullAlbum} from '@app/web-player/albums/album';
+import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
+import {AlbumLink} from '@app/web-player/albums/album-link';
+import {getArtistLink} from '@app/web-player/artists/artist-link';
+import {GenreLink} from '@app/web-player/genres/genre-link';
+import {BulletSeparatedItems} from '@app/web-player/layout/bullet-separated-items';
 import {
   actionButtonClassName,
   MediaPageHeaderLayout,
 } from '@app/web-player/layout/media-page-header-layout';
-import {AvatarGroup} from '@ui/avatar/avatar-group';
-import {Avatar} from '@ui/avatar/avatar';
-import {FormattedDuration} from '@ui/i18n/formatted-duration';
+import {PlayerPageErrorMessage} from '@app/web-player/layout/player-page-error-message';
+import {PlayerPageHeaderGradient} from '@app/web-player/layout/player-page-header-gradient';
+import {PlayerPageSuspense} from '@app/web-player/layout/player-page-suspsense';
 import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
-import {Album} from '@app/web-player/albums/album';
-import {getSmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
-import {getArtistLink} from '@app/web-player/artists/artist-link';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {useSortableTableData} from '@common/ui/tables/use-sortable-table-data';
-import {BulletSeparatedItems} from '@app/web-player/layout/bullet-separated-items';
-import {CommentList} from '@common/comments/comment-list/comment-list';
-import {useTrack} from '@app/web-player/tracks/requests/use-track';
+import {queueGroupId} from '@app/web-player/queue-group-id';
+import {useCommentPermissions} from '@app/web-player/tracks/hooks/use-comment-permissions';
 import {useTrackPermissions} from '@app/web-player/tracks/hooks/use-track-permissions';
+import {GetTrackResponse} from '@app/web-player/tracks/requests/get-track-response';
 import {Track} from '@app/web-player/tracks/track';
+import {TrackActionsBar} from '@app/web-player/tracks/track-actions-bar';
 import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
-import {useSettings} from '@ui/settings/use-settings';
-import {FormattedNumber} from '@ui/i18n/formatted-number';
-import {Waveform} from '@app/web-player/tracks/waveform/waveform';
+import {TrackTable} from '@app/web-player/tracks/track-table/track-table';
+import {trackIsLocallyUploaded} from '@app/web-player/tracks/utils/track-is-locally-uploaded';
 import {CommentBarContextProvider} from '@app/web-player/tracks/waveform/comment-bar-context';
 import {CommentBarNewCommentForm} from '@app/web-player/tracks/waveform/comment-bar-new-comment-form';
-import {GenreLink} from '@app/web-player/genres/genre-link';
+import {Waveform} from '@app/web-player/tracks/waveform/waveform';
+import {AdHost} from '@common/admin/ads/ad-host';
+import {CommentList} from '@common/comments/comment-list/comment-list';
 import {PageMetaTags} from '@common/http/page-meta-tags';
-import {PageStatus} from '@common/http/page-status';
-import {TrackActionsBar} from '@app/web-player/tracks/track-actions-bar';
+import {useRequiredParams} from '@common/ui/navigation/use-required-params';
+import {TruncatedDescription} from '@common/ui/other/truncated-description';
+import {useSortableTableData} from '@common/ui/tables/use-sortable-table-data';
+import {FocusScope} from '@react-aria/focus';
+import {useSuspenseQuery} from '@tanstack/react-query';
+import {Avatar} from '@ui/avatar/avatar';
+import {AvatarGroup} from '@ui/avatar/avatar-group';
 import {Chip} from '@ui/forms/input-field/chip-field/chip';
 import {ChipList} from '@ui/forms/input-field/chip-field/chip-list';
-import {Link} from 'react-router-dom';
-import {FocusScope} from '@react-aria/focus';
-import {trackIsLocallyUploaded} from '@app/web-player/tracks/utils/track-is-locally-uploaded';
-import {AdHost} from '@common/admin/ads/ad-host';
-import {useCommentPermissions} from '@app/web-player/tracks/hooks/use-comment-permissions';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {FormattedDuration} from '@ui/i18n/formatted-duration';
+import {FormattedNumber} from '@ui/i18n/formatted-number';
+import {Trans} from '@ui/i18n/trans';
+import {useSettings} from '@ui/settings/use-settings';
 import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
-import {TruncatedDescription} from '@common/ui/other/truncated-description';
+import {Fragment, useEffect, useState} from 'react';
+import {Link} from 'react-router';
 
-export function TrackPage() {
-  const {canView: showComments, canCreate: allowCommenting} =
-    useCommentPermissions();
-  const query = useTrack({loader: 'trackPage'});
-  const {canEdit} = useTrackPermissions([query.data?.track]);
-
-  if (query.data) {
-    return (
-      <div>
-        <CommentBarContextProvider>
-          <PageMetaTags query={query} />
-          <AdHost slot="general_top" className="mb-44" />
-          <TrackPageHeader track={query.data.track} />
-          {allowCommenting ? (
-            <CommentBarNewCommentForm
-              className="mb-16"
-              commentable={query.data.track}
-            />
-          ) : null}
-        </CommentBarContextProvider>
-        {query.data.track.tags.length ? (
-          <FocusScope>
-            <ChipList className="mb-16" selectable>
-              {query.data.track.tags.map(tag => (
-                <Chip elementType={Link} to={`/tag/${tag.name}`} key={tag.id}>
-                  #{tag.display_name || tag.name}
-                </Chip>
-              ))}
-            </ChipList>
-          </FocusScope>
-        ) : null}
-        <TruncatedDescription
-          description={query.data.track.description}
-          className="mt-24 text-sm"
-        />
-        {showComments ? (
-          <CommentList
-            className="mt-34"
-            commentable={query.data.track}
-            canDeleteAllComments={canEdit}
-          />
-        ) : null}
-        {query.data.track.album && (
-          <AlbumTrackTable album={query.data.track.album} />
-        )}
-        <AdHost slot="general_bottom" className="mt-44" />
-      </div>
-    );
-  }
-
+export function Component() {
   return (
-    <PageStatus
-      query={query}
-      loaderIsScreen={false}
-      loaderClassName="absolute inset-0 m-auto"
-    />
+    <PlayerPageSuspense offlineFallback={<OfflineFallback />}>
+      <TrackPage />
+    </PlayerPageSuspense>
   );
+}
+
+function TrackPage() {
+  const {trackId} = useRequiredParams(['trackId']);
+  const query = useSuspenseQuery(appQueries.tracks.get(trackId, 'trackPage'));
+  return <TrackPageLayout data={query.data} />;
 }
 
 interface AlbumTrackTableProps {
-  album: Album;
+  album: FullAlbum;
+  track: Track;
 }
-function AlbumTrackTable({album}: AlbumTrackTableProps) {
-  const {data, sortDescriptor, onSortChange} = useSortableTableData(
-    album.tracks,
-  );
+function AlbumTrackTable({album, track}: AlbumTrackTableProps) {
+  const albumsTracks = album?.tracks?.length ? album.tracks : [track];
+  const {data, sortDescriptor, onSortChange} =
+    useSortableTableData(albumsTracks);
   return (
     <div className="mt-44">
       <div className="mb-14 flex items-center gap-16 overflow-hidden rounded bg-hover">
@@ -120,7 +88,9 @@ function AlbumTrackTable({album}: AlbumTrackTableProps) {
           <div className="text-sm">
             <Trans message="From the album" />
           </div>
-          <div className="text-sm font-semibold">{album.name}</div>
+          <div className="text-sm font-semibold">
+            <AlbumLink album={album} />
+          </div>
         </div>
       </div>
       <TrackTable
@@ -129,28 +99,19 @@ function AlbumTrackTable({album}: AlbumTrackTableProps) {
         sortDescriptor={sortDescriptor}
         onSortChange={onSortChange}
         hideTrackImage
-        hideArtist
         hideAlbum
         hidePopularity={false}
       />
-      {!album.tracks?.length ? (
-        <IllustratedMessage
-          className="mt-34"
-          title={<Trans message="Nothing to display" />}
-          description={
-            <Trans message="This album does not have any tracks yet" />
-          }
-        />
-      ) : null}
     </div>
   );
 }
 
 interface TrackPageHeaderProps {
-  track: Track;
+  track: GetTrackResponse['track'];
 }
 function TrackPageHeader({track}: TrackPageHeaderProps) {
   const isMobile = useIsMobileMediaQuery();
+  const canOffline = useCanOffline();
   const {player} = useSettings();
   const releaseDate = track.album?.release_date || track.created_at;
   const genre = track.genres?.[0];
@@ -163,8 +124,7 @@ function TrackPageHeader({track}: TrackPageHeaderProps) {
   return (
     <Fragment>
       <MediaPageHeaderLayout
-        className="mb-28"
-        image={<TrackImage track={track} />}
+        image={<TrackImage track={track} className="rounded-panel" />}
         title={track.name}
         subtitle={
           <AvatarGroup>
@@ -172,7 +132,7 @@ function TrackPageHeader({track}: TrackPageHeaderProps) {
               <Avatar
                 key={artist.id}
                 circle
-                src={getSmallArtistImage(artist)}
+                src={artist.image_small}
                 label={artist.name}
                 link={getArtistLink(artist)}
               />
@@ -180,7 +140,7 @@ function TrackPageHeader({track}: TrackPageHeaderProps) {
           </AvatarGroup>
         }
         description={
-          <BulletSeparatedItems className="text-sm text-muted">
+          <BulletSeparatedItems className="text-sm">
             {track.duration ? (
               <FormattedDuration ms={track.duration} verbose />
             ) : null}
@@ -194,13 +154,12 @@ function TrackPageHeader({track}: TrackPageHeaderProps) {
             ) : null}
           </BulletSeparatedItems>
         }
-        actionButtons={
+        actionsBar={
           <TrackActionsBar
             item={track}
             managesItem={false}
             buttonGap={undefined}
             buttonSize="sm"
-            buttonRadius="rounded-full"
             buttonClassName={actionButtonClassName()}
           >
             <PlaybackToggleButton
@@ -212,6 +171,7 @@ function TrackPageHeader({track}: TrackPageHeaderProps) {
               className={actionButtonClassName({isFirst: true})}
               queueId={queueGroupId(track.album || track)}
             />
+            {canOffline ? <OfflineTrackButton track={track} /> : null}
           </TrackActionsBar>
         }
         footer={
@@ -222,4 +182,134 @@ function TrackPageHeader({track}: TrackPageHeaderProps) {
       />
     </Fragment>
   );
+}
+
+function TrackPageLayout({data}: {data: GetTrackResponse}) {
+  const {canView: showComments, canCreate: allowCommenting} =
+    useCommentPermissions();
+  const {canEdit} = useTrackPermissions([data.track]);
+  return (
+    <>
+      {data.track.image && (
+        <PlayerPageHeaderGradient image={data.track.image} />
+      )}
+      <div className="relative">
+        <CommentBarContextProvider>
+          <PageMetaTags data={data} />
+          <AdHost slot="general_top" className="mb-44" />
+          <TrackPageHeader track={data.track} />
+          {allowCommenting ? (
+            <CommentBarNewCommentForm
+              className="mb-16"
+              commentable={data.track}
+            />
+          ) : null}
+        </CommentBarContextProvider>
+        {data.track.tags?.length ? (
+          <FocusScope>
+            <ChipList className="mb-16" color="bg-fg-base/8" selectable>
+              {data.track.tags.map(tag => (
+                <Chip elementType={Link} to={`/tag/${tag.name}`} key={tag.id}>
+                  #{tag.display_name || tag.name}
+                </Chip>
+              ))}
+            </ChipList>
+          </FocusScope>
+        ) : null}
+        <TruncatedDescription
+          description={data.track.description}
+          className="mt-24 text-sm"
+        />
+        {showComments ? (
+          <CommentList
+            className="mt-34"
+            commentable={data.track}
+            canDeleteAllComments={canEdit}
+          />
+        ) : null}
+        {data.track.album && (
+          <AlbumTrackTable album={data.track.album} track={data.track} />
+        )}
+        <AdHost slot="general_bottom" className="mt-44" />
+      </div>
+    </>
+  );
+}
+
+type OfflineTrackButtonProps = {
+  track: Track;
+};
+function OfflineTrackButton({track}: OfflineTrackButtonProps) {
+  const [progress, setProgress] = useState<number>(0);
+  const isOfflined = useOfflineEntitiesStore(s =>
+    s.offlinedTrackIds.has(track.id),
+  );
+
+  useEffect(() => {
+    if (isOfflined) {
+      const handler = () => {
+        const progress = offlineQueue
+          .getDownloadProgress()
+          .entries()
+          .find(([id]) => id === track.id);
+        setProgress(progress?.[1] ?? 0);
+      };
+
+      // get initial progress
+      handler();
+
+      return offlineQueue.listen('onActiveDownloadsChanged', handler);
+    }
+  }, [isOfflined]);
+
+  return (
+    <OfflineEntityButtonLayout
+      isOfflined={isOfflined}
+      className="mr-8"
+      progress={progress}
+      onClick={() => {
+        if (isOfflined) {
+          offlinedEntitiesStore().deleteOfflinedTracks([track]);
+        } else {
+          offlinedEntitiesStore().offlineTracks([track]);
+        }
+      }}
+    />
+  );
+}
+
+function OfflineFallback() {
+  const [data, setData] = useState<GetTrackResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const {trackId} = useRequiredParams(['trackId']);
+  useEffect(() => {
+    getOfflinedTrackData(+trackId)
+      .then(setData)
+      .finally(() => setIsLoading(false));
+  }, [trackId]);
+
+  if (data) {
+    return <TrackPageLayout data={data} />;
+  }
+
+  return isLoading ? null : <PlayerPageErrorMessage />;
+}
+
+async function getOfflinedTrackData(
+  trackId: number,
+): Promise<GetTrackResponse | null> {
+  if (!offlinedEntitiesStore().offlinedTrackIds.has(trackId)) {
+    return null;
+  }
+
+  const item = await offlinedTracks.get(trackId);
+  const track = item?.data as GetTrackResponse['track'];
+  if (!track) {
+    return null;
+  }
+
+  return {
+    loader: 'trackPage',
+    track,
+  };
 }

@@ -33,10 +33,7 @@ class AppUrl
     public function init(): static
     {
         $this->originalAppUrl = config('app.url');
-        if (
-            config('common.site.dynamic_app_url') ||
-            !config('common.site.installed')
-        ) {
+        if (config('app.dynamic_app_url') || !config('app.installed')) {
             $this->maybeDynamicallyUpdate();
         } else {
             $this->envAndCurrentHostsAreEqual = true;
@@ -66,16 +63,15 @@ class AppUrl
             $this->getHostFrom($requestHost) ===
             $this->getHostFrom(Arr::get($envParts, 'host'));
         $hostsWithWwwAreEqual = $requestHost === Arr::get($envParts, 'host');
-        $customDomainsEnabled = config('common.site.enable_custom_domains');
-        $endsWithSlash = Str::endsWith(Arr::get($envParts, 'path'), '/');
+        $customDomainsEnabled = config('app.enable_custom_domains');
+        $endsWithSlash = Str::endsWith(Arr::get($envParts, 'path', ''), '/');
 
         // update app.url if not installed yet, or if only scheme, slash or www is different
         if (
-            ($this->envAndCurrentHostsAreEqual ||
-                !config('common.site.installed')) &&
+            ($this->envAndCurrentHostsAreEqual || !config('app.installed')) &&
             ($schemeIsDifferent || $endsWithSlash || !$hostsWithWwwAreEqual)
         ) {
-            if (!config('common.site.installed')) {
+            if (!config('app.installed')) {
                 $this->handleInstallationAppUrl();
                 return;
             }
@@ -180,7 +176,7 @@ class AppUrl
         }
 
         $parts = parse_url($hostOrUrl);
-        if ( ! isset($parts['host'])) {
+        if (!isset($parts['host'])) {
             return '';
         }
         return preg_replace('/^www\./i', '', $parts['host']);

@@ -1,26 +1,26 @@
-import {Trans} from '@ui/i18n/trans';
-import {Track} from '@app/web-player/tracks/track';
+import {PartialArtist} from '@app/web-player/artists/artist';
+import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
+import {ArtistLink, getArtistLink} from '@app/web-player/artists/artist-link';
+import {useDeleteArtist} from '@app/web-player/artists/requests/use-delete-artist';
+import {useArtistPermissions} from '@app/web-player/artists/use-artist-permissions';
 import {
   ContextDialogLayout,
   ContextMenuButton,
 } from '@app/web-player/context-dialog/context-dialog-layout';
-import React, {useCallback} from 'react';
-import {ToggleInLibraryMenuButton} from '@app/web-player/context-dialog/toggle-in-library-menu-button';
 import {CopyLinkMenuButton} from '@app/web-player/context-dialog/copy-link-menu-button';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {openDialog} from '@ui/overlays/store/dialog-store';
-import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
-import {Artist} from '@app/web-player/artists/artist';
-import {useArtistPermissions} from '@app/web-player/artists/use-artist-permissions';
-import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
-import {ArtistLink, getArtistLink} from '@app/web-player/artists/artist-link';
-import {useDeleteArtist} from '@app/web-player/artists/requests/use-delete-artist';
+import {ShareMediaButton} from '@app/web-player/context-dialog/share-media-button';
+import {ToggleInLibraryMenuButton} from '@app/web-player/context-dialog/toggle-in-library-menu-button';
 import {getRadioLink} from '@app/web-player/radio/get-radio-link';
 import {useShouldShowRadioButton} from '@app/web-player/tracks/context-dialog/use-should-show-radio-button';
-import {ShareMediaButton} from '@app/web-player/context-dialog/share-media-button';
+import {Track} from '@app/web-player/tracks/track';
+import {Trans} from '@ui/i18n/trans';
+import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {openDialog} from '@ui/overlays/store/dialog-store';
+import {useCallback} from 'react';
 
 interface ArtistContextDialogProps {
-  artist: Artist;
+  artist: PartialArtist;
 }
 export function ArtistContextDialog({artist}: ArtistContextDialogProps) {
   const showRadioButton = useShouldShowRadioButton();
@@ -99,6 +99,6 @@ function DeleteButton({artist}: ArtistContextDialogProps) {
 }
 
 // tracks are never used/loaded in artist context dialog
-async function loadArtistTracks(artist: Artist): Promise<Track[]> {
+async function loadArtistTracks(artist: PartialArtist): Promise<Track[]> {
   return Promise.resolve([]);
 }

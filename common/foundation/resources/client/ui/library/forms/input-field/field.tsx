@@ -1,9 +1,9 @@
-import React, {ComponentPropsWithoutRef, ReactElement, ReactNode} from 'react';
 import {Adornment} from '@ui/forms/input-field/adornment';
-import {InputFieldStyle} from '@ui/forms/input-field/get-input-field-class-names';
 import {BaseFieldProps} from '@ui/forms/input-field/base-field-props';
-import clsx from 'clsx';
+import {InputFieldStyle} from '@ui/forms/input-field/get-input-field-class-names';
 import {removeEmptyValuesFromObject} from '@ui/utils/objects/remove-empty-values-from-object';
+import clsx from 'clsx';
+import React, {ComponentPropsWithoutRef, ReactElement, ReactNode} from 'react';
 
 export interface FieldProps extends BaseFieldProps {
   children: ReactNode;
@@ -19,6 +19,7 @@ export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
       children,
       // Not every component that uses <Field> supports help text.
       description,
+      descriptionPosition = 'bottom',
       errorMessage,
       descriptionProps = {},
       errorMessageProps = {},
@@ -32,9 +33,16 @@ export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
       wrapperProps,
     } = props;
 
+    const descriptionEl = description && (
+      <div className={fieldClassNames.description} {...descriptionProps}>
+        {description}
+      </div>
+    );
+
     return (
       <div className={fieldClassNames.wrapper} ref={ref} {...wrapperProps}>
         <Label {...props} />
+        {descriptionPosition === 'top' && descriptionEl}
         <div className={fieldClassNames.inputWrapper}>
           <Adornment
             direction="start"
@@ -62,11 +70,7 @@ export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
             {endAdornment}
           </Adornment>
         </div>
-        {description && !errorMessage && (
-          <div className={fieldClassNames.description} {...descriptionProps}>
-            {description}
-          </div>
-        )}
+        {!errorMessage && descriptionPosition === 'bottom' && descriptionEl}
         {errorMessage && (
           <div className={fieldClassNames.error} {...errorMessageProps}>
             {errorMessage}
@@ -123,7 +127,7 @@ function Label({
 }
 
 interface AppendProps {
-  children: ReactElement;
+  children: ReactElement<any>;
   style: InputFieldStyle['append'];
   disabled?: boolean;
 }

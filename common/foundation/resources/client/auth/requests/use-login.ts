@@ -1,16 +1,22 @@
 import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {BackendResponse} from '../../http/backend-response/backend-response';
-import {onFormQueryError} from '../../errors/on-form-query-error';
-import {useNavigate} from '../../ui/navigation/use-navigate';
-import {apiClient} from '../../http/query-client';
-import {useAuth} from '../use-auth';
+import {
+  getBootstrapData,
+  setBootstrapData,
+} from '@ui/bootstrap-data/bootstrap-data-store';
 import {useCallback} from 'react';
-import {setBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {UseFormReturn} from 'react-hook-form';
+import {onFormQueryError} from '../../errors/on-form-query-error';
+import {BackendResponse} from '../../http/backend-response/backend-response';
+import {apiClient} from '../../http/query-client';
+import {useNavigate} from '../../ui/navigation/use-navigate';
+import {useAuth} from '../use-auth';
 
 interface LoginResponse extends BackendResponse {
   bootstrapData: string;
   two_factor: false;
+  url?: {
+    intended?: string;
+  };
 }
 interface TwoFactorResponse {
   two_factor: true;
@@ -28,7 +34,10 @@ export interface LoginPayload {
 export function useLogin(form: UseFormReturn<LoginPayload>) {
   const handleSuccess = useHandleLoginSuccess();
   return useMutation({
-    mutationFn: login,
+    mutationFn: (payload: LoginPayload) =>
+      apiClient
+        .post<Response>('auth/login', payload)
+        .then(response => response.data),
     onSuccess: response => {
       if (!response.two_factor) {
         handleSuccess(response);
@@ -44,13 +53,20 @@ export function useHandleLoginSuccess() {
 
   return useCallback(
     (response: LoginResponse) => {
-      setBootstrapData(response.bootstrapData);
-      navigate(getRedirectUri(), {replace: true});
+      let redirectUri = response.url?.intended ?? getRedirectUri();
+      if (redirectUri.includes('/oauth/')) {
+        window.location.href = redirectUri;
+      } else {
+        setBootstrapData(response.bootstrapData);
+        // get redirect uri after setting bootstrap data so it includes the new url from bootstrap data
+        redirectUri = response.url?.intended ?? getRedirectUri();
+        const relativeRedirectUri = redirectUri.replace(
+          getBootstrapData().settings.base_url,
+          '',
+        );
+        navigate(relativeRedirectUri, {replace: true});
+      }
     },
     [navigate, getRedirectUri],
   );
-}
-
-function login(payload: LoginPayload): Promise<Response> {
-  return apiClient.post('auth/login', payload).then(response => response.data);
 }

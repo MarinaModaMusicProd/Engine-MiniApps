@@ -1,3 +1,6 @@
+import {useControlledState} from '@react-stately/utils';
+import {InputSize} from '@ui/forms/input-field/input-size';
+import clsx from 'clsx';
 import {
   ChangeEventHandler,
   Children,
@@ -9,12 +12,10 @@ import {
   useId,
   useRef,
 } from 'react';
-import clsx from 'clsx';
-import {useControlledState} from '@react-stately/utils';
+import {useFormContext, useWatch} from 'react-hook-form';
+import {getInputFieldClassNames} from '../input-field/get-input-field-class-names';
 import {Orientation} from '../orientation';
 import {CheckboxProps} from './checkbox';
-import {getInputFieldClassNames} from '../input-field/get-input-field-class-names';
-import {useFormContext, useWatch} from 'react-hook-form';
 
 interface CheckboxGroupProps {
   children: ReactElement<CheckboxProps> | ReactElement<CheckboxProps>[];
@@ -27,6 +28,8 @@ interface CheckboxGroupProps {
   disabled?: boolean;
   readOnly?: boolean;
   invalid?: boolean;
+  size?: InputSize;
+  description?: ReactNode;
 }
 export function CheckboxGroup(props: CheckboxGroupProps) {
   const {
@@ -40,6 +43,8 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
     disabled,
     readOnly,
     invalid,
+    size,
+    description,
   } = props;
   const ref = useRef(null);
 
@@ -77,13 +82,15 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
       <div
         role="presentation"
         className={clsx(
-          'flex gap-6',
+          'flex gap-8',
+          label ? 'mt-6' : 'mt-0',
           orientation === 'vertical' ? 'flex-col' : 'flow-row',
         )}
       >
         {Children.map(children, child => {
           if (isValidElement(child)) {
             return cloneElement<CheckboxProps>(child, {
+              size,
               disabled: child.props.disabled || disabled,
               readOnly: child.props.readOnly || readOnly,
               invalid: child.props.invalid || invalid,
@@ -93,6 +100,11 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
           }
         })}
       </div>
+      {description && (
+        <div className={style.description} id={`${labelId}-description`}>
+          {description}
+        </div>
+      )}
     </div>
   );
 }
@@ -110,11 +122,11 @@ export function FormCheckboxGroup({
   const {setValue} = useFormContext();
   return (
     <CheckboxGroup
+      {...props}
       value={value || []}
       onChange={newValue => {
         setValue(props.name, newValue, {shouldDirty: true});
       }}
-      {...props}
     >
       {children}
     </CheckboxGroup>

@@ -1,13 +1,13 @@
-import {RefObject, useLayoutEffect, useRef} from 'react';
-import {droppables} from '../drag-state';
-import {InteractableRect} from '../../interactable-event';
-import {DraggableId} from '../use-draggable';
+import { RefObject, useLayoutEffect, useRef } from 'react';
+import { InteractableRect } from '../../interactable-event';
+import { droppables } from '../drag-state';
+import { DraggableId } from '../use-draggable';
 
 export interface ConnectedMouseSelectable {
   id: DraggableId;
   onSelected?: () => void;
   onDeselected?: () => void;
-  ref: RefObject<HTMLElement>;
+  ref: RefObject<HTMLElement | null>;
   rect?: InteractableRect;
 }
 

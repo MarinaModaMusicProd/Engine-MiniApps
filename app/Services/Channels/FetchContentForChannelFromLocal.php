@@ -3,6 +3,7 @@
 namespace App\Services\Channels;
 
 use App\Models\Album;
+use App\Models\Artist;
 use App\Models\Genre;
 use App\Models\Track;
 use App\Services\Tracks\Queries\PlaylistTrackQuery;
@@ -18,7 +19,9 @@ class FetchContentForChannelFromLocal
     ): Collection|null {
         return match ($method) {
             'topTracks' => $this->topTracks($filters),
-            'newAlbums' => $this->newAlbums($filters),
+            'newAlbums' => $this->albums($filters, orderBy: 'release_date'),
+            'topAlbums' => $this->albums($filters, orderBy: 'popularity'),
+            'topArtists' => $this->topArtists($filters),
             'playlistTracks' => $this->playlistTracks($value),
             'topGenres' => Genre::orderBy('popularity', 'desc')
                 ->limit(20)
@@ -46,20 +49,49 @@ class FetchContentForChannelFromLocal
             ->get();
     }
 
-    protected function newAlbums(?array $filters = [])
-    {
+    protected function albums(
+        ?array $filters = [],
+        string $orderBy = 'release_date',
+    ) {
         if (isset($filters['genre'])) {
             $genre = Genre::find($filters['genre']);
             return $genre
                 ? $genre
                     ->albums()
-                    ->orderBy('release_date', 'desc')
+                    ->when(
+                        $orderBy === 'popularity',
+                        fn($query) => $query->orderByPopularity(),
+                        fn($query) => $query->orderBy($orderBy, 'desc'),
+                    )
                     ->limit(20)
                     ->get()
                 : collect();
         }
 
-        return Album::orderBy('release_date', 'desc')
+        return Album::when(
+            $orderBy === 'popularity',
+            fn($query) => $query->orderByPopularity(),
+            fn($query) => $query->orderBy($orderBy, 'desc'),
+        )
+            ->limit(20)
+            ->get();
+    }
+
+    protected function topArtists(?array $filters = [])
+    {
+        if (isset($filters['genre'])) {
+            $genre = Genre::find($filters['genre']);
+            return $genre
+                ? $genre
+                    ->artists()
+                    ->orderByPopularity()
+                    ->limit(20)
+                    ->get()
+                : collect();
+        }
+
+        return Artist::query()
+            ->orderByPopularity()
             ->limit(20)
             ->get();
     }

@@ -1,33 +1,34 @@
-import {useCuedTrack} from '@app/web-player/player-controls/use-cued-track';
-import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
-import {usePlayerStore} from '@common/player/hooks/use-player-store';
-import React, {useMemo} from 'react';
-import {ProgressBar} from '@ui/progress/progress-bar';
-import {CustomMenuItem} from '@common/menus/custom-menu';
-import clsx from 'clsx';
-import {useCustomMenu} from '@common/menus/use-custom-menu';
-import {Trans} from '@ui/i18n/trans';
-import {NavbarAuthMenu} from '@common/ui/navigation/navbar/navbar-auth-menu';
-import {PersonIcon} from '@ui/icons/material/Person';
-import {Badge} from '@ui/badge/badge';
-import {useAuth} from '@common/auth/use-auth';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {Item} from '@ui/forms/listbox/item';
-import {useNavigate} from '@common/ui/navigation/use-navigate';
-import {useSettings} from '@ui/settings/use-settings';
-import {playerOverlayState} from '@app/web-player/state/player-overlay-store';
-import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
-import {MicIcon} from '@ui/icons/material/Mic';
 import {getArtistLink} from '@app/web-player/artists/artist-link';
+import {usePrimaryArtistForCurrentUser} from '@app/web-player/backstage/use-primary-artist-for-current-user';
+import {webPlayerSidebarIcons} from '@app/web-player/layout/web-player-sidebar-icons';
+import {BufferingIndicator} from '@app/web-player/player-controls/buffering-indicator';
+import {useCuedTrack} from '@app/web-player/player-controls/use-cued-track';
+import {playerOverlayState} from '@app/web-player/state/player-overlay-store';
+import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
+import {useAuth} from '@common/auth/use-auth';
+import {CustomMenuItem} from '@common/menus/custom-menu';
+import {useCustomMenu} from '@common/menus/use-custom-menu';
 import {useCurrentTime} from '@common/player/hooks/use-current-time';
+import {usePlayerStore} from '@common/player/hooks/use-player-store';
+import {NextButton} from '@common/player/ui/controls/next-button';
 import {PlayButton} from '@common/player/ui/controls/play-button';
 import {PreviousButton} from '@common/player/ui/controls/previous-button';
-import {NextButton} from '@common/player/ui/controls/next-button';
-import {BufferingIndicator} from '@app/web-player/player-controls/buffering-indicator';
+import {NavbarAuthMenu} from '@common/ui/navigation/navbar/navbar-auth-menu';
+import {useNavigate} from '@common/ui/navigation/use-navigate';
+import {Badge} from '@ui/badge/badge';
+import {Item} from '@ui/forms/listbox/item';
+import {Trans} from '@ui/i18n/trans';
+import {MicIcon} from '@ui/icons/material/Mic';
+import {PersonIcon} from '@ui/icons/material/Person';
+import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
+import {ProgressBar} from '@ui/progress/progress-bar';
+import {useSettings} from '@ui/settings/use-settings';
+import clsx from 'clsx';
+import {useMemo} from 'react';
 
 export function MobilePlayerControls() {
   return (
-    <div className="fixed bottom-0 left-0 right-0 mx-auto w-[calc(100%-20px)] bg-background/[0.98]">
+    <div className="m-4 rounded-panel border border-divider-lighter shadow dark:border-divider dark:bg-elevated">
       <PlayerControls />
       <MobileNavbar />
     </div>
@@ -40,7 +41,7 @@ function PlayerControls() {
 
   return (
     <div
-      className="relative flex items-center justify-between gap-24 rounded bg-chip p-6 shadow"
+      className="relative flex items-center justify-between gap-24 px-10 py-8"
       onClick={() => {
         playerOverlayState.toggle();
       }}
@@ -78,7 +79,7 @@ function PlaybackButtons() {
   return (
     <div className="flex items-center justify-center">
       <PreviousButton stopPropagation />
-      <div className="relative">
+      <div className="relative isolate">
         <BufferingIndicator />
         <PlayButton size="md" iconSize="lg" stopPropagation />
       </div>
@@ -94,8 +95,7 @@ function PlayerProgressBar() {
     <ProgressBar
       size="xs"
       className="absolute bottom-0 left-0 right-0"
-      progressColor="bg-white"
-      trackColor="bg-white/10"
+      trackColor="bg-divider"
       trackHeight="h-2"
       radius="rounded-none"
       minValue={0}
@@ -110,10 +110,11 @@ function MobileNavbar() {
   if (!menu) return null;
 
   return (
-    <div className="my-12 flex items-center justify-center gap-30">
+    <div className="my-12 flex items-center justify-between gap-30 px-[max(10%,34px)]">
       {menu.items.map(item => (
         <CustomMenuItem
           unstyled
+          defaultIcons={webPlayerSidebarIcons}
           iconClassName="block mx-auto mb-6"
           iconSize="md"
           className={({isActive}) =>

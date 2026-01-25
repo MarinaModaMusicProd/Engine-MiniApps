@@ -4,7 +4,6 @@ namespace Common\Core\Rendering;
 
 use Common\Core\AppUrl;
 use Common\Core\Bootstrap\BootstrapData;
-use Common\SSR\RenderPageWithNode;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Vite;
 
@@ -21,17 +20,11 @@ trait RendersClientSideApp
             $loader = $pageData['loader'];
             $bootstrapData->set("loaders.$loader", $pageData);
         }
-        $ssrContent =
-            isset($options['pageName']) && !Arr::get($options, 'noSSR')
-                ? app(RenderPageWithNode::class)->execute($bootstrapData->get())
-                : null;
-        $bootstrapData->set('rendered_ssr', !is_null($ssrContent));
 
         $view = view('app')
             ->with('pageData', $pageData)
             ->with('devCssPath', $this->getDevCssPath())
             ->with('seoTagsView', $options['seoTagsView'] ?? null)
-            ->with('ssrContent', $ssrContent)
             ->with('bootstrapData', $bootstrapData)
             ->with('htmlBaseUri', app(AppUrl::class)->htmlBaseUri)
             ->with(
@@ -52,11 +45,7 @@ trait RendersClientSideApp
 
     protected function getDevCssPath(): string|null
     {
-        if (
-            config('app.env') !== 'local' ||
-            !config('common.site.ssr_enabled') ||
-            !Vite::isRunningHot()
-        ) {
+        if (config('app.env') !== 'local' || !Vite::isRunningHot()) {
             return null;
         }
 
@@ -66,7 +55,8 @@ trait RendersClientSideApp
         }
 
         $manifest = json_decode(file_get_contents($manifestPath), true);
-        $cssPath = 'build/' . $manifest['resources/client/main.css']['file'];
+        $cssPath =
+            'build/' . ($manifest['resources/client/main.css']['file'] ?? null);
 
         if (file_exists(public_path($cssPath))) {
             return $cssPath;

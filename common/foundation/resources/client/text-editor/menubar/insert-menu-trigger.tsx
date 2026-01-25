@@ -1,40 +1,42 @@
-import React, {useState} from 'react';
-import {useForm} from 'react-hook-form';
-import clsx from 'clsx';
-import {HorizontalRuleIcon} from '@ui/icons/material/HorizontalRule';
-import {PriorityHighIcon} from '@ui/icons/material/PriorityHigh';
-import {WarningIcon} from '@ui/icons/material/Warning';
-import {NoteIcon} from '@ui/icons/material/Note';
-import {MenubarButtonProps} from './menubar-button-props';
+import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
-import {MoreVertIcon} from '@ui/icons/material/MoreVert';
-import {SmartDisplayIcon} from '@ui/icons/material/SmartDisplay';
 import {Form} from '@ui/forms/form';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
-import {Button} from '@ui/buttons/button';
-import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
 import {Trans} from '@ui/i18n/trans';
+import {HorizontalRuleIcon} from '@ui/icons/material/HorizontalRule';
+import {MoreVertIcon} from '@ui/icons/material/MoreVert';
+import {NoteIcon} from '@ui/icons/material/Note';
+import {PriorityHighIcon} from '@ui/icons/material/PriorityHigh';
+import {SmartDisplayIcon} from '@ui/icons/material/SmartDisplay';
+import {WarningIcon} from '@ui/icons/material/Warning';
+import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import clsx from 'clsx';
+import {useState} from 'react';
+import {useForm} from 'react-hook-form';
+import {useCurrentTextEditor} from '../tiptap-editor-context';
+import {MenubarButtonProps} from './menubar-button-props';
 
-export function InsertMenuTrigger({editor, size}: MenubarButtonProps) {
+export function InsertMenuTrigger({size}: MenubarButtonProps) {
+  const editor = useCurrentTextEditor();
   const [dialog, setDialog] = useState<'embed' | false>(false);
   return (
     <>
       <MenuTrigger
         onItemSelected={key => {
           if (key === 'hr') {
-            editor.commands.focus();
-            editor.commands.setHorizontalRule();
+            editor?.commands.focus();
+            editor?.commands.setHorizontalRule();
           } else if (key === 'embed') {
             setDialog('embed');
           } else {
-            editor.commands.focus();
-            editor.commands.addInfo({type: key as any});
+            editor?.commands.focus();
+            editor?.commands.addInfo({type: key as any});
           }
         }}
       >
@@ -42,6 +44,7 @@ export function InsertMenuTrigger({editor, size}: MenubarButtonProps) {
           variant="text"
           size={size}
           className={clsx('flex-shrink-0')}
+          disabled={!editor}
         >
           <MoreVertIcon />
         </IconButton>
@@ -70,14 +73,15 @@ export function InsertMenuTrigger({editor, size}: MenubarButtonProps) {
           setDialog(false);
         }}
       >
-        <EmbedDialog editor={editor} />
+        <EmbedDialog />
       </DialogTrigger>
     </>
   );
 }
 
-function EmbedDialog({editor}: MenubarButtonProps) {
-  const previousSrc = editor.getAttributes('embed').src;
+function EmbedDialog() {
+  const editor = useCurrentTextEditor();
+  const previousSrc = editor?.getAttributes('embed').src;
   const form = useForm<{src: string}>({
     defaultValues: {src: previousSrc},
   });
@@ -92,7 +96,7 @@ function EmbedDialog({editor}: MenubarButtonProps) {
           form={form}
           id={formId}
           onSubmit={value => {
-            editor.commands.setEmbed(value);
+            editor?.commands.setEmbed(value);
             close();
           }}
         >

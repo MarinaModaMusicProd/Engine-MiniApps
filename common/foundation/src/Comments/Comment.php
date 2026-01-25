@@ -64,7 +64,7 @@ class Comment extends BaseModel
     public function scopeForCommentable(Builder $builder, $commentable): Builder
     {
         return $builder->when(
-            config('common.site.demo'),
+            config('app.demo'),
             // load comments for this commentable as well as demo comments
             function (Builder $builder) use ($commentable) {
                 $builder->where(function (Builder $builder) use ($commentable) {

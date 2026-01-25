@@ -1,11 +1,11 @@
-import {useMutation} from '@tanstack/react-query';
-import {UseFormReturn} from 'react-hook-form';
-import {apiClient, queryClient} from '@common/http/query-client';
+import {BackstageRequest} from '@app/web-player/backstage/backstage-request';
 import {DatatableDataQueryKey} from '@common/datatable/requests/paginated-resources';
 import {onFormQueryError} from '@common/errors/on-form-query-error';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
+import {apiClient, queryClient} from '@common/http/query-client';
 import {FileEntry} from '@common/uploads/file-entry';
-import {BackstageRequest} from '@app/web-player/backstage/backstage-request';
+import {useMutation} from '@tanstack/react-query';
+import {UseFormReturn} from 'react-hook-form';
 
 const endpoint = 'backstage-request';
 
@@ -15,11 +15,10 @@ interface Response extends BackendResponse {
 
 export interface CreateBackstageRequestPayload {
   type: 'verify-artist' | 'become-artist' | 'claim-artist';
-  artist_id: number | 'CURRENT_USER';
+  artist_id?: number | null;
   artist_name: string;
-  first_name: string;
-  last_name: string;
-  image: string;
+  name: string;
+  image?: string | null;
   role: string;
   company: string;
   passportScan?: Omit<FileEntry, 'parent' | 'children'>;
@@ -47,8 +46,7 @@ function createRequest(payload: CreateBackstageRequestPayload) {
       artist_id: payload.artist_id,
       type: payload.type,
       data: {
-        first_name: payload.first_name,
-        last_name: payload.last_name,
+        name: payload.name,
         image: payload.image,
         role: payload.role,
         company: payload.company,

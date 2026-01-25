@@ -3,9 +3,9 @@
 use App\Traits\OrdersByPopularity;
 use Common\Comments\Comment;
 use Common\Core\BaseModel;
+use Common\Files\Traits\HasAttachedFileEntries;
 use Common\Tags\Tag;
 use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,27 +13,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Scout\Searchable;
 
 class Track extends BaseModel
 {
-    use OrdersByPopularity, HasFactory, Searchable;
+    use OrdersByPopularity, HasFactory, Searchable, HasAttachedFileEntries;
 
     const MODEL_TYPE = 'track';
 
-    protected $guarded = ['id', 'formatted_duration', 'plays', 'lyric'];
-
-    protected $hidden = [
-        'fully_scraped',
-        'temp_id',
-        'album_id',
-        'spotify_id',
-        'updated_at',
-        'user_id',
-        'description',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'id' => 'integer',
@@ -46,19 +35,6 @@ class Track extends BaseModel
     ];
 
     protected $appends = ['model_type'];
-
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
-
-        if (
-            !requestIsFromFrontend() &&
-            !Auth::user()?->hasPermission('admin')
-        ) {
-            $this->hidden[] = 'src';
-            $this->hidden[] = 'spotify_popularity';
-        }
-    }
 
     public function likes(): BelongsToMany
     {
@@ -93,6 +69,8 @@ class Track extends BaseModel
             'artists.id',
             'artists.name',
             'artists.image_small',
+            'artists.verified',
+            'artists.disabled',
         ]);
     }
 
@@ -103,21 +81,12 @@ class Track extends BaseModel
 
     public function tags(): MorphToMany
     {
-        return $this->morphToMany(Tag::class, 'taggable')->select(
-            'tags.name',
-            'tags.display_name',
-            'tags.id',
-        );
+        return $this->morphToMany(Tag::class, 'taggable');
     }
 
     public function genres(): MorphToMany
     {
-        return $this->morphToMany(Genre::class, 'genreable')->select(
-            'genres.name',
-            'genres.display_name',
-            'genres.id',
-            'genres.image',
-        );
+        return $this->morphToMany(Genre::class, 'genreable');
     }
 
     public function playlists(): BelongsToMany
@@ -130,49 +99,19 @@ class Track extends BaseModel
         return $this->hasOne(Lyric::class);
     }
 
-    protected function src(): Attribute
+    public function uploadedSrc()
     {
-        return Attribute::make(
-            get: function ($value) {
-                $endpoint = config('common.site.file_preview_endpoint');
-                if (
-                    $value &&
-                    $endpoint &&
-                    str_contains($value, 'storage/track_media') &&
-                    str_contains($value, 'https://')
-                ) {
-                    return preg_replace(
-                        '/https:\/\/.*?(\/storage\/track_media\/(.+?\.[a-z0-9]+))/',
-                        "$endpoint$1",
-                        $value,
-                    );
-                }
-                return $value;
-            },
-        );
+        return $this->attachedFileEntriesRelation('uploaded_src');
     }
 
-    public function srcIsLocal(): bool
+    public function uploadedImage()
     {
-        return $this->getSourceFileEntryId() !== null;
-    }
-
-    public function getSourceFileEntryId(): ?string
-    {
-        if (!$this->exists || !$this->src) {
-            return null;
-        }
-        preg_match(
-            '/.*?\/?storage\/track_media\/(.+?\.[a-z0-9]+)/',
-            $this->src,
-            $matches,
-        );
-        return $matches[1] ?? null;
+        return $this->attachedFileEntriesRelation('uploaded_image');
     }
 
     public function getWaveStorageDisk(): Filesystem
     {
-        return Storage::disk(config('common.site.wave_storage_disk'));
+        return Storage::disk(config('filesystems.wave_storage_disk'));
     }
 
     public function toNormalizedArray(): array
@@ -207,7 +146,7 @@ class Track extends BaseModel
 
     protected function makeAllSearchableUsing($query)
     {
-        return $query->with(['artists', 'album']);
+        return $query->with(['artists', 'album', 'tags']);
     }
 
     public static function filterableFields(): array
