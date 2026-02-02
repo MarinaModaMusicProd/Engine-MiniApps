@@ -45,7 +45,7 @@
     "@types/google.visualization": "^0.0.74",
     "@vitejs/plugin-react-swc": "^3.9.0",
     "@xyflow/react": "^12.7.1",
-    "ace-builds": "^1.40.1",
+    "ace-builds": "^1.43.6",
     "axios": "^1.9.0",
     "axios-retry": "^4.5.0",
     "chart.js": "^4.4.9",
