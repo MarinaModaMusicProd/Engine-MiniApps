@@ -21,7 +21,7 @@
     "@react-aria/ssr": "^3.9.8",
     "@react-aria/utils": "^3.28.2",
     "@react-stately/color": "^3.8.4",
-    "@react-stately/utils": "^3.10.6",
+    "@react-stately/utils": "^3.11.0",
     "@sentry/react": "^9.15.0",
     "@sentry/tracing": "^7.120.3",
     "@stripe/react-stripe-js": "^5.4.1",
