@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@dagrejs/dagre": "^1.1.4",
-    "@floating-ui/react-dom": "^2.1.2",
+    "@floating-ui/react-dom": "^2.1.7",
     "@internationalized/date": "^3.8.0",
     "@internationalized/number": "^3.6.1",
     "@paypal/paypal-js": "^8.2.0",
@@ -33,7 +33,7 @@
     "@tiptap/extension-color": "^3.10.7",
     "@tiptap/extension-image": "^3.19.0",
     "@tiptap/extension-placeholder": "^3.19.0",
-    "@tiptap/extension-subscript": "^3.2.0",
+    "@tiptap/extension-subscript": "^3.20.0",
     "@tiptap/extension-superscript": "^3.2.0",
     "@tiptap/extension-table": "^3.2.0",
     "@tiptap/extension-text-align": "^3.2.0",
