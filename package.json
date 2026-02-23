@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@dagrejs/dagre": "^1.1.4",
-    "@floating-ui/react-dom": "^2.1.2",
+    "@floating-ui/react-dom": "^2.1.7",
     "@internationalized/date": "^3.8.0",
     "@internationalized/number": "^3.6.1",
     "@paypal/paypal-js": "^8.2.0",
