@@ -61,7 +61,7 @@
     "get-video-id": "^4.1.7",
     "highlight.js": "^11.11.1",
     "hls.js": "^1.6.2",
-    "immer": "^10.1.1",
+    "immer": "^11.1.4",
     "just-debounce-it": "^3.2.0",
     "laravel-echo": "^2.3.0",
     "linkify-string": "^4.2.0",
