@@ -16,7 +16,7 @@
     "@internationalized/number": "^3.6.1",
     "@paypal/paypal-js": "^9.3.0",
     "@react-aria/focus": "^3.20.2",
-    "@react-aria/interactions": "^3.25.0",
+    "@react-aria/interactions": "^3.27.1",
     "@react-aria/overlays": "^3.27.0",
     "@react-aria/ssr": "^3.9.8",
     "@react-aria/utils": "^3.28.2",
