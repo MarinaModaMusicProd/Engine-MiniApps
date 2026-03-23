@@ -10,7 +10,7 @@
     "extract": "node ./resources/scripts/extract-translations.js"
   },
   "dependencies": {
-    "@dagrejs/dagre": "^1.1.4",
+    "@dagrejs/dagre": "^3.0.0",
     "@floating-ui/react-dom": "^2.1.2",
     "@internationalized/date": "^3.8.0",
     "@internationalized/number": "^3.6.1",
