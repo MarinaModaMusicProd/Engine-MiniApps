@@ -1,4 +1,4 @@
-import {Button} from '@ui/buttons/button';
+import {Button, ButtonProps} from '@ui/buttons/button';
 import {ButtonBaseProps} from '@ui/buttons/button-base';
 import {IconButton} from '@ui/buttons/icon-button';
 import {AddIcon} from '@ui/icons/material/Add';
@@ -17,6 +17,7 @@ export interface DataTableAddItemButtonProps {
   disabled?: boolean;
   className?: string;
   alwaysDesktop?: boolean;
+  size?: ButtonProps['size'];
 }
 export const DataTableAddItemButton = React.forwardRef<
   HTMLButtonElement,
@@ -34,6 +35,7 @@ export const DataTableAddItemButton = React.forwardRef<
       disabled,
       className,
       alwaysDesktop,
+      size = 'sm',
     },
     ref,
   ) => {
@@ -45,7 +47,7 @@ export const DataTableAddItemButton = React.forwardRef<
           ref={ref}
           variant="flat"
           color="primary"
-          size="sm"
+          size={size}
           to={to}
           href={href}
           download={download}
@@ -65,7 +67,7 @@ export const DataTableAddItemButton = React.forwardRef<
         startIcon={icon || <AddIcon />}
         variant="flat"
         color="primary"
-        size="sm"
+        size={size}
         to={to}
         href={href}
         download={download}

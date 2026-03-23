@@ -1,7 +1,7 @@
-import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { useRef } from 'react';
-import { PaginatedBackendResponse } from '../../http/backend-response/pagination-response';
-import { apiClient } from '../../http/query-client';
+import {useQuery, UseQueryOptions} from '@tanstack/react-query';
+import {useRef} from 'react';
+import {PaginatedBackendResponse} from '../../http/backend-response/pagination-response';
+import {apiClient} from '../../http/query-client';
 
 export interface GetDatatableDataParams {
   orderBy?: string;
@@ -21,7 +21,7 @@ export const DatatableDataQueryKey = (
   baseQueryKey?: string[],
 ) => {
   // split endpoint by slash, so we can clear cache from the root later,
-  // for example, 'link-group' will clear 'link-group/1/links' endpoint
+  // for example, 'folder' will clear 'folder/1/links' endpoint
   const key: (string | GetDatatableDataParams)[] = baseQueryKey
     ? [...baseQueryKey]
     : endpoint.split('/');
@@ -51,7 +51,9 @@ export function useDatatableData<T = object>(
   // having queryKey in option will cause unnecessary re-fetching
   const optionsQueryKey = options?.baseQueryKey;
   delete options?.baseQueryKey;
-  const previousData = useRef<PaginatedBackendResponse<T> | undefined>(undefined);
+  const previousData = useRef<PaginatedBackendResponse<T> | undefined>(
+    undefined,
+  );
   const query = useQuery({
     ...options,
     queryKey: DatatableDataQueryKey(endpoint, params, optionsQueryKey),

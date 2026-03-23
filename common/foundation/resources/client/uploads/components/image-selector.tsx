@@ -5,6 +5,7 @@ import {UploadStrategyConfig} from '@common/uploads/uploader/strategy/upload-str
 import {useActiveUpload} from '@common/uploads/uploader/use-active-upload';
 import {mergeProps} from '@react-aria/utils';
 import {AvatarPlaceholderIcon} from '@ui/avatar/avatar-placeholder-icon';
+import {FadedDotsBackground} from '@ui/background/faded-dots-background';
 import {Button} from '@ui/buttons/button';
 import {ButtonBaseProps} from '@ui/buttons/button-base';
 import {IconButton} from '@ui/buttons/icon-button';
@@ -57,6 +58,7 @@ interface ImageSelectorProps {
   previewRadius?: string;
   stretchPreview?: boolean;
   onFileSelected?: (file: File) => void;
+  panelBg?: string;
 }
 export function ImageSelector({
   className,
@@ -81,6 +83,7 @@ export function ImageSelector({
   disabled,
   uploadType,
   onFileSelected,
+  panelBg = 'bg-fg-base/6',
 }: ImageSelectorProps) {
   const {
     uploadFile,
@@ -145,7 +148,7 @@ export function ImageSelector({
         });
       }}
     >
-      <Trans message="Remove image" />
+      <Trans message="Remove" />
     </Button>
   ) : null;
 
@@ -199,6 +202,7 @@ export function ImageSelector({
             previewRadius={previewRadius}
             handleUpload={handleUpload}
             disabled={disabled}
+            panelBg={panelBg}
           >
             <input
               ref={inputRef}
@@ -247,6 +251,7 @@ interface VariantProps {
   previewRadius?: string;
   handleUpload: () => void;
   disabled?: boolean;
+  panelBg?: string;
 }
 function InputVariant({
   children,
@@ -259,13 +264,19 @@ function InputVariant({
   removeButton,
   useDefaultButton,
   disabled,
+  panelBg,
 }: VariantProps) {
   if (imageUrl) {
     return (
       <Fragment>
         <div
-          className={`${previewSize} relative mb-10 overflow-hidden rounded border bg-fg-base/8 p-6`}
+          className={clsx(
+            'relative mb-10 overflow-hidden rounded-panel border p-6',
+            previewSize,
+            panelBg,
+          )}
         >
+          <FadedDotsBackground />
           <img
             className={clsx(
               'mx-auto h-full rounded',
@@ -314,6 +325,7 @@ function SquareVariant({
   previewRadius = 'rounded-panel',
   showEditButtonOnHover = false,
   disabled,
+  panelBg,
 }: VariantProps) {
   return (
     <div>
@@ -322,12 +334,14 @@ function SquareVariant({
           previewSize,
           previewRadius,
           !imageUrl && 'border border-divider-lighter',
-          'group z-20 flex flex-col items-center justify-center gap-14 bg-fg-base/8 bg-center bg-no-repeat',
+          'group relative z-20 flex flex-col items-center justify-center gap-14 bg-center bg-no-repeat',
           stretchPreview ? 'bg-cover' : 'bg-contain p-6',
+          panelBg,
         )}
         style={imageUrl ? {backgroundImage: `url(${imageUrl})`} : undefined}
         onClick={() => handleUpload()}
       >
+        <FadedDotsBackground />
         {placeholderIcon &&
           !imageUrl &&
           cloneElement(placeholderIcon, {size: 'lg'})}

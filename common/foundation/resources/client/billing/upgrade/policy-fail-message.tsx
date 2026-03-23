@@ -65,7 +65,7 @@ function MessageText({resourceName, reason}: MessageTextProps) {
     ),
   };
 
-  if (reason === 'overQuota' && billing.enable) {
+  if (reason === 'overQuota' && billing?.enable) {
     return (
       <Trans
         message="Your plan is at its maximum number of :name allowed. <a>Upgrade to add more.</a>"
@@ -74,7 +74,7 @@ function MessageText({resourceName, reason}: MessageTextProps) {
     );
   }
 
-  if (reason === 'noPermission' && billing.enable) {
+  if (reason === 'noPermission' && billing?.enable) {
     return (
       <Trans
         message="To unlock ability to create :name. <a>Upgrade your plan.</a>"

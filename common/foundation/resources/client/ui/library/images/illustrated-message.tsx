@@ -24,7 +24,11 @@ export function IllustratedMessage({
   const style = getSizeClassName(size, imageHeight);
   return (
     <div className={clsx('mx-auto w-max max-w-full text-center', className)}>
-      {image && <div className={clsx(style.image, imageMargin)}>{image}</div>}
+      {image && (
+        <div className={clsx('inline-block', style.image, imageMargin)}>
+          {image}
+        </div>
+      )}
       {title && (
         <div className={clsx(style.title, 'mb-2 text-main')}>{title}</div>
       )}

@@ -6,9 +6,10 @@ import {DashboardNavbar} from '@common/ui/dashboard-layout/dashboard-navbar';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {Button} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
-import {MicIcon} from '@ui/icons/material/Mic';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {MenuItem} from '@ui/menu/menu-trigger';
 import {useSettings} from '@ui/settings/use-settings';
+import {MicVocalIcon} from 'lucide-react';
 import {Fragment, useMemo} from 'react';
 import {Link} from 'react-router';
 
@@ -22,7 +23,7 @@ export function PlayerNavbar() {
         <MenuItem
           value="author"
           key="author"
-          startIcon={<MicIcon />}
+          startIcon={<LucideIcon icon={MicVocalIcon} size="xs" />}
           onSelected={() => {
             navigate(getArtistLink(primaryArtist));
           }}
@@ -36,7 +37,7 @@ export function PlayerNavbar() {
         <MenuItem
           value="author"
           key="author"
-          startIcon={<MicIcon />}
+          startIcon={<LucideIcon icon={MicVocalIcon} size="xs" />}
           onSelected={() => {
             navigate('/backstage/requests');
           }}

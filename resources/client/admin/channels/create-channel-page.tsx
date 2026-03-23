@@ -44,7 +44,10 @@ export function Component() {
           className="my-24"
         />
         <ContentTypeField config={channelContentConfig} />
-        <AppChannelAutoUpdateField config={channelContentConfig} />
+        <AppChannelAutoUpdateField
+          config={channelContentConfig}
+          className="my-24"
+        />
         <ContentModelField config={channelContentConfig} className="my-24" />
         <AppChannelRestrictionField
           config={channelContentConfig}

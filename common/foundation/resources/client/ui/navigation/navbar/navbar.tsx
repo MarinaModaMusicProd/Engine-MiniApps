@@ -39,6 +39,7 @@ export interface NavbarProps {
   children?: ReactNode;
   className?: string;
   color?: NavbarColor;
+  logoMargin?: string;
   bgOpacity?: number | string;
   darkModeColor?: NavbarColor;
   logoColor?: 'dark' | 'light' | 'matchMode';
@@ -51,6 +52,7 @@ export interface NavbarProps {
   authMenuItems?: NavbarAuthUserProps['items'];
   alwaysDarkMode?: boolean;
   wrapInContainer?: boolean;
+  logoUrl?: string;
 }
 export function Navbar(props: NavbarProps) {
   let {
@@ -70,6 +72,8 @@ export function Navbar(props: NavbarProps) {
     logoColor,
     alwaysDarkMode = false,
     wrapInContainer = false,
+    logoUrl,
+    logoMargin,
   } = props;
   const isDarkMode = useIsDarkMode() || alwaysDarkMode;
   const isMobile = useIsMobileMediaQuery();
@@ -109,12 +113,13 @@ export function Navbar(props: NavbarProps) {
         {!hideLogo && (
           <Logo
             size="h-full max-h-26 md:max-h-36"
-            className="mr-4 md:mr-24"
+            className={logoMargin ?? 'mr-4 md:mr-24'}
             color={resolveLogoColor({
               navbarColor: color,
               logoColor,
               isDarkMode,
             })}
+            url={logoUrl}
           />
         )}
         {toggleButton}

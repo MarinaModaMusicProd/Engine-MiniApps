@@ -86,9 +86,16 @@ class TrackLoader
             $resource['added_at'] = $track->added_at?->toJSON();
         }
 
+        // for playlist tracks
+        if ($track->position !== null) {
+            $resource['position'] = $track->position;
+        }
+
         if ($loader === 'editTrackPage' || $loader === 'editTrackDatatable') {
             $resource['updated_at'] = $track->updated_at?->toJSON();
             $resource['spotify_id'] = $track->spotify_id;
+            $resource['deezer_id'] = $track->deezer_id;
+            $resource['album_id'] = $track->album_id;
         }
 
         if ($loader === 'editTrackPage' || $loader === 'trackPage') {
@@ -151,7 +158,7 @@ class TrackLoader
             }
 
             // support legacy uploads
-            if (Str::startsWith($track->src, 'storage/track-media')) {
+            if (Str::startsWith($track->src, 'storage/track_media')) {
                 $resource['src_local'] = true;
             }
 
@@ -161,11 +168,14 @@ class TrackLoader
                 !$resource['src_local']
             ) {
                 $fileEntry = $track->uploadedSrc->first();
+                $resource['src_local'] = true;
                 if ($fileEntry?->upload_type) {
-                    $resource['src_local'] = true;
                     $resource['src'] = Uploads::type(
                         $fileEntry->upload_type,
                     )->url($fileEntry);
+                } else {
+                    // legacy
+                    $resource['src'] = $track->src;
                 }
             }
         }
@@ -191,6 +201,7 @@ class TrackLoader
             'album' => fn(BelongsTo $builder) => $builder->with([
                 'artists',
                 'tracks.artists',
+                'tracks.uploadedSrc',
             ]),
         ]);
     }

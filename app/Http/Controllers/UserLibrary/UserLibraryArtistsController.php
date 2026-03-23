@@ -16,6 +16,7 @@ class UserLibraryArtistsController extends BaseController
             'orderBy' => 'string',
             'orderDir' => 'string',
             'query' => 'string|nullable',
+            'page' => 'integer|nullable',
         ]);
         $params['perPage'] = 30;
 
@@ -25,6 +26,7 @@ class UserLibraryArtistsController extends BaseController
                 'orderBy' => $params['orderBy'] ?? 'likes.created_at',
                 'orderDir' => $params['orderDir'] ?? 'desc',
                 'query' => $params['query'] ?? null,
+                'page' => $params['page'] ?? 1,
             ],
             builder: $user->likedArtists(),
         );

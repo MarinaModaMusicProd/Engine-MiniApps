@@ -7,6 +7,7 @@ use App\Models\Genre;
 use App\Models\Track;
 use App\Services\Artists\ArtistLoader;
 use App\Services\Genres\GenreToApiResource;
+use App\Services\Providers\MusicMetadataProvider;
 use App\Services\Providers\Spotify\SpotifyRadio;
 use App\Services\Tracks\TrackLoader;
 use Carbon\Carbon;
@@ -22,13 +23,13 @@ class RadioController extends BaseController
         $this->authorize('index', Track::class);
 
         $recommendations = Cache::remember(
-            "radio.$modelType.{$model['id']}",
+            "radio.$model->getMorphClass().{$model['id']}",
             Carbon::now()->addDays(2),
-            function () use ($model, $modelType) {
-                $tracks = (new SpotifyRadio())
-                    ->getRecommendations($model, $modelType)
+            function () use ($model) {
+                $tracks = (new MusicMetadataProvider())
+                    ->getRecommendations($model)
                     ->map(
-                        fn($track) => (new TrackLoader())->toApiResource(
+                        fn(Track $track) => (new TrackLoader())->toApiResource(
                             $track,
                         ),
                     );

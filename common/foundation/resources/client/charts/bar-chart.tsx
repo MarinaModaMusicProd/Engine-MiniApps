@@ -1,11 +1,11 @@
-import {BaseChart, BaseChartProps} from './base-chart';
-import {ChartData, ChartOptions} from 'chart.js';
-import {ChartColors} from './chart-colors';
 import {useSelectedLocale} from '@ui/i18n/selected-locale';
-import {FormattedDatasetItem} from './data/formatted-dataset-item';
+import {ChartData, ChartOptions} from 'chart.js';
 import {useMemo} from 'react';
-import {formatReportData} from './data/format-report-data';
 import {DatasetItem, ReportMetric} from '../admin/analytics/report-metric';
+import {BaseChart, BaseChartProps} from './base-chart';
+import {ChartColors} from './chart-colors';
+import {formatReportData} from './data/format-report-data';
+import {FormattedDatasetItem} from './data/formatted-dataset-item';
 
 interface BarChartProps extends Omit<BaseChartProps<'bar'>, 'type' | 'data'> {
   direction?: 'horizontal' | 'vertical';
@@ -14,6 +14,7 @@ interface BarChartProps extends Omit<BaseChartProps<'bar'>, 'type' | 'data'> {
 }
 export function BarChart({
   data,
+  datasetLabel,
   direction = 'vertical',
   individualBarColors = false,
   className,
@@ -25,6 +26,7 @@ export function BarChart({
       const formattedData = formatReportData(data, {localeCode});
       formattedData.datasets = formattedData.datasets.map((dataset, i) => ({
         ...dataset,
+        label: datasetLabel ?? dataset.label,
         backgroundColor: individualBarColors
           ? ChartColors.map(c => c[1])
           : ChartColors[i][1],

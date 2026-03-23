@@ -1,12 +1,12 @@
 import {FeatureLockedDialog} from '@common/billing/upgrade/feature-locked-dialog';
-import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
 import {Trans} from '@ui/i18n/trans';
-import {LockIcon} from '@ui/icons/material/Lock';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {useSettings} from '@ui/settings/use-settings';
 import {Tooltip} from '@ui/tooltip/tooltip';
 import clsx from 'clsx';
+import {CrownIcon, LockKeyholeIcon} from 'lucide-react';
 import {ReactNode} from 'react';
 
 interface UpgradeButtonProps {
@@ -21,7 +21,7 @@ export function NoPermissionButton({
 }: UpgradeButtonProps) {
   const {billing} = useSettings();
 
-  if (!billing.enable) {
+  if (!billing?.enable) {
     return <GenericButton className={className} />;
   }
 
@@ -29,18 +29,18 @@ export function NoPermissionButton({
     <DialogTrigger type="popover" triggerOnHover>
       {iconButton ? (
         <IconButton className={className} color="primary" size="sm">
-          <LockIcon />
+          <LucideIcon icon={CrownIcon} />
         </IconButton>
       ) : (
-        <Button
-          variant="flat"
-          color="primary"
-          size="2xs"
-          startIcon={<LockIcon />}
-          className={className}
+        <button
+          className={clsx(
+            className,
+            'flex max-w-fit items-center gap-6 whitespace-nowrap rounded-button border border-divider-lighter bg-chip px-8 py-1 text-xs font-medium transition-colors hover:bg-chip/90',
+          )}
         >
+          <LucideIcon icon={CrownIcon} size="2xs" />
           <Trans message="Upgrade" />
-        </Button>
+        </button>
       )}
       <FeatureLockedDialog message={message} />
     </DialogTrigger>
@@ -57,7 +57,11 @@ function GenericButton({className}: GenericButtonProps) {
         <Trans message="You don't have permissions to access this feature." />
       }
     >
-      <LockIcon size="sm" className={clsx('text-muted', className)} />
+      <LucideIcon
+        icon={LockKeyholeIcon}
+        size="xs"
+        className={clsx('text-muted', className)}
+      />
     </Tooltip>
   );
 }

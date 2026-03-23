@@ -1,0 +1,1 @@
+import{r as t}from"./main-D6SjkSWq.js";import{s}from"./sort-array-of-objects-CuHY7GpM.js";function f(e){const[r,o]=t.useState({});return{data:t.useMemo(()=>{if(e){if(r!=null&&r.orderBy)return s([...e],r.orderBy,r.orderDir)}else return[];return e},[r,e]),sortDescriptor:r,onSortChange:o}}export{f as u};

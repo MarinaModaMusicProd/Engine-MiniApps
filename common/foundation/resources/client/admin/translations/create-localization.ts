@@ -15,6 +15,7 @@ interface Response extends BackendResponse {
 export interface CreateLocalizationPayload {
   name: string;
   language: string;
+  direction: 'ltr' | 'rtl';
 }
 
 function createLocalization(

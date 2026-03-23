@@ -71,7 +71,7 @@ export function Component() {
           <DocsLink
             variant="button"
             link={AdminDocsUrls.pages.backstage}
-            size="xs"
+            size="sm"
           />
         }
       />

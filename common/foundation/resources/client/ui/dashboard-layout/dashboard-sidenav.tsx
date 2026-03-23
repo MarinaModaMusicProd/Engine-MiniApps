@@ -20,6 +20,7 @@ export interface SidenavProps {
   display?: 'flex' | 'block';
   overflow?: string;
   forceClosed?: boolean;
+  canOnlyBeCompact?: boolean;
 }
 export function DashboardSidenav({
   className,
@@ -31,6 +32,7 @@ export function DashboardSidenav({
   display = 'flex',
   overflow = 'overflow-hidden',
   forceClosed = false,
+  canOnlyBeCompact = false,
 }: SidenavProps) {
   const {
     isMobileMode,
@@ -40,10 +42,15 @@ export function DashboardSidenav({
     setRightSidenavStatus,
   } = useContext(DashboardLayoutContext);
   const isOverlayMode = isMobileMode || mode === 'overlay';
+
+  // on mobile and overlay mode, need to expand sidebar to full width
+  if (isOverlayMode) {
+    canOnlyBeCompact = false;
+  }
+
   let status = position === 'left' ? leftSidenavStatus : rightSidenavStatus;
-  // on mobile always overlay full size sidebar, instead of compact
-  if (isOverlayMode && status === 'compact') {
-    status = 'open';
+  if (canOnlyBeCompact) {
+    status = 'compact';
   }
 
   const variants = {
@@ -78,6 +85,7 @@ export function DashboardSidenav({
         }
       }}
       className={clsx(
+        'max-w-full',
         className,
         position === 'left'
           ? 'dashboard-grid-sidenav-left'
@@ -92,7 +100,7 @@ export function DashboardSidenav({
       {cloneElement<DashboardSidenavChildrenProps>(children, {
         className: clsx(
           children.props.className,
-          'w-full h-full overflow-y-auto compact-scrollbar',
+          'w-full h-full overflow-y-auto overflow-x-hidden compact-scrollbar',
           status === 'compact' && 'hidden-scrollbar',
         ),
         isCompactMode: status === 'compact',

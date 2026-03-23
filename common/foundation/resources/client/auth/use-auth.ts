@@ -91,7 +91,10 @@ class _Auth {
   }
 
   hasRole(roleId: number): boolean {
-    return this.user?.roles?.find(role => role.id === roleId) != null;
+    return (
+      this.user?.roles?.find(role => role.id === roleId) != null ||
+      (!this.user && roleId === getBootstrapData().guest_role?.id)
+    );
   }
 
   checkOverQuotaOrNoPermission(

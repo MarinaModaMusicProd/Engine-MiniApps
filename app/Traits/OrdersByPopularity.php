@@ -14,7 +14,7 @@ trait OrdersByPopularity
 
         $column =
             $method === 'external'
-                ? 'spotify_popularity'
+                ? 'external_popularity'
                 : $this->getLocalField($table);
 
         return $query

@@ -34,10 +34,8 @@ declare module '@common/http/value-lists' {
 declare module '@ui/settings/settings' {
   interface Settings extends Omit<BaseBackendSettings, 'uploads'> {
     spotify_is_setup?: boolean;
-    lastfm_is_setup?: boolean;
     spotify_use_deprecated_api?: boolean;
-    artist_provider?: string | false;
-    album_provider?: string | false;
+    metadata_provider?: string;
     search_provider?: string | false;
     artist_bio_provider?: string;
     wikipedia_language?: string;
@@ -57,7 +55,6 @@ declare module '@ui/settings/settings' {
       enable_download?: boolean;
       enable_offlining?: boolean;
       show_become_artist_btn?: boolean;
-      default_artist_view?: 'list' | 'grid';
       mobile?: {
         auto_open_overlay?: boolean;
       };

@@ -3,6 +3,7 @@
 use Common\Auth\Controllers\SocialAuthController;
 use Common\Auth\Controllers\TwoFactorQrCodeController;
 use Common\Billing\Invoices\InvoiceController;
+use Common\Core\Controllers\CsrfTokenController;
 use Common\Core\Controllers\HomeController;
 use Common\Core\Install\InstallController;
 use Common\Core\Install\UpdateController;
@@ -127,10 +128,14 @@ if (!config('app.installed')) {
     Route::get('install/finalize', [InstallController::class, 'finalizeStep']);
 }
 
-Route::get('sw.js', function () {
-    return response()
-    ->file(public_path('build/sw.js'), [
-        'Content-Type' => 'application/javascript; charset=utf-8',
-        'Service-Worker-Allowed' => '/',
-    ]);
-})->withoutMiddleware('web');
+Route::get('csrf-token', CsrfTokenController::class);
+
+if (config('app.service_worker_integrated')) {
+    Route::get('sw.js', function () {
+        return response()
+        ->file(public_path('build/sw.js'), [
+            'Content-Type' => 'application/javascript; charset=utf-8',
+            'Service-Worker-Allowed' => '/',
+        ]);
+    })->withoutMiddleware('web');
+}

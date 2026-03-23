@@ -1,0 +1,1 @@
+import{r as n,j as i,v as r,d as o,as as l,W as u}from"./main-D6SjkSWq.js";function g({playlist:s,className:t}){const a=n.useMemo(()=>c(s),[s.id]);return i.jsx(r,{className:o("capitalize hover:underline",t),to:a,children:s.name})}function c(s,{absolute:t}={}){const a=l(s.name);let e=`/playlist/${s.id}/${a}`;return t&&(e=`${u().settings.base_url}${e}`),e}export{g as P,c as g};

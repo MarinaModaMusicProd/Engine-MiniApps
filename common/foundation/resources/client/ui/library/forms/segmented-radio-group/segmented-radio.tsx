@@ -1,13 +1,14 @@
-import React, {forwardRef, Ref} from 'react';
-import clsx from 'clsx';
 import {useObjectRef} from '@react-aria/utils';
-import {InputSize} from '../input-field/input-size';
 import {useAutoFocus} from '@ui/focus/use-auto-focus';
+import clsx from 'clsx';
+import {forwardRef, Ref} from 'react';
+import {InputSize} from '../input-field/input-size';
 import {RadioProps} from '../radio-group/radio';
 
 export interface SegmentedRadioProps extends RadioProps {
   labelRef?: Ref<HTMLLabelElement>;
   isSelected?: boolean;
+  variant?: 'outline' | 'filled';
 }
 export const SegmentedRadio = forwardRef<HTMLInputElement, SegmentedRadioProps>(
   (props, ref) => {
@@ -19,6 +20,7 @@ export const SegmentedRadio = forwardRef<HTMLInputElement, SegmentedRadioProps>(
       isFirst,
       labelRef,
       isSelected,
+      variant = 'filled',
       ...domProps
     } = props;
 

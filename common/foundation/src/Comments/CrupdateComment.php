@@ -16,6 +16,7 @@ class CrupdateComment
         if (!$initialComment) {
             $comment = new Comment([
                 'user_id' => Auth::id(),
+                'path' => '',
             ]);
         } else {
             $comment = $initialComment;

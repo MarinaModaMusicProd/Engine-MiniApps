@@ -1,14 +1,14 @@
-import {useFormContext} from 'react-hook-form';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
+import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
+import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {FormSelect, Option} from '@ui/forms/select/select';
+import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 import {Trans} from '@ui/i18n/trans';
 import {InfoDialogTrigger} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger';
-import {Fragment} from 'react';
-import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
-import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import clsx from 'clsx';
-import {ChannelsDocsLink} from '@common/admin/channels/channels-docs-link';
-import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {Fragment} from 'react';
+import {useFormContext} from 'react-hook-form';
 
 interface AutoUpdateProvider {
   label: MessageDescriptor;
@@ -51,12 +51,15 @@ export function ChannelAutoUpdateField({config, className, providers}: Props) {
             <Trans message="Auto update method" />
             <InfoDialogTrigger
               body={
-                <Fragment>
-                  <div className="mb-20">
-                    <Trans message="This option will automatically update channel content every 24 hours using the specified method." />
-                  </div>
-                  <ChannelsDocsLink hash="automatically-update-content-with-specified-method" />
-                </Fragment>
+                <p className="prose prose-sm prose-neutral text-pretty leading-snug dark:prose-invert">
+                  <Trans message="This option will automatically update channel content every 24 hours using the specified method." />{' '}
+                  <a
+                    href={`${AdminDocsUrls.pages.channels}#automatically-update-content-with-specified-method`}
+                    target="_blank"
+                  >
+                    <Trans message="Learn more" />
+                  </a>
+                </p>
               }
             />
           </Fragment>

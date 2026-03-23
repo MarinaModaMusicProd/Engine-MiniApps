@@ -25,6 +25,7 @@ import {FormattedDate} from '@ui/i18n/formatted-date';
 import {Localization} from '@ui/i18n/localization';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {MoreVertIcon} from '@ui/icons/material/MoreVert';
 import {TranslateIcon} from '@ui/icons/material/Translate';
 import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
@@ -37,10 +38,10 @@ import {Tooltip} from '@ui/tooltip/tooltip';
 import {downloadFileFromUrl} from '@ui/utils/files/download-file-from-url';
 import {FileInputType} from '@ui/utils/files/file-input-config';
 import {openUploadWindow} from '@ui/utils/files/open-upload-window';
+import {PlusIcon} from 'lucide-react';
 import {useState} from 'react';
 import {Link} from 'react-router';
 import {ColumnConfig} from '../../datatable/column-config';
-import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
 import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
 import aroundTheWorldSvg from './around-the-world.svg';
 import {CreateLocationDialog} from './create-localization-dialog';
@@ -61,7 +62,14 @@ const columnConfig: ColumnConfig<Localization>[] = [
     allowsSorting: true,
     sortingKey: 'language',
     header: () => <Trans message="Language code" />,
-    body: locale => locale.language,
+    body: locale => <span className="uppercase">{locale.language}</span>,
+  },
+  {
+    key: 'direction',
+    allowsSorting: true,
+    sortingKey: 'direction',
+    header: () => <Trans message="Direction" />,
+    body: locale => <span className="uppercase">{locale.direction}</span>,
   },
   {
     key: 'updatedAt',
@@ -75,7 +83,7 @@ const columnConfig: ColumnConfig<Localization>[] = [
     header: () => <Trans message="Actions" />,
     hideHeader: true,
     align: 'end',
-    width: 'w-84 flex-shrink-0',
+    width: 'w-144 flex-shrink-0',
     visibleInMode: 'all',
     body: locale => {
       return (
@@ -125,15 +133,6 @@ export function Component() {
     </DialogTrigger>
   );
 
-  const actions = (
-    <DialogTrigger type="modal">
-      <DataTableAddItemButton>
-        <Trans message="Add new localization" />
-      </DataTableAddItemButton>
-      <CreateLocationDialog />
-    </DialogTrigger>
-  );
-
   return (
     <DatatablePageWithHeaderLayout>
       <GlobalLoadingProgress query={query} />
@@ -141,18 +140,28 @@ export function Component() {
         title={<Trans message="Localizations" />}
         showSidebarToggleButton
         rightContent={
-          <DocsLink
-            variant="button"
-            link={AdminDocsUrls.pages.translations}
-            size="xs"
-          />
+          <>
+            <DocsLink
+              variant="button"
+              link={AdminDocsUrls.pages.translations}
+            />
+            <DialogTrigger type="modal">
+              <Button
+                variant="flat"
+                color="primary"
+                startIcon={<LucideIcon icon={PlusIcon} size="xs" />}
+              >
+                <Trans message="Add new localization" />
+              </Button>
+              <CreateLocationDialog />
+            </DialogTrigger>
+          </>
         }
       />
       <DatatablePageWithHeaderBody>
         <DataTableHeader
           searchValue={searchParams.query}
           onSearchChange={setSearchQuery}
-          actions={actions}
           selectedItems={selectedIds}
           selectedActions={selectedActions}
         />
@@ -210,7 +219,7 @@ function RowActionsMenuTrigger({locale}: RowActionsMenuTriggerProps) {
             openDialog(UpdateLocalizationDialog, {localization: locale})
           }
         >
-          <Trans message="Rename" />
+          <Trans message="Update" />
         </MenuItem>
         <MenuItem
           value="download"

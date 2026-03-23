@@ -99,6 +99,10 @@ function SearchResults({searchQuery}: SearchResultsProps) {
   );
   const results = query.data.results;
 
+  if (!results) {
+    throw new Error(`Invalid response from api: ${JSON.stringify(results)}`);
+  }
+
   const activeTabName = (params.tabName ?? 'home') as searchResultsTab;
   const visibleTabNames = useMemo(() => {
     return searchResultsTabNames.filter(

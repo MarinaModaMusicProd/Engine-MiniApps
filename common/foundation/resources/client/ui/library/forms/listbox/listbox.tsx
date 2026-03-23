@@ -62,7 +62,7 @@ export function Listbox({
 
   const className = clsx(
     'text-base sm:text-sm outline-none bg-elevated flex flex-col',
-    !prepend && 'shadow-xl border py-4 max-h-inherit',
+    !prepend && 'shadow-xl border p-4 max-h-inherit',
     listboxClassName,
 
     // tray will apply its own rounding and max width
@@ -108,6 +108,7 @@ export function Listbox({
       <FocusContainer
         isLoading={isLoading}
         isPending={isPending}
+        prepend={prepend}
         className={contentClassName}
         {...domProps}
       >
@@ -150,6 +151,7 @@ export function Listbox({
 interface WrapperProps extends ComponentPropsWithoutRef<'div'> {
   isLoading?: boolean;
   isPending?: boolean;
+  prepend?: boolean;
   children: ReactElement[];
   className?: string;
 }
@@ -158,6 +160,7 @@ function FocusContainer({
   children,
   isLoading,
   isPending,
+  prepend,
   ...domProps
 }: WrapperProps) {
   const {
@@ -201,7 +204,8 @@ function FocusContainer({
       role={role}
       id={listboxId}
       className={clsx(
-        'flex-auto overflow-y-auto overscroll-contain outline-none',
+        'flex-auto outline-none',
+        !prepend && 'overflow-y-auto overscroll-contain',
         className,
       )}
       ref={domRef}

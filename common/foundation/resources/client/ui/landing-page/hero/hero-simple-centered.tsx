@@ -21,7 +21,9 @@ type Props = {
 };
 export function HeroSimpleCentered({config}: Props) {
   const {heroSearchBarSlot} = useContext(LandingPageContext);
-  const SearchBarCmp = heroSearchBarSlot ?? null;
+  const SearchBarCmp = config.showSearchBarSlot
+    ? (heroSearchBarSlot ?? null)
+    : null;
   const darkThemeVars = useDarkThemeVariables();
   const siteIsInDarkMode = useIsDarkMode();
   const isDarkMode = siteIsInDarkMode || config.forceDarkMode;
@@ -45,6 +47,7 @@ export function HeroSimpleCentered({config}: Props) {
         textColor="text-main"
         color="transparent"
         darkModeColor="transparent"
+        logoUrl="/"
       />
       <div className="relative isolate px-24 pt-56 lg:px-32">
         <div

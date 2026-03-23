@@ -1,5 +1,4 @@
 import {DashboardLayoutContext} from '@common/ui/dashboard-layout/dashboard-layout-context';
-import {useToggleDashboardLeftSidebar} from '@common/ui/dashboard-layout/use-toggle-dashboard-left-sidebar';
 import {IconButton} from '@ui/buttons/icon-button';
 import {Trans} from '@ui/i18n/trans';
 import {ToggleLeftSidebarIcon} from '@ui/icons/toggle-left-sidebar-icon';
@@ -12,8 +11,9 @@ export function ToggleDashboardSidebarButton() {
 }
 
 function ToggleButton() {
-  const {leftSidenavStatus, toggleLeftSidenav} =
-    useToggleDashboardLeftSidebar();
+  const {leftSidenavStatus, toggleLeftSidenavCompactMode} = use(
+    DashboardLayoutContext,
+  );
   const isCollapsed = leftSidenavStatus === 'compact';
   return (
     <Tooltip
@@ -26,7 +26,7 @@ function ToggleButton() {
         )
       }
     >
-      <IconButton size="xs" onClick={() => toggleLeftSidenav()}>
+      <IconButton size="xs" onClick={() => toggleLeftSidenavCompactMode()}>
         <ToggleLeftSidebarIcon />
       </IconButton>
     </Tooltip>

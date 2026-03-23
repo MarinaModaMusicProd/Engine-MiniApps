@@ -47,6 +47,7 @@ class LocalizationsController extends BaseController
         $this->validate($this->request, [
             'name' => 'string|min:1',
             'language' => 'string|min:2|max:5',
+            'direction' => 'string|in:ltr,rtl',
             'lines' => 'array|min:1',
         ]);
 
@@ -66,6 +67,7 @@ class LocalizationsController extends BaseController
         $this->validate($this->request, [
             'name' => 'required|unique:localizations',
             'language' => 'string|min:2|max:5|unique:localizations',
+            'direction' => 'string|in:ltr,rtl',
         ]);
 
         $localization = $this->repository->create($this->request->all());

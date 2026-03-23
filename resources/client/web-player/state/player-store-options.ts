@@ -87,11 +87,9 @@ export const playerStoreOptions: Partial<PlayerStoreOptions> = {
     }
   },
   loadMoreMediaItems: async media => {
-    if (media?.groupId) {
-      const tracks = await loadMediaItemTracks(
-        media.groupId as string,
-        media.meta,
-      );
+    const groupId = media?.groupId?.toString();
+    if (media && groupId && !groupId.includes('libraryDownloadedTracks')) {
+      const tracks = await loadMediaItemTracks(groupId, media.meta);
       return await tracksToMediaItems(tracks);
     }
   },

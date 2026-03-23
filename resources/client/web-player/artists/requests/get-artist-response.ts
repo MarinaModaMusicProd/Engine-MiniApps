@@ -5,14 +5,21 @@ import {PartialUserProfile} from '@app/web-player/users/user-profile';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
 import {PaginationResponse} from '@common/http/backend-response/pagination-response';
 
-export const albumViewModeKey = 'artistPage-albumViewMode';
-
 export interface GetArtistResponse extends BackendResponse {
   artist: FullArtist;
   albums?: PaginationResponse<FullAlbum>;
+  grouped_albums?: Record<
+    'album' | 'single' | 'ep' | 'compilation',
+    {data: Omit<FullAlbum, 'tracks'>[]; hasMore: boolean}
+  >;
   tracks?: PaginationResponse<Track>;
   top_tracks?: Track[];
   followers?: PaginationResponse<PartialUserProfile>;
   loader?: 'artistPage' | 'editArtistPage' | 'artist';
-  selectedAlbumViewMode?: string;
 }
+
+export const artistAlbumsResponseType = {
+  WITH_TRACKS: 'withTracks',
+  GROUPED_BY_TYPE: 'groupedByType',
+  GRID: 'grid',
+} as const;

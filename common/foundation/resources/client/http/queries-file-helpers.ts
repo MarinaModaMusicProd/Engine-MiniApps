@@ -12,7 +12,6 @@ import {
   QueryKey,
   queryOptions,
 } from '@tanstack/react-query';
-import {useCallback} from 'react';
 
 const get = async <T>(
   url: string,
@@ -62,10 +61,10 @@ const infiniteQuery = <T>({
   paginate = 'simple',
 }: InfiniteQueryOptions<T>) => {
   const selectFn = propsTransformResponse
-    ? useCallback((data: InfiniteData<PaginatedBackendResponse<T>>) => {
+    ? (data: InfiniteData<PaginatedBackendResponse<T>>) => {
         const pages = data.pages.map(page => propsTransformResponse(page));
         return {...data, pages};
-      }, [])
+      }
     : undefined;
 
   return infiniteQueryOptions<PaginatedBackendResponse<T>>({

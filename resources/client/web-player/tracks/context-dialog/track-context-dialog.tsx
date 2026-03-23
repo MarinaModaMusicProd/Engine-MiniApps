@@ -168,7 +168,7 @@ type DownloadOfflineButtonProps = {
 };
 function OfflineTracksButton({tracks}: DownloadOfflineButtonProps) {
   const {close: closeMenu} = useDialogContext();
-  const canOffline = useCanOffline();
+  const canOffline = useCanOffline() && tracks.every(t => t.src);
   const allTracksOfflined = useOfflineEntitiesStore(s =>
     tracks.every(t => s.offlinedTrackIds.has(t.id)),
   );

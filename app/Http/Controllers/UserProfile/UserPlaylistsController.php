@@ -32,6 +32,8 @@ class UserPlaylistsController extends BaseController
                 'orderBy' => 'updated_at',
                 'orderDir' => 'desc',
                 'perPage' => 30,
+                'query' => request('query'),
+                'page' => request('page', 1),
             ],
             $builder,
         );

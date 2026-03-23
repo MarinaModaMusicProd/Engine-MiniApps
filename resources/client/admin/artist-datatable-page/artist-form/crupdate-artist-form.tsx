@@ -1,4 +1,5 @@
 import {ArtistAlbumsTable} from '@app/admin/artist-datatable-page/artist-form/artist-albums-table';
+import {ExternalIdsFields} from '@app/admin/artist-datatable-page/artist-form/external-ids-fields';
 import {ProfileLinksForm} from '@app/admin/artist-datatable-page/artist-form/profile-links-form';
 import {CreateArtistPayload} from '@app/admin/artist-datatable-page/requests/use-create-artist';
 import {UploadType} from '@app/site-config';
@@ -14,7 +15,6 @@ import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
 import {useTrans} from '@ui/i18n/use-trans';
 import {AddIcon} from '@ui/icons/material/Add';
-import {useSettings} from '@ui/settings/use-settings';
 import {Tab} from '@ui/tabs/tab';
 import {TabList} from '@ui/tabs/tab-list';
 import {TabPanel, TabPanels} from '@ui/tabs/tab-panels';
@@ -67,6 +67,11 @@ export function CrupdateArtistForm({albums, showExternalFields}: Props) {
               <Tab>
                 <Trans message="Images" />
               </Tab>
+              {showExternalFields && (
+                <Tab>
+                  <Trans message="External IDs" />
+                </Tab>
+              )}
             </TabList>
             <TabPanels className="pt-20">
               <TabPanel>
@@ -80,6 +85,9 @@ export function CrupdateArtistForm({albums, showExternalFields}: Props) {
               </TabPanel>
               <TabPanel>
                 <ImagesPanel />
+              </TabPanel>
+              <TabPanel>
+                <ExternalIdsFields />
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -113,7 +121,6 @@ function DetailsPanel({showExternalFields}: DetailsPanelProps) {
         allowCustomValue
         className="mb-24"
       />
-      {showExternalFields && <SpotifyIdField />}
     </Fragment>
   );
 }
@@ -180,21 +187,5 @@ function ImagesPanel() {
         <Trans message="Add another image" />
       </Button>
     </div>
-  );
-}
-
-function SpotifyIdField() {
-  const {spotify_is_setup} = useSettings();
-  if (!spotify_is_setup) {
-    return null;
-  }
-  return (
-    <FormTextField
-      name="spotify_id"
-      label={<Trans message="Spotify ID" />}
-      className="mb-24"
-      minLength={22}
-      maxLength={22}
-    />
   );
 }

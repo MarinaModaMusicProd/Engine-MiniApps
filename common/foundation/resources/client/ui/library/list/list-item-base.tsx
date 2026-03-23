@@ -52,7 +52,7 @@ export const ListItemBase = React.forwardRef<
   if (!startIcon && showCheckmark) {
     startIcon = (
       <CheckIcon
-        size="sm"
+        size="xs"
         className={clsx('text-primary', !isSelected && 'invisible')}
       />
     );
@@ -64,10 +64,7 @@ export const ListItemBase = React.forwardRef<
   //   );
   // }
 
-  const iconClassName = clsx(
-    'icon-sm rounded overflow-hidden flex-shrink-0',
-    !isDisabled && 'text-muted',
-  );
+  const iconClassName = clsx('overflow-hidden flex-shrink-0');
   const endSectionClassName = clsx(!isDisabled && 'text-muted');
 
   const Element = elementType ? elementType : to ? Link : 'div';
@@ -118,18 +115,7 @@ function itemClassName(props: ListItemBaseProps): string {
     padding: userPadding,
   } = props;
 
-  let padding;
-  if (userPadding) {
-    padding = userPadding;
-  } else if (showCheckmark) {
-    if (endIcon || endSection) {
-      padding = 'pl-8 pr-8 py-8';
-    } else {
-      padding = 'pl-8 pr-24 py-8';
-    }
-  } else {
-    padding = 'px-20 py-8';
-  }
+  const padding = userPadding ?? 'px-12 py-8';
 
   return clsx(
     'w-full select-none outline-none cursor-pointer',

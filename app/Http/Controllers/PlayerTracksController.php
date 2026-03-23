@@ -54,15 +54,11 @@ class PlayerTracksController extends BaseController
         $order = $trackQuery->getOrder();
 
         if ($lastTrack = request()->get('lastTrack')) {
-            $whereCol =
-                $order['col'] === 'added_at'
-                    ? 'likes.created_at'
-                    : $order['col'];
             $this->applyCursor(
                 $dbQuery,
-                [$whereCol => $order['dir'], 'tracks.id' => 'desc'],
+                [$order['col'] => $order['dir'], 'tracks.id' => 'desc'],
                 [
-                    $lastTrack[$order['col']] ?? $lastTrack['added_at'],
+                    $lastTrack[$trackQuery->getFrontendOrderKey()],
                     $lastTrack['id'],
                 ],
             );

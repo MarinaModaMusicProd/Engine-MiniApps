@@ -8,8 +8,10 @@ import {
   getSharedButtonStyle,
 } from './get-shared-button-style';
 
-export interface ButtonBaseProps
-  extends Omit<ComponentPropsWithRef<'button'>, 'color'> {
+export interface ButtonBaseProps extends Omit<
+  ComponentPropsWithRef<'button'>,
+  'color'
+> {
   color?: ButtonColor;
   variant?: ButtonVariant;
   value?: any;
@@ -18,6 +20,7 @@ export interface ButtonBaseProps
   radius?: string | null;
   shadow?: string;
   border?: string;
+  borderColor?: string;
   whitespace?: string;
   form?: string;
   to?: To;
@@ -48,6 +51,7 @@ export const ButtonBase = forwardRef<
     href,
     form,
     border,
+    borderColor,
     elementType,
     to,
     state,
@@ -89,6 +93,7 @@ export const ButtonBase = forwardRef<
           variant,
           color,
           border,
+          borderColor,
           whitespace,
           display,
           shadow,

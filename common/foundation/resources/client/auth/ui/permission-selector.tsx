@@ -18,20 +18,20 @@ import {Permission, PermissionRestriction} from '../permission';
 interface PermissionSelectorProps {
   value?: Permission[];
   onChange?: (value: Permission[]) => void;
-  type?: string;
+  roleType: string;
 }
 export const PermissionSelector = React.forwardRef<
   HTMLDivElement,
   PermissionSelectorProps
->(({type, ...props}, ref) => {
-  const query = useQuery(commonAdminQueries.permissions.index());
+>(({roleType, ...props}, ref) => {
+  const query = useQuery(commonAdminQueries.permissions.index(roleType));
   const permissions = query.data?.permissions;
 
   const [value, setValue] = useControlledState(props.value, [], props.onChange);
 
   if (!permissions) return null;
 
-  const groupedPermissions = buildPermissionList(permissions, value, type);
+  const groupedPermissions = buildPermissionList(permissions, value);
 
   const onRestrictionChange = (newPermission: Permission) => {
     const newValue = [...value];
@@ -205,14 +205,10 @@ interface PermissionGroup {
 export function buildPermissionList(
   allPermissions: Permission[],
   selectedPermissions: Permission[],
-  type: string = 'users',
 ) {
   const groupedPermissions: PermissionGroup[] = [];
 
   allPermissions.forEach(permission => {
-    const permissionType = permission.type || 'users';
-    if (permissionType !== type) return;
-
     let group = groupedPermissions.find(g => g.groupName === permission.group);
     if (!group) {
       group = {groupName: permission.group, anyChecked: false, items: []};

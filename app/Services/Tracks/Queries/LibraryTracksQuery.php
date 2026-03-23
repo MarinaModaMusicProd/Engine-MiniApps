@@ -8,7 +8,7 @@ use Illuminate\Support\Arr;
 
 class LibraryTracksQuery extends BaseTrackQuery
 {
-    const ORDER_COL = 'added_at';
+    const ORDER_COL = 'likes.created_at';
 
     public function get(int $userId): Builder
     {
@@ -24,14 +24,18 @@ class LibraryTracksQuery extends BaseTrackQuery
         $orderBy = Arr::get($this->params, 'orderBy');
         $orderDir = Arr::get($this->params, 'orderDir');
 
-        // library tracks page loading will error without this, column is called 'added_at' on the track model
-        if ($orderBy === 'likes.created_at') {
-            $orderBy = 'added_at';
-        }
-
         return [
             'col' => $orderBy ?: static::ORDER_COL,
             'dir' => $orderDir ?: static::ORDER_DIR,
         ];
+    }
+
+    public function getFrontendOrderKey(): string
+    {
+        $order = $this->getOrder();
+        return match ($order['col']) {
+            'likes.created_at' => 'added_at',
+            default => $order['col'],
+        };
     }
 }

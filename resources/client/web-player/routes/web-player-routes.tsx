@@ -1,10 +1,12 @@
 import {appQueries} from '@app/app-queries';
+import {artistAlbumsResponseType} from '@app/web-player/artists/requests/get-artist-response';
 import {PlayerPageErrorMessage} from '@app/web-player/layout/player-page-error-message';
 import {getSettingsPreviewMode} from '@common/admin/settings/preview/use-settings-preview-mode';
 import {authGuard} from '@common/auth/guards/auth-route';
 import {auth} from '@common/auth/use-auth';
 import {queryClient} from '@common/http/query-client';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
+import {searchParamsFromUrl} from '@ui/utils/urls/search-params-from-url';
 import {redirect, RouteObject} from 'react-router';
 
 export const webPlayerRoutes: RouteObject[] = [
@@ -91,6 +93,19 @@ export const webPlayerRoutes: RouteObject[] = [
             loader: async ({params}) => {
               queryClient.ensureQueryData(
                 appQueries.artists.show(params.artistId!).artist('artistPage'),
+              );
+            },
+          },
+          {
+            path: 'artist/:artistId/:artistName/albums',
+            lazy: () =>
+              import('@app/web-player/artists/artist-page/artist-albums-page'),
+            loader: async ({params, request}) => {
+              const recordType = searchParamsFromUrl(request.url).recordType;
+              queryClient.ensureInfiniteQueryData(
+                appQueries.artists
+                  .show(params.artistId!)
+                  .albums(artistAlbumsResponseType.GRID, recordType),
               );
             },
           },

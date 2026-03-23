@@ -15,7 +15,7 @@ import {useUpdateRole} from '../requests/use-update-role';
 
 const tabConfig = [
   {uri: '', label: {message: 'Settings'}},
-  {uri: 'users', label: {message: 'Users'}},
+  {uri: 'users', label: {message: 'Members'}},
 ];
 
 export function Component() {

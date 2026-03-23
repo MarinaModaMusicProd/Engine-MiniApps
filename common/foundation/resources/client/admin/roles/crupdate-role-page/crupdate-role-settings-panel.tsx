@@ -10,22 +10,20 @@ import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
 import {useTrans} from '@ui/i18n/use-trans';
 import {useContext} from 'react';
-import {useFormContext} from 'react-hook-form';
-import {useSearchParams} from 'react-router';
+import {useFormContext, useWatch} from 'react-hook-form';
+import {useParams} from 'react-router';
 
 export function Component() {
   const {trans} = useTrans();
-  const [searchParams] = useSearchParams();
+  const {roleId} = useParams();
   const {watch, setValue} = useFormContext<Role>();
-  const watchedType = watch('type');
+  const watchedType = useWatch<Role, 'type'>({name: 'type'});
   const isDefault = watch('default');
   const isInternal = watch('internal');
   const isGuests = watch('guests');
 
   const siteConfig = useContext(SiteConfigContext);
   const roleTypes = siteConfig.roles?.types ?? [];
-  const typeConfig = roleTypes.find(type => type.type === watchedType);
-  const permissionType = typeConfig?.permission_type ?? 'users';
 
   return (
     <>
@@ -43,15 +41,12 @@ export function Component() {
         rows={4}
         className="mb-20"
       />
-      {roleTypes.length && !searchParams.get('type') ? (
+      {!roleId && roleTypes.length ? (
         <FormSelect
           label={<Trans message="Type" />}
           name="type"
           selectionMode="single"
           className="mb-20"
-          description={
-            <Trans message="Whether this role will be assigned to users globally on the site or only within workspaces." />
-          }
         >
           {roleTypes.map(type => (
             <Item key={type.type} value={type.type}>
@@ -88,7 +83,7 @@ export function Component() {
           <Trans message="Remove all" />
         </Button>
       </div>
-      <FormPermissionSelector name="permissions" type={permissionType} />
+      <FormPermissionSelector name="permissions" roleType={watchedType} />
     </>
   );
 }

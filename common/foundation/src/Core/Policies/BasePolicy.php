@@ -18,8 +18,7 @@ abstract class BasePolicy
     public function __construct(
         protected Request $request,
         protected Settings $settings,
-    ) {
-    }
+    ) {}
 
     protected function denyWithAction(
         $message,

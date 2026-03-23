@@ -42,11 +42,18 @@
 }
 
 .dashboard-grid:not(.dashboard-mobile-mode) .dashboard-rounded-panel {
-  @apply rounded-panel border;
+  @apply rounded-panel shadow;
+}
+
+.dashboard-grid .dashboard-muted-panel {
+  --dash-muted-panel-bg: 251 251 251;
 }
 
 .dashboard-grid .dashboard-rounded-panel {
-  @apply h-full min-h-0 min-w-0 bg-elevated;
+  @apply h-full min-h-0 min-w-0;
+  background-color: rgb(
+    var(--dash-muted-panel-bg, var(--be-bg-elevated)) / var(--tw-bg-opacity, 1)
+  );
 }
 
 .dashboard-layout-with-spacing:not(.dashboard-mobile-mode) {

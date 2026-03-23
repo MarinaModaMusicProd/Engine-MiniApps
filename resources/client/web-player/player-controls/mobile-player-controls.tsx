@@ -18,12 +18,12 @@ import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {Badge} from '@ui/badge/badge';
 import {Item} from '@ui/forms/listbox/item';
 import {Trans} from '@ui/i18n/trans';
-import {MicIcon} from '@ui/icons/material/Mic';
-import {PersonIcon} from '@ui/icons/material/Person';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
 import {ProgressBar} from '@ui/progress/progress-bar';
 import {useSettings} from '@ui/settings/use-settings';
 import clsx from 'clsx';
+import {CircleUser, MicVocalIcon} from 'lucide-react';
 import {useMemo} from 'react';
 
 export function MobilePlayerControls() {
@@ -116,7 +116,7 @@ function MobileNavbar() {
           unstyled
           defaultIcons={webPlayerSidebarIcons}
           iconClassName="block mx-auto mb-6"
-          iconSize="md"
+          iconSize="sm"
           className={({isActive}) =>
             clsx(
               'overflow-hidden whitespace-nowrap text-xs',
@@ -146,7 +146,13 @@ function AccountButton() {
         <MenuItem
           value="author"
           key="author"
-          startIcon={<MicIcon />}
+          startIcon={
+            <LucideIcon
+              icon={MicVocalIcon}
+              size="sm"
+              className="mx-auto mb-6 block"
+            />
+          }
           onSelected={() => {
             navigate(getArtistLink(primaryArtist));
           }}
@@ -160,7 +166,13 @@ function AccountButton() {
         <MenuItem
           value="author"
           key="author"
-          startIcon={<MicIcon />}
+          startIcon={
+            <LucideIcon
+              icon={MicVocalIcon}
+              size="sm"
+              className="mx-auto mb-6 block"
+            />
+          }
           onSelected={() => {
             navigate('/backstage/requests');
           }}
@@ -175,7 +187,7 @@ function AccountButton() {
 
   const button = (
     <button className="relative text-xs">
-      <PersonIcon size="md" />
+      <LucideIcon icon={CircleUser} size="sm" className="mx-auto mb-6 block" />
       {hasUnreadNotif ? (
         <Badge className="-top-6" right="right-4">
           {user?.unread_notifications_count}

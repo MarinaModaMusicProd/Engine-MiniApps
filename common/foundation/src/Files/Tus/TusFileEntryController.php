@@ -19,6 +19,7 @@ class TusFileEntryController extends BaseController
         ]);
 
         $tusData = (new TusCache())->get($data['uploadKey']);
+        $uploadType = $tusData['metadata']['uploadType'] ?? null;
 
         if (!$tusData) {
             return $this->error();
@@ -32,7 +33,11 @@ class TusFileEntryController extends BaseController
 
         $payload = new FileEntryPayload($metadata);
 
-        $this->authorize('store', [FileEntry::class, $payload->parentId]);
+        $this->authorize('store', [
+            FileEntry::class,
+            $payload->parentId,
+            $uploadType,
+        ]);
 
         (new StoreFile())->execute($payload, [
             'path' => $tusFilePath,

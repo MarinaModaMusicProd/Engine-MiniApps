@@ -10,7 +10,6 @@ import {UserProfileLink} from '@app/web-player/users/user-profile-link';
 import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
 import {ColumnConfig} from '@common/datatable/column-config';
 import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
-import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
 import {DataTableHeader} from '@common/datatable/data-table-header';
 import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
 import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
@@ -35,16 +34,15 @@ import {FormattedDate} from '@ui/i18n/formatted-date';
 import {FormattedNumber} from '@ui/i18n/formatted-number';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {CheckIcon} from '@ui/icons/material/Check';
 import {EditIcon} from '@ui/icons/material/Edit';
-import {PublishIcon} from '@ui/icons/material/Publish';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {useSettings} from '@ui/settings/use-settings';
 import {toast} from '@ui/toast/toast';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {Fragment, useState} from 'react';
+import {DownloadIcon, PlusIcon} from 'lucide-react';
+import {useState} from 'react';
 
 const columnConfig: ColumnConfig<FullPlaylist>[] = [
   {
@@ -158,6 +156,26 @@ export function Component() {
     </DialogTrigger>
   );
 
+  const createPlaylistButton = (
+    <DialogTrigger
+      type="modal"
+      onClose={newPlaylist => {
+        if (newPlaylist) {
+          invalidateQuery();
+        }
+      }}
+    >
+      <Button
+        color="primary"
+        variant="flat"
+        startIcon={<LucideIcon icon={PlusIcon} size="sm" />}
+      >
+        <Trans message="Create new playlist" />
+      </Button>
+      <CreatePlaylistDialog />
+    </DialogTrigger>
+  );
+
   return (
     <DatatablePageWithHeaderLayout>
       <GlobalLoadingProgress query={query} />
@@ -167,6 +185,7 @@ export function Component() {
       <DatatablePageHeaderBar
         title={<Trans message="Playlists" />}
         showSidebarToggleButton
+        rightContent={createPlaylistButton}
       />
       <DatatablePageWithHeaderBody>
         <DataTableHeader
@@ -208,45 +227,25 @@ export function Component() {
 }
 
 function Actions() {
-  const {spotify_is_setup} = useSettings();
   return (
-    <Fragment>
-      {spotify_is_setup && (
-        <DialogTrigger
-          type="modal"
-          onClose={newPlaylist => {
-            if (newPlaylist) {
-              invalidateQuery();
-            }
-          }}
-        >
-          <Tooltip label={<Trans message="Import by spotify ID" />}>
-            <IconButton
-              variant="outline"
-              color="primary"
-              className="flex-shrink-0"
-              size="sm"
-            >
-              <PublishIcon />
-            </IconButton>
-          </Tooltip>
-          <ImportPlaylistDialog />
-        </DialogTrigger>
-      )}
-      <DialogTrigger
-        type="modal"
-        onClose={newPlaylist => {
-          if (newPlaylist) {
-            invalidateQuery();
-          }
-        }}
+    <DialogTrigger
+      type="modal"
+      onClose={newPlaylist => {
+        if (newPlaylist) {
+          invalidateQuery();
+        }
+      }}
+    >
+      <Button
+        variant="outline"
+        className="flex-shrink-0"
+        size="sm"
+        startIcon={<LucideIcon icon={DownloadIcon} size="xs" />}
       >
-        <DataTableAddItemButton>
-          <Trans message="Add new playlist" />
-        </DataTableAddItemButton>
-        <CreatePlaylistDialog />
-      </DialogTrigger>
-    </Fragment>
+        <Trans message="Import playlist" />
+      </Button>
+      <ImportPlaylistDialog />
+    </DialogTrigger>
   );
 }
 

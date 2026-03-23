@@ -14,23 +14,14 @@ class WorkspaceInvitation extends Notification implements ShouldQueue
 
     const NOTIF_ID = 'W01';
 
-    /**
-     * @var string
-     */
     private $workspace;
-    /**
-     * @var string
-     */
     private $inviterName;
-    /**
-     * @var string
-     */
     private $joinCode;
 
     public function __construct(
         Workspace $workspace,
         string $inviterName,
-        string $joinCode
+        string $joinCode,
     ) {
         $this->workspace = $workspace;
         $this->inviterName = $inviterName;

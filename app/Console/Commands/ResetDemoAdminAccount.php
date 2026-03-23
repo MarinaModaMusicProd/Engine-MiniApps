@@ -56,7 +56,7 @@ class ResetDemoAdminAccount extends Command
         $superAdmin->permissions()->sync($adminPermission->id);
 
         // settings
-        if (str_contains(config('app.url'), 'MarinaModa-1')) {
+        if (str_contains(config('app.url'), 'bemusic-1')) {
             $darkThemeId = CssTheme::where('default_dark', true)->first()?->id;
             app(Settings::class)->save([
                 'themes.default_id' => $darkThemeId ?? 0,

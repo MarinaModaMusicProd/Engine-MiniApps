@@ -8,12 +8,13 @@ use Opcodes\LogViewer\Facades\LogViewer;
 
 class ErrorLogController extends BaseController
 {
+    public function __construct()
+    {
+        $this->middleware('isAdmin');
+    }
+
     public function index()
     {
-        if (!Auth::user()?->hasPermission('reports.view')) {
-            abort(403);
-        }
-
         if (config('app.demo')) {
             return $this->success([
                 'selectedFile' => null,

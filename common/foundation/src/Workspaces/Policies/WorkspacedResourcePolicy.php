@@ -52,6 +52,19 @@ abstract class WorkspacedResourcePolicy extends BasePolicy
 
     public function store(User $currentUser)
     {
+        [$relationName, $permission] = $this->parseNamespace(
+            $this->resource,
+            'create',
+        );
+
+        // user does not have permission to create resource inside workspace
+        if (
+            !$this->userOwnsWorkspace($currentUser) &&
+            !$this->userHasPermission($currentUser, $permission)
+        ) {
+            return Response::deny('No permission', self::NO_PERMISSION);
+        }
+
         return $this->storeWithCountRestriction($currentUser, $this->resource);
     }
 
@@ -92,13 +105,15 @@ abstract class WorkspacedResourcePolicy extends BasePolicy
         $permission = Str::snake($permission);
 
         $activeWorkspace = app(ActiveWorkspace::class);
-        $userOwnsWorkspace =
-            $activeWorkspace->isPersonal() ||
-            !$activeWorkspace->workspace() ||
-            $user->id === $activeWorkspace->workspace()->owner_id;
+        $userOwnsWorkspace = $this->userOwnsWorkspace($user);
 
         // check if user has permission when they own workspace or no workspace at all
-        if ($userOwnsWorkspace && !parent::hasPermission($user, $permission)) {
+        if (
+            $userOwnsWorkspace &&
+            // if user owns the resource, they can view and delete it without any special permission
+            (Str::endsWith($permission, '.create') &&
+                !parent::hasPermission($user, $permission))
+        ) {
             return Response::deny('No permission', self::NO_PERMISSION);
         }
 
@@ -119,5 +134,13 @@ abstract class WorkspacedResourcePolicy extends BasePolicy
     protected function userIsWorkspaceMember(User $user): bool
     {
         return !is_null(app(ActiveWorkspace::class)->member($user->id));
+    }
+
+    protected function userOwnsWorkspace(User $user): bool
+    {
+        $activeWorkspace = app(ActiveWorkspace::class);
+        return $activeWorkspace->isPersonal() ||
+            !$activeWorkspace->workspace() ||
+            $user->id === $activeWorkspace->workspace()->owner_id;
     }
 }

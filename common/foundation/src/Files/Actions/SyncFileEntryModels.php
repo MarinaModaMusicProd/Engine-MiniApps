@@ -21,9 +21,9 @@ class SyncFileEntryModels
         $relation->sync($entries);
     }
 
-    public function fromUrl(string $url, MorphToMany $relation): ?FileEntry
+    public function fromUrl(string|null $url, MorphToMany $relation): ?FileEntry
     {
-        if (!$this->isUrlForUploadedFile($url)) {
+        if (!$url || !$this->isUrlForUploadedFile($url)) {
             return null;
         }
 
@@ -103,7 +103,8 @@ class SyncFileEntryModels
     public function getFileNamesFromImagesInHtml(string $html): array
     {
         $fileNames = [];
-        $crawler = new Crawler($html);
+        $crawler = new Crawler();
+        $crawler->addHtmlContent($html, 'UTF-8');
 
         $crawler
             ->filter('img[src]')
@@ -137,8 +138,12 @@ class SyncFileEntryModels
         return false;
     }
 
-    public function isUrlForUploadedFile(string $url)
+    public function isUrlForUploadedFile(string|null $url = null)
     {
+        if (!$url) {
+            return false;
+        }
+
         // does not seem to be a url (relative or otherwise)
         if (!Str::contains($url, '/')) {
             return false;

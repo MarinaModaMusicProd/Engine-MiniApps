@@ -1,9 +1,10 @@
-import {useMemo} from 'react';
 import {useSettings} from '@ui/settings/use-settings';
-import {CustomDomain} from '@common/custom-domains/custom-domain';
+import {useMemo} from 'react';
 
 export function useDefaultCustomDomainHost(
-  allDomains?: CustomDomain[]
+  allDomains?: {
+    host: string;
+  }[],
 ): string {
   const {custom_domains, base_url} = useSettings();
   return useMemo(() => {

@@ -1,6 +1,6 @@
 import {CustomMenu, CustomMenuProps} from '@common/menus/custom-menu';
+import {DashboardLayoutContext} from '@common/ui/dashboard-layout/dashboard-layout-context';
 import {DashboardSidenavChildrenProps} from '@common/ui/dashboard-layout/dashboard-sidenav';
-import {useToggleDashboardLeftSidebar} from '@common/ui/dashboard-layout/use-toggle-dashboard-left-sidebar';
 import {Logo} from '@common/ui/navigation/navbar/logo';
 import {KeyboardArrowLeftIcon} from '@ui/icons/material/KeyboardArrowLeft';
 import {KeyboardArrowRightIcon} from '@ui/icons/material/KeyboardArrowRight';
@@ -9,11 +9,11 @@ import {useIsDarkMode} from '@ui/themes/use-is-dark-mode';
 import clsx from 'clsx';
 import {
   cloneElement,
-  ComponentType,
   forwardRef,
   JSXElementConstructor,
   ReactElement,
   ReactNode,
+  use,
 } from 'react';
 import type {To} from 'react-router';
 
@@ -21,15 +21,14 @@ type MatchDescendants = undefined | boolean | ((to: string) => boolean);
 
 export type DashboardLeftSidebarVariant = 'withoutNavbar' | 'withNavbar';
 
-export interface DashboardLeftSidebarProps
-  extends DashboardSidenavChildrenProps {
+export interface DashboardLeftSidebarProps extends DashboardSidenavChildrenProps {
   matchDescendants?: MatchDescendants;
   menuName: string;
   bottomContent?: ReactNode;
   variant?: DashboardLeftSidebarVariant;
   customMenuRender?: CustomMenuProps['children'];
   showToggleSidebarButton?: boolean;
-  defaultIcons?: Record<string, ComponentType<SvgIconProps>>;
+  defaultIcons?: Record<string, ReactElement<SvgIconProps>>;
 }
 export function DashboardLeftSidebar({
   className,
@@ -91,8 +90,9 @@ export function DashboardLeftSidebar({
 }
 
 function SidebarToggleButton() {
-  const {leftSidenavStatus, toggleLeftSidenav, isMobileMode} =
-    useToggleDashboardLeftSidebar();
+  const {leftSidenavStatus, toggleLeftSidenavCompactMode, isMobileMode} = use(
+    DashboardLayoutContext,
+  );
 
   if (isMobileMode) {
     return null;
@@ -104,7 +104,7 @@ function SidebarToggleButton() {
         'fixed bottom-180 z-10 flex select-none appearance-none items-center justify-center rounded-full border bg align-middle outline-none transition-[left,color,shadow] duration-200 hover:text-primary focus-visible:ring',
         leftSidenavStatus === 'open' ? 'left-[212px]' : 'left-48',
       )}
-      onClick={() => toggleLeftSidenav()}
+      onClick={() => toggleLeftSidenavCompactMode()}
     >
       {leftSidenavStatus === 'open' ? (
         <KeyboardArrowLeftIcon size="sm" />

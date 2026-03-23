@@ -18,7 +18,7 @@ export function getButtonSizeStyle(
       return `text-xs h-24 ${equalWidth ? 'w-24' : padding || 'px-10'}`;
     case 'xs':
       if (variant === 'link') return 'text-xs';
-      return `text-xs h-30 ${equalWidth ? 'w-30' : padding || 'px-14'}`;
+      return `text-sm h-30 ${equalWidth ? 'w-30' : padding || 'px-14'}`;
     case 'sm':
       if (variant === 'link') return 'text-sm';
       return `text-sm h-36 ${equalWidth ? 'w-36' : padding || 'px-18'}`;

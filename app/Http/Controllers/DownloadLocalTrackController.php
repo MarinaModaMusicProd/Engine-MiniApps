@@ -28,7 +28,8 @@ class DownloadLocalTrackController extends BaseController
         }
 
         // track is local
-        if ($uploadedSrc = $track->uploadedSrc()->first()) {
+        $uploadedSrc = $track->uploadedSrc()->first();
+        if ($uploadedSrc?->upload_type) {
             $ext = pathinfo($track->src, PATHINFO_EXTENSION);
             $trackName =
                 str_replace('%', '', Str::ascii($track->name)) . ".$ext";

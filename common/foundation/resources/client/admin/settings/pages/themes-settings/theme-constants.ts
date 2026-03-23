@@ -3,7 +3,7 @@ import {message} from '@ui/i18n/message';
 export const themeColorList = [
   {
     label: message('Background'),
-    key: '--be-background',
+    key: '--be-bg',
   },
   {
     label: message('Background alt'),

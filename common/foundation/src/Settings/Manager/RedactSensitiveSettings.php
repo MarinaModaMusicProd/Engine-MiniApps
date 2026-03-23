@@ -15,8 +15,6 @@ class RedactSensitiveSettings
         'facebook_secret',
         'spotify_id',
         'spotify_secret',
-        'lastfm_api_key',
-        'soundcloud_api_key',
         'mailgun_secret',
         'sentry_dsn',
         'paypal_client_id',

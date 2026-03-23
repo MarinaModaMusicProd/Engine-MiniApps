@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Search;
 
 use App\Models\Album;
-use Auth;
 use Common\Core\BaseController;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AlbumSearchSuggestionsController extends BaseController
@@ -36,6 +36,10 @@ class AlbumSearchSuggestionsController extends BaseController
             $user->getRestrictionValue('music.create', 'artist_selection')
                 ? Album::query()
                 : $user->primaryArtist()->albums();
+
+        if (!$builder) {
+            return $this->success(['results' => []]);
+        }
 
         $albums = $builder
             ->where('name', 'like', $query . '%')

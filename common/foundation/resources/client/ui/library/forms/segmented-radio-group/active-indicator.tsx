@@ -1,13 +1,16 @@
+import clsx from 'clsx';
 import {m} from 'framer-motion';
 import {RefObject, useEffect, useState} from 'react';
 
 interface ActiveIndicatorProps {
   selectedValue?: string;
   labelsRef: RefObject<Record<string, HTMLLabelElement>>;
+  variant?: 'outline' | 'filled';
 }
 export function ActiveIndicator({
   selectedValue,
   labelsRef,
+  variant = 'filled',
 }: ActiveIndicatorProps) {
   const [style, setStyle] = useState<{
     width: number;
@@ -35,7 +38,10 @@ export function ActiveIndicator({
     <m.div
       animate={style}
       initial={false}
-      className="pointer-events-none absolute z-10 rounded-button bg-elevated shadow"
+      className={clsx(
+        'pointer-events-none absolute z-10 rounded-button',
+        variant === 'filled' ? 'bg-elevated shadow' : 'border bg-elevated',
+      )}
     />
   );
 }

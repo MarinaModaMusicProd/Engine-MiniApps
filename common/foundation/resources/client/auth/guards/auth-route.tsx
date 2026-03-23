@@ -18,7 +18,7 @@ export function AuthRoute({children, permission, requireLogin = true}: Props) {
     (permission && !hasPermission(permission))
   ) {
     if (isLoggedIn) {
-      return billing.enable && !isSubscribed ? (
+      return billing?.enable && !isSubscribed ? (
         <Navigate to="/pricing" replace />
       ) : (
         <NotFoundPage />
@@ -37,7 +37,7 @@ export function authGuard({
   permission,
   requireLogin = true,
 }: AuthRouteLoaderProps = {}) {
-  const billingEnabled = getBootstrapData().settings.billing.enable;
+  const billingEnabled = getBootstrapData().settings.billing?.enable;
 
   if (
     (requireLogin && !auth.isLoggedIn) ||

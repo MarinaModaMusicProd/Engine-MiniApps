@@ -10,6 +10,7 @@ export interface SvgIconProps extends React.SVGAttributes<SVGElement> {
   title?: string;
   fill?: string;
   ref?: RefObject<SVGSVGElement | null>;
+  strokeWidth?: number;
 }
 
 export const SvgIcon = forwardRef<SVGSVGElement, SvgIconProps & {attr?: {}}>(
@@ -26,6 +27,7 @@ export const SvgIcon = forwardRef<SVGSVGElement, SvgIconProps & {attr?: {}}>(
       width,
       height,
       fill = 'fill-current',
+      strokeWidth = 2, // only used by lucide icons
       ...svgProps
     } = props;
 

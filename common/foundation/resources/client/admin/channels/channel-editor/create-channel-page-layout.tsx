@@ -42,7 +42,7 @@ export function CreateChannelPageLayout({
         createChannel.mutate(values);
       }}
       title={
-        <Breadcrumb>
+        <Breadcrumb size="xl">
           <BreadcrumbItem to="/admin/channels">
             <Trans message="Channels" />
           </BreadcrumbItem>

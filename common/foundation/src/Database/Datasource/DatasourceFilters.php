@@ -36,6 +36,16 @@ class DatasourceFilters
         return false;
     }
 
+    public function get(string $key): ?array
+    {
+        foreach ($this->filters as $filter) {
+            if ($filter['key'] === $key) {
+                return $filter;
+            }
+        }
+        return null;
+    }
+
     public function where(string $key, string $operator, $value): self
     {
         if ($value instanceof Collection) {

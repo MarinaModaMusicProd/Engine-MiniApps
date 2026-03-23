@@ -3,7 +3,7 @@
 namespace App\Services\Tracks\Queries;
 
 use App\Models\Album;
-use App\Services\Albums\SyncAlbumWithSpotify;
+use App\Services\Providers\MusicMetadataProvider;
 use Illuminate\Database\Eloquent\Builder;
 
 class AlbumTrackQuery extends BaseTrackQuery
@@ -15,9 +15,9 @@ class AlbumTrackQuery extends BaseTrackQuery
     {
         $album = Album::findOrFail($albumId);
 
-        // fetch album tracks from spotify, if not fetched already
+        // fetch album tracks from external provider, if not fetched already
         if ($album->needsUpdating()) {
-            (new SyncAlbumWithSpotify())->execute($album);
+            (new MusicMetadataProvider())->importAlbum($album);
         }
 
         return $this->baseQuery()->where('tracks.album_id', $albumId);
