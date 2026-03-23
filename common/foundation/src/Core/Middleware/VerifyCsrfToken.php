@@ -13,6 +13,7 @@ class VerifyCsrfToken extends LaravelVerifyCsrfToken
      * @var array
      */
     protected $except = [
+        'csrf-token',
         'auth/login',
         'auth/register',
         '*broadcasting/auth',
@@ -20,7 +21,7 @@ class VerifyCsrfToken extends LaravelVerifyCsrfToken
         '*/visits/*/change-status',
 
         'players/tracks',
-        'tracks/plays/*/log',
+        '*/tracks/plays/*/log',
         'youtube/log-client-error',
     ];
 

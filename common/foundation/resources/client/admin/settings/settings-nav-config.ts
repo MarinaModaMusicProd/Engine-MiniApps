@@ -21,7 +21,7 @@ const commonNavConfig: (SettingsNavItem | false)[] = [
     to: 'menus',
     position: 4,
   },
-  getBootstrapData().settings.billing.integrated && {
+  !!getBootstrapData().settings.billing?.integrated && {
     label: message('Subscriptions'),
     to: 'subscriptions',
     position: 5,

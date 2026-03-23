@@ -40,7 +40,7 @@ trait TransformsSettingsTableRowValue
             return $value;
         }
 
-        if (ctype_digit($value)) {
+        if (is_string($value) && ctype_digit($value)) {
             return (int) $value;
         }
 

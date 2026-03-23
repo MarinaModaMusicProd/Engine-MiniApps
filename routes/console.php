@@ -14,7 +14,7 @@ if (config('app.demo')) {
         ->dailyAt('03:30')
         ->withoutOverlapping();
 
-    if (str_contains(config('app.url'), 'MarinaModa.2')) {
+    if (str_contains(config('app.url'), 'bemusic.2')) {
         Schedule::command(SeedSampleData::class)
             ->weeklyOn(6, '1:30');
     }

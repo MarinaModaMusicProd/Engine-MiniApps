@@ -2,6 +2,7 @@
 
 namespace Common\Database\Datasource\Filters\Traits;
 
+use App\Models\Album;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -69,7 +70,8 @@ trait NormalizesFiltersForFulltextEngines
         } elseif ($value === 'currentUser') {
             return Auth::id();
         } elseif (
-            in_array($filter['key'], $this->query->getModel()->getDates())
+            in_array($filter['key'], $this->query->getModel()->getDates()) ||
+            $filter['value'] instanceof Carbon
         ) {
             return Carbon::parse($value)->timestamp;
         } else {

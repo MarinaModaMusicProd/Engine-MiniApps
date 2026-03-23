@@ -28,6 +28,7 @@ export function UpdateLocalizationDialog({
       id: localization.id,
       name: localization.name,
       language: localization.language,
+      direction: localization.direction,
     },
   });
 
@@ -57,6 +58,7 @@ export function UpdateLocalizationDialog({
             required
             name="language"
             label={<Trans message="Language" />}
+            className="mb-30"
             selectionMode="single"
             showSearchField
             searchPlaceholder={trans(message('Search languages'))}
@@ -66,6 +68,20 @@ export function UpdateLocalizationDialog({
                 {language.name}
               </Option>
             ))}
+          </FormSelect>
+          <FormSelect
+            required
+            name="direction"
+            label={<Trans message="Direction" />}
+            selectionMode="single"
+            showSearchField
+          >
+            <Option value="ltr" key="ltr">
+              <Trans message="Left to right (default)" />
+            </Option>
+            <Option value="rtl" key="rtl">
+              <Trans message="Right to left" />
+            </Option>
           </FormSelect>
         </Form>
       </DialogBody>

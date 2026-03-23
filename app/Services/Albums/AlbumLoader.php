@@ -8,6 +8,7 @@ use App\Models\Genre;
 use App\Models\Track;
 use App\Services\Artists\ArtistLoader;
 use App\Services\Genres\GenreToApiResource;
+use App\Services\Providers\MusicMetadataProvider;
 use App\Services\Tracks\TrackLoader;
 use Common\Tags\Tag;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,8 +22,12 @@ class AlbumLoader
         }
 
         // sync album data with spotify, if needed by this loader
-        if ($loader === 'albumPage' && $album->needsUpdating()) {
-            $album = (new SyncAlbumWithSpotify())->execute($album);
+        if (
+            $loader === 'albumPage' &&
+            $album->needsUpdating() &&
+            ($updatedAlbum = (new MusicMetadataProvider())->importAlbum($album))
+        ) {
+            $album = $updatedAlbum;
         }
 
         if ($loader === 'albumPage' || $loader === 'editAlbumPage') {
@@ -74,6 +79,7 @@ class AlbumLoader
         ) {
             $resource['updated_at'] = $album->updated_at?->toJSON();
             $resource['spotify_id'] = $album->spotify_id;
+            $resource['deezer_id'] = $album->deezer_id;
         }
 
         if ($loader === 'editAlbumPage' || $loader === 'albumPage') {

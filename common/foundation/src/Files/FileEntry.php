@@ -65,10 +65,7 @@ class FileEntry extends BaseModel
 
     public function tags(): BelongsToMany
     {
-        return $this->morphToMany(Tag::class, 'taggable')->wherePivot(
-            'user_id',
-            Auth::id() ?? null,
-        );
+        return $this->morphToMany(Tag::class, 'taggable');
     }
 
     public function getUrlAttribute(?string $value = null): ?string

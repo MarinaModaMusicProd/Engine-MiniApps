@@ -22,8 +22,9 @@ import {useForm} from 'react-hook-form';
 interface Props {
   children?: ReactNode;
   defaultValues?: {client?: Partial<AdminSettings['client']>};
+  slotOne?: ReactNode;
 }
-export function Component({children, defaultValues}: Props) {
+export function Component({children, defaultValues, slotOne}: Props) {
   const {data} = useAdminSettings();
 
   const mergedDefaultValues = useMemo(() => {
@@ -57,6 +58,7 @@ export function Component({children, defaultValues}: Props) {
     >
       <SiteUrlSection />
       <SiteNameSection />
+      {slotOne}
       <FaviconSection />
       <LightModeLogo />
       <DarkModeLogo />

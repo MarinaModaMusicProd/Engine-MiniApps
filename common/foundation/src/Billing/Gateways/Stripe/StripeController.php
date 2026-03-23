@@ -31,7 +31,7 @@ class StripeController extends BaseController
         $result = $this->stripe->subscriptions->createPartial(
             $product,
             Auth::user(),
-            $data['price_id'] ?? null,
+            $data['price_id'],
         );
 
         return $this->success([

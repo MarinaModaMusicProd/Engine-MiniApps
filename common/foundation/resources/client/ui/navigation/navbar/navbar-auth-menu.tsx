@@ -8,17 +8,16 @@ import {Placement} from '@floating-ui/react-dom';
 import {ListboxItemProps} from '@ui/forms/listbox/item';
 import {Trans} from '@ui/i18n/trans';
 import {createSvgIconFromTree} from '@ui/icons/create-svg-icon';
-import {AccountCircleIcon} from '@ui/icons/material/AccountCircle';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {DarkModeIcon} from '@ui/icons/material/DarkMode';
 import {ExitToAppIcon} from '@ui/icons/material/ExitToApp';
 import {LightModeIcon} from '@ui/icons/material/LightMode';
-import {NotificationsIcon} from '@ui/icons/material/Notifications';
-import {PaymentsIcon} from '@ui/icons/material/Payments';
 import {SvgIconProps} from '@ui/icons/svg-icon';
 import {Menu, MenuItem, MenuTrigger} from '@ui/menu/menu-trigger';
 import {useSettings} from '@ui/settings/use-settings';
 import {useThemeSelector} from '@ui/themes/theme-selector-context';
-import {ReactElement, useContext} from 'react';
+import {BellIcon, CircleUser, CreditCardIcon} from 'lucide-react';
+import {cloneElement, ReactElement, useContext} from 'react';
 
 interface Props {
   children: ReactElement;
@@ -46,7 +45,7 @@ export function NavbarAuthMenu({
     <MenuItem
       className="md:hidden"
       value="notifications"
-      startIcon={<NotificationsIcon />}
+      startIcon={<LucideIcon icon={BellIcon} size="xs" />}
       onSelected={() => {
         navigate('/notifications');
       }}
@@ -59,7 +58,7 @@ export function NavbarAuthMenu({
   const billingMenuItem = (
     <MenuItem
       value="billing"
-      startIcon={<PaymentsIcon />}
+      startIcon={<LucideIcon icon={CreditCardIcon} size="xs" />}
       onSelected={() => {
         navigate('/billing');
       }}
@@ -78,10 +77,12 @@ export function NavbarAuthMenu({
 
             if (item.icon) {
               const IconCmp = createSvgIconFromTree(item.icon);
-              icon = IconCmp && <IconCmp size="sm" />;
+              icon = IconCmp && <IconCmp size="xs" />;
             } else {
               const IconCmp = authDropdownIcons[item.action.split('?')[0]];
-              icon = IconCmp && <IconCmp size="sm" />;
+              icon =
+                IconCmp &&
+                cloneElement(IconCmp, {size: IconCmp.props.size ?? 'xs'});
             }
 
             let action = item.action;
@@ -110,7 +111,7 @@ export function NavbarAuthMenu({
         {auth?.getUserProfileLink && (
           <MenuItem
             value="profile"
-            startIcon={<AccountCircleIcon size="sm" />}
+            startIcon={<LucideIcon icon={CircleUser} size="xs" />}
             onSelected={() => {
               navigate(auth.getUserProfileLink!(user));
             }}
@@ -124,7 +125,7 @@ export function NavbarAuthMenu({
         {themes?.user_change && !selectedTheme.is_dark && (
           <MenuItem
             value="light"
-            startIcon={<DarkModeIcon size="sm" />}
+            startIcon={<DarkModeIcon size="xs" />}
             onSelected={() => {
               selectTheme('dark');
             }}
@@ -135,7 +136,7 @@ export function NavbarAuthMenu({
         {themes?.user_change && selectedTheme.is_dark && (
           <MenuItem
             value="dark"
-            startIcon={<LightModeIcon size="sm" />}
+            startIcon={<LightModeIcon size="xs" />}
             onSelected={() => {
               selectTheme('light');
             }}
@@ -145,7 +146,7 @@ export function NavbarAuthMenu({
         )}
         <MenuItem
           value="logout"
-          startIcon={<ExitToAppIcon size="sm" />}
+          startIcon={<ExitToAppIcon size="xs" />}
           onSelected={() => {
             logout.mutate();
           }}

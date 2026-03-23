@@ -4,7 +4,6 @@ import {CustomPageDatatableColumns} from '@common/admin/custom-pages/custom-page
 import {DocsLink} from '@common/admin/settings/layout/settings-links';
 import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
 import {SiteConfigContext} from '@common/core/settings/site-config-context';
-import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
 import {DataTableHeader} from '@common/datatable/data-table-header';
 import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
 import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
@@ -25,11 +24,13 @@ import {useMutation} from '@tanstack/react-query';
 import {Button} from '@ui/buttons/button';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {toast} from '@ui/toast/toast';
-import {Fragment, useContext, useMemo, useState} from 'react';
+import {PlusIcon} from 'lucide-react';
+import {useContext, useMemo, useState} from 'react';
 import {Link} from 'react-router';
 import articlesSvg from './articles.svg';
 import {CustomPageDatatableFilters} from './custom-page-datatable-filters';
@@ -65,14 +66,6 @@ export function Component() {
     </DialogTrigger>
   );
 
-  const actions = (
-    <Fragment>
-      <DataTableAddItemButton elementType={Link} to="new">
-        <Trans message="New page" />
-      </DataTableAddItemButton>
-    </Fragment>
-  );
-
   return (
     <DatatablePageWithHeaderLayout>
       <GlobalLoadingProgress query={query} />
@@ -80,18 +73,29 @@ export function Component() {
         title={<Trans message="Custom pages" />}
         showSidebarToggleButton
         rightContent={
-          <DocsLink
-            variant="button"
-            link={AdminDocsUrls.pages.customPages}
-            size="xs"
-          />
+          <>
+            {AdminDocsUrls.pages.customPages ? (
+              <DocsLink
+                variant="button"
+                link={AdminDocsUrls.pages.customPages}
+              />
+            ) : null}
+            <Button
+              variant="flat"
+              color="primary"
+              elementType={Link}
+              to="new"
+              startIcon={<LucideIcon icon={PlusIcon} size="xs" />}
+            >
+              <Trans message="New page" />
+            </Button>
+          </>
         }
       />
       <DatatablePageWithHeaderBody>
         <DataTableHeader
           searchValue={searchParams.query}
           onSearchChange={setSearchQuery}
-          actions={actions}
           selectedItems={selectedRows}
           selectedActions={selectedActions}
           filters={filters}

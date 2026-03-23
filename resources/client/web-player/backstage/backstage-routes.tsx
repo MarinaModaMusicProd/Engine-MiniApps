@@ -15,23 +15,17 @@ export const backstageRoutes: RouteObject[] = [
       {
         path: 'backstage/requests/verify-artist',
         lazy: () =>
-          import(
-            '@app/web-player/backstage/backstage-request-form/backstage-request-form-page'
-          ),
+          import('@app/web-player/backstage/backstage-request-form/backstage-request-form-page'),
       },
       {
         path: 'backstage/requests/become-artist',
         lazy: () =>
-          import(
-            '@app/web-player/backstage/backstage-request-form/backstage-request-form-page'
-          ),
+          import('@app/web-player/backstage/backstage-request-form/backstage-request-form-page'),
       },
       {
         path: 'backstage/requests/claim-artist',
         lazy: () =>
-          import(
-            '@app/web-player/backstage/backstage-request-form/backstage-request-form-page'
-          ),
+          import('@app/web-player/backstage/backstage-request-form/backstage-request-form-page'),
       },
       {
         path: 'backstage/requests/:requestId/request-submitted',
@@ -54,11 +48,11 @@ export const backstageRoutes: RouteObject[] = [
   {
     path: 'backstage/tracks/:trackId/edit',
     lazy: () =>
-      import(
-        '@app/admin/tracks-datatable-page/crupdate/update-track-page'
-      ).then(({BackstageUpdateTrackPage}) => ({
-        Component: BackstageUpdateTrackPage,
-      })),
+      import('@app/admin/tracks-datatable-page/crupdate/update-track-page').then(
+        ({BackstageUpdateTrackPage}) => ({
+          Component: BackstageUpdateTrackPage,
+        }),
+      ),
     loader: async ({params}) =>
       queryClient.ensureQueryData(
         appQueries.tracks.get(params.trackId!, 'editTrackPage'),
@@ -67,11 +61,11 @@ export const backstageRoutes: RouteObject[] = [
   {
     path: 'backstage/tracks/:trackId/insights',
     lazy: () =>
-      import(
-        '@app/web-player/backstage/insights/backstage-track-insights'
-      ).then(({NestedBackstageTrackInsights}) => ({
-        Component: NestedBackstageTrackInsights,
-      })),
+      import('@app/web-player/backstage/insights/backstage-track-insights').then(
+        ({BackstageTrackInsights}) => ({
+          Component: BackstageTrackInsights,
+        }),
+      ),
     loader: async ({params}) =>
       queryClient.ensureQueryData(
         appQueries.tracks.get(params.trackId!, 'track'),
@@ -101,11 +95,11 @@ export const backstageRoutes: RouteObject[] = [
   {
     path: 'backstage/albums/:albumId/insights',
     lazy: () =>
-      import(
-        '@app/web-player/backstage/insights/backstage-album-insights'
-      ).then(({BackstageAlbumInsights}) => ({
-        Component: BackstageAlbumInsights,
-      })),
+      import('@app/web-player/backstage/insights/backstage-album-insights').then(
+        ({BackstageAlbumInsights}) => ({
+          Component: BackstageAlbumInsights,
+        }),
+      ),
     loader: async ({params}) => {
       queryClient.ensureQueryData(
         appQueries.albums.get(params.albumId!, 'album'),
@@ -130,11 +124,11 @@ export const backstageRoutes: RouteObject[] = [
   {
     path: 'backstage/artists/:artistId/insights',
     lazy: () =>
-      import(
-        '@app/web-player/backstage/insights/backstage-artist-insights'
-      ).then(({BackstageArtistInsights}) => ({
-        Component: BackstageArtistInsights,
-      })),
+      import('@app/web-player/backstage/insights/backstage-artist-insights').then(
+        ({BackstageArtistInsights}) => ({
+          Component: BackstageArtistInsights,
+        }),
+      ),
     loader: async ({params}) => {
       queryClient.ensureQueryData(
         appQueries.artists.show(params.artistId!).artist('artist'),

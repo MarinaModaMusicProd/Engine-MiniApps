@@ -26,7 +26,7 @@ export function MediaPageHeaderLayout({
       <header
         className={clsx(
           'flex flex-col gap-24 md:flex-row md:gap-34',
-          centerItems && 'items-center',
+          centerItems && 'md:items-center',
           className,
         )}
       >
@@ -38,17 +38,19 @@ export function MediaPageHeaderLayout({
           ),
         })}
         <div className="min-w-0 flex-auto pb-8">
-          <h1 className="mb-10 text-center text-2xl font-semibold md:text-start md:text-4xl">
+          <h1 className="mb-10 text-center text-2xl font-bold md:text-start md:text-4xl">
             {title}
           </h1>
-          {subtitle && <div className="mx-auto w-max md:mx-0">{subtitle}</div>}
+          {subtitle && (
+            <div className="mx-auto w-max max-w-full md:mx-0">{subtitle}</div>
+          )}
           {description ? (
-            <div className="mx-auto mt-18 w-max text-sm text-muted md:mx-0 md:mt-26">
+            <div className="mx-auto mt-18 w-max max-w-full text-center text-sm text-muted md:mx-0 md:mt-26 md:text-start">
               {description}
             </div>
           ) : null}
 
-          {footer ? <div className="mt-24">{footer}</div> : null}
+          {footer ? <div className="mx-auto mt-24">{footer}</div> : null}
         </div>
       </header>
       {actionsBar ? <div className="my-48">{actionsBar}</div> : null}

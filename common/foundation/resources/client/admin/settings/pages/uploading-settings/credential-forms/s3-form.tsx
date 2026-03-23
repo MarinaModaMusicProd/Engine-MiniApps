@@ -46,6 +46,7 @@ export function S3Form({
         name={`config.${formPrefix}.region`}
         label={<Trans message="Region" />}
         placeholder="us-east-1"
+        required
       />
       <FormTextField
         size="sm"

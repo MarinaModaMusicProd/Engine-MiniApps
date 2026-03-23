@@ -21,7 +21,6 @@ use Common\Billing\BillingUserController;
 use Common\Billing\Gateways\Paypal\PaypalController;
 use Common\Billing\Gateways\Stripe\StripeController;
 use Common\Billing\Gateways\SyncProductsController;
-use Common\Billing\Invoices\InvoiceController;
 use Common\Billing\Products\ProductsController;
 use Common\Billing\Subscriptions\SubscriptionsController;
 use Common\Comments\Controllers\CommentableController;

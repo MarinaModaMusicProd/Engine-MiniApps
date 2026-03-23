@@ -18,6 +18,7 @@ interface SharedButtonStyleProps {
   variant?: ButtonVariant;
   color?: ButtonColor;
   border?: string;
+  borderColor?: string;
   shadow?: string;
   whitespace?: string;
   display?: string;
@@ -31,7 +32,11 @@ export function getSharedButtonStyle(
     whitespace = 'whitespace-nowrap',
     display = 'inline-flex',
   } = props;
-  const variantProps = {...props, border: props.border || 'border'};
+  const variantProps = {
+    ...props,
+    border: props.border || 'border',
+    borderColor: props.borderColor,
+  };
   let style: string[] = [];
   if (variant === 'outline') {
     style = outline(variantProps);
@@ -132,7 +137,7 @@ function link({color}: SharedButtonStyleProps) {
   }
 }
 
-function contained({color, border}: SharedButtonStyleProps) {
+function contained({color, border, borderColor}: SharedButtonStyleProps) {
   const disabled =
     'disabled:text-disabled disabled:bg-disabled disabled:border-transparent disabled:shadow-none';
   switch (color) {
@@ -156,7 +161,7 @@ function contained({color, border}: SharedButtonStyleProps) {
       ];
     case 'chip':
       return [
-        `text-main bg-chip ${border} border-chip`,
+        `text-main bg-chip ${border} ${borderColor ?? 'border-chip'}`,
         'hover:bg-chip/90 hover:border-chip/90',
         disabled,
       ];

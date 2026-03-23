@@ -1,8 +1,9 @@
 import {useListboxContext} from '@ui/forms/listbox/listbox-context';
 import {useTrans} from '@ui/i18n/use-trans';
-import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {SvgIconProps} from '@ui/icons/svg-icon';
 import {ProgressCircle} from '@ui/progress/progress-circle';
+import {ChevronDownIcon} from 'lucide-react';
 import {ReactElement, useEffect, useRef, useState} from 'react';
 
 interface Props {
@@ -58,5 +59,5 @@ export function ComboboxEndAdornment({isLoading, icon, size}: Props) {
     );
   }
 
-  return icon || <KeyboardArrowDownIcon size={size} />;
+  return icon || <LucideIcon icon={ChevronDownIcon} size="sm" />;
 }

@@ -1,12 +1,13 @@
-import React, {Fragment, useEffect, useState} from 'react';
-import clsx from 'clsx';
-import {RefCallBack} from 'react-hook-form';
 import {Button} from '@ui/buttons/button';
-import {LinkIcon} from '@ui/icons/material/Link';
+import {TextField} from '@ui/forms/input-field/text-field/text-field';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {useSettings} from '@ui/settings/use-settings';
 import {slugifyString} from '@ui/utils/string/slugify-string';
-import {TextField} from '@ui/forms/input-field/text-field/text-field';
+import clsx from 'clsx';
+import {Link2Icon} from 'lucide-react';
+import {Fragment, useEffect, useState} from 'react';
+import {RefCallBack} from 'react-hook-form';
 
 export interface SlugEditorProps {
   prefix?: string;
@@ -71,7 +72,9 @@ export function SlugEditor({
   return (
     // can't use <form/> here as component might be used inside another form
     <div className={clsx('flex items-center', className)}>
-      {showLinkIcon && <LinkIcon className="text-muted icon-md" />}
+      {showLinkIcon && (
+        <LucideIcon icon={Link2Icon} size="xs" className="text-muted" />
+      )}
       <div className="ml-6 mr-14 text-primary">
         {host}
         {prefix}

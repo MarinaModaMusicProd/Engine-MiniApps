@@ -1,13 +1,15 @@
-import {Navbar, NavbarProps} from '../navigation/navbar/navbar';
 import {IconButton} from '@ui/buttons/icon-button';
-import React, {useContext} from 'react';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import clsx from 'clsx';
+import {PanelLeft} from 'lucide-react';
+import {useContext} from 'react';
+import {Navbar, NavbarProps} from '../navigation/navbar/navbar';
 import {DashboardLayoutContext} from './dashboard-layout-context';
-import {setInLocalStorage} from '@ui/utils/hooks/local-storage';
-import {MenuOpenIcon} from '@ui/icons/material/MenuOpen';
 
-export interface DashboardNavbarProps
-  extends Omit<NavbarProps, 'toggleButton'> {
+export interface DashboardNavbarProps extends Omit<
+  NavbarProps,
+  'toggleButton'
+> {
   hideToggleButton?: boolean;
 }
 export function DashboardNavbar({
@@ -18,25 +20,14 @@ export function DashboardNavbar({
 }: DashboardNavbarProps) {
   const {
     isMobileMode,
-    leftSidenavStatus,
-    setLeftSidenavStatus,
-    name,
     leftSidenavCanBeCompact,
+    toggleLeftSidenavStatus,
+    toggleLeftSidenavCompactMode,
   } = useContext(DashboardLayoutContext);
 
   const shouldToggleCompactMode = leftSidenavCanBeCompact && !isMobileMode;
   const shouldShowToggle =
     !hideToggleButton && (isMobileMode || leftSidenavCanBeCompact);
-
-  const handleToggle = () => {
-    setLeftSidenavStatus(leftSidenavStatus === 'open' ? 'closed' : 'open');
-  };
-
-  const handleCompactModeToggle = () => {
-    const newStatus = leftSidenavStatus === 'compact' ? 'open' : 'compact';
-    setInLocalStorage(`${name}.sidenav.compact`, newStatus === 'compact');
-    setLeftSidenavStatus(newStatus);
-  };
 
   return (
     <Navbar
@@ -46,16 +37,17 @@ export function DashboardNavbar({
       toggleButton={
         shouldShowToggle ? (
           <IconButton
-            size="md"
+            size="sm"
+            iconSize="xs"
             onClick={() => {
               if (shouldToggleCompactMode) {
-                handleCompactModeToggle();
+                toggleLeftSidenavCompactMode();
               } else {
-                handleToggle();
+                toggleLeftSidenavStatus();
               }
             }}
           >
-            <MenuOpenIcon />
+            <LucideIcon icon={PanelLeft} />
           </IconButton>
         ) : undefined
       }

@@ -13,7 +13,6 @@ class PermissionTableSeeder extends Seeder
         foreach ($allPermissions as $permission) {
             app(Permission::class)->updateOrCreate([
                 'name' => $permission['name'],
-                'type' => $permission['type'],
             ]);
         }
     }

@@ -92,7 +92,7 @@ class BaseBootstrapData implements BootstrapData
     {
         $this->data['i18n'] = [
             'locales' => Localization::query()
-                ->select(['name', 'language'])
+                ->select(['name', 'language', 'direction'])
                 ->get()
                 ->map(function (Localization $localization) {
                     if (
@@ -104,10 +104,14 @@ class BaseBootstrapData implements BootstrapData
                     return [
                         'name' => $localization->name,
                         'language' => $localization->language,
+                        'direction' => $localization->direction,
                         'lines' => $localization->lines ?? [],
                     ];
                 }),
             'active' => app()->getLocale(),
+            'direction' =>
+                Localization::where('language', app()->getLocale())->first()
+                    ?->direction ?? 'ltr',
         ];
     }
 
@@ -205,6 +209,15 @@ class BaseBootstrapData implements BootstrapData
                 'accept' => $uploadType->acceptedFileTypes(),
                 'backends' => array_map(function ($backendId) {
                     $backend = Uploads::backend($backendId);
+
+                    // fallback to local backend if not found
+                    if (!$backend) {
+                        $backend = Arr::first(
+                            Uploads::getAllBackends(),
+                            fn($backend) => $backend->type === 'local',
+                        );
+                    }
+
                     $data = [
                         'id' => $backendId,
                         'driver' => $backend->baseDriver,

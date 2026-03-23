@@ -88,21 +88,21 @@ export interface BaseBackendSettings {
       enabled?: boolean;
     };
   };
-  billing: {
-    integrated: boolean;
-    enable: boolean;
-    paypal_test_mode: boolean;
+  billing?: {
+    integrated?: boolean;
+    enable?: boolean;
+    paypal_test_mode?: boolean;
     stripe_public_key?: string;
-    invoice: {
+    invoice?: {
       address?: string;
       notes?: string;
     };
-    paypal: {
-      public_key: string;
-      enable: boolean;
+    paypal?: {
+      public_key?: string;
+      enable?: boolean;
     };
-    stripe: {
-      enable: boolean;
+    stripe?: {
+      enable?: boolean;
     };
   };
   notifications: {
@@ -114,7 +114,7 @@ export interface BaseBackendSettings {
     };
   };
   site: {
-    hide_docs_button: boolean;
+    hide_docs_buttons: boolean;
     has_mobile_app: boolean;
     demo: boolean;
   };

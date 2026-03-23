@@ -47,6 +47,7 @@ export function HeroWithBackgroundImage({config}: Props) {
         color="transparent"
         darkModeColor="transparent"
         primaryButtonColor="primary"
+        logoUrl="/"
       />
       <div className="relative isolate overflow-hidden pt-56">
         {config.image ? (

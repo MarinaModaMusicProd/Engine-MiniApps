@@ -1,6 +1,7 @@
 import {ChipFieldFilterPanel} from '@common/datatable/filters/panels/chip-field-filter-panel';
 import {useNormalizedModel} from '@common/ui/normalized-model/use-normalized-model';
 import {Avatar} from '@ui/avatar/avatar';
+import {ButtonSize} from '@ui/buttons/button-size';
 import {DateRangePresets} from '@ui/forms/input-field/date/date-range-picker/dialog/date-range-presets';
 import {AbsoluteDateRange} from '@ui/forms/input-field/date/date-range-picker/form-date-range-picker';
 import {FormattedDateTimeRange} from '@ui/i18n/formatted-date-time-range';
@@ -39,6 +40,7 @@ export interface FilterListControlProps<T = unknown, E = FilterControl> {
   value: T;
   operator?: FilterOperator;
   isInactive?: boolean;
+  buttonSize?: ButtonSize;
 }
 export function FilterListControl(props: FilterListControlProps<any, any>) {
   switch (props.filter.control.type) {

@@ -14,12 +14,14 @@ interface UseGoogleGeoChartProps {
   data: LocationDatasetItem[];
   onCountrySelected?: (countryCode: string) => void;
   country?: string;
+  datasetLabel?: string;
 }
 export function useGoogleGeoChart({
   placeholderRef,
   data,
   country,
   onCountrySelected,
+  datasetLabel,
 }: UseGoogleGeoChartProps) {
   const {trans} = useTrans();
   const {analytics} = useSettings();
@@ -34,7 +36,7 @@ export function useGoogleGeoChart({
     const seedData = data.map(location => [location.label, location.value]);
     seedData.unshift([
       country ? trans(message('City')) : trans(message('Country')),
-      trans(message('Clicks')),
+      datasetLabel ?? trans(message('Clicks')),
     ]);
 
     const backgroundColor = `${themeValueToHex(
@@ -73,6 +75,7 @@ export function useGoogleGeoChart({
     trans,
     country,
     regionInteractivity,
+    datasetLabel,
   ]);
 
   const initGoogleGeoChart = useCallback(async () => {

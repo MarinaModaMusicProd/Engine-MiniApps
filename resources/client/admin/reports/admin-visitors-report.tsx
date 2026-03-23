@@ -1,4 +1,4 @@
-import {AdminReportOutletContext} from '@app/admin/reports/MarinaModa-admin-report-page';
+import {AdminReportOutletContext} from '@app/admin/reports/bemusic-admin-report-page';
 import {useAdminReport} from '@common/admin/analytics/use-admin-report';
 import {VisitorsReportCharts} from '@common/admin/analytics/visitors-report-charts';
 import {useOutletContext} from 'react-router';

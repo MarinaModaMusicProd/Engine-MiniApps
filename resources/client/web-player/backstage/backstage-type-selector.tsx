@@ -63,7 +63,7 @@ function ClaimPanelLayout({
     <Link
       to={link}
       className={clsx(
-        'flex flex-auto cursor-pointer flex-col items-center justify-center rounded-panel border border-2 bg-elevated p-34 transition-shadow hover:bg-primary/4 hover:shadow-xl',
+        'flex flex-auto cursor-pointer flex-col items-center justify-center rounded-panel border-2 bg-elevated p-34 transition-shadow hover:bg-primary/4 hover:shadow-xl',
         className,
       )}
     >

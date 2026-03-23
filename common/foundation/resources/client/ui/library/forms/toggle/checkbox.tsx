@@ -20,8 +20,7 @@ import {CheckboxFilledIcon} from './checkbox-filled-icon';
 import {IndeterminateCheckboxFilledIcon} from './indeterminate-checkbox-filled-icon';
 
 export interface CheckboxProps
-  extends AutoFocusProps,
-    Omit<ComponentPropsWithoutRef<'input'>, 'size'> {
+  extends AutoFocusProps, Omit<ComponentPropsWithoutRef<'input'>, 'size'> {
   size?: InputSize;
   className?: string;
   icon?: React.ComponentType;

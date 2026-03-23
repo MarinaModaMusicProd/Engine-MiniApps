@@ -16,18 +16,20 @@ export interface ButtonGroupProps {
   multiple?: boolean;
   disabled?: boolean;
 }
-export function ButtonGroup({
-  children,
-  color,
-  variant,
-  radius = 'rounded-button',
-  size,
-  className,
-  value,
-  onChange,
-  multiple,
-  disabled,
-}: ButtonGroupProps) {
+export function ButtonGroup(props: ButtonGroupProps) {
+  const {
+    children,
+    color = 'chip',
+    variant = 'flat',
+    radius = 'rounded-button',
+    size,
+    className,
+    value,
+    onChange,
+    multiple,
+    disabled,
+  } = props;
+
   const isActive = (childValue: any): boolean => {
     // assume that button group is not used as a toggle group, if there is no value given
     if (value === undefined) return false;
@@ -52,12 +54,12 @@ export function ButtonGroup({
     if (React.isValidElement(button)) {
       const buttonProps = button.props as ButtonProps;
       const active = isActive(buttonProps.value);
-      const adjustedColor = active ? 'primary' : color;
       return React.cloneElement<ButtonProps>(button as any, {
-        color: active ? 'primary' : color,
-        variant,
-        size,
-        radius: null,
+        color: active ? color : undefined,
+        variant: active ? (buttonProps.variant ?? variant ?? 'flat') : 'text',
+        borderColor: undefined,
+        size: 'xs',
+        radius: 'rounded-full',
         disabled: buttonProps.disabled || disabled,
         ...buttonProps,
         onClick: e => {
@@ -71,42 +73,13 @@ export function ButtonGroup({
             onChange?.(buttonProps.value);
           }
         },
-        className: clsx(
-          buttonProps.className,
-          // borders are hidden via negative margin, make sure both are visible for active item
-          active ? 'z-20' : 'z-10',
-          getStyle(i, children, radius, adjustedColor),
-        ),
+        className: clsx(buttonProps.className),
       });
     }
   });
   return (
-    <div className={clsx(radius, 'isolate inline-flex', className)}>
+    <div className={clsx(radius, 'isolate inline-flex border p-2', className)}>
       {buttons}
     </div>
-  );
-}
-
-function getStyle(
-  i: number,
-  children: ButtonGroupProps['children'],
-  radius: ButtonGroupProps['radius'],
-  color?: ButtonColor,
-): string {
-  // first
-  if (i === 0) {
-    return clsx(
-      radius,
-      'rounded-tr-none rounded-br-none',
-      !color && 'border-r-transparent disabled:border-r-transparent',
-    );
-  }
-  // last
-  if (i === children.length - 1) {
-    return clsx(radius, 'rounded-tl-none rounded-bl-none -ml-1');
-  }
-  return clsx(
-    'rounded-none -ml-1',
-    !color && 'border-r-transparent disabled:border-r-transparent',
   );
 }

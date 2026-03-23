@@ -1,5 +1,5 @@
-import { ListItemBase, ListItemBaseProps } from '../../list/list-item-base';
-import { useListboxContext } from './listbox-context';
+import {ListItemBase, ListItemBaseProps} from '../../list/list-item-base';
+import {useListboxContext} from './listbox-context';
 
 export interface ListboxItemProps extends ListItemBaseProps {
   value: any;
@@ -22,6 +22,7 @@ export function Item({
   isDisabled,
   onSelected,
   onClick,
+  isSelected: propsIsSelected,
   ...domProps
 }: ListboxItemProps) {
   const {
@@ -34,7 +35,7 @@ export function Item({
     handleItemSelection,
     state: {selectedValues, activeIndex, setActiveIndex},
   } = useListboxContext();
-  const isSelected = selectedValues.includes(value);
+  const isSelected = propsIsSelected ?? selectedValues.includes(value);
   const index = collection.get(value)?.index;
   const isActive = activeIndex === index;
 
@@ -80,7 +81,7 @@ export function Item({
         listItemsRef.current[index] = node;
         return () => {
           delete listItemsRef.current[index];
-        }
+        };
       }}
       id={`${listboxId}-${index}`}
       role={role === 'menu' ? 'menuitem' : 'option'}
@@ -96,6 +97,7 @@ export function Item({
       endSection={endSection}
       capitalizeFirst={capitalizeFirst}
       data-value={value}
+      radius="rounded-input"
     >
       {children}
     </ListItemBase>

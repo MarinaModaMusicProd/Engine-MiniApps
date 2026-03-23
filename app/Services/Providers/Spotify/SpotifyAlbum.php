@@ -1,59 +1,96 @@
-<?php namespace App\Services\Providers\Spotify;
+<?php
 
-use App\Models\Album;
+namespace App\Services\Providers\Spotify;
+
+use App\Services\Providers\DataObjects\NormalizedAlbum;
+use App\Services\Providers\DataObjects\NormalizedTrack;
+use App\Traits\AuthorizesWithSpotify;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
 
-class SpotifyAlbum
+class SpotifyAlbum extends SpotifyBase
 {
-    public function getContent(Album $album): ?array
+    use AuthorizesWithSpotify;
+
+    public function get(string $spotifyId): ?NormalizedAlbum
     {
-        if (!$album->spotify_id) {
+        if (!$spotifyId) {
             return null;
         }
 
-        $spotifyAlbum = (new SpotifyHttpClient())->get(
-            "albums/{$album->spotify_id}",
+        $token = $this->authorize();
+        if (!$token) {
+            return null;
+        }
+
+        $spotifyAlbum = $this->getResponseData(
+            Http::withHeaders(['Authorization' => "Bearer $token"])->get(
+                "{$this->baseUrl}/albums/$spotifyId",
+            ),
         );
 
         if (!$spotifyAlbum || !Arr::get($spotifyAlbum, 'id')) {
             return null;
         }
 
-        $normalizedAlbum = (new SpotifyNormalizer())->album($spotifyAlbum);
+        $normalizedAlbum = $this->normalizer->album(
+            $spotifyAlbum,
+            fullyScraped: true,
+        );
 
-        // get full info objects for all tracks
-        $normalizedAlbum = $this->getTracks($normalizedAlbum);
-        $normalizedAlbum['fully_scraped'] = true;
-
-        return $normalizedAlbum;
+        return $this->enrichTracks($normalizedAlbum);
     }
 
-    private function getTracks(array $normalizedAlbum): array
-    {
-        $trackIds = $normalizedAlbum['tracks']
-            ->pluck('spotify_id')
+    private function enrichTracks(
+        NormalizedAlbum $normalizedAlbum,
+    ): NormalizedAlbum {
+        $trackIds = collect($normalizedAlbum->tracks ?? [])
+            ->pluck('externalId')
+            ->filter()
             ->slice(0, 50)
             ->implode(',');
 
-        $response = (new SpotifyHttpClient())->get("tracks?ids=$trackIds");
+        if (!$trackIds) {
+            return $normalizedAlbum;
+        }
+
+        $token = $this->authorize();
+        if (!$token) {
+            return $normalizedAlbum;
+        }
+
+        $response = $this->getResponseData(
+            Http::withHeaders(['Authorization' => "Bearer $token"])->get(
+                "{$this->baseUrl}/tracks?ids=$trackIds",
+            ),
+        );
 
         if (!isset($response['tracks'])) {
             return $normalizedAlbum;
         }
 
-        $fullTracks = collect($response['tracks'])->map(function (
-            $spotifyTrack,
-        ) {
-            return (new SpotifyNormalizer())->track($spotifyTrack);
-        });
+        if (config('services.spotify.use_deprecated_api')) {
+            $fullTracksByExternalId = collect($response['tracks'])
+                ->map(
+                    fn(array $spotifyTrack) => $this->normalizer->track(
+                        $spotifyTrack,
+                    ),
+                )
+                ->keyBy(fn(NormalizedTrack $track) => $track->externalId);
+        } else {
+            $fullTracksByExternalId = collect();
+        }
 
-        $normalizedAlbum['tracks'] = $normalizedAlbum['tracks']->map(function (
-            $track,
-        ) use ($fullTracks) {
-            return $fullTracks
-                ->where('spotify_id', $track['spotify_id'])
-                ->first();
-        });
+        $enrichedTracks = array_values(
+            array_map(
+                fn(NormalizedTrack $track) => $fullTracksByExternalId->get(
+                    $track->externalId,
+                ) ?? $track,
+                $normalizedAlbum->tracks ?? [],
+            ),
+        );
+
+        $normalizedAlbum->setTracks($enrichedTracks);
 
         return $normalizedAlbum;
     }

@@ -38,6 +38,7 @@ class NormalizedModelsController extends BaseController
 
         $results = $model
             ->when($modelIds, fn($q) => $q->whereIn('id', $modelIds))
+            ->orderBy('id', 'desc')
             ->take(15)
             ->get()
             ->load($with)

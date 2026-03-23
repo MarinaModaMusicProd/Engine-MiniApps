@@ -1,40 +1,46 @@
 import {IconButton} from '@ui/buttons/icon-button';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
+import {SvgIconProps} from '@ui/icons/svg-icon';
 import {Dialog, DialogSize} from '@ui/overlays/dialog/dialog';
 import {DialogBody} from '@ui/overlays/dialog/dialog-body';
 import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {InfoDialogTriggerIcon} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger-icon';
 import clsx from 'clsx';
-import {ReactNode} from 'react';
+import {CircleQuestionMarkIcon} from 'lucide-react';
+import {ReactElement, ReactNode} from 'react';
 
 interface Props {
   title?: ReactNode;
   body: ReactNode;
   dialogSize?: DialogSize;
   className?: string;
+  icon?: ReactElement<SvgIconProps>;
 }
 export function InfoDialogTrigger({
   title,
   body,
-  dialogSize = 'sm',
+  dialogSize = 'xs',
   className,
+  icon,
 }: Props) {
   return (
-    <DialogTrigger type="popover" triggerOnHover>
+    <DialogTrigger type="popover">
       <IconButton
-        className={clsx('ml-4 text-muted opacity-70', className)}
+        className={clsx('text-muted opacity-70', className)}
         iconSize="xs"
         size="2xs"
       >
-        <InfoDialogTriggerIcon viewBox="0 0 16 16" />
+        {icon || <LucideIcon icon={CircleQuestionMarkIcon} />}
       </IconButton>
       <Dialog size={dialogSize}>
         {title && (
-          <DialogHeader padding="px-18 pt-12" size="md" hideDismissButton>
+          <DialogHeader padding="px-18 pt-18" hideDismissButton>
             {title}
           </DialogHeader>
         )}
-        <DialogBody>{body}</DialogBody>
+        <DialogBody className={clsx(!title && 'text-center')}>
+          {body}
+        </DialogBody>
       </Dialog>
     </DialogTrigger>
   );

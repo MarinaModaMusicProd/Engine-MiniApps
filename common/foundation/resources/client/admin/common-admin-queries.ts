@@ -71,10 +71,11 @@ export const commonAdminQueries = {
 
   permissions: {
     invalidateKey: ['roles'],
-    index: () =>
+    index: (roleType: string) =>
       queryOptions({
-        queryKey: ['roles', 'permissions'],
-        queryFn: () => get<{permissions: Permission[]}>('permissions'),
+        queryKey: ['roles', 'permissions', roleType],
+        queryFn: () =>
+          get<{permissions: Permission[]}>('permissions', {roleType}),
       }),
   },
 

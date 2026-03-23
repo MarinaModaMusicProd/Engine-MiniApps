@@ -6,7 +6,7 @@ use App\Services\Albums\AlbumLoader;
 use App\Services\Albums\PaginateAlbums;
 use App\Services\Artists\ArtistLoader;
 use App\Services\Artists\PaginateArtists;
-use App\Services\Channels\FetchContentForChannelFromLastfm;
+use App\Services\Channels\FetchContentForChannelFromDeezer;
 use App\Services\Channels\FetchContentForChannelFromLocal;
 use App\Services\Channels\FetchContentForChannelFromSpotify;
 use App\Services\Genres\GenreToApiResource;
@@ -18,7 +18,6 @@ use App\Services\Tracks\TrackLoader;
 use App\Services\Users\PaginateUserProfiles;
 use App\Services\Users\UserProfileLoader;
 use Common\Channels\BaseChannel;
-use Common\Database\Datasource\Datasource;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Arr;
@@ -48,7 +47,10 @@ class Channel extends BaseChannel
     public function albums(): MorphToMany
     {
         return $this->morphedByMany(Album::class, 'channelable')
-            ->releasedOnly()
+            ->when(
+                Arr::get($this->config, 'contentType') === 'listAll',
+                fn($query) => $query->releasedOnly(),
+            )
             ->withPivot(['id', 'channelable_id', 'order']);
     }
 
@@ -165,8 +167,9 @@ class Channel extends BaseChannel
                 $value,
                 $filters,
             ),
-            'lastfm' => (new FetchContentForChannelFromLastfm())->execute(
+            'deezer' => (new FetchContentForChannelFromDeezer())->execute(
                 $autoUpdateMethod,
+                $value,
             ),
             default => null,
         };

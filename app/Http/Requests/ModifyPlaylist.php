@@ -1,7 +1,7 @@
 <?php namespace App\Http\Requests;
 
-use Auth;
 use Common\Core\BaseFormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class ModifyPlaylist extends BaseFormRequest
@@ -25,7 +25,7 @@ class ModifyPlaylist extends BaseFormRequest
             "name" => [
                 "string",
                 "min:3",
-                "max:250",
+                "max:100",
                 Rule::unique("playlists", "name")
                     ->where("owner_id", Auth::id())
                     ->ignore($this->route("playlist")->id ?? null),

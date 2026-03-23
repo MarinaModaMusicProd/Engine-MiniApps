@@ -6,10 +6,9 @@ import {
 } from '@ui/utils/hooks/local-storage';
 import {useBlockBodyOverflow} from '@ui/utils/hooks/use-block-body-overflow';
 import {useMediaQuery} from '@ui/utils/hooks/use-media-query';
-import {usePrevious} from '@ui/utils/hooks/use-previous';
 import clsx from 'clsx';
 import {AnimatePresence} from 'framer-motion';
-import {ComponentPropsWithoutRef, useCallback, useEffect, useMemo} from 'react';
+import {ComponentPropsWithoutRef, useCallback, useMemo} from 'react';
 import {
   DashboardLayoutContext,
   DashboardSidenavStatus,
@@ -28,91 +27,70 @@ interface DashboardLayoutProps extends ComponentPropsWithoutRef<'div'> {
   gridClassName?: string;
   blockBodyOverflow?: boolean;
 }
-export function DashboardLayout({
-  children,
-  leftSidenavStatus: leftSidenav,
-  onLeftSidenavChange,
-  rightSidenavStatus: rightSidenav,
-  compactByDefault,
-  initialRightSidenavStatus,
-  onRightSidenavChange,
-  name,
-  leftSidenavCanBeCompact,
-  height = 'h-screen',
-  className,
-  gridClassName = 'dashboard-grid',
-  blockBodyOverflow = true,
-  ...domProps
-}: DashboardLayoutProps) {
+export function DashboardLayout(props: DashboardLayoutProps) {
+  const {
+    children,
+    leftSidenavStatus: leftSidenav,
+    onLeftSidenavChange,
+    rightSidenavStatus: rightSidenav,
+    compactByDefault,
+    initialRightSidenavStatus,
+    onRightSidenavChange,
+    name,
+    leftSidenavCanBeCompact,
+    height = 'h-screen',
+    className,
+    gridClassName = 'dashboard-grid',
+    blockBodyOverflow = true,
+    ...domProps
+  } = props;
+
   useBlockBodyOverflow(!blockBodyOverflow);
   const isMobile = useMediaQuery('(max-width: 1024px)');
 
-  const isCompactModeInitially = useMemo(() => {
-    if (!name) return compactByDefault ?? false;
+  const [mobileLeftSidenavStatus, setMobileLeftSidenavStatus] =
+    useMobileLeftSidenavStatus(props);
+  const [desktopLeftSidenavStatus, setDesktopLeftSidenavStatus] =
+    useDesktopLeftSidenavStatus(props);
 
-    const stored = getFromLocalStorage(`${name}.sidenav.compact`);
-    if (stored != null) {
-      return stored;
-    }
+  const [mobileRightSidenavStatus, setMobileRightSidenavStatus] =
+    useMobileRightSidenavStatus(props);
+  const [desktopRightSidenavStatus, setDesktopRightSidenavStatus] =
+    useDesktopRightSidenavStatus(props);
 
-    return compactByDefault ?? false;
-  }, [name, compactByDefault]);
+  const leftSidenavStatus = isMobile
+    ? mobileLeftSidenavStatus
+    : desktopLeftSidenavStatus;
+  const setLeftSidenavStatus = isMobile
+    ? setMobileLeftSidenavStatus
+    : setDesktopLeftSidenavStatus;
 
-  const defaultLeftSidenavStatus = isCompactModeInitially ? 'compact' : 'open';
-  const [leftSidenavStatus, setLeftSidenavStatus] = useControlledState(
-    leftSidenav,
-    isMobile ? 'closed' : defaultLeftSidenavStatus,
-    onLeftSidenavChange,
-  );
+  const setRightSidenavStatus = isMobile
+    ? setMobileRightSidenavStatus
+    : setDesktopRightSidenavStatus;
+  const rightSidenavStatus = isMobile
+    ? mobileRightSidenavStatus
+    : desktopRightSidenavStatus;
 
-  const rightSidenavStatusDefault = useMemo(() => {
+  const toggleLeftSidenavStatus = useCallback(() => {
+    setLeftSidenavStatus(leftSidenavStatus === 'open' ? 'closed' : 'open');
+  }, [leftSidenavStatus, setLeftSidenavStatus]);
+
+  const toggleLeftSidenavCompactMode = useCallback(() => {
     if (isMobile) {
-      return 'closed';
+      return toggleLeftSidenavStatus();
     }
-    if (initialRightSidenavStatus != null) {
-      return initialRightSidenavStatus;
-    }
-    const userSelected = getFromLocalStorage(
-      `${name}.sidenav.right.position`,
-      'open',
-    );
-    if (userSelected != null) {
-      return userSelected;
-    }
-    return initialRightSidenavStatus || 'closed';
-  }, [isMobile, name, initialRightSidenavStatus]);
-  const [rightSidenavStatus, _setRightSidenavStatus] = useControlledState(
-    rightSidenav,
-    rightSidenavStatusDefault,
-    onRightSidenavChange,
-  );
-  const setRightSidenavStatus = useCallback(
-    (status: DashboardSidenavStatus) => {
-      _setRightSidenavStatus(status);
-      setInLocalStorage(`${name}.sidenav.right.position`, status);
-    },
-    [_setRightSidenavStatus, name],
-  );
-
-  const previousIsMobile = usePrevious(isMobile);
-  useEffect(() => {
-    if (isMobile === previousIsMobile) return;
-
-    if (!isMobile) {
-      setLeftSidenavStatus(defaultLeftSidenavStatus);
-      setRightSidenavStatus(rightSidenavStatusDefault);
-    } else {
-      setLeftSidenavStatus('closed');
-      setRightSidenavStatus('closed');
-    }
+    setLeftSidenavStatus(leftSidenavStatus === 'compact' ? 'open' : 'compact');
   }, [
-    isMobile,
-    defaultLeftSidenavStatus,
-    rightSidenavStatusDefault,
-    previousIsMobile,
+    leftSidenavStatus,
     setLeftSidenavStatus,
-    setRightSidenavStatus,
+    isMobile,
+    toggleLeftSidenavStatus,
   ]);
+
+  const toggleRightSidenavStatus = useCallback(() => {
+    setRightSidenavStatus(rightSidenavStatus === 'open' ? 'closed' : 'open');
+  }, [rightSidenavStatus, setRightSidenavStatus]);
 
   const shouldShowUnderlay =
     isMobile && (leftSidenavStatus === 'open' || rightSidenavStatus === 'open');
@@ -120,12 +98,15 @@ export function DashboardLayout({
   return (
     <DashboardLayoutContext.Provider
       value={{
+        name,
         leftSidenavStatus,
         setLeftSidenavStatus,
+        toggleLeftSidenavStatus,
+        toggleLeftSidenavCompactMode,
+        leftSidenavCanBeCompact,
         rightSidenavStatus,
         setRightSidenavStatus,
-        leftSidenavCanBeCompact,
-        name,
+        toggleRightSidenavStatus,
         isMobileMode: isMobile,
       }}
     >
@@ -146,8 +127,8 @@ export function DashboardLayout({
               position="fixed"
               key="dashboard-underlay"
               onClick={() => {
-                setLeftSidenavStatus('closed');
-                setRightSidenavStatus('closed');
+                setMobileLeftSidenavStatus('closed');
+                setMobileRightSidenavStatus('closed');
               }}
             />
           )}
@@ -155,4 +136,97 @@ export function DashboardLayout({
       </div>
     </DashboardLayoutContext.Provider>
   );
+}
+
+function useMobileLeftSidenavStatus({
+  leftSidenavStatus: propsLeftSidenavStatus,
+  onLeftSidenavChange,
+}: DashboardLayoutProps) {
+  return useControlledState(
+    propsLeftSidenavStatus,
+    'closed',
+    onLeftSidenavChange,
+  );
+}
+
+function useDesktopLeftSidenavStatus({
+  name,
+  leftSidenavStatus: propsLeftSidenavStatus,
+  onLeftSidenavChange,
+  compactByDefault,
+}: DashboardLayoutProps) {
+  const leftSidenavStatusDefault = useMemo(() => {
+    const userSelected = getFromLocalStorage<DashboardSidenavStatus>(
+      `${name}.sidenav.left.desktop.position`,
+    );
+
+    if (userSelected != null) {
+      return userSelected;
+    }
+
+    return compactByDefault ? 'compact' : 'open';
+  }, [name, compactByDefault]);
+
+  const [leftSidenavStatus, _setLeftSidenavStatus] = useControlledState(
+    propsLeftSidenavStatus,
+    leftSidenavStatusDefault,
+    onLeftSidenavChange,
+  );
+
+  const setLeftSidenavStatus = useCallback(
+    (status: DashboardSidenavStatus) => {
+      _setLeftSidenavStatus(status);
+      setInLocalStorage(`${name}.sidenav.left.desktop.position`, status);
+    },
+    [_setLeftSidenavStatus, name],
+  );
+
+  return [leftSidenavStatus, setLeftSidenavStatus] as const;
+}
+
+function useMobileRightSidenavStatus({
+  rightSidenavStatus,
+  onRightSidenavChange,
+}: DashboardLayoutProps) {
+  return useControlledState(rightSidenavStatus, 'closed', onRightSidenavChange);
+}
+
+function useDesktopRightSidenavStatus({
+  initialRightSidenavStatus,
+  name,
+  rightSidenavStatus: propsRightSidenavStatus,
+  onRightSidenavChange,
+}: DashboardLayoutProps) {
+  const rightSidenavStatusDefault = useMemo(() => {
+    if (initialRightSidenavStatus != null) {
+      return initialRightSidenavStatus;
+    }
+
+    const userSelected = getFromLocalStorage(
+      `${name}.sidenav.right.desktop.position`,
+      'open',
+    );
+
+    if (userSelected != null) {
+      return userSelected;
+    }
+
+    return initialRightSidenavStatus || 'open';
+  }, [name, initialRightSidenavStatus]);
+
+  const [rightSidenavStatus, _setRightSidenavStatus] = useControlledState(
+    propsRightSidenavStatus,
+    rightSidenavStatusDefault,
+    onRightSidenavChange,
+  );
+
+  const setRightSidenavStatus = useCallback(
+    (status: DashboardSidenavStatus) => {
+      _setRightSidenavStatus(status);
+      setInLocalStorage(`${name}.sidenav.right.desktop.position`, status);
+    },
+    [_setRightSidenavStatus, name],
+  );
+
+  return [rightSidenavStatus, setRightSidenavStatus] as const;
 }

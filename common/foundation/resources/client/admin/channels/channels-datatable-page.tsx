@@ -3,7 +3,6 @@ import {ChannelsDocsLink} from '@common/admin/channels/channels-docs-link';
 import {useApplyChannelPreset} from '@common/admin/channels/requests/use-apply-channel-preset';
 import {channelQueries} from '@common/channels/channel-queries';
 import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
-import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
 import {DataTableHeader} from '@common/datatable/data-table-header';
 import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
 import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
@@ -25,6 +24,7 @@ import {Button} from '@ui/buttons/button';
 import {Item} from '@ui/forms/listbox/item';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
 import {Menu, MenuTrigger} from '@ui/menu/menu-trigger';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
@@ -32,6 +32,7 @@ import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {openDialog} from '@ui/overlays/store/dialog-store';
 import {toast} from '@ui/toast/toast';
+import {PlusIcon} from 'lucide-react';
 import {Fragment, useState} from 'react';
 import {Link} from 'react-router';
 import playlist from './playlist.svg';
@@ -74,7 +75,20 @@ export function Component() {
       </StaticPageTitle>
       <DatatablePageHeaderBar
         title={<Trans message="Channels" />}
-        rightContent={<ChannelsDocsLink variant="button" />}
+        rightContent={
+          <>
+            <ChannelsDocsLink variant="button" size="sm" />
+            <Button
+              variant="flat"
+              color="primary"
+              elementType={Link}
+              to="new"
+              startIcon={<LucideIcon icon={PlusIcon} size="xs" />}
+            >
+              <Trans message="Add new channel" />
+            </Button>
+          </>
+        }
         showSidebarToggleButton
       />
       <DatatablePageWithHeaderBody>
@@ -126,7 +140,6 @@ function Actions({presets}: ActionsProps) {
       >
         <Button
           variant="outline"
-          color="primary"
           size="sm"
           endIcon={<KeyboardArrowDownIcon />}
           disabled={!presets?.length}
@@ -145,9 +158,6 @@ function Actions({presets}: ActionsProps) {
           ))}
         </Menu>
       </MenuTrigger>
-      <DataTableAddItemButton elementType={Link} to="new">
-        <Trans message="Add new channel" />
-      </DataTableAddItemButton>
     </Fragment>
   );
 }
@@ -184,7 +194,7 @@ function DeleteChannelsDialog({
 }: DeleteChannelsDialogProps) {
   const {close} = useDialogContext();
   const deleteSelectedChannels = useMutation({
-    mutationFn: () => apiClient.delete(`channels/${selectedIds.join(',')}`),
+    mutationFn: () => apiClient.delete(`channel/${selectedIds.join(',')}`),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ['channels'],

@@ -23,6 +23,7 @@ export function CreateLocationDialog() {
   const form = useForm<CreateLocalizationPayload>({
     defaultValues: {
       language: 'en',
+      direction: 'ltr',
     },
   });
 
@@ -55,6 +56,7 @@ export function CreateLocationDialog() {
             label={<Trans message="Language" />}
             selectionMode="single"
             showSearchField
+            className="mb-30"
             searchPlaceholder={trans(message('Search languages'))}
           >
             {languages.map(language => (
@@ -62,6 +64,20 @@ export function CreateLocationDialog() {
                 {language.name}
               </Option>
             ))}
+          </FormSelect>
+          <FormSelect
+            required
+            name="direction"
+            label={<Trans message="Direction" />}
+            selectionMode="single"
+            showSearchField
+          >
+            <Option value="ltr" key="ltr">
+              <Trans message="Left to right (default)" />
+            </Option>
+            <Option value="rtl" key="rtl">
+              <Trans message="Right to left" />
+            </Option>
           </FormSelect>
         </Form>
       </DialogBody>

@@ -71,7 +71,7 @@ class Tag extends BaseModel
             $tags = collect($tags);
         }
 
-        $tags = $tags->filter()->map(function ($tag) use ($userId) {
+        $tags = $tags->filter()->map(function ($tag) {
             if (is_string($tag)) {
                 return [
                     'name' => $tag,

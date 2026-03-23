@@ -77,13 +77,13 @@ export const userDatatableColumns: ColumnConfig<User>[] = [
       user.banned_at ? <CheckIcon className="text-danger icon-md" /> : null,
   },
   {
-    key: 'latest_active_session',
+    key: 'latest_user_session',
     width: 'w-110',
     header: () => <Trans message="Last active" />,
     body: user =>
-      user.latest_active_session ? (
+      user.latest_user_session ? (
         <time>
-          <FormattedDate date={user.latest_active_session.updated_at} />
+          <FormattedDate date={user.latest_user_session.updated_at} />
         </time>
       ) : (
         '-'

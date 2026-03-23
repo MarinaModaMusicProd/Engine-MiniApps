@@ -15,5 +15,6 @@ export interface BootstrapData {
       lines: Record<string, string>;
     }[];
     active: string;
+    direction: 'ltr' | 'rtl';
   };
 }

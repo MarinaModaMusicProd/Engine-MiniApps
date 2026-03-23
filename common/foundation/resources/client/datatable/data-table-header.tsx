@@ -44,7 +44,7 @@ function DefaultDatatableHeader({
     <HeaderLayout>
       <TextField
         size="sm"
-        className="mr-auto min-w-180 max-w-440 flex-auto"
+        className="min-w-180 max-w-440 flex-auto"
         inputWrapperClassName="mr-24 md:mr-0"
         placeholder={trans(searchPlaceholder)}
         startAdornment={<SearchIcon size="sm" />}
@@ -56,6 +56,7 @@ function DefaultDatatableHeader({
       {filters && (
         <AddFilterButton filters={filters} disabled={filtersLoading} />
       )}
+      <div className="ml-auto w-0" />
       {actions}
     </HeaderLayout>
   );
@@ -81,7 +82,7 @@ interface AnimatedHeaderProps extends ComponentPropsWithoutRef<'div'> {
 export function HeaderLayout({children, ...domProps}: AnimatedHeaderProps) {
   return (
     <div
-      className="hidden-scrollbar relative mb-24 flex h-42 flex-shrink-0 items-center gap-8 overflow-x-auto md:gap-12"
+      className="hidden-scrollbar relative mb-24 flex flex-shrink-0 items-center gap-8 overflow-x-auto md:gap-12"
       {...domProps}
     >
       {children}

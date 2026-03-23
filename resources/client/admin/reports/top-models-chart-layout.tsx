@@ -15,21 +15,28 @@ import {ChartLoadingIndicator} from '@common/charts/chart-loading-indicator';
 import {FormattedNumber} from '@ui/i18n/formatted-number';
 import {Trans} from '@ui/i18n/trans';
 import {InfoIcon} from '@ui/icons/material/Info';
+import clsx from 'clsx';
 import {Fragment, ReactElement} from 'react';
 import {Link, useLocation} from 'react-router';
 
 interface Props extends Partial<ChartLayoutProps> {
   data?: ReportMetric<TopModelDatasetItem>;
   title: ReactElement;
+  colSpan?: string;
 }
-export function TopModelsChartLayout({data, isLoading, ...layoutProps}: Props) {
+export function TopModelsChartLayout({
+  data,
+  isLoading,
+  colSpan = 'col-span-6',
+  ...layoutProps
+}: Props) {
   const dataItems = data?.datasets[0].data || [];
 
   return (
     <ChartLayout
       {...layoutProps}
       contentIsFlex={isLoading}
-      className="col-span-6 row-span-11 overflow-y-auto overflow-x-hidden"
+      className={clsx('row-span-11 overflow-y-auto overflow-x-hidden', colSpan)}
     >
       {isLoading && <ChartLoadingIndicator />}
       {dataItems.map(item => (

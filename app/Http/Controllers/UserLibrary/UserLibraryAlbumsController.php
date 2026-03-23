@@ -16,6 +16,7 @@ class UserLibraryAlbumsController extends BaseController
             'orderDir' => 'string',
             'query' => 'string|nullable',
             'with' => 'string|nullable',
+            'page' => 'integer|nullable',
         ]);
         $params['perPage'] = 30;
 
@@ -25,6 +26,7 @@ class UserLibraryAlbumsController extends BaseController
                 'orderBy' => $params['orderBy'] ?? 'likes.created_at',
                 'orderDir' => $params['orderDir'] ?? 'desc',
                 'query' => $params['query'] ?? null,
+                'page' => $params['page'] ?? 1,
             ],
             $user->likedAlbums(),
             includeTracks: isset($params['with']) &&

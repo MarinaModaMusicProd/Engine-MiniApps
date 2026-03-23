@@ -11,9 +11,9 @@ export const ignoredSentryErrors = [
 
   // axios
   'Request failed with status code',
-  new RegExp('^Network Error'),
+  'Network Error',
   new RegExp('^CancelledError'),
   new RegExp('^timeout exceeded'),
   new RegExp('^Request aborted'),
-  new RegExp('^AxiosError'),
+  'AxiosError',
 ];

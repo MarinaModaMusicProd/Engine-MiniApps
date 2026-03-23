@@ -1,0 +1,1 @@
+import{ax as o,j as t}from"./main-D6SjkSWq.js";const n=o(t.jsx("path",{d:"M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12l4.58-4.59z"}),"ChevronLeftOutlined"),a=o(t.jsx("path",{d:"M18 15v3H6v-3H4v3c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-3h-2zm-1-4-1.41-1.41L13 12.17V4h-2v8.17L8.41 9.59 7 11l5 5 5-5z"}),"FileDownloadOutlined");export{n as C,a as F};

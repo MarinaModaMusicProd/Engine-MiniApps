@@ -25,6 +25,7 @@ class UserLibraryTracksController extends BaseController
             'orderBy' => 'string',
             'orderDir' => 'string',
             'query' => 'string|nullable',
+            'page' => 'integer|nullable',
         ]);
         $params['perPage'] = 30;
 

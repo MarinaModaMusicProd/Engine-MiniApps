@@ -1,29 +1,29 @@
-import {OfflineMediaItemButton} from '@app/offline/offline-media-item-button';
-import {UploadType} from '@app/site-config';
-import {BulletSeparatedItems} from '@app/web-player/layout/bullet-separated-items';
+import { OfflineMediaItemButton } from '@app/offline/offline-media-item-button';
+import { UploadType } from '@app/site-config';
+import { BulletSeparatedItems } from '@app/web-player/layout/bullet-separated-items';
 import {
   actionButtonClassName,
   MediaPageHeaderLayout,
 } from '@app/web-player/layout/media-page-header-layout';
-import {PlaybackToggleButton} from '@app/web-player/playable-item/playback-toggle-button';
-import {usePlaylistPermissions} from '@app/web-player/playlists/hooks/use-playlist-permissions';
-import {FullPlaylist} from '@app/web-player/playlists/playlist';
-import {PlaylistContextDialog} from '@app/web-player/playlists/playlist-context-dialog';
-import {PlaylistImage} from '@app/web-player/playlists/playlist-image';
-import {FollowPlaylistButton} from '@app/web-player/playlists/playlist-page/follow-playlist-button';
-import {useUpdatePlaylist} from '@app/web-player/playlists/requests/use-update-playlist';
-import {getUserProfileLink} from '@app/web-player/users/user-profile-link';
-import {ImageSelector} from '@common/uploads/components/image-selector';
-import {FileUploadProvider} from '@common/uploads/uploader/file-upload-provider';
-import {Avatar} from '@ui/avatar/avatar';
-import {AvatarGroup} from '@ui/avatar/avatar-group';
-import {Button} from '@ui/buttons/button';
-import {FormattedDuration} from '@ui/i18n/formatted-duration';
-import {Trans} from '@ui/i18n/trans';
-import {ArrowDropDownIcon} from '@ui/icons/material/ArrowDropDown';
-import {MusicNoteIcon} from '@ui/icons/material/MusicNote';
-import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {Fragment} from 'react';
+import { PlaybackToggleButton } from '@app/web-player/playable-item/playback-toggle-button';
+import { usePlaylistPermissions } from '@app/web-player/playlists/hooks/use-playlist-permissions';
+import { FullPlaylist } from '@app/web-player/playlists/playlist';
+import { PlaylistContextDialog } from '@app/web-player/playlists/playlist-context-dialog';
+import { PlaylistImage } from '@app/web-player/playlists/playlist-image';
+import { FollowPlaylistButton } from '@app/web-player/playlists/playlist-page/follow-playlist-button';
+import { useUpdatePlaylist } from '@app/web-player/playlists/requests/use-update-playlist';
+import { getUserProfileLink } from '@app/web-player/users/user-profile-link';
+import { ImageSelector } from '@common/uploads/components/image-selector';
+import { FileUploadProvider } from '@common/uploads/uploader/file-upload-provider';
+import { Avatar } from '@ui/avatar/avatar';
+import { AvatarGroup } from '@ui/avatar/avatar-group';
+import { Button } from '@ui/buttons/button';
+import { FormattedDuration } from '@ui/i18n/formatted-duration';
+import { Trans } from '@ui/i18n/trans';
+import { ArrowDropDownIcon } from '@ui/icons/material/ArrowDropDown';
+import { MusicNoteIcon } from '@ui/icons/material/MusicNote';
+import { DialogTrigger } from '@ui/overlays/dialog/dialog-trigger';
+import { Fragment } from 'react';
 
 interface PlaylistPageHeaderProps {
   playlist: FullPlaylist;
@@ -57,7 +57,7 @@ export function PlaylistPageHeader({
           <Fragment>
             {playlist.description}
             {playlist.tracks_count ? (
-              <BulletSeparatedItems className="mt-14 text-sm text-muted">
+              <BulletSeparatedItems className="mt-14 text-sm text-muted justify-center md:justify-start">
                 <Trans
                   message="[one 1 track|other :count tracks]"
                   values={{count: playlist.tracks_count}}

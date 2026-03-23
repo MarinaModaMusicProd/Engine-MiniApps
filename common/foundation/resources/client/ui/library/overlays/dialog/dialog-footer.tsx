@@ -2,14 +2,14 @@ import clsx from 'clsx';
 import {ReactNode} from 'react';
 import {DialogSize} from './dialog';
 
-interface DialogFooterProps {
+export type DialogFooterProps = {
   children: ReactNode;
   startAction?: ReactNode;
   className?: string;
   dividerTop?: boolean;
   size?: DialogSize;
   padding?: string;
-}
+};
 export function DialogFooter(props: DialogFooterProps) {
   const {children, startAction, className, dividerTop, padding, size} = props;
 

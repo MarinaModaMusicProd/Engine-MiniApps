@@ -31,7 +31,7 @@ export function EditChannelPageLayout({children}: Props) {
         updateChannel.mutate(values);
       }}
       title={
-        <Breadcrumb>
+        <Breadcrumb size="xl">
           <BreadcrumbItem to="/admin/channels">
             <Trans message="Channels" />
           </BreadcrumbItem>

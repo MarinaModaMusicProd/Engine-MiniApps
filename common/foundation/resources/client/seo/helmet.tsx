@@ -1,8 +1,8 @@
-import { useTrans, UseTransReturn } from '@ui/i18n/use-trans';
-import { shallowEqual } from '@ui/utils/shallow-equal';
-import { Children, memo, ReactElement } from 'react';
-import { MetaTag } from './meta-tag';
-import { TitleMetaTagChildren } from './static-page-title';
+import {useTrans, UseTransReturn} from '@ui/i18n/use-trans';
+import {shallowEqual} from '@ui/utils/shallow-equal';
+import {Children, memo, ReactElement} from 'react';
+import {MetaTag} from './meta-tag';
+import {TitleMetaTagChildren} from './static-page-title';
 
 const rafPolyfill = (() => {
   let clock = Date.now();

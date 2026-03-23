@@ -236,6 +236,7 @@ abstract class BaseChannel extends BaseModel
                 'hideTitle' => $this->config['hideTitle'] ?? false,
                 'layout' => $this->config['layout'] ?? null,
                 'nestedLayout' => $this->config['nestedLayout'] ?? null,
+                'restriction' => $this->config['restriction'] ?? null,
             ],
         ];
 

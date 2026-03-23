@@ -73,15 +73,12 @@ function CalendarMonthHeader({
   state: {calendarDates, setCalendarDates, timezone, min, max},
 }: CalendarMonthHeaderProps) {
   const shiftCalendars = (direction: 'forward' | 'backward') => {
-    const count = calendarDates.length;
     let newDates: CalendarDate[];
     if (direction === 'forward') {
-      newDates = calendarDates.map(date =>
-        endOfMonth(date.add({months: count})),
-      );
+      newDates = calendarDates.map(date => endOfMonth(date.add({months: 1})));
     } else {
       newDates = calendarDates.map(date =>
-        endOfMonth(date.subtract({months: count})),
+        endOfMonth(date.subtract({months: 1})),
       );
     }
     setCalendarDates(newDates);

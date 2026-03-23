@@ -10,12 +10,13 @@ import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {useQuery} from '@tanstack/react-query';
 import {IconButton} from '@ui/buttons/icon-button';
 import {Trans} from '@ui/i18n/trans';
-import {PlaylistAddIcon} from '@ui/icons/material/PlaylistAdd';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {useSettings} from '@ui/settings/use-settings';
 import clsx from 'clsx';
+import {ListPlusIcon} from 'lucide-react';
 import {ReactNode} from 'react';
-import {NavLink} from 'react-router';
+import {Link, NavLink} from 'react-router';
 
 const menuItemClassName = (isActive: boolean): string => {
   return clsx(
@@ -81,10 +82,16 @@ export function Sidenav({className}: Props) {
 
 interface SectionTitleProps {
   children?: ReactNode;
+  className?: string;
 }
-function SectionTitle({children}: SectionTitleProps) {
+function SectionTitle({children, className}: SectionTitleProps) {
   return (
-    <div className="mx-24 mb-8 text-xs font-semibold uppercase text-muted">
+    <div
+      className={clsx(
+        'mx-24 mb-8 text-xs font-semibold uppercase text-muted',
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -97,10 +104,10 @@ function PlaylistSection() {
 
   return (
     <div className="mt-40">
-      <div className="mr-24 flex items-center justify-between">
-        <SectionTitle>
+      <SectionTitle className="flex items-center justify-between">
+        <Link to="/library/playlists" className="hover:underline">
           <Trans message="Playlists" />
-        </SectionTitle>
+        </Link>
         <DialogTrigger
           type="modal"
           onClose={newPlaylist => {
@@ -111,13 +118,14 @@ function PlaylistSection() {
         >
           <IconButton
             className="flex-shrink-0 text-muted"
+            size="sm"
             onClickCapture={authHandler}
           >
-            <PlaylistAddIcon />
+            <LucideIcon icon={ListPlusIcon} />
           </IconButton>
           <CreatePlaylistDialog />
         </DialogTrigger>
-      </div>
+      </SectionTitle>
       {data?.map(playlist => (
         <NavLink
           to={getPlaylistLink(playlist)}
@@ -126,7 +134,7 @@ function PlaylistSection() {
             clsx(menuItemClassName(isActive), 'flex items-center')
           }
         >
-          <div className="overflow-hidden overflow-ellipsis">
+          <div className="overflow-hidden overflow-ellipsis whitespace-nowrap">
             {playlist.name}
           </div>
         </NavLink>

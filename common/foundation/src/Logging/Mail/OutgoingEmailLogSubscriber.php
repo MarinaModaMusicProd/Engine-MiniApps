@@ -60,13 +60,20 @@ class OutgoingEmailLogSubscriber
             ->get('X-BE-LOG-ID')
             ?->getBodyAsString();
 
+        $messageId = $event->sent->getSymfonySentMessage()->getMessageId();
+
         try {
-            OutgoingEmailLogItem::where('id', $logId)->update([
+            $mesageIdAlreadyExists = OutgoingEmailLogItem::where(
+                'message_id',
+                $messageId,
+            )->exists();
+            $data = [
                 'status' => 'sent',
-                'message_id' => $event->sent
-                    ->getSymfonySentMessage()
-                    ->getMessageId(),
-            ]);
+            ];
+            if (!$mesageIdAlreadyExists) {
+                $data['message_id'] = $messageId;
+            }
+            OutgoingEmailLogItem::where('id', $logId)->update($data);
         } catch (Throwable $e) {
             Log::error($e);
             return;

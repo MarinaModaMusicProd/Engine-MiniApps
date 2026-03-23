@@ -19,11 +19,14 @@ import {Accordion, AccordionItem} from '@ui/accordion/accordion';
 import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {FormSwitch} from '@ui/forms/toggle/switch';
 import {Trans} from '@ui/i18n/trans';
-import {DashboardIcon} from '@ui/icons/material/Dashboard';
-import {DescriptionIcon} from '@ui/icons/material/Description';
-import {PublicIcon} from '@ui/icons/material/Public';
-import {SettingsIcon} from '@ui/icons/material/Settings';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {InfoDialogTrigger} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger';
+import {
+  GlobeIcon,
+  LayoutDashboardIcon,
+  SettingsIcon,
+  TextAlignEndIcon,
+} from 'lucide-react';
 import {Fragment} from 'react';
 
 export function Component() {
@@ -33,7 +36,7 @@ export function Component() {
         <Accordion variant="outline">
           <AccordionItem
             label={<Trans message="Title & description" />}
-            startIcon={<DescriptionIcon />}
+            startIcon={<LucideIcon icon={TextAlignEndIcon} size="xs" />}
           >
             <ChannelNameField />
             <FormSwitch
@@ -71,7 +74,7 @@ export function Component() {
           </AccordionItem>
           <AccordionItem
             label={<Trans message="Content settings" />}
-            startIcon={<SettingsIcon />}
+            startIcon={<LucideIcon icon={SettingsIcon} size="xs" />}
           >
             <ContentTypeField config={channelContentConfig} className="mb-24" />
             <AppChannelAutoUpdateField
@@ -93,7 +96,7 @@ export function Component() {
           </AccordionItem>
           <AccordionItem
             label={<Trans message="Layout" />}
-            startIcon={<DashboardIcon />}
+            startIcon={<LucideIcon icon={LayoutDashboardIcon} size="xs" />}
           >
             <ContentLayoutFields
               config={channelContentConfig}
@@ -103,7 +106,7 @@ export function Component() {
           </AccordionItem>
           <AccordionItem
             label={<Trans message="SEO" />}
-            startIcon={<PublicIcon />}
+            startIcon={<LucideIcon icon={GlobeIcon} size="xs" />}
           >
             <ChannelSeoFields />
           </AccordionItem>

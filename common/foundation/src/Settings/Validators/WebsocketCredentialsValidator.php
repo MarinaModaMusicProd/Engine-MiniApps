@@ -52,6 +52,22 @@ class WebsocketCredentialsValidator
     private function setConfigDynamically($settings): void
     {
         foreach ($settings as $key => $value) {
+            if ($key === 'ably_key') {
+                config([
+                    'broadcasting.connections.ably.key' => explode(
+                        ':',
+                        $value,
+                    )[0],
+                    'broadcasting.connections.ably.secret' =>
+                        explode(':', $value)[1] ?? null,
+                    'broadcasting.connections.ably.app_id' => explode(
+                        '.',
+                        explode(':', $value)[0],
+                    )[0],
+                ]);
+                continue;
+            }
+
             if ($key === 'broadcast_connection') {
                 config(['broadcasting.default' => $value]);
                 continue;

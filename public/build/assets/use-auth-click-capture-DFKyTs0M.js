@@ -1,0 +1,1 @@
+import{a0 as s,e as n,ag as i,r as u}from"./main-D6SjkSWq.js";function g(){const t=s(),{isLoggedIn:a}=n(),e=i();return u.useCallback(o=>{a||(o.preventDefault(),o.stopPropagation(),t&&t.close(),e("/login"))},[e,a,t])}export{g as u};

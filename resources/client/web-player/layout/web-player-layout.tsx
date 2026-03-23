@@ -18,7 +18,8 @@ import {useSettings} from '@ui/settings/use-settings';
 import {useIsTabletMediaQuery} from '@ui/utils/hooks/is-tablet-media-query';
 import {useMediaQuery} from '@ui/utils/hooks/use-media-query';
 import clsx from 'clsx';
-import {Outlet} from 'react-router';
+import {useLayoutEffect, useRef} from 'react';
+import {Outlet, useLocation} from 'react-router';
 
 // if the service worker initializes with the window being offline, set the online manager to offline
 if ((window as any).beSwInitialIsOffline) {
@@ -81,8 +82,22 @@ interface MainProps {
   className?: string;
 }
 function Main({className}: MainProps) {
+  const {pathname} = useLocation();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant',
+      });
+    }
+  }, [pathname]);
+
   return (
     <main
+      ref={scrollContainerRef}
       className={clsx(
         'compact-scrollbar player-section relative flex-auto overflow-x-hidden stable-scrollbar',
         className,

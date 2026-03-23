@@ -88,6 +88,7 @@ use Common\Logging\Schedule\ScheduleHealthCommand;
 use Common\Pages\CustomPage;
 use Common\Search\Commands\ImportRecordsIntoScoutCommand;
 use Common\Search\Drivers\Mysql\MysqlSearchEngine;
+use Common\Search\Drivers\Tnt\TNTSearchScoutServiceProvider;
 use Common\ServerTiming\ServerTiming;
 use Common\ServerTiming\ServerTimingMiddleware;
 use Common\Settings\Events\SettingsSaved;
@@ -274,6 +275,9 @@ class CommonServiceProvider extends ServiceProvider
         resolve(EngineManager::class)->extend('mysql', function () {
             return new MysqlSearchEngine();
         });
+        if (config('scout.driver') === 'tntsearch') {
+            $this->app->register(TNTSearchScoutServiceProvider::class);
+        }
         if (config('scout.driver') === ElasticSearchEngine::class) {
             $this->app->register(ElasticSearchServiceProvider::class);
         }
