@@ -16,11 +16,10 @@ class TagMediaController extends BaseController
 
         $this->authorize('show', $tag);
 
-        $perPage = request('perPage', 15);
-
         $pagination = (new PaginateTracks())->asApiResponse(
             [
-                'perPage' => $perPage,
+                'perPage' => request('perPage', 15),
+                'page' => request('page', 1),
                 'orderBy' => 'popularity',
                 'orderDir' => 'desc',
                 'paginate' => 'simple',
@@ -35,11 +34,11 @@ class TagMediaController extends BaseController
     {
         $tag = Tag::where('name', $tagName)->firstOrFail();
         $this->authorize('show', $tag);
-        $perPage = request('perPage', 15);
 
         $pagination = (new PaginateAlbums())->asApiResponse(
             [
-                'perPage' => $perPage,
+                'perPage' => request('perPage', 15),
+                'page' => request('page', 1),
                 'orderBy' => 'popularity',
                 'orderDir' => 'desc',
                 'paginate' => 'simple',

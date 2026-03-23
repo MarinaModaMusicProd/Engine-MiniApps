@@ -46,12 +46,12 @@ export const useDialogStore = create<DialogStore>()((set, get) => ({
   },
 }));
 
-export const openDialog = <T = any>(
+export const openDialog = <R = any, P = any>(
   dialog: JSXElementConstructor<any>,
-  data?: any,
+  data?: P,
   options?: Options,
-): Promise<T> => {
-  return useDialogStore.getState().openDialog<T>(dialog, data, options);
+): Promise<R> => {
+  return useDialogStore.getState().openDialog<R>(dialog, data, options);
 };
 export const closeDialog = (value?: any): void => {
   useDialogStore.getState().closeActiveDialog(value);

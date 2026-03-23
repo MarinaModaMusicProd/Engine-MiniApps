@@ -61,7 +61,7 @@ class CrupdateArtist
             if (empty($data['profile_images'])) {
                 $artist->profileImages()->delete();
             } else {
-                $this->syncProfileImages($artist, $data);
+                $this->syncProfileImages($artist, $data['profile_images']);
             }
         }
 

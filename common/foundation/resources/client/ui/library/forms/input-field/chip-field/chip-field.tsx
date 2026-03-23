@@ -2,12 +2,13 @@ import {useFocusManager} from '@react-aria/focus';
 import {mergeProps, useLayoutEffect, useObjectRef} from '@react-aria/utils';
 import {useControlledState} from '@react-stately/utils';
 import {Avatar} from '@ui/avatar/avatar';
-import {KeyboardArrowDownIcon} from '@ui/icons/material/KeyboardArrowDown';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {Popover} from '@ui/overlays/popover';
 import {ProgressCircle} from '@ui/progress/progress-circle';
 import {NormalizedModel} from '@ui/types/normalized-model';
 import {createEventHandler} from '@ui/utils/dom/create-event-handler';
 import clsx from 'clsx';
+import {ChevronDownIcon} from 'lucide-react';
 import {
   HTMLAttributes,
   Key,
@@ -110,7 +111,9 @@ export function ChipField<T>({ref, ...props}: ChipFieldProps<T>) {
     <ProgressCircle isIndeterminate size="w-24 h-24" aria-label="loading..." />
   );
 
-  const dropdownArrow = showDropdownArrow ? <KeyboardArrowDownIcon /> : null;
+  const dropdownArrow = showDropdownArrow ? (
+    <LucideIcon icon={ChevronDownIcon} size="sm" />
+  ) : null;
 
   const {fieldProps, inputProps} = useField({
     ...inputFieldProps,

@@ -38,16 +38,18 @@
                 - {{ $album['release_date'] }}
             </h3>
 
-            <ul>
-                @foreach ($album['tracks'] as $track)
-                    <li>
-                        <a href="{{ urls()->track($track) }}">
-                            {{ $track['name'] }} - {{ $album['name'] }} -
-                            {{ $artist['name'] }}
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
+            @if (isset($album['tracks']))
+                <ul>
+                    @foreach ($album['tracks'] as $track)
+                        <li>
+                            <a href="{{ urls()->track($track) }}">
+                                {{ $track['name'] }} - {{ $album['name'] }} -
+                                {{ $artist['name'] }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         @endforeach
     @endisset
 

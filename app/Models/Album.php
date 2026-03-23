@@ -1,6 +1,7 @@
 <?php namespace App\Models;
 
 use App\Traits\OrdersByPopularity;
+use App\Services\Providers\MusicMetadataProvider;
 use Common\Comments\Comment;
 use Common\Core\BaseModel;
 use Common\Files\Traits\HasAttachedFileEntries;
@@ -22,10 +23,15 @@ class Album extends BaseModel
 
     const MODEL_TYPE = 'album';
 
+    const RECORD_TYPE_ALBUM = 'album';
+    const RECORD_TYPE_SINGLE = 'single';
+    const RECORD_TYPE_EP = 'ep';
+    const RECORD_TYPE_COMPILATION = 'compilation';
+
     protected $casts = [
         'id' => 'integer',
         'fully_scraped' => 'boolean',
-        'spotify_popularity' => 'integer',
+        'external_popularity' => 'integer',
         'owner_id' => 'integer',
         'plays' => 'integer',
         'views' => 'integer',
@@ -117,13 +123,39 @@ class Album extends BaseModel
         $query->where('release_date', '<=', now());
     }
 
+    #[Scope]
+    protected function orderByRecordType(
+        Builder $query,
+        string $tableAlias = 'albums',
+    ): void {
+        $query->orderByRaw(
+            "field(
+                {$tableAlias}.record_type,
+                '" .
+                self::RECORD_TYPE_ALBUM .
+                "',
+                '" .
+                self::RECORD_TYPE_SINGLE .
+                "',
+                '" .
+                self::RECORD_TYPE_EP .
+                "',
+                '" .
+                self::RECORD_TYPE_COMPILATION .
+                "'
+            )",
+        );
+    }
+
     public function needsUpdating(): bool
     {
-        if (!$this->exists || !$this->spotify_id || isCrawler()) {
-            return false;
-        }
-
-        if (settings('album_provider') !== 'spotify') {
+        if (
+            !$this->exists ||
+            !(new MusicMetadataProvider(
+                settings('metadata_provider'),
+            ))->canUpdateAlbum($this) ||
+            isCrawler()
+        ) {
             return false;
         }
 
@@ -139,15 +171,17 @@ class Album extends BaseModel
 
     public function addPopularityToTracks()
     {
-        $settings = app(Settings::class);
         $highestPlaysCount = $this->tracks->pluck('plays')->max();
+        $provider = (new MusicMetadataProvider(
+            settings('metadata_provider'),
+        ))->getProvider();
 
         $this->tracks->map(function (Track $track) use (
             $highestPlaysCount,
-            $settings,
+            $provider,
         ) {
-            if ($settings->get('artist_provider') === 'spotify') {
-                $track->popularity = $track->spotify_popularity ?: 50;
+            if ($provider) {
+                $track->popularity = $track->external_popularity ?: 50;
             } elseif ($highestPlaysCount) {
                 $track->popularity = $track->plays / ($highestPlaysCount / 100);
             } else {
@@ -167,6 +201,9 @@ class Album extends BaseModel
                 ? $this->artists->pluck('name')->implode(', ')
                 : null,
             'model_type' => self::MODEL_TYPE,
+            'created_at' => $this->created_at->timestamp ?? '_null',
+            'updated_at' => $this->updated_at->timestamp ?? '_null',
+            'release_date' => $this->release_date->timestamp ?? '_null',
         ];
     }
 
@@ -183,12 +220,12 @@ class Album extends BaseModel
 
     public static function filterableFields(): array
     {
-        return ['id', 'spotify_id'];
+        return ['id', 'spotify_id', 'release_date'];
     }
 
     protected function makeAllSearchableUsing($query)
     {
-        return $query->with('artists');
+        return $query->with('artists', 'tags');
     }
 
     public static function getModelTypeAttribute(): string

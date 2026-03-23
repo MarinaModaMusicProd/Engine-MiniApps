@@ -52,8 +52,6 @@ class RolesTableSeeder extends Seeder
                 $permission['restrictions'] = $restrictions;
                 return $permission;
             });
-        $permissionType =
-            $appRole['permission_type'] ?? ($appRole['type'] ?? 'users');
 
         if (Arr::get($appRole, 'default')) {
             $attributes = ['default' => true];
@@ -61,8 +59,6 @@ class RolesTableSeeder extends Seeder
                 'default' => true,
                 'internal' => true,
                 'type' => $appRole['type'],
-                'description' => $appRole['description'] ?? null,
-                'permission_type' => $permissionType,
             ]);
         } elseif (Arr::get($appRole, 'guests')) {
             $attributes = ['guests' => true];
@@ -70,25 +66,35 @@ class RolesTableSeeder extends Seeder
                 'guests' => true,
                 'internal' => true,
                 'type' => $appRole['type'],
-                'description' => $appRole['description'] ?? null,
-                'permission_type' => $permissionType,
             ]);
+        } elseif (isset($appRole['extraColumns'])) {
+            $attributes = Arr::mapWithKeys(
+                $appRole['extraColumns'],
+                fn($column) => [$column['name'] => $column['value']],
+            );
+            $attributes['type'] = $appRole['type'];
+            $attributes['internal'] = $appRole['internal'] ?? false;
+            Role::where('name', $appRole['name'])->update($attributes);
         } else {
             $attributes = [
                 'name' => $appRole['name'],
                 'type' => $appRole['type'],
-                'permission_type' => $permissionType,
             ];
         }
 
         if ($role = Role::where($attributes)->first()) {
             return $role;
         } else {
+            $extraColumns = isset($appRole['extraColumns'])
+                ? Arr::mapWithKeys(
+                    $appRole['extraColumns'],
+                    fn($column) => [$column['name'] => $column['value']],
+                )
+                : [];
             $role = $this->role->create([
+                ...$extraColumns,
                 'name' => $appRole['name'],
                 'type' => $appRole['type'],
-                'permission_type' => $permissionType,
-                'description' => $appRole['description'] ?? null,
                 'internal' => $appRole['internal'] ?? false,
                 'default' => $appRole['default'] ?? false,
                 'guests' => $appRole['guests'] ?? false,

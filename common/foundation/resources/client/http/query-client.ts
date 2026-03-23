@@ -2,8 +2,13 @@ import {getSettingsPreviewMode} from '@common/admin/settings/preview/use-setting
 import {errorStatusIs} from '@common/http/error-status-is';
 import {getEchoSocketId} from '@common/http/get-echo-socket-id';
 import {QueryClient} from '@tanstack/react-query';
+import {mergeBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 import {isAbsoluteUrl} from '@ui/utils/urls/is-absolute-url';
-import axios, {AxiosRequestConfig} from 'axios';
+import axios, {
+  AxiosError,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from 'axios';
 import {getActiveWorkspaceId} from '../workspace/active-workspace-id';
 
 export const queryClient = new QueryClient({
@@ -45,7 +50,8 @@ const internalEndpoints = ['auth', 'secure', 'log-viewer', 'horizon'];
 apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
   if (
     !internalEndpoints.some(endpoint => config.url?.startsWith(endpoint)) &&
-    !isAbsoluteUrl(config?.url)
+    !isAbsoluteUrl(config?.url) &&
+    !config.url?.startsWith('api/v1/')
   ) {
     config.url = `api/v1/${config.url}`;
   }
@@ -114,3 +120,65 @@ apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
 
   return config;
 });
+
+const CSRF_REFRESH_COOLDOWN_MS = 60000; // 1 minute
+let csrfRefreshPromise: Promise<void> | null = null;
+let lastCsrfRefreshTime = 0;
+
+async function refreshCsrfToken(): Promise<void> {
+  const now = Date.now();
+  if (now - lastCsrfRefreshTime < CSRF_REFRESH_COOLDOWN_MS) {
+    return;
+  }
+
+  if (csrfRefreshPromise) {
+    return csrfRefreshPromise;
+  }
+
+  lastCsrfRefreshTime = now;
+
+  csrfRefreshPromise = axios
+    .get('csrf-token', {withCredentials: true})
+    .then(r => {
+      mergeBootstrapData({csrf_token: r.data.csrf_token});
+    })
+    .finally(() => {
+      csrfRefreshPromise = null;
+    });
+
+  return csrfRefreshPromise;
+}
+
+apiClient.interceptors.response.use(
+  response => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _csrfRetry?: boolean;
+    };
+
+    if (
+      error.response?.status === 419 &&
+      originalRequest &&
+      !originalRequest._csrfRetry
+    ) {
+      const now = Date.now();
+      if (
+        now - lastCsrfRefreshTime < CSRF_REFRESH_COOLDOWN_MS &&
+        lastCsrfRefreshTime > 0
+      ) {
+        return Promise.reject(error);
+      }
+
+      originalRequest._csrfRetry = true;
+
+      try {
+        await refreshCsrfToken();
+        return apiClient(originalRequest);
+      } catch {
+        return Promise.reject(error);
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);

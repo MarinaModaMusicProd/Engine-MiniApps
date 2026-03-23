@@ -97,6 +97,8 @@ class PlaylistLoader
             'orderDir' => request()->get('orderDir', 'asc'),
             'perPage' => request('perPage', 30),
             'paginate' => request('paginate', 'simple'),
+            'page' => request('page', 1),
+            'query' => request('query', ''),
         ];
 
         $builder = (new PlaylistTrackQuery([

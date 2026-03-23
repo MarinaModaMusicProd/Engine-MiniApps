@@ -11,13 +11,20 @@ class PaginateGenres
 {
     use BuildsPaginatedApiResources;
 
-    public function asApiResponse(array $params, $builder = null): array
-    {
+    public function asApiResponse(
+        array $params,
+        $builder = null,
+        string|null $loader = null,
+    ): array {
         $paginator = $this->asPaginator($params, $builder);
 
-        $items = array_map(function (Genre $genre) {
-            return (new GenreToApiResource())->execute($genre);
-        }, $paginator->items());
+        $items = array_map(
+            fn(Genre $genre) => (new GenreToApiResource())->execute(
+                $genre,
+                $loader,
+            ),
+            $paginator->items(),
+        );
 
         return $this->buildPagination($paginator, $items);
     }

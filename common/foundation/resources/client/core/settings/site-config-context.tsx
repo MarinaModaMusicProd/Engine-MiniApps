@@ -21,7 +21,6 @@ export interface CustomPageType {
 export interface RoleType {
   type: string;
   label: MessageDescriptor;
-  permission_type: string;
 }
 
 export interface HomepageOption {

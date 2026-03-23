@@ -41,7 +41,7 @@ export function Tab({
   const padding = paddingProp || (size === 'sm' ? 'px-12' : 'px-18');
 
   const mergedClassname = clsx(
-    'tracking-wide overflow-hidden capitalize text-sm flex items-center justify-center outline-none transition-colors',
+    'tracking-wide overflow-hidden text-sm flex items-center justify-center outline-none transition-colors',
     'focus-visible:ring focus-visible:ring-2 ring-inset rounded whitespace-nowrap cursor-pointer',
     width,
     textColor({isDisabled, isSelected}),

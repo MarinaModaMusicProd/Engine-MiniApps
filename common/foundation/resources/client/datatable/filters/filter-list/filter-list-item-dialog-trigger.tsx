@@ -1,17 +1,17 @@
-import { Button } from '@ui/buttons/button';
-import { Form } from '@ui/forms/form';
-import { Trans } from '@ui/i18n/trans';
-import { Dialog } from '@ui/overlays/dialog/dialog';
-import { DialogBody } from '@ui/overlays/dialog/dialog-body';
-import { useDialogContext } from '@ui/overlays/dialog/dialog-context';
-import { DialogFooter } from '@ui/overlays/dialog/dialog-footer';
-import { DialogHeader } from '@ui/overlays/dialog/dialog-header';
-import { DialogTrigger } from '@ui/overlays/dialog/dialog-trigger';
-import { ReactNode } from 'react';
-import { useForm } from 'react-hook-form';
-import { FilterItemFormValue } from '../add-filter-dialog';
-import { FilterListControlProps } from './filter-list-control';
-import { FilterListTriggerButton } from './filter-list-trigger-button';
+import {Button} from '@ui/buttons/button';
+import {Form} from '@ui/forms/form';
+import {Trans} from '@ui/i18n/trans';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {ReactNode} from 'react';
+import {useForm} from 'react-hook-form';
+import {FilterItemFormValue} from '../add-filter-dialog';
+import {FilterListControlProps} from './filter-list-control';
+import {FilterListTriggerButton} from './filter-list-trigger-button';
 
 interface FilterListItemDialogTriggerProps extends FilterListControlProps<any> {
   label: ReactNode;
@@ -20,7 +20,7 @@ interface FilterListItemDialogTriggerProps extends FilterListControlProps<any> {
 export function FilterListItemDialogTrigger(
   props: FilterListItemDialogTriggerProps,
 ) {
-  const {onValueChange, isInactive, filter, label} = props;
+  const {onValueChange, isInactive, filter, label, buttonSize} = props;
   return (
     <DialogTrigger
       offset={10}
@@ -31,7 +31,11 @@ export function FilterListItemDialogTrigger(
         }
       }}
     >
-      <FilterListTriggerButton isInactive={isInactive} filter={filter}>
+      <FilterListTriggerButton
+        isInactive={isInactive}
+        filter={filter}
+        buttonSize={buttonSize}
+      >
         {label}
       </FilterListTriggerButton>
       <FilterListControlDialog {...props} />

@@ -15,9 +15,7 @@ import {CheckoutProductSummary} from '../checkout-product-summary';
 export function Component() {
   const {productId, priceId} = useParams();
   const navigate = useNavigate();
-  const {
-    billing: {stripe_public_key},
-  } = useSettings();
+  const {billing} = useSettings();
 
   const [params] = useSearchParams();
 
@@ -37,7 +35,7 @@ export function Component() {
 
   useEffect(() => {
     if (stripeInitiated.current) return;
-    loadStripe(stripe_public_key!).then(async stripe => {
+    loadStripe(billing?.stripe_public_key!).then(async stripe => {
       if (
         !stripe ||
         !clientSecret ||
@@ -78,7 +76,7 @@ export function Component() {
       }
     });
     stripeInitiated.current = true;
-  }, [stripe_public_key, clientSecret, priceId, productId]);
+  }, [billing?.stripe_public_key, clientSecret, priceId, productId]);
 
   if (!clientSecret) {
     navigate('/');

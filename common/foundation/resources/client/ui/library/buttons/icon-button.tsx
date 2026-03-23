@@ -1,15 +1,15 @@
-import { BadgeProps } from '@ui/badge/badge';
-import { SvgIconProps } from '@ui/icons/svg-icon';
+import {BadgeProps} from '@ui/badge/badge';
+import {IconSize, SvgIconProps} from '@ui/icons/svg-icon';
 import clsx from 'clsx';
-import { cloneElement, forwardRef, ReactElement } from 'react';
-import { ButtonBase, ButtonBaseProps } from './button-base';
-import { ButtonSize, getButtonSizeStyle } from './button-size';
+import {cloneElement, forwardRef, ReactElement} from 'react';
+import {ButtonBase, ButtonBaseProps} from './button-base';
+import {ButtonSize, getButtonSizeStyle} from './button-size';
 
 export interface IconButtonProps extends ButtonBaseProps {
   children: ReactElement;
   padding?: string;
   size?: ButtonSize | null;
-  iconSize?: ButtonSize | null;
+  iconSize?: IconSize | null;
   equalWidth?: boolean;
   badge?: ReactElement<BadgeProps>;
 }
@@ -37,6 +37,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       other.disabled && other.to && 'pointer-events-none text-disabled',
     );
 
+    const childIcon = children as ReactElement<SvgIconProps>;
+
     return (
       <ButtonBase
         {...other}
@@ -45,7 +47,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         variant={variant}
         className={mergedClassName}
       >
-        {cloneElement(children as ReactElement<SvgIconProps>, {size: iconSize})}
+        {cloneElement(childIcon, {size: childIcon.props.size || iconSize})}
         {badge}
       </ButtonBase>
     );

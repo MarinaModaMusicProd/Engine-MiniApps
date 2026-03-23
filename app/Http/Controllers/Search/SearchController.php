@@ -5,13 +5,9 @@ use App\Models\Artist;
 use App\Models\Playlist;
 use App\Models\Track;
 use App\Models\User;
-use App\Services\Providers\Local\LocalSearch;
-use App\Services\Providers\LocalAndSpotify\LocalAndSpotifySearch;
-use App\Services\Providers\Spotify\SpotifySearch;
 use App\Services\Providers\Youtube\YoutubeAudioSearch;
-use App\Services\Search\SearchInterface;
+use App\Services\Search\MainSearch;
 use Common\Core\BaseController;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
@@ -49,28 +45,13 @@ class SearchController extends BaseController
                 )->allowed();
             });
 
-            $data['results'] = $this->getSearchProvider()->search(
+            $data['results'] = (new MainSearch())->execute(
                 $query,
                 request('page') ?? 1,
                 $perPage,
                 $modelTypes,
             );
-
-            $data['results'] = $this->filterOutBlockedArtists($data['results']);
         }
-
-        // sort data['results'], by key, tracks first, then albums, then artists, playlists, users
-        $data['results'] = collect($data['results'])
-            ->sortBy(function ($value, $key) {
-                return array_search($key, [
-                    'tracks',
-                    'artists',
-                    'albums',
-                    'playlists',
-                    'users',
-                ]);
-            })
-            ->toArray();
 
         return $this->renderClientOrApi([
             'pageName' => $loader === 'searchPage' ? 'search-page' : null,
@@ -82,10 +63,10 @@ class SearchController extends BaseController
     {
         $this->authorize('index', modelTypeToNamespace($modelType));
 
-        $data = $this->getSearchProvider()->search(
+        $data = (new MainSearch())->execute(
             request('query'),
-            request('page'),
-            request('perPage', 20),
+            request('page') ?? 1,
+            request('perPage') ?? 20,
             [$modelType],
         );
 
@@ -108,51 +89,5 @@ class SearchController extends BaseController
         );
 
         return $this->success(['results' => $results]);
-    }
-
-    /**
-     * Remove artists that were blocked by admin from search results.
-     */
-    private function filterOutBlockedArtists(Collection $results): Collection
-    {
-        return $results->map(function ($pagination, $type) {
-            if ($type === 'artists') {
-                $pagination['data'] = array_filter(
-                    $pagination['data'],
-                    fn($a) => !$a['disabled'],
-                );
-            }
-
-            if ($type === 'albums') {
-                $pagination['data'] = array_filter(
-                    $pagination['data'],
-                    fn($album) => !array_find(
-                        $album['artists'],
-                        fn($artist) => $artist['disabled'],
-                    ),
-                );
-            }
-
-            if ($type === 'tracks') {
-                $pagination['data'] = array_filter(
-                    $pagination['data'],
-                    fn($track) => !array_find(
-                        $track['artists'],
-                        fn($artist) => $artist['disabled'],
-                    ),
-                );
-            }
-
-            return $pagination;
-        });
-    }
-
-    protected function getSearchProvider(): SearchInterface
-    {
-        return match (settings('search_provider', 'local')) {
-            'local' => new LocalSearch(),
-            'spotify' => app(SpotifySearch::class),
-            'localAndSpotify' => app(LocalAndSpotifySearch::class),
-        };
     }
 }

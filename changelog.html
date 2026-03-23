@@ -1,3 +1,28 @@
+<h2>2026 March 11 - Version 3.1.6</h2>
+<ul>
+  <li>new: compatibility with new spotify API changes.</li>
+  <li>new: Deezer provider for music metadata.</li>
+  <li>new: Updated artist page discography tab design.</li>
+  <li>fix: outgoing emails sometimes not marked as sent in log, even if email was sent.</li>
+  <li>fix: range date picker skipping months sometimes</li>
+  <li>fix: language change requiring a page reload to take effect</li>
+  <li>fix: a few issues with dashboard layout</li>
+  <li>fix: issue with deleting channels</li>
+  <li>fix: issues with seo tags in the new landing page editor</li>
+  <li>fix: show navbar in track insights page in backstage</li>
+  <li>fix: user profile not viewable for guests sometimes</li>
+  <li>fix: album with future release date still appearing in search and notifying followers</li>
+  <li>fix: close confirmation dialog on playlist delete</li>
+  <li>fix: track page sometimes showing error page if all artists were detached from track</li>
+  <li>fix: allow disabling default file types for media</li>
+  <li>fix: artist page not loading sometimes if bio could not be fetched</li>
+  <li>fix: issues with local search</li>
+  <li>fix: track download not working sometimes for tracks uploaded on older versions</li>
+  <li>
+    fix: artist not being able to upload artwork sometimes after backstage request is approved.
+  </li>
+</ul>
+
 <h2>2026 January 14 - Version 3.1.5</h2>
 <ul>
   <li>fix: seo tags changed on previous versions causing issues</li>
@@ -27,7 +52,7 @@
   <li>new: it's now possible to disable specific artists without deleting them</li>
   <li>new: updated landing page design</li>
   <li>
-    new: auto update functionality in admin area. You will now be notified of new updates to MarinaModa
+    new: auto update functionality in admin area. You will now be notified of new updates to BeMusic
     in admin area and can update directly from "admin > settings > system > update" page.
   </li>
   <li>
@@ -289,7 +314,7 @@
     It's now possible to list artists, albums and tracks of specific genre in the same channel.
   </li>
   <li>
-    Fully rewritten MarinaModa in React. This results in many improvements from previous version,
+    Fully rewritten BeMusic in React. This results in many improvements from previous version,
     including better performance, bundle size reduction by nearly 2x (with bigger reduction in
     future updates), better animations and many bugfixes.
   </li>
@@ -488,8 +513,22 @@
   <li>Playlists can now be embedded same as tracks and albums.</li>
   <li>Added genre radio for spotify provider.</li>
   <li>
-    Added a fully featured, token based API. It can be used to integrate MarinaModa into other
+    Added a fully featured, token based API. It can be used to integrate BeMusic into other
     projects, native apps and more.
+  </li>
+  <li>
+    Added <strong>Manage API Access Tokens</strong> section in
+    <a href="https://bemusic.1.vebto.com/account/settings" target="_blank" rel="noopener"
+      >account settings</a
+    >
+    page for creating or revoking API access tokens.
+  </li>
+  <li>
+    Added functional API docs. They can be accessed at
+    <a href="https://bemusic.1.vebto.com/api-docs" target="_blank" rel="noopener"
+      >your-site.com/api-docs</a
+    >
+    url, there's also a link in account settings page.
   </li>
   <li>
     All specific genre pages are now channels and can be edited from admin. This allows showing
@@ -674,7 +713,7 @@
 <h4>Enhancements</h4>
 <ul>
   <li>
-    Updated Laravel to latest version. MarinaModa now requires at least PHP 7.2.5 version to work
+    Updated Laravel to latest version. BeMusic now requires at least PHP 7.2.5 version to work
     properly.
   </li>
   <li>Updated login, register, forgot password and reset password pages design.</li>
@@ -737,7 +776,7 @@
   <li>Added configurable GDPR cookie notice.</li>
   <li>Added configurable confirmation policies to register page.</li>
   <li>
-    Added chunked uploading. This allows MarinaModa to upload large files in smaller chunks for better
+    Added chunked uploading. This allows BeMusic to upload large files in smaller chunks for better
     upload reliability and avoid server max file size limits.
   </li>
   <li>
@@ -1358,7 +1397,7 @@
 </ul>
 <h2>2017 May 30 - Version 2.0.7</h2>
 <ul>
-  <li>Updated MarinaModa to work with latest versions of 3rd party APIs.</li>
+  <li>Updated BeMusic to work with latest versions of 3rd party APIs.</li>
 </ul>
 <h2>2017 April 20 - Version 2.0.6</h2>
 <ul>
@@ -1380,7 +1419,7 @@
   <li>Fixed an issue where artist images from spotify would be blurry sometimes.</li>
   <li>Fixed an issue where albums with slash in their name would not work properly sometimes.</li>
   <li>
-    Fixed an issue where custom folders created in MarinaModa directory were causing issues with
+    Fixed an issue where custom folders created in BeMusic directory were causing issues with
     settings page sometimes.
   </li>
   <li>Fixed an issue where custom playlist image was not shown correctly when sharing playlist.</li>
@@ -1428,7 +1467,7 @@
   <li>Fixed some issues with artist/album sharing and SEO.</li>
   <li>
     Fixed an issue that prevented updater from running if database prefix was used to install
-    MarinaModa.
+    BeMusic.
   </li>
 </ul>
 <h2>2016 July 16 - Version 2.0.1</h2>

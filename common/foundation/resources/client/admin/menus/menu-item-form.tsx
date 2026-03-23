@@ -219,7 +219,9 @@ function RoleSelector({prefixName}: NameProps) {
 }
 
 function PermissionSelector({prefixName}: NameProps) {
-  const permissionQuery = useQuery(commonAdminQueries.permissions.index());
+  const permissionQuery = useQuery(
+    commonAdminQueries.permissions.index('users'),
+  );
   const {trans} = useTrans();
 
   const groupedPermissions = useMemo(() => {
@@ -254,7 +256,7 @@ function PermissionSelector({prefixName}: NameProps) {
 
 function SubscriptionStatusSelector({prefixName}: NameProps) {
   const {billing} = useSettings();
-  if (!billing.enable) return null;
+  if (!billing?.enable) return null;
   return (
     <FormSelect
       selectionMode="single"

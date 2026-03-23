@@ -1,10 +1,10 @@
-import { ButtonSize } from '@ui/buttons/button-size';
-import { IconButton } from '@ui/buttons/icon-button';
-import { CloseIcon } from '@ui/icons/material/Close';
+import {ButtonSize} from '@ui/buttons/button-size';
+import {IconButton} from '@ui/buttons/icon-button';
+import {CloseIcon} from '@ui/icons/material/Close';
 import clsx from 'clsx';
-import { ReactElement, ReactNode, useContext } from 'react';
-import { DialogSize } from './dialog';
-import { DialogContext, DialogType, useDialogContext } from './dialog-context';
+import {ReactElement, ReactNode, useContext} from 'react';
+import {DialogSize} from './dialog';
+import {DialogContext, DialogType, useDialogContext} from './dialog-context';
 
 interface DialogHeaderProps {
   children: ReactNode;
@@ -16,7 +16,8 @@ interface DialogHeaderProps {
   leftAdornment?: ReactNode;
   // Will hide default close button visually, but still accessible by screen readers
   rightAdornment?: ReactNode;
-  // Will show between title and close button
+  // Will show after title
+  rightBadge?: ReactNode;
   closeButtonIcon?: ReactElement;
   actions?: ReactNode;
   size?: DialogSize;
@@ -37,6 +38,7 @@ export function DialogHeader(props: DialogHeaderProps) {
     onDismiss,
     leftAdornment,
     rightAdornment,
+    rightBadge,
     hideDismissButton = false,
     disableDismissButton = false,
     size,
@@ -55,7 +57,6 @@ export function DialogHeader(props: DialogHeaderProps) {
       className={clsx(
         className,
         'flex flex-shrink-0 items-center gap-10',
-        titleFontWeight,
         showDivider && 'border-b',
         getPadding(type, props),
         color || 'text-main',
@@ -63,9 +64,14 @@ export function DialogHeader(props: DialogHeaderProps) {
       )}
     >
       {leftAdornment}
-      <h3 id={labelId} className={clsx(titleTextSize, 'mr-auto leading-6')}>
+      <h3
+        id={labelId}
+        className={clsx(titleTextSize, titleFontWeight, 'leading-6')}
+      >
         {children}
       </h3>
+      {rightBadge}
+      <div className="ml-auto h-0 w-0" />
       {rightAdornment}
       {actions}
       {isDismissable && !hideDismissButton && (

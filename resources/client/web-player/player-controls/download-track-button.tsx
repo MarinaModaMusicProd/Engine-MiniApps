@@ -29,7 +29,7 @@ export function DownloadTrackButton() {
     <Tooltip label={<Trans message="Download" />}>
       <IconButton
         onClick={() => {
-          downloadFileFromUrl(`${base_url}/api/v1/tracks/${track.id}/download`);
+          downloadFileFromUrl(`${base_url}/tracks/${track.id}/download`);
         }}
       >
         <DownloadIcon />

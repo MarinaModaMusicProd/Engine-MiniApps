@@ -107,7 +107,7 @@ async function downloadData(
   abortSignal: AbortSignal,
   onProgress: ProgressCallback,
 ) {
-  const url = `${getBootstrapData().settings.base_url}/api/v1/tracks/${trackId}/download`;
+  const url = `${getBootstrapData().settings.base_url}/tracks/${trackId}/download`;
 
   const response = await fetch(url, {signal: abortSignal});
 

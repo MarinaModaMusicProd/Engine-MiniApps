@@ -19,6 +19,8 @@ class WorkspaceMember extends Model
     protected $appends = ['model_type'];
     protected $casts = ['is_owner' => 'boolean'];
 
+    // For workspace permissions we only check if user has that permission through workspace role.
+    // Permissions attached directly to user, through subscriptions, or regular roles should not count.
     public function permissions()
     {
         return $this->belongsToMany(
@@ -65,6 +67,14 @@ class WorkspaceMember extends Model
         ) {
             return $permission->name === $name;
         });
+    }
+
+    public function getRestrictionValue(
+        string $permissionName,
+        string $restriction,
+    ): int|bool|null {
+        $permission = $this->getPermission($permissionName);
+        return $permission?->getRestrictionValue($restriction);
     }
 
     public function getRoleNameAttribute()

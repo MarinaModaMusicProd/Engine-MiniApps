@@ -17,10 +17,7 @@ export function Component() {
     productId,
     priceId,
   });
-  const {
-    base_url,
-    billing: {stripe},
-  } = useSettings();
+  const {base_url, billing} = useSettings();
 
   if (productQuery.isLoading) {
     return <FullPageLoader screen />;
@@ -45,7 +42,7 @@ export function Component() {
         <h1 className="mb-40 text-4xl">
           <Trans message="Checkout" />
         </h1>
-        {stripe.enable ? (
+        {billing?.stripe?.enable ? (
           <Fragment>
             <StripeElementsForm
               productId={productId}

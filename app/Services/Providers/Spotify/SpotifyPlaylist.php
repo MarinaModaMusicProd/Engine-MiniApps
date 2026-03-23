@@ -2,45 +2,27 @@
 
 namespace App\Services\Providers\Spotify;
 
-use App\Services\Providers\UpsertsDataIntoDB;
-use Illuminate\Support\Facades\App;
+use App\Services\Providers\DataObjects\NormalizedPlaylist;
+use App\Traits\AuthorizesWithSpotify;
+use Illuminate\Support\Facades\Http;
 
-class SpotifyPlaylist
+class SpotifyPlaylist extends SpotifyBase
 {
-    use UpsertsDataIntoDB;
+    use AuthorizesWithSpotify;
 
-    /**
-     * @var SpotifyHttpClient
-     */
-    private $httpClient;
-
-    /**
-     * @var SpotifyNormalizer
-     */
-    private $normalizer;
-
-    public function __construct(SpotifyNormalizer $normalizer)
+    public function getContent(string $playlistId): ?NormalizedPlaylist
     {
-        $this->httpClient = App::make(SpotifyHttpClient::class);
-        $this->normalizer = $normalizer;
-
         @ini_set('max_execution_time', 0);
-    }
 
-    public function getContent(string $playlistId): ?array
-    {
-        $response = $this->httpClient->get("playlists/$playlistId");
+        $response = $this->getResponseData(
+            Http::withHeaders([
+                'Authorization' => "Bearer {$this->authorize()}",
+            ])->get("{$this->baseUrl}/playlists/$playlistId"),
+        );
         if (!isset($response['tracks']['items'])) {
             return null;
         }
 
-        $tracks = array_map(function ($track) {
-            return $track['track'];
-        }, $response['tracks']['items']);
-
-        return [
-            'playlist' => $this->normalizer->playlist($response),
-            'tracks' => app(SpotifyTopTracks::class)->saveAndLoad($tracks),
-        ];
+        return $this->normalizer->playlist($response);
     }
 }

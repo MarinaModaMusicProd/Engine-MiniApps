@@ -1,0 +1,1031 @@
+[
+  {
+    "id": 132,
+    "name": "pop",
+    "image": "https://api.deezer.com/genre/132/image",
+    "popularity": 147,
+    "display_name": "Pop"
+  },
+  {
+    "id": 116,
+    "name": "rap-hip-hop",
+    "image": "https://api.deezer.com/genre/116/image",
+    "popularity": 146,
+    "display_name": "Rap/Hip Hop"
+  },
+  {
+    "id": 197,
+    "name": "latin-music",
+    "image": "https://api.deezer.com/genre/197/image",
+    "popularity": 145,
+    "display_name": "Latin Music"
+  },
+  {
+    "id": 152,
+    "name": "rock",
+    "image": "https://api.deezer.com/genre/152/image",
+    "popularity": 144,
+    "display_name": "Rock"
+  },
+  {
+    "id": 165,
+    "name": "r-b",
+    "image": "https://api.deezer.com/genre/165/image",
+    "popularity": 143,
+    "display_name": "R&B"
+  },
+  {
+    "id": 113,
+    "name": "dance",
+    "image": "https://api.deezer.com/genre/113/image",
+    "popularity": 142,
+    "display_name": "Dance"
+  },
+  {
+    "id": 106,
+    "name": "electro",
+    "image": "https://api.deezer.com/genre/106/image",
+    "popularity": 141,
+    "display_name": "Electro"
+  },
+  {
+    "id": 84,
+    "name": "country",
+    "image": "https://api.deezer.com/genre/84/image",
+    "popularity": 140,
+    "display_name": "Country"
+  },
+  {
+    "id": 85,
+    "name": "alternative",
+    "image": "https://api.deezer.com/genre/85/image",
+    "popularity": 139,
+    "display_name": "Alternative"
+  },
+  {
+    "id": 23,
+    "name": "k-pop",
+    "image": "https://api.deezer.com/genre/23/image",
+    "popularity": 138,
+    "display_name": "K-Pop"
+  },
+  {
+    "id": 122,
+    "name": "reggaeton",
+    "image": "https://api.deezer.com/genre/122/image",
+    "popularity": 137,
+    "display_name": "Reggaeton"
+  },
+  {
+    "id": 81,
+    "name": "indian-music",
+    "image": "https://api.deezer.com/genre/81/image",
+    "popularity": 136,
+    "display_name": "Indian Music"
+  },
+  {
+    "id": 138,
+    "name": "latin-pop",
+    "image": "https://api.deezer.com/genre/138/image",
+    "popularity": 135,
+    "display_name": "Latin Pop"
+  },
+  {
+    "id": 86,
+    "name": "indie-pop",
+    "image": "https://api.deezer.com/genre/86/image",
+    "popularity": 134,
+    "display_name": "Indie Pop"
+  },
+  {
+    "id": 87,
+    "name": "indie-rock",
+    "image": "https://api.deezer.com/genre/87/image",
+    "popularity": 133,
+    "display_name": "Indie Rock"
+  },
+  {
+    "id": 166,
+    "name": "contemporary-r-b",
+    "image": "https://api.deezer.com/genre/166/image",
+    "popularity": 132,
+    "display_name": "Contemporary R&B"
+  },
+  {
+    "id": 75,
+    "name": "brazilian-music",
+    "image": "https://api.deezer.com/genre/75/image",
+    "popularity": 131,
+    "display_name": "Brazilian Music"
+  },
+  {
+    "id": 128,
+    "name": "french-rap",
+    "image": "https://api.deezer.com/genre/128/image",
+    "popularity": 130,
+    "display_name": "French Rap"
+  },
+  {
+    "id": 121,
+    "name": "german-rap",
+    "image": "https://api.deezer.com/genre/121/image",
+    "popularity": 129,
+    "display_name": "German Rap"
+  },
+  {
+    "id": 143,
+    "name": "pop-francaise",
+    "image": "https://api.deezer.com/genre/143/image",
+    "popularity": 128,
+    "display_name": "Pop française"
+  },
+  {
+    "id": 155,
+    "name": "hard-rock",
+    "image": "https://api.deezer.com/genre/155/image",
+    "popularity": 127,
+    "display_name": "Hard Rock"
+  },
+  {
+    "id": 111,
+    "name": "techno-house",
+    "image": "https://api.deezer.com/genre/111/image",
+    "popularity": 126,
+    "display_name": "Techno House"
+  },
+  {
+    "id": 129,
+    "name": "jazz",
+    "image": "https://api.deezer.com/genre/129/image",
+    "popularity": 125,
+    "display_name": "Jazz"
+  },
+  {
+    "id": 98,
+    "name": "classical",
+    "image": "https://api.deezer.com/genre/98/image",
+    "popularity": 124,
+    "display_name": "Classical"
+  },
+  {
+    "id": 144,
+    "name": "reggae",
+    "image": "https://api.deezer.com/genre/144/image",
+    "popularity": 123,
+    "display_name": "Reggae"
+  },
+  {
+    "id": 169,
+    "name": "soul-funk",
+    "image": "https://api.deezer.com/genre/169/image",
+    "popularity": 122,
+    "display_name": "Soul Funk"
+  },
+  {
+    "id": 153,
+    "name": "blues",
+    "image": "https://api.deezer.com/genre/153/image",
+    "popularity": 121,
+    "display_name": "Blues"
+  },
+  {
+    "id": 168,
+    "name": "disco",
+    "image": "https://api.deezer.com/genre/168/image",
+    "popularity": 120,
+    "display_name": "Disco"
+  },
+  {
+    "id": 176,
+    "name": "soundtracks",
+    "image": "https://api.deezer.com/genre/176/image",
+    "popularity": 119,
+    "display_name": "Soundtracks"
+  },
+  {
+    "id": 186,
+    "name": "christian",
+    "image": "https://api.deezer.com/genre/186/image",
+    "popularity": 118,
+    "display_name": "Christian"
+  },
+  {
+    "id": 2,
+    "name": "african-music",
+    "image": "https://api.deezer.com/genre/2/image",
+    "popularity": 117,
+    "display_name": "African Music"
+  },
+  {
+    "id": 3,
+    "name": "afro-pop",
+    "image": "https://api.deezer.com/genre/3/image",
+    "popularity": 116,
+    "display_name": "Afro Pop"
+  },
+  {
+    "id": 12,
+    "name": "arabic-music",
+    "image": "https://api.deezer.com/genre/12/image",
+    "popularity": 115,
+    "display_name": "Arabic Music"
+  },
+  {
+    "id": 16,
+    "name": "asian-music",
+    "image": "https://api.deezer.com/genre/16/image",
+    "popularity": 114,
+    "display_name": "Asian Music"
+  },
+  {
+    "id": 22,
+    "name": "j-pop",
+    "image": "https://api.deezer.com/genre/22/image",
+    "popularity": 113,
+    "display_name": "J-Pop"
+  },
+  {
+    "id": 18,
+    "name": "chinese-pop",
+    "image": "https://api.deezer.com/genre/18/image",
+    "popularity": 112,
+    "display_name": "Chinese Pop"
+  },
+  {
+    "id": 178,
+    "name": "bollywood",
+    "image": "https://api.deezer.com/genre/178/image",
+    "popularity": 111,
+    "display_name": "Bollywood"
+  },
+  {
+    "id": 80,
+    "name": "sertanejo",
+    "image": "https://api.deezer.com/genre/80/image",
+    "popularity": 110,
+    "display_name": "Sertanejo"
+  },
+  {
+    "id": 67,
+    "name": "salsa",
+    "image": "https://api.deezer.com/genre/67/image",
+    "popularity": 109,
+    "display_name": "Salsa"
+  },
+  {
+    "id": 71,
+    "name": "cumbia",
+    "image": "https://api.deezer.com/genre/71/image",
+    "popularity": 108,
+    "display_name": "Cumbia"
+  },
+  {
+    "id": 78,
+    "name": "mpb",
+    "image": "https://api.deezer.com/genre/78/image",
+    "popularity": 107,
+    "display_name": "MPB"
+  },
+  {
+    "id": 79,
+    "name": "samba-pagode",
+    "image": "https://api.deezer.com/genre/79/image",
+    "popularity": 106,
+    "display_name": "Samba Pagode"
+  },
+  {
+    "id": 123,
+    "name": "russian-rap",
+    "image": "https://api.deezer.com/genre/123/image",
+    "popularity": 105,
+    "display_name": "Russian Rap"
+  },
+  {
+    "id": 135,
+    "name": "russian-pop",
+    "image": "https://api.deezer.com/genre/135/image",
+    "popularity": 104,
+    "display_name": "Russian Pop"
+  },
+  {
+    "id": 158,
+    "name": "russian-rock",
+    "image": "https://api.deezer.com/genre/158/image",
+    "popularity": 103,
+    "display_name": "Russian Rock"
+  },
+  {
+    "id": 137,
+    "name": "turkish-pop",
+    "image": "https://api.deezer.com/genre/137/image",
+    "popularity": 102,
+    "display_name": "Turkish Pop"
+  },
+  {
+    "id": 159,
+    "name": "turkish-rock",
+    "image": "https://api.deezer.com/genre/159/image",
+    "popularity": 101,
+    "display_name": "Turkish Rock"
+  },
+  {
+    "id": 49,
+    "name": "turkish-folk-music",
+    "image": "https://api.deezer.com/genre/49/image",
+    "popularity": 100,
+    "display_name": "Turkish Folk Music"
+  },
+  {
+    "id": 145,
+    "name": "dancehall-ragga",
+    "image": "https://api.deezer.com/genre/145/image",
+    "popularity": 99,
+    "display_name": "Dancehall Ragga"
+  },
+  {
+    "id": 108,
+    "name": "dubstep",
+    "image": "https://api.deezer.com/genre/108/image",
+    "popularity": 98,
+    "display_name": "Dubstep"
+  },
+  {
+    "id": 115,
+    "name": "trance",
+    "image": "https://api.deezer.com/genre/115/image",
+    "popularity": 97,
+    "display_name": "Trance"
+  },
+  {
+    "id": 110,
+    "name": "electro-pop-electro-rock",
+    "image": "https://api.deezer.com/genre/110/image",
+    "popularity": 96,
+    "display_name": "Electro Pop Electro Rock"
+  },
+  {
+    "id": 109,
+    "name": "electro-hip-hop",
+    "image": "https://api.deezer.com/genre/109/image",
+    "popularity": 95,
+    "display_name": "Electro Hip Hop"
+  },
+  {
+    "id": 107,
+    "name": "chill-out-trip-hop-lounge",
+    "image": "https://api.deezer.com/genre/107/image",
+    "popularity": 94,
+    "display_name": "Chill Out Trip Hop Lounge"
+  },
+  {
+    "id": 133,
+    "name": "indie-pop-folk",
+    "image": "https://api.deezer.com/genre/133/image",
+    "popularity": 93,
+    "display_name": "Indie Pop Folk"
+  },
+  {
+    "id": 154,
+    "name": "indie-rock-rock-pop",
+    "image": "https://api.deezer.com/genre/154/image",
+    "popularity": 92,
+    "display_name": "Indie Rock Rock Pop"
+  },
+  {
+    "id": 91,
+    "name": "latin-alternative",
+    "image": "https://api.deezer.com/genre/91/image",
+    "popularity": 91,
+    "display_name": "Latin Alternative"
+  },
+  {
+    "id": 160,
+    "name": "latin-rock",
+    "image": "https://api.deezer.com/genre/160/image",
+    "popularity": 90,
+    "display_name": "Latin Rock"
+  },
+  {
+    "id": 58,
+    "name": "banda-grupero",
+    "image": "https://api.deezer.com/genre/58/image",
+    "popularity": 89,
+    "display_name": "Banda Grupero"
+  },
+  {
+    "id": 65,
+    "name": "traditional-mexicano",
+    "image": "https://api.deezer.com/genre/65/image",
+    "popularity": 88,
+    "display_name": "Traditional Mexicano"
+  },
+  {
+    "id": 73,
+    "name": "tango",
+    "image": "https://api.deezer.com/genre/73/image",
+    "popularity": 87,
+    "display_name": "Tango"
+  },
+  {
+    "id": 131,
+    "name": "vocal-jazz",
+    "image": "https://api.deezer.com/genre/131/image",
+    "popularity": 86,
+    "display_name": "Vocal Jazz"
+  },
+  {
+    "id": 130,
+    "name": "instrumental-jazz",
+    "image": "https://api.deezer.com/genre/130/image",
+    "popularity": 85,
+    "display_name": "Instrumental Jazz"
+  },
+  {
+    "id": 187,
+    "name": "gospel",
+    "image": "https://api.deezer.com/genre/187/image",
+    "popularity": 84,
+    "display_name": "Gospel"
+  },
+  {
+    "id": 188,
+    "name": "praise-worship",
+    "image": "https://api.deezer.com/genre/188/image",
+    "popularity": 83,
+    "display_name": "Praise Worship"
+  },
+  {
+    "id": 173,
+    "name": "films-games",
+    "image": "https://api.deezer.com/genre/173/image",
+    "popularity": 82,
+    "display_name": "Films Games"
+  },
+  {
+    "id": 174,
+    "name": "film-scores",
+    "image": "https://api.deezer.com/genre/174/image",
+    "popularity": 81,
+    "display_name": "Film Scores"
+  },
+  {
+    "id": 177,
+    "name": "tv-soundtracks",
+    "image": "https://api.deezer.com/genre/177/image",
+    "popularity": 80,
+    "display_name": "TV Soundtracks"
+  },
+  {
+    "id": 179,
+    "name": "game-scores",
+    "image": "https://api.deezer.com/genre/179/image",
+    "popularity": 79,
+    "display_name": "Game Scores"
+  },
+  {
+    "id": 175,
+    "name": "musicals",
+    "image": "https://api.deezer.com/genre/175/image",
+    "popularity": 78,
+    "display_name": "Musicals"
+  },
+  {
+    "id": 95,
+    "name": "kids",
+    "image": "https://api.deezer.com/genre/95/image",
+    "popularity": 77,
+    "display_name": "Kids"
+  },
+  {
+    "id": 96,
+    "name": "nursery-rhymes",
+    "image": "https://api.deezer.com/genre/96/image",
+    "popularity": 76,
+    "display_name": "Nursery Rhymes"
+  },
+  {
+    "id": 97,
+    "name": "stories",
+    "image": "https://api.deezer.com/genre/97/image",
+    "popularity": 75,
+    "display_name": "Stories"
+  },
+  {
+    "id": 182,
+    "name": "classic-blues",
+    "image": "https://api.deezer.com/genre/182/image",
+    "popularity": 74,
+    "display_name": "Classic Blues"
+  },
+  {
+    "id": 185,
+    "name": "electric-blues",
+    "image": "https://api.deezer.com/genre/185/image",
+    "popularity": 73,
+    "display_name": "Electric Blues"
+  },
+  {
+    "id": 180,
+    "name": "acoustic-blues",
+    "image": "https://api.deezer.com/genre/180/image",
+    "popularity": 72,
+    "display_name": "Acoustic Blues"
+  },
+  {
+    "id": 181,
+    "name": "chicago-blues",
+    "image": "https://api.deezer.com/genre/181/image",
+    "popularity": 71,
+    "display_name": "Chicago Blues"
+  },
+  {
+    "id": 183,
+    "name": "country-blues",
+    "image": "https://api.deezer.com/genre/183/image",
+    "popularity": 70,
+    "display_name": "Country Blues"
+  },
+  {
+    "id": 184,
+    "name": "delta-blues",
+    "image": "https://api.deezer.com/genre/184/image",
+    "popularity": 69,
+    "display_name": "Delta Blues"
+  },
+  {
+    "id": 156,
+    "name": "rock-roll-rockabilly",
+    "image": "https://api.deezer.com/genre/156/image",
+    "popularity": 68,
+    "display_name": "Rock & Roll/Rockabilly"
+  },
+  {
+    "id": 170,
+    "name": "oldschool-r-b",
+    "image": "https://api.deezer.com/genre/170/image",
+    "popularity": 67,
+    "display_name": "Oldschool R&B"
+  },
+  {
+    "id": 171,
+    "name": "old-school-soul",
+    "image": "https://api.deezer.com/genre/171/image",
+    "popularity": 66,
+    "display_name": "Old School Soul"
+  },
+  {
+    "id": 206,
+    "name": "old-school",
+    "image": "https://api.deezer.com/genre/206/image",
+    "popularity": 65,
+    "display_name": "Old School"
+  },
+  {
+    "id": 202,
+    "name": "east-coast",
+    "image": "https://api.deezer.com/genre/202/image",
+    "popularity": 64,
+    "display_name": "East Coast"
+  },
+  {
+    "id": 204,
+    "name": "west-coast",
+    "image": "https://api.deezer.com/genre/204/image",
+    "popularity": 63,
+    "display_name": "West Coast"
+  },
+  {
+    "id": 200,
+    "name": "dirty-south",
+    "image": "https://api.deezer.com/genre/200/image",
+    "popularity": 62,
+    "display_name": "Dirty South"
+  },
+  {
+    "id": 208,
+    "name": "jazz-hip-hop",
+    "image": "https://api.deezer.com/genre/208/image",
+    "popularity": 61,
+    "display_name": "Jazz Hip Hop"
+  },
+  {
+    "id": 195,
+    "name": "traditional-country",
+    "image": "https://api.deezer.com/genre/195/image",
+    "popularity": 60,
+    "display_name": "Traditional Country"
+  },
+  {
+    "id": 192,
+    "name": "alternative-country",
+    "image": "https://api.deezer.com/genre/192/image",
+    "popularity": 59,
+    "display_name": "Alternative Country"
+  },
+  {
+    "id": 196,
+    "name": "urban-cowboy",
+    "image": "https://api.deezer.com/genre/196/image",
+    "popularity": 58,
+    "display_name": "Urban Cowboy"
+  },
+  {
+    "id": 194,
+    "name": "honky-tonk",
+    "image": "https://api.deezer.com/genre/194/image",
+    "popularity": 57,
+    "display_name": "Honky Tonk"
+  },
+  {
+    "id": 193,
+    "name": "bluegrass",
+    "image": "https://api.deezer.com/genre/193/image",
+    "popularity": 56,
+    "display_name": "Bluegrass"
+  },
+  {
+    "id": 189,
+    "name": "christian-pop",
+    "image": "https://api.deezer.com/genre/189/image",
+    "popularity": 55,
+    "display_name": "Christian Pop"
+  },
+  {
+    "id": 190,
+    "name": "christian-rap",
+    "image": "https://api.deezer.com/genre/190/image",
+    "popularity": 54,
+    "display_name": "Christian Rap"
+  },
+  {
+    "id": 191,
+    "name": "christian-rock",
+    "image": "https://api.deezer.com/genre/191/image",
+    "popularity": 53,
+    "display_name": "Christian Rock"
+  },
+  {
+    "id": 105,
+    "name": "romantic",
+    "image": "https://api.deezer.com/genre/105/image",
+    "popularity": 52,
+    "display_name": "Romantic"
+  },
+  {
+    "id": 102,
+    "name": "modern",
+    "image": "https://api.deezer.com/genre/102/image",
+    "popularity": 51,
+    "display_name": "Modern"
+  },
+  {
+    "id": 100,
+    "name": "classical-period",
+    "image": "https://api.deezer.com/genre/100/image",
+    "popularity": 50,
+    "display_name": "Classical Period"
+  },
+  {
+    "id": 99,
+    "name": "baroque",
+    "image": "https://api.deezer.com/genre/99/image",
+    "popularity": 49,
+    "display_name": "Baroque"
+  },
+  {
+    "id": 104,
+    "name": "renaissance",
+    "image": "https://api.deezer.com/genre/104/image",
+    "popularity": 48,
+    "display_name": "Renaissance"
+  },
+  {
+    "id": 101,
+    "name": "early-music",
+    "image": "https://api.deezer.com/genre/101/image",
+    "popularity": 47,
+    "display_name": "Early Music"
+  },
+  {
+    "id": 103,
+    "name": "opera",
+    "image": "https://api.deezer.com/genre/103/image",
+    "popularity": 46,
+    "display_name": "Opera"
+  },
+  {
+    "id": 114,
+    "name": "dancefloor",
+    "image": "https://api.deezer.com/genre/114/image",
+    "popularity": 45,
+    "display_name": "Dancefloor"
+  },
+  {
+    "id": 112,
+    "name": "south-african-house",
+    "image": "https://api.deezer.com/genre/112/image",
+    "popularity": 44,
+    "display_name": "South African House"
+  },
+  {
+    "id": 146,
+    "name": "dub",
+    "image": "https://api.deezer.com/genre/146/image",
+    "popularity": 43,
+    "display_name": "Dub"
+  },
+  {
+    "id": 147,
+    "name": "ska",
+    "image": "https://api.deezer.com/genre/147/image",
+    "popularity": 42,
+    "display_name": "Ska"
+  },
+  {
+    "id": 141,
+    "name": "variete-internationale",
+    "image": "https://api.deezer.com/genre/141/image",
+    "popularity": 41,
+    "display_name": "Variété Internationale"
+  },
+  {
+    "id": 134,
+    "name": "international-pop",
+    "image": "https://api.deezer.com/genre/134/image",
+    "popularity": 40,
+    "display_name": "International Pop"
+  },
+  {
+    "id": 52,
+    "name": "french-chanson",
+    "image": "https://api.deezer.com/genre/52/image",
+    "popularity": 39,
+    "display_name": "French Chanson"
+  },
+  {
+    "id": 164,
+    "name": "rock-francais",
+    "image": "https://api.deezer.com/genre/164/image",
+    "popularity": 38,
+    "display_name": "Rock Francais"
+  },
+  {
+    "id": 36,
+    "name": "flamenco",
+    "image": "https://api.deezer.com/genre/36/image",
+    "popularity": 37,
+    "display_name": "Flamenco"
+  },
+  {
+    "id": 45,
+    "name": "schlager-volksmusik",
+    "image": "https://api.deezer.com/genre/45/image",
+    "popularity": 36,
+    "display_name": "Schlager & Volksmusik"
+  },
+  {
+    "id": 25,
+    "name": "indonesian-music",
+    "image": "https://api.deezer.com/genre/25/image",
+    "popularity": 35,
+    "display_name": "Indonesian Music"
+  },
+  {
+    "id": 20,
+    "name": "indonesian-pop",
+    "image": "https://api.deezer.com/genre/20/image",
+    "popularity": 34,
+    "display_name": "Indonesian Pop"
+  },
+  {
+    "id": 24,
+    "name": "malaysian-pop",
+    "image": "https://api.deezer.com/genre/24/image",
+    "popularity": 33,
+    "display_name": "Malaysian Pop"
+  },
+  {
+    "id": 28,
+    "name": "thai-pop",
+    "image": "https://api.deezer.com/genre/28/image",
+    "popularity": 32,
+    "display_name": "Thai Pop"
+  },
+  {
+    "id": 88,
+    "name": "thai-indie",
+    "image": "https://api.deezer.com/genre/88/image",
+    "popularity": 31,
+    "display_name": "Thai Indie"
+  },
+  {
+    "id": 27,
+    "name": "thai-country",
+    "image": "https://api.deezer.com/genre/27/image",
+    "popularity": 30,
+    "display_name": "Thai Country"
+  },
+  {
+    "id": 29,
+    "name": "thai-retro",
+    "image": "https://api.deezer.com/genre/29/image",
+    "popularity": 29,
+    "display_name": "Thai Retro"
+  },
+  {
+    "id": 60,
+    "name": "folklore-latino-americain",
+    "image": "https://api.deezer.com/genre/60/image",
+    "popularity": 28,
+    "display_name": "Folklore latino-américain"
+  },
+  {
+    "id": 198,
+    "name": "traditional-mexican-tango",
+    "image": "https://api.deezer.com/genre/198/image",
+    "popularity": 27,
+    "display_name": "Traditional Mexican Tango"
+  },
+  {
+    "id": 199,
+    "name": "caribe",
+    "image": "https://api.deezer.com/genre/199/image",
+    "popularity": 26,
+    "display_name": "Caribe"
+  },
+  {
+    "id": 76,
+    "name": "axe-forro",
+    "image": "https://api.deezer.com/genre/76/image",
+    "popularity": 25,
+    "display_name": "Axe Forro"
+  },
+  {
+    "id": 94,
+    "name": "alternative-brazil",
+    "image": "https://api.deezer.com/genre/94/image",
+    "popularity": 24,
+    "display_name": "Alternative Brazil"
+  },
+  {
+    "id": 161,
+    "name": "brazil-rock",
+    "image": "https://api.deezer.com/genre/161/image",
+    "popularity": 23,
+    "display_name": "Brazil Rock"
+  },
+  {
+    "id": 125,
+    "name": "kwaito",
+    "image": "https://api.deezer.com/genre/125/image",
+    "popularity": 22,
+    "display_name": "Kwaito"
+  },
+  {
+    "id": 10,
+    "name": "zouglou",
+    "image": "https://api.deezer.com/genre/10/image",
+    "popularity": 21,
+    "display_name": "Zouglou"
+  },
+  {
+    "id": 5,
+    "name": "coupe-decale",
+    "image": "https://api.deezer.com/genre/5/image",
+    "popularity": 20,
+    "display_name": "Coupe Decale"
+  },
+  {
+    "id": 11,
+    "name": "zouk",
+    "image": "https://api.deezer.com/genre/11/image",
+    "popularity": 19,
+    "display_name": "Zouk"
+  },
+  {
+    "id": 13,
+    "name": "chaabi",
+    "image": "https://api.deezer.com/genre/13/image",
+    "popularity": 18,
+    "display_name": "Chaabi"
+  },
+  {
+    "id": 14,
+    "name": "charki",
+    "image": "https://api.deezer.com/genre/14/image",
+    "popularity": 17,
+    "display_name": "Charki"
+  },
+  {
+    "id": 15,
+    "name": "rai",
+    "image": "https://api.deezer.com/genre/15/image",
+    "popularity": 16,
+    "display_name": "Rai"
+  },
+  {
+    "id": 9,
+    "name": "touareg",
+    "image": "https://api.deezer.com/genre/9/image",
+    "popularity": 15,
+    "display_name": "Touareg"
+  },
+  {
+    "id": 157,
+    "name": "finnish-metal",
+    "image": "https://api.deezer.com/genre/157/image",
+    "popularity": 14,
+    "display_name": "Finnish Metal"
+  },
+  {
+    "id": 162,
+    "name": "finnish-rock",
+    "image": "https://api.deezer.com/genre/162/image",
+    "popularity": 13,
+    "display_name": "Finnish Rock"
+  },
+  {
+    "id": 124,
+    "name": "finnish-rap",
+    "image": "https://api.deezer.com/genre/124/image",
+    "popularity": 12,
+    "display_name": "Finnish Rap"
+  },
+  {
+    "id": 136,
+    "name": "pop-finlandaise",
+    "image": "https://api.deezer.com/genre/136/image",
+    "popularity": 11,
+    "display_name": "Pop Finlandaise"
+  },
+  {
+    "id": 89,
+    "name": "inde-finlandaise",
+    "image": "https://api.deezer.com/genre/89/image",
+    "popularity": 10,
+    "display_name": "Inde Finlandaise"
+  },
+  {
+    "id": 149,
+    "name": "finnish-reggae",
+    "image": "https://api.deezer.com/genre/149/image",
+    "popularity": 9,
+    "display_name": "Finnish Reggae"
+  },
+  {
+    "id": 39,
+    "name": "iskelmae",
+    "image": "https://api.deezer.com/genre/39/image",
+    "popularity": 8,
+    "display_name": "Iskelmae"
+  },
+  {
+    "id": 90,
+    "name": "estonian-indie",
+    "image": "https://api.deezer.com/genre/90/image",
+    "popularity": 7,
+    "display_name": "Estonian Indie"
+  },
+  {
+    "id": 142,
+    "name": "hungarian-pop-rock",
+    "image": "https://api.deezer.com/genre/142/image",
+    "popularity": 6,
+    "display_name": "Hungarian Pop Rock"
+  },
+  {
+    "id": 4,
+    "name": "biguine",
+    "image": "https://api.deezer.com/genre/4/image",
+    "popularity": 5,
+    "display_name": "Biguine"
+  },
+  {
+    "id": 6,
+    "name": "sega-mauritien",
+    "image": "https://api.deezer.com/genre/6/image",
+    "popularity": 4,
+    "display_name": "Sega Mauritien"
+  },
+  {
+    "id": 7,
+    "name": "seggae-mauritien",
+    "image": "https://api.deezer.com/genre/7/image",
+    "popularity": 3,
+    "display_name": "Seggae Mauritien"
+  },
+  {
+    "id": 8,
+    "name": "swag-mauritien",
+    "image": "https://api.deezer.com/genre/8/image",
+    "popularity": 2,
+    "display_name": "Swag Mauritien"
+  },
+  {
+    "id": 150,
+    "name": "mauritian-reggae",
+    "image": "https://api.deezer.com/genre/150/image",
+    "popularity": 1,
+    "display_name": "Mauritian Reggae"
+  }
+]

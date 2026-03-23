@@ -1,11 +1,11 @@
-import { OffsetOptions, Placement } from '@floating-ui/react-dom';
-import { mergeProps } from '@react-aria/utils';
-import { MessageDescriptor } from '@ui/i18n/message-descriptor';
-import { useFloatingPosition } from '@ui/overlays/floating-position';
-import { PopoverAnimation } from '@ui/overlays/popover-animation';
-import { rootEl } from '@ui/root-el';
+import {OffsetOptions, Placement} from '@floating-ui/react-dom';
+import {mergeProps} from '@react-aria/utils';
+import {MessageDescriptor} from '@ui/i18n/message-descriptor';
+import {useFloatingPosition} from '@ui/overlays/floating-position';
+import {PopoverAnimation} from '@ui/overlays/popover-animation';
+import {rootEl} from '@ui/root-el';
 import clsx from 'clsx';
-import { AnimatePresence, m } from 'framer-motion';
+import {AnimatePresence, m} from 'framer-motion';
 import {
   cloneElement,
   forwardRef,
@@ -19,7 +19,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
+import {createPortal} from 'react-dom';
 
 const TOOLTIP_COOLDOWN = 500;
 const tooltips: Record<string, ((immediate?: boolean) => void) | undefined> =

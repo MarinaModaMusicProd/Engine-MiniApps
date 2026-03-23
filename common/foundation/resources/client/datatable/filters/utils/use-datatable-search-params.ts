@@ -13,7 +13,12 @@ export function useDatatableSearchParams<
   }, [searchParams, validateFn]);
 
   const mergeIntoSearchParams = useCallback(
-    (newParams: Partial<Record<keyof S, string | number>>) => {
+    (
+      newParams: Partial<Record<keyof S, string | number>>,
+      options?: {
+        clearCurrentPage?: boolean;
+      },
+    ) => {
       const merged = {...Object.fromEntries(searchParams), ...newParams};
 
       // parse params with schema, if schema is provided
@@ -21,6 +26,11 @@ export function useDatatableSearchParams<
 
       _setSearchParams(
         prev => {
+          if (options?.clearCurrentPage) {
+            prev.delete('page');
+            prev.delete('perPage');
+          }
+
           for (const key in parsed) {
             // remove empty values (query='', orderBy='', etc.) and default page from the url
             if (
@@ -44,19 +54,9 @@ export function useDatatableSearchParams<
   // when setting only search term, remove page so we start from 1st page always on new search
   const setSearchQuery = useCallback(
     (query?: string) => {
-      _setSearchParams(
-        prev => {
-          prev.delete('page');
-          prev.delete('perPage');
-          if (query) {
-            prev.set('query', query);
-          } else {
-            prev.delete('query');
-          }
-          return prev;
-        },
-        {replace: true},
-      );
+      mergeIntoSearchParams({query: query ?? ''} as any, {
+        clearCurrentPage: true,
+      });
     },
     [_setSearchParams],
   );
@@ -73,6 +73,11 @@ export function useDatatableSearchParams<
     mergeIntoSearchParams,
     setSearchQuery,
     sortDescriptor,
-    isFiltering: !!(parsedParams.query || parsedParams.filters),
+    isFiltering: !!(
+      parsedParams.query ||
+      parsedParams.filters ||
+      // for active/archived toggle button
+      parsedParams.status === 'archived'
+    ),
   };
 }

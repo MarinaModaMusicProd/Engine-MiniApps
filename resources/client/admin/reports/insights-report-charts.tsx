@@ -67,7 +67,10 @@ export function InsightsReportCharts(props: InsightsReportChartsProps) {
         </AsyncChart>
       )}
       <AsyncChart metric="users" model={model} dateRange={dateRange}>
-        <TopModelsChartLayout title={<Trans message="Top listeners" />} />
+        <TopModelsChartLayout
+          title={<Trans message="Top listeners" />}
+          colSpan={props.showTracks ? 'col-span-6' : 'col-span-12'}
+        />
       </AsyncChart>
       {props.showArtistsAndAlbums && (
         <Fragment>

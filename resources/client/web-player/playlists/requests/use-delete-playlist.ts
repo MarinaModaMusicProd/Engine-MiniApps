@@ -18,15 +18,18 @@ export function useDeletePlaylist(playlistId: number | string) {
 
   return useMutation({
     mutationFn: () => deletePlaylist(playlistId),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast(message('Playlist deleted'));
-      queryClient.invalidateQueries({
-        queryKey: appQueries.playlists.invalidateKey,
-      });
       // navigate to homepage if we are on this playlist page currently
       if (pathname.startsWith(`/playlist/${playlistId}`)) {
         navigate(getRedirectUri());
+        // wait for navigation to complete, otherwise will try to refetch deleted playlist
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
+      queryClient.invalidateQueries({
+        queryKey: appQueries.playlists.invalidateKey,
+        refetchType: 'active',
+      });
     },
     onError: r => showHttpErrorToast(r),
   });

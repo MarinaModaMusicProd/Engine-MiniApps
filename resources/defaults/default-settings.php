@@ -21,6 +21,8 @@ return [
     ['name' => 'automation.artist_interval', 'value' => 7],
 
     //providers
+    ['name' => 'metadata_provider', 'value' => 'local'],
+    ['name' => 'search_provider', 'value' => 'local'],
     ['name' => 'artist_bio_provider', 'value' => 'wikipedia'],
     ['name' => 'wikipedia_language', 'value' => 'en'],
 
@@ -42,7 +44,6 @@ return [
     ['name' => 'player.track_comments', 'value' => false],
     ['name' => 'player.show_upload_btn', 'value' => false],
     ['name' => 'uploads.autoMatch', 'value' => true],
-    ['name' => 'player.default_artist_view', 'value' => 'list'],
     ['name' => 'player.enable_repost', 'value' => false],
     [
         'name' => 'artistPage.tabs',
@@ -251,7 +252,7 @@ return [
                         'id' => 'nVKg0I',
                         'label' => 'Artists',
                         'action' => '/admin/artists',
-                        'permissions' => ['artists.update'],
+                        'permissions' => ['music.update'],
                         'type' => 'route',
                         'target' => '_self',
                     ],
@@ -259,14 +260,14 @@ return [
                         'id' => 'Qq7wh9',
                         'label' => 'Albums',
                         'action' => '/admin/albums',
-                        'permissions' => ['albums.update'],
+                        'permissions' => ['music.update'],
                         'type' => 'route',
                         'target' => '_self',
                     ],
                     [
                         'id' => '9_7Uip',
                         'label' => 'Tracks',
-                        'permissions' => ['tracks.update'],
+                        'permissions' => ['music.update'],
                         'action' => '/admin/tracks',
                         'type' => 'route',
                         'target' => '_self',
@@ -274,7 +275,7 @@ return [
                     [
                         'id' => '57IFvN',
                         'label' => 'Genres',
-                        'permissions' => ['genres.update'],
+                        'permissions' => ['music.update'],
                         'action' => '/admin/genres',
                         'type' => 'route',
                         'target' => '_self',
@@ -282,7 +283,7 @@ return [
                     [
                         'id' => '5eGJwT',
                         'label' => 'Lyrics',
-                        'permissions' => ['lyrics.update'],
+                        'permissions' => ['music.update'],
                         'action' => '/admin/lyrics',
                         'type' => 'route',
                         'target' => '_self',
@@ -362,7 +363,7 @@ return [
                     'name' => 'hero-with-background-image',
                     'title' => 'Amplify Your Sound. Discover the Unheard.',
                     'description' =>
-                        'MarinaModa is the ultimate ecosystem for independent creators and passionate listeners. Upload your tracks, build a loyal fanbase, and explore a universe of unfiltered, authentic audio.',
+                        'BeMusic is the ultimate ecosystem for independent creators and passionate listeners. Upload your tracks, build a loyal fanbase, and explore a universe of unfiltered, authentic audio.',
                     'bgColors' => [
                         'opacity' => 0.8,
                         'color1' => '#000000',
@@ -451,7 +452,7 @@ return [
                 [
                     'name' => 'feature-with-screenshot',
                     'badge' => 'Upload & Grow',
-                    'title' => 'Build Your Legacy on MarinaModa',
+                    'title' => 'Build Your Legacy on BeMusic',
                     'description' =>
                         'Take full ownership of your career with tools designed to get your music into the ears of people who care. We make publishing your catalog effortless so you can focus entirely on your craft and your audience.',
                     'wrapIconsInBg' => true,
@@ -491,7 +492,7 @@ return [
                     'badge' => 'Explore & Connect',
                     'title' => 'Find Your New Obsession',
                     'description' =>
-                        'Discover, stream, and share a constantly expanding mix of music from emerging and major artists around the world. MarinaModa goes beyond passive listening—dive into a rabbit hole of remixes, B-sides, and originals to curate your own unique sonic identity.',
+                        'Discover, stream, and share a constantly expanding mix of music from emerging and major artists around the world. BeMusic goes beyond passive listening—dive into a rabbit hole of remixes, B-sides, and originals to curate your own unique sonic identity.',
                     'features' => [
                         [
                             'title' => 'Curated Daily Feeds',
@@ -529,7 +530,7 @@ return [
                     'badge' => 'Social Audio',
                     'title' => 'More Than Just a Stream',
                     'description' =>
-                        'Music brings people together, and MarinaModa is the town square. We bridge the gap between the booth and the crowd, turning solitary listening into a shared, interactive experience.',
+                        'Music brings people together, and BeMusic is the town square. We bridge the gap between the booth and the crowd, turning solitary listening into a shared, interactive experience.',
                     'imageSize' => 'sm',
                     'features' => [
                         [
@@ -578,7 +579,7 @@ return [
                         [
                             'color' => 'primary',
                             'variant' => 'flat',
-                            'label' => 'Join MarinaModa for Free',
+                            'label' => 'Join BeMusic for Free',
                             'type' => 'route',
                             'action' => '/login',
                         ],

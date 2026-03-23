@@ -3,14 +3,23 @@ import {useBackendFilterUrlParams} from '@common/datatable/filters/backend-filte
 import {FilterList} from '@common/datatable/filters/filter-list/filter-list';
 import {FilterListSkeleton} from '@common/datatable/filters/filter-list/filter-list-skeleton';
 import {opacityAnimation} from '@ui/animation/opacity-animation';
+import {ButtonSize} from '@ui/buttons/button-size';
 import {AnimatePresence, m} from 'framer-motion';
 
 interface Props {
   pinnedFilters?: string[];
   filters: BackendFilter[];
   isLoading?: boolean;
+  buttonSize?: ButtonSize;
+  margin?: string;
 }
-export function DatatableFilters({pinnedFilters, filters, isLoading}: Props) {
+export function DatatableFilters({
+  pinnedFilters,
+  filters,
+  isLoading,
+  buttonSize,
+  margin = 'mb-14',
+}: Props) {
   const {encodedFilters, decodedFilters} = useBackendFilterUrlParams(filters);
 
   if (!isLoading && !pinnedFilters && !decodedFilters.length) {
@@ -18,7 +27,7 @@ export function DatatableFilters({pinnedFilters, filters, isLoading}: Props) {
   }
 
   return (
-    <div className="mb-14">
+    <div className={margin}>
       <AnimatePresence initial={false} mode="wait">
         {isLoading && (encodedFilters || pinnedFilters?.length) ? (
           <FilterListSkeleton
@@ -26,7 +35,11 @@ export function DatatableFilters({pinnedFilters, filters, isLoading}: Props) {
           />
         ) : (
           <m.div key="filter-list" {...opacityAnimation}>
-            <FilterList filters={filters} pinnedFilters={pinnedFilters} />
+            <FilterList
+              filters={filters}
+              pinnedFilters={pinnedFilters}
+              buttonSize={buttonSize}
+            />
           </m.div>
         )}
       </AnimatePresence>

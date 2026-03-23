@@ -2,19 +2,22 @@
 
 namespace App\Services\Artists;
 
+use App\Models\Album;
 use App\Models\Artist;
 use App\Models\Genre;
 use App\Models\ProfileImage;
 use App\Models\ProfileLink;
 use App\Models\Track;
 use App\Models\User;
+use App\Services\Albums\AlbumLoader;
 use App\Services\Albums\PaginateAlbums;
 use App\Services\Genres\GenreToApiResource;
+use App\Services\Providers\MusicMetadataProvider;
 use App\Services\Tracks\PaginateTracks;
 use App\Services\Tracks\TrackLoader;
 use App\Services\Users\UserProfileLoader;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class ArtistLoader
 {
@@ -36,28 +39,27 @@ class ArtistLoader
         $response = [
             'artist' => $artist,
             'loader' => $loader,
-            'selectedAlbumViewMode' => Arr::get(
-                $_COOKIE,
-                'artistPage-albumViewMode',
-                settings('player.default_artist_view', 'list'),
-            ),
         ];
 
         if ($loader === 'artistPage') {
-            if ($artist->needsUpdating()) {
-                $newArtist = (new SyncArtistWithSpotify())->execute($artist);
-                $response['artist'] = $newArtist ?? $artist;
+            if (
+                $artist->needsUpdating() &&
+                ($updatedArtist = (new MusicMetadataProvider())->importArtist(
+                    $artist,
+                ))
+            ) {
+                $response['artist'] = $updatedArtist;
             }
+            $response['artist']->load(['genres']);
+            $response['artist']->loadCount(['likes']);
             $response = $this->loadTopTracks($response);
             $response = $this->loadSimilar($response);
             $response = $this->loadProfile($response);
-            $response['artist']->load(['genres']);
-            $response['artist']->loadCount(['likes']);
             $response = $this->loadActiveTabData($response);
         } elseif ($loader === 'editArtistPage') {
+            $response['artist']->load(['genres']);
             $response = $this->loadEditPageAlbums($response);
             $response = $this->loadProfile($response);
-            $response['artist']->load(['genres']);
         }
 
         $response['artist'] = $this->toApiResource(
@@ -82,6 +84,7 @@ class ArtistLoader
 
         if ($loader !== 'artist') {
             $resource['spotify_id'] = $artist->spotify_id;
+            $resource['deezer_id'] = $artist->deezer_id;
             $resource['created_at'] = $artist->updated_at?->toJSON();
             $resource['updated_at'] = $artist->updated_at?->toJSON();
             $resource['views'] = $artist->views;
@@ -164,13 +167,14 @@ class ArtistLoader
     {
         $tabIds = collect(settings('artistPage.tabs'))
             ->filter(fn($tab) => $tab['active'])
-            ->map(fn($tab) => (int) $tab['id']);
+            ->map(fn($tab) => (int) $tab['id'])
+            ->values();
 
         $activeTabName = request('tab');
         $activeTabId = static::$artistPageTabs[$activeTabName] ?? null;
         $activeTabId =
             !$activeTabId || !$tabIds->contains($activeTabId)
-                ? $tabIds[0]
+                ? $tabIds[0] ?? static::$artistPageTabs['discography']
                 : $activeTabId;
 
         if ($activeTabId === static::$artistPageTabs['tracks']) {
@@ -181,17 +185,20 @@ class ArtistLoader
         }
 
         if ($activeTabId === static::$artistPageTabs['discography']) {
-            $response['albums'] = $this->paginateArtistAlbums(
+            $response['grouped_albums'] = $this->loadDiscographyTabData(
                 $response['artist'],
-                viewMode: $response['selectedAlbumViewMode'],
             );
             return $response;
         }
 
         if ($activeTabId === static::$artistPageTabs['albums']) {
-            $response['albums'] = $this->paginateArtistAlbums(
-                $response['artist'],
-                viewMode: 'list',
+            $response['albums'] = (new PaginateAlbums())->asApiResponse(
+                [
+                    'perPage' => 25,
+                    'paginate' => 'simple',
+                ],
+                $response['artist']->albums(),
+                includeTracks: true,
             );
             return $response;
         }
@@ -229,10 +236,13 @@ class ArtistLoader
 
     protected function loadEditPageAlbums(array $response): array
     {
-        $response['albums'] = $this->paginateArtistAlbums(
-            $response['artist'],
-            viewMode: 'grid',
-            perPage: 50,
+        $response['albums'] = (new PaginateAlbums())->asApiResponse(
+            [
+                'perPage' => 50,
+                'paginate' => 'simple',
+                'page' => 1,
+            ],
+            $response['artist']->albums(),
             includeScheduled: true,
             loader: 'editArtistPage',
         );
@@ -241,39 +251,62 @@ class ArtistLoader
 
     protected function loadSimilar(array $response): array
     {
-        if (
-            settings('artist_provider') !== 'spotify' ||
-            !config('services.spotify.use_deprecated_api')
-        ) {
+        $response['artist']->load('similar');
+
+        if ($response['artist']->similar->isEmpty()) {
             $similar = (new GetSimilarArtists())->execute($response['artist']);
             $response['artist']->setRelation('similar', $similar);
-        } else {
-            $response['artist']->load('similar');
         }
+
         return $response;
     }
 
-    public function paginateArtistAlbums(
-        Artist $artist,
-        string $viewMode = 'grid',
-        int|null $perPage = null,
-        bool $includeScheduled = false,
-        string|null $loader = null,
-        int|null $page = 1,
-    ): array {
-        $finalPerPage = $perPage ?? ($viewMode === 'list' ? 5 : 25);
-        return (new PaginateAlbums())->asApiResponse(
-            [
-                'perPage' => $finalPerPage,
-                'order' => 'singlesLast',
-                'paginate' => 'simple',
-                'page' => $page,
-            ],
-            $artist->albums(),
-            includeScheduled: $includeScheduled,
-            includeTracks: $viewMode === 'list',
-            loader: $loader,
-        );
+    protected function loadDiscographyTabData(Artist $artist): array
+    {
+        $visiblePerGroup = 10;
+        $prefix = DB::getTablePrefix();
+
+        $rankedAlbums = $artist
+            ->albums()
+            ->select("{$prefix}albums.*")
+            ->selectRaw(
+                "row_number() over (
+                    partition by {$prefix}albums.record_type
+                    order by {$prefix}albums.release_date desc, {$prefix}albums.id desc
+                ) as type_rank",
+            )
+            ->when(
+                !(new MusicMetadataProvider())->getProvider(),
+                fn($query) => $query->releasedOnly(),
+            );
+
+        $albums = Album::query()
+            ->fromSub($rankedAlbums->toBase(), 'ranked_albums')
+            ->where('ranked_albums.type_rank', '<=', $visiblePerGroup + 1)
+            ->orderByRecordType('ranked_albums')
+            ->orderBy('ranked_albums.type_rank')
+            ->get();
+
+        $grouped = $albums
+            ->load('artists')
+            ->groupBy('record_type')
+            ->map(
+                fn($albums) => [
+                    'data' => $albums
+                        ->take($visiblePerGroup)
+                        ->map(
+                            fn($album) => (new AlbumLoader())->toApiResource(
+                                $album,
+                            ),
+                        )
+                        ->all(),
+                    'hasMore' => $albums->count() > $visiblePerGroup,
+                ],
+            )
+            ->filter(fn($item) => !empty($item['data']))
+            ->all();
+
+        return $grouped;
     }
 
     public function paginateArtistTracks(
@@ -310,6 +343,8 @@ class ArtistLoader
             'name' => __('Unknown Artist'),
             'image_small' => null,
             'verified' => false,
+            'disabled' => false,
+            'model_type' => Artist::MODEL_TYPE,
         ];
     }
 }

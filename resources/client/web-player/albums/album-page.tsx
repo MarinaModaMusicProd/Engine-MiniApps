@@ -8,6 +8,7 @@ import {AlbumImage} from '@app/web-player/albums/album-image/album-image';
 import {GetAlbumResponse} from '@app/web-player/albums/requests/get-album-response';
 import {useAlbumPermissions} from '@app/web-player/albums/use-album-permissions';
 import {getArtistLink} from '@app/web-player/artists/artist-link';
+import {GenreList} from '@app/web-player/artists/artist-page/artist-page-header';
 import {BulletSeparatedItems} from '@app/web-player/layout/bullet-separated-items';
 import {
   actionButtonClassName,
@@ -157,17 +158,22 @@ function AlbumPageHeader({album}: PlaylistPageHeaderProps) {
         image={<AlbumImage album={album} className="rounded-panel" />}
         title={album.name}
         subtitle={
-          <AvatarGroup>
-            {album.artists?.map(artist => (
-              <Avatar
-                key={artist.id}
-                circle
-                src={artist.image_small}
-                label={artist.name}
-                link={getArtistLink(artist)}
-              />
-            ))}
-          </AvatarGroup>
+          <>
+            {!!album.genres?.length ? (
+              <GenreList genres={album.genres} className="mb-24" />
+            ) : null}
+            <AvatarGroup>
+              {album.artists?.map(artist => (
+                <Avatar
+                  key={artist.id}
+                  circle
+                  src={artist.image_small}
+                  label={artist.name}
+                  link={getArtistLink(artist)}
+                />
+              ))}
+            </AvatarGroup>
+          </>
         }
         description={
           <BulletSeparatedItems className="text-sm text-muted">

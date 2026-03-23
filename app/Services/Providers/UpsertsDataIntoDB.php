@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 trait UpsertsDataIntoDB
 {
-    protected function upsert($values, string $table)
+    protected function upsert($values, string $table, ?int $chunkSize = 200)
     {
         $values = $values instanceof Arrayable ? $values->toArray() : $values;
 
@@ -26,13 +26,20 @@ trait UpsertsDataIntoDB
             return;
         }
 
+        // Preserve original creation timestamp on existing rows; use incoming value for newly inserted rows.
         $columns = Arr::mapWithKeys(
             array_keys(Arr::first($values)),
             fn($column) => [
-                $column => DB::raw("coalesce(values(`$column`), `$column`)"),
+                $column => DB::raw(
+                    $column === 'created_at'
+                        ? "coalesce(`$column`, values(`$column`))"
+                        : "coalesce(values(`$column`), `$column`)",
+                ),
             ],
         );
 
-        DB::table($table)->upsert($values, ['id', 'spotify_id'], $columns);
+        foreach (array_chunk($values, max(1, $chunkSize)) as $chunk) {
+            DB::table($table)->upsert($chunk, [], $columns);
+        }
     }
 }

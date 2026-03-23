@@ -27,7 +27,7 @@ export interface BaseBackendUser {
   followers_count?: number;
   followed_users_count?: number;
   followers?: Omit<User, 'followed_users' | 'followers'>[];
-  latest_active_session?: {
+  latest_user_session?: {
     id: number;
     updated_at: string;
   };

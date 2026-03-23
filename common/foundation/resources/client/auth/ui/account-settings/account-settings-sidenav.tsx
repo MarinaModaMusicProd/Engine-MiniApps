@@ -1,16 +1,19 @@
 import {useAllSocialLoginsDisabled} from '@common/auth/ui/use-all-social-logins-disabled';
 import {useAuth} from '@common/auth/use-auth';
 import {Trans} from '@ui/i18n/trans';
-import {ApiIcon} from '@ui/icons/material/Api';
-import {DangerousIcon} from '@ui/icons/material/Dangerous';
-import {DevicesIcon} from '@ui/icons/material/Devices';
-import {LanguageIcon} from '@ui/icons/material/Language';
-import {LockIcon} from '@ui/icons/material/Lock';
-import {LoginIcon} from '@ui/icons/material/Login';
-import {PersonIcon} from '@ui/icons/material/Person';
-import {PhonelinkLockIcon} from '@ui/icons/material/PhonelinkLock';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {List, ListItem} from '@ui/list/list';
 import {useSettings} from '@ui/settings/use-settings';
+import {
+  CodeIcon,
+  FingerprintPatternIcon,
+  GlobeIcon,
+  LockIcon,
+  LogInIcon,
+  MonitorSmartphoneIcon,
+  Trash2Icon,
+  UserIcon,
+} from 'lucide-react';
 import {ReactNode} from 'react';
 
 export enum AccountSettingsId {
@@ -40,44 +43,53 @@ export function AccountSettingsSidenav({items}: Props) {
       <List padding="p-0">
         {items}
         <AccountSettingsSidenavItem
-          icon={<PersonIcon />}
+          icon={<LucideIcon icon={UserIcon} size="xs" />}
           panel={p.AccountDetails}
         >
           <Trans message="Account details" />
         </AccountSettingsSidenavItem>
         {!allSocialsDisabled && (
           <AccountSettingsSidenavItem
-            icon={<LoginIcon />}
+            icon={<LucideIcon icon={LogInIcon} size="xs" />}
             panel={p.SocialLogin}
           >
             <Trans message="Social login" />
           </AccountSettingsSidenavItem>
         )}
-        <AccountSettingsSidenavItem icon={<LockIcon />} panel={p.Password}>
+        <AccountSettingsSidenavItem
+          icon={<LucideIcon icon={LockIcon} size="xs" />}
+          panel={p.Password}
+        >
           <Trans message="Password" />
         </AccountSettingsSidenavItem>
         <AccountSettingsSidenavItem
-          icon={<PhonelinkLockIcon />}
+          icon={<LucideIcon icon={FingerprintPatternIcon} size="xs" />}
           panel={p.TwoFactor}
         >
           <Trans message="Two factor authentication" />
         </AccountSettingsSidenavItem>
-        <AccountSettingsSidenavItem icon={<DevicesIcon />} panel={p.Sessions}>
+        <AccountSettingsSidenavItem
+          icon={<LucideIcon icon={MonitorSmartphoneIcon} size="xs" />}
+          panel={p.Sessions}
+        >
           <Trans message="Active sessions" />
         </AccountSettingsSidenavItem>
         <AccountSettingsSidenavItem
-          icon={<LanguageIcon />}
+          icon={<LucideIcon icon={GlobeIcon} size="xs" />}
           panel={p.LocationAndLanguage}
         >
           <Trans message="Location and language" />
         </AccountSettingsSidenavItem>
         {api?.integrated && hasPermission('api.access') ? (
-          <AccountSettingsSidenavItem icon={<ApiIcon />} panel={p.Developers}>
+          <AccountSettingsSidenavItem
+            icon={<LucideIcon icon={CodeIcon} size="xs" />}
+            panel={p.Developers}
+          >
             <Trans message="Developers" />
           </AccountSettingsSidenavItem>
         ) : null}
         <AccountSettingsSidenavItem
-          icon={<DangerousIcon />}
+          icon={<LucideIcon icon={Trash2Icon} size="xs" />}
           panel={p.DeleteAccount}
         >
           <Trans message="Delete account" />

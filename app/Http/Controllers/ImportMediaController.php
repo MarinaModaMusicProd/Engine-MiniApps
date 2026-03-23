@@ -7,17 +7,11 @@ use App\Models\Artist;
 use App\Models\Genre;
 use App\Models\Playlist;
 use App\Models\Track;
-use App\Services\Albums\SyncAlbumWithSpotify;
-use App\Services\Artists\SyncArtistWithSpotify;
 use App\Services\Lyrics\ImportLyrics;
-use App\Services\Providers\Spotify\SpotifyGenreArtists;
-use App\Services\Providers\Spotify\SpotifyPlaylist;
-use App\Services\Providers\Spotify\SpotifyTopTracks;
-use App\Services\Providers\Spotify\SpotifyTrack;
+use App\Services\Providers\DataObjects\FetchArtistOptions;
+use App\Services\Providers\MusicMetadataProvider;
 use Common\Core\BaseController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Auth;
 
 class ImportMediaController extends BaseController
 {
@@ -26,7 +20,10 @@ class ImportMediaController extends BaseController
     public function import()
     {
         $modelType = request('modelType');
-        $spotifyId = request('spotifyId');
+        $externalId =
+            request('metadataProvider') === 'spotify'
+                ? request('spotifyId')
+                : request('deezerId');
 
         $namespace = modelTypeToNamespace(request('modelType'));
         $this->authorize('store', $namespace);
@@ -37,55 +34,64 @@ class ImportMediaController extends BaseController
 
         switch ($modelType) {
             case Artist::MODEL_TYPE:
-                $artist = (new SyncArtistWithSpotify())->execute(
-                    Artist::firstOrCreate(['spotify_id' => $spotifyId]),
-                    $this->request->all(),
-                );
-                return $this->success(['artist' => $artist]);
-            case Album::MODEL_TYPE:
-                $album = (new SyncAlbumWithSpotify())->execute(
-                    Album::firstOrCreate(
-                        ['spotify_id' => $spotifyId],
-                        ['owner_id' => Auth::id()],
+                $artist = (new MusicMetadataProvider(
+                    request('metadataProvider'),
+                ))->importArtist(
+                    $externalId,
+                    new FetchArtistOptions(
+                        importSimilarArtists: request('importSimilarArtists'),
+                        importAlbums: request('importAlbums'),
                     ),
                 );
-                return $this->success(['album' => $album]);
+                if ($artist) {
+                    return $this->success(['artist' => $artist]);
+                } else {
+                    return $this->error('Could not import artist');
+                }
+            case Album::MODEL_TYPE:
+                $album = (new MusicMetadataProvider(
+                    request('metadataProvider'),
+                ))->importAlbum($externalId);
+                if ($album) {
+                    return $this->success(['album' => $album]);
+                } else {
+                    return $this->error('Could not import album');
+                }
             case Track::MODEL_TYPE:
-                $track = Track::firstOrCreate(
-                    ['spotify_id' => $spotifyId],
-                    ['owner_id' => Auth::id()],
-                );
-                $spotifyTrack = app(SpotifyTrack::class)->getContent($track);
-                if (Arr::get($spotifyTrack, 'id')) {
-                    $track = app(SpotifyTopTracks::class)
-                        ->saveAndLoad([$spotifyTrack])
-                        ->first();
-                    if ($this->request->get('importLyrics')) {
-                        app(ImportLyrics::class)->execute($track->id);
+                $track = (new MusicMetadataProvider(
+                    request('metadataProvider'),
+                ))->importTrack($externalId);
+                if ($track) {
+                    if (request('importLyrics')) {
+                        (new ImportLyrics())->execute($track->id);
                     }
+                    return $this->success(['track' => $track]);
+                } else {
+                    return $this->error('Could not import track');
                 }
-                return $this->success(['track' => $track]);
             case Playlist::MODEL_TYPE:
-                $data = app(SpotifyPlaylist::class)->getContent($spotifyId);
-                if (!$data) {
-                    return $this->error('Could not import playlist');
+                $playlist = (new MusicMetadataProvider(
+                    request('metadataProvider'),
+                ))->importPlaylist($externalId, createLocalPlaylist: true);
+                if ($playlist) {
+                    return $this->success(['playlist' => $playlist]);
+                } else {
+                    return $this->error('Could not import track');
                 }
-                Playlist::unguard();
-                $playlist = Playlist::firstOrCreate(
-                    ['spotify_id' => $spotifyId],
-                    ['owner_id' => Auth::id(), ...$data['playlist']],
-                );
-                $playlist->editors()->syncWithoutDetaching([Auth::id()]);
-                $playlist->fill($data['playlist'])->save();
-                $playlist->tracks()->sync($data['tracks']);
-                return $this->success(['playlist' => $playlist]);
             case Genre::MODEL_TYPE:
                 $genre = Genre::find($this->request->get('genreId'));
-                $artists = app(SpotifyGenreArtists::class)->getContent($genre);
-                return $this->success([
-                    'genre' => $genre,
-                    'artists' => $artists,
-                ]);
+                $data = (new MusicMetadataProvider(
+                    request('metadataProvider'),
+                ))->importGenre($genre, $genre->name);
+
+                if ($data) {
+                    return $this->success([
+                        'genre' => $genre,
+                        'data' => $data,
+                    ]);
+                } else {
+                    return $this->error('Could not import genre');
+                }
         }
 
         return $this->error('Invalid model type');

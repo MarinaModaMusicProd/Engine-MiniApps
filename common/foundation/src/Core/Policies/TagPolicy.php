@@ -8,14 +8,12 @@ class TagPolicy extends BasePolicy
 {
     public function index(?User $user)
     {
-        return $this->hasPermission($user, 'tags.view') ||
-            $this->hasPermission($user, 'tags.update');
+        return true;
     }
 
     public function show(?User $user)
     {
-        return $this->hasPermission($user, 'tags.view') ||
-            $this->hasPermission($user, 'tags.update');
+        return true;
     }
 
     public function store(User $user)

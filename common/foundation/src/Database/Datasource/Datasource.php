@@ -8,19 +8,16 @@ use Common\Database\Datasource\Filters\ElasticFilterer;
 use Common\Database\Datasource\Filters\MeilisearchFilterer;
 use Common\Database\Datasource\Filters\MysqlFilterer;
 use Common\Database\Datasource\Filters\TntFilterer;
-use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Database\Query\Expression;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\Scout\Builder as ScoutBuilder;
 use Laravel\Scout\Searchable;
-use Matchish\ScoutElasticSearch\Engines\ElasticSearchEngine;
 use const App\Providers\WORKSPACED_RESOURCES;
 
 class Datasource
@@ -40,7 +37,7 @@ class Datasource
     public function __construct(
         $model,
         array $params = [],
-        DatasourceFilters $filters = null,
+        DatasourceFilters|null $filters = null,
         protected string|null $filtererName = 'mysql',
         protected bool $qualifySortColumns = true,
     ) {
@@ -177,17 +174,21 @@ class Datasource
     {
         if ($this->filtererIsMysql()) {
             return MysqlFilterer::class;
-        } elseif ($this->filtererName === 'meilisearch') {
-            return MeilisearchFilterer::class;
-        } elseif ($this->filtererName === 'tntsearch') {
-            return TntFilterer::class;
-        } elseif ($this->filtererName === 'algolia') {
-            return AlgoliaFilterer::class;
-        } elseif ($this->filtererName === ElasticSearchEngine::class) {
-            return ElasticFilterer::class;
         }
 
-        return MysqlFilterer::class;
+        return self::scoutDriverToFilterer($this->filtererName);
+    }
+
+    public static function scoutDriverToFilterer(string $driver): string
+    {
+        return match ($driver) {
+            'mysql' => MysqlFilterer::class,
+            'meilisearch' => MeilisearchFilterer::class,
+            'tntsearch' => TntFilterer::class,
+            'algolia' => AlgoliaFilterer::class,
+            'elasticsearch' => ElasticFilterer::class,
+            default => MysqlFilterer::class,
+        };
     }
 
     private function applyWorkspaceFilter(): void

@@ -1,4 +1,5 @@
 import {AlbumTracksForm} from '@app/admin/albums-datatable-page/album-form/album-tracks-form';
+import {ExternalIdsFields} from '@app/admin/artist-datatable-page/artist-form/external-ids-fields';
 import {UploadType} from '@app/site-config';
 import {FormArtistPicker} from '@app/web-player/artists/artist-picker/form-artist-picker';
 import {GENRE_MODEL} from '@app/web-player/genres/genre';
@@ -10,7 +11,6 @@ import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
 import {useTrans} from '@ui/i18n/use-trans';
-import {useSettings} from '@ui/settings/use-settings';
 import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
 import {Fragment} from 'react';
 
@@ -76,26 +76,10 @@ export function AlbumForm({showExternalIdFields}: AlbumFormProps) {
             rows={5}
             className="mb-24"
           />
-          {showExternalIdFields && <SpotifyIdField />}
+          {showExternalIdFields && <ExternalIdsFields inline />}
         </div>
       </div>
       <AlbumTracksForm />
     </Fragment>
-  );
-}
-
-function SpotifyIdField() {
-  const {spotify_is_setup} = useSettings();
-  if (!spotify_is_setup) {
-    return null;
-  }
-  return (
-    <FormTextField
-      name="spotify_id"
-      label={<Trans message="Spotify ID" />}
-      className="mb-24"
-      minLength={22}
-      maxLength={22}
-    />
   );
 }

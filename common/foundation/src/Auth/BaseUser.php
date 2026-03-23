@@ -317,7 +317,7 @@ abstract class BaseUser extends BaseModel implements
             return $this;
         }
 
-        $query = Permission::where('permissions.type', 'users')->join(
+        $query = Permission::join(
             'permissionables',
             'permissions.id',
             'permissionables.permission_id',

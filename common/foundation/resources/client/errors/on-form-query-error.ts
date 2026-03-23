@@ -12,6 +12,7 @@ export function onFormQueryError(
 ) {
   const handleError = (key: string, message: string, shouldFocus: boolean) => {
     if (
+      fieldsToShowInToast[0] === '*' ||
       fieldsToShowInToast.includes(key) ||
       key === 'captcha_token' ||
       // if this key is not registered in the form, show toast instead

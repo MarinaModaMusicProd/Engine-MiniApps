@@ -14,9 +14,7 @@ import {
 const previousUrl = '/billing';
 
 export function Component() {
-  const {
-    billing: {stripe_public_key},
-  } = useSettings();
+  const {billing} = useSettings();
   const navigate = useNavigate();
 
   const [params] = useSearchParams();
@@ -29,7 +27,7 @@ export function Component() {
 
   useEffect(() => {
     if (stripeInitiated.current || !clientSecret) return;
-    loadStripe(stripe_public_key!).then(stripe => {
+    loadStripe(billing?.stripe_public_key!).then(stripe => {
       if (!stripe) {
         setMessageConfig(getRedirectMessageConfig());
         return;
@@ -48,7 +46,7 @@ export function Component() {
       });
     });
     stripeInitiated.current = true;
-  }, [stripe_public_key, clientSecret]);
+  }, [billing?.stripe_public_key, clientSecret]);
 
   if (!clientSecret) {
     navigate(previousUrl);

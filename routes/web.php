@@ -14,14 +14,34 @@
 use App\Http\Controllers\AlbumController;
 use App\Http\Controllers\AppHomeController;
 use App\Http\Controllers\ArtistController;
+use App\Http\Controllers\DownloadLocalTrackController;
 use App\Http\Controllers\FallbackRouteController;
 use App\Http\Controllers\PlaylistController;
 use App\Http\Controllers\Search\SearchController;
 use App\Http\Controllers\TrackController as TrackControllerAlias;
 use App\Http\Controllers\UserProfile\UserProfileController;
+use App\Models\Artist;
+use App\Services\Artists\ArtistLoader;
+use App\Services\Providers\Deezer\DeezerArtist;
+use App\Services\Providers\Deezer\DeezerMetadataProvider;
+use App\Services\Providers\Deezer\DeezerSearch;
+use App\Services\Providers\MusicMetadataProvider;
+use App\Services\Providers\Spotify\SpotifyArtist;
+use App\Services\Providers\Spotify\SpotifyTopTracks;
 use Common\Channels\ChannelController;
 use Common\Core\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('test', function () {
+    return (new SpotifyTopTracks())->getContent();
+    $artist = Artist::find(1);
+    return response()->json((new ArtistLoader())->load($artist, 'artistPage'));
+    //return app(SpotifyArtist::class)->getContent('6Wr3hh341P84m3EI8qdn9O');
+    return (new MusicMetadataProvider())->importTrack('1vcxF91pWs9uNwDROuiCPB');
+    //return (new DeezerSearch())->search('eminem', 1, 10, ['artist', 'album', 'track']);
+});
+
+Route::get('tracks/{id}/download', [DownloadLocalTrackController::class, 'download']);
 
 //FRONT-END ROUTES THAT NEED TO BE PRE-RENDERED
 Route::get('/', AppHomeController::class);

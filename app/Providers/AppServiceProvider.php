@@ -10,12 +10,13 @@ use App\Models\Genre;
 use App\Models\Playlist;
 use App\Models\Track;
 use App\Models\User;
+use App\Policies\AppUserPolicy;
 use App\Policies\MusicUploadPolicy;
 use App\Policies\TrackCommentPolicy;
+use App\Console\Commands\DownloadDeezerGenres;
 use App\Services\Admin\GetAnalyticsHeaderData;
 use App\Services\AppBootstrapData;
 use App\Services\AppValueLists;
-use App\Services\Providers\Spotify\SpotifyHttpClient;
 use App\Services\UrlGenerator;
 use Common\Admin\Analytics\Actions\GetAnalyticsHeaderDataAction;
 use Common\Auth\Events\UsersDeleted;
@@ -49,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(FileEntry::class, MusicUploadPolicy::class);
         Gate::policy(Comment::class, TrackCommentPolicy::class);
+        Gate::policy(User::class, AppUserPolicy::class);
 
         Route::bind('channel', function (
             $idOrSlug,
@@ -66,7 +68,10 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        $this->commands([UpdateAllChannelsContent::class]);
+        $this->commands([
+            UpdateAllChannelsContent::class,
+            DownloadDeezerGenres::class,
+        ]);
     }
 
     public function register()
@@ -81,10 +86,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AppUrlGenerator::class, UrlGenerator::class);
 
         $this->app->bind(ValueLists::class, AppValueLists::class);
-
-        $this->app->singleton(SpotifyHttpClient::class, function () {
-            return new SpotifyHttpClient();
-        });
 
         Event::listen(UsersDeleted::class, DeleteModelsRelatedToUser::class);
     }

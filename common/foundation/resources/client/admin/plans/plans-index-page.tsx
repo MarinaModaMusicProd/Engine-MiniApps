@@ -15,22 +15,22 @@ import {
 } from '@common/datatable/page/datatable-page-with-header-layout';
 import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
 import {Table} from '@common/ui/tables/table';
+import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
 import {FormattedDate} from '@ui/i18n/formatted-date';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {DeleteIcon} from '@ui/icons/material/Delete';
 import {EditIcon} from '@ui/icons/material/Edit';
-import {SyncIcon} from '@ui/icons/material/Sync';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {Tooltip} from '@ui/tooltip/tooltip';
+import {PlusIcon, RefreshCcwIcon} from 'lucide-react';
 import {Fragment} from 'react';
 import {Link} from 'react-router';
 import {FormattedPrice} from '../../billing/formatted-price';
 import {Product} from '../../billing/product';
 import {ColumnConfig} from '../../datatable/column-config';
-import {NameWithAvatar} from '../../datatable/column-templates/name-with-avatar';
-import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
 import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
 import {useNavigate} from '../../ui/navigation/use-navigate';
 import softwareEngineerSvg from './../tags/software-engineer.svg';
@@ -46,17 +46,18 @@ const columnConfig: ColumnConfig<Product>[] = [
     header: () => <Trans message="Name" />,
     body: product => {
       const price = product.prices[0];
+
       return (
-        <NameWithAvatar
-          label={product.name}
-          description={
-            product.free ? (
+        <div>
+          <div className="mb-2 font-medium">{product.name}</div>
+          <div className="text-xs text-muted">
+            {product.free ? (
               <Trans message="Free" />
             ) : (
               <FormattedPrice price={price} />
-            )
-          }
-        />
+            )}
+          </div>
+        </div>
       );
     },
   },
@@ -120,13 +121,24 @@ export function Component() {
         title={<Trans message="Subscription plans" />}
         showSidebarToggleButton
         rightContent={
-          AdminDocsUrls.pages.subscriptions ? (
-            <DocsLink
-              variant="button"
-              link={AdminDocsUrls.pages.subscriptions}
-              size="xs"
-            />
-          ) : null
+          <>
+            {AdminDocsUrls.pages.subscriptions ? (
+              <DocsLink
+                variant="button"
+                link={AdminDocsUrls.pages.subscriptions}
+                size="sm"
+              />
+            ) : null}
+            <Button
+              variant="flat"
+              color="primary"
+              elementType={Link}
+              to="/admin/plans/new"
+              startIcon={<LucideIcon icon={PlusIcon} />}
+            >
+              <Trans message="Add new plan" />
+            </Button>
+          </>
         }
       />
       <DatatablePageWithHeaderBody>
@@ -205,22 +217,17 @@ function Actions() {
   const syncPlans = useSyncProducts();
   return (
     <Fragment>
-      <Tooltip label={<Trans message="Sync plans with Stripe & PayPal" />}>
-        <IconButton
-          color="primary"
-          variant="outline"
-          size="sm"
-          disabled={syncPlans.isPending}
-          onClick={() => {
-            syncPlans.mutate();
-          }}
-        >
-          <SyncIcon />
-        </IconButton>
-      </Tooltip>
-      <DataTableAddItemButton elementType={Link} to="/admin/plans/new">
-        <Trans message="Add new plan" />
-      </DataTableAddItemButton>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={syncPlans.isPending}
+        startIcon={<LucideIcon icon={RefreshCcwIcon} size="xs" />}
+        onClick={() => {
+          syncPlans.mutate();
+        }}
+      >
+        <Trans message="Sync plans" />
+      </Button>
     </Fragment>
   );
 }

@@ -1,0 +1,6 @@
+import{ak as d,u as h,j as s,Y as j,ac as t,t as f,T as c,r as k,d as p}from"./main-D6SjkSWq.js";import{E as L}from"./external-link-BB1wMD8k.js";/**
+ * @license lucide-react v0.564.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const v=[["path",{d:"M12 7v14",key:"1akyts"}],["path",{d:"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z",key:"ruj8y"}]],a=d("book-open",v);function b({link:e,className:x,children:o,target:n="_blank",variant:l="link",buttonVariant:u="text",size:i="sm",icon:r}){const{site:m}=h();return m.hide_docs_buttons?null:l==="button"?u==="icon"?s.jsx(j,{variant:"outline",size:i,href:e,target:n,children:s.jsx(t,{icon:a,size:"xs"})}):s.jsx(f,{variant:"outline",size:i,href:e,target:n,startIcon:s.jsx(t,{icon:a,size:"xs"}),children:o??s.jsx(c,{message:"Learn more"})}):s.jsxs("div",{className:p("inline-flex items-center gap-8",x),children:[r?k.cloneElement(r,{size:"sm",className:"text-link"}):s.jsx(t,{icon:a,size:"xs",className:"text-link"}),s.jsx(L,{href:e,target:n,children:o??s.jsx(c,{message:"Learn more"})})]})}export{b as D};

@@ -9,7 +9,6 @@ import {TrackImage} from '@app/web-player/tracks/track-image/track-image';
 import {TrackLink} from '@app/web-player/tracks/track-link';
 import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
 import {ColumnConfig} from '@common/datatable/column-config';
-import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
 import {DataTableHeader} from '@common/datatable/data-table-header';
 import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
 import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
@@ -33,12 +32,14 @@ import {IconButton} from '@ui/buttons/icon-button';
 import {FormattedDate} from '@ui/i18n/formatted-date';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {EditIcon} from '@ui/icons/material/Edit';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {toast} from '@ui/toast/toast';
-import {Fragment, useState} from 'react';
+import {PlusIcon} from 'lucide-react';
+import {useState} from 'react';
 import lyricImage from './source-code.svg';
 
 const columnConfig: ColumnConfig<Lyric>[] = [
@@ -138,12 +139,23 @@ export function Component() {
       <DatatablePageHeaderBar
         title={<Trans message="Lyrics" />}
         showSidebarToggleButton
+        rightContent={
+          <DialogTrigger type="modal">
+            <Button
+              variant="flat"
+              color="primary"
+              startIcon={<LucideIcon icon={PlusIcon} size="xs" />}
+            >
+              <Trans message="Add new lyric" />
+            </Button>
+            <CreateLyricDialog />
+          </DialogTrigger>
+        }
       />
       <DatatablePageWithHeaderBody>
         <DataTableHeader
           searchValue={searchParams.query}
           onSearchChange={setSearchQuery}
-          actions={<Actions />}
           selectedItems={selectedIds}
           selectedActions={selectedActions}
           filters={LyricDatatablePageFilters}
@@ -176,19 +188,6 @@ export function Component() {
         </DatatablePageScrollContainer>
       </DatatablePageWithHeaderBody>
     </DatatablePageWithHeaderLayout>
-  );
-}
-
-function Actions() {
-  return (
-    <Fragment>
-      <DialogTrigger type="modal">
-        <DataTableAddItemButton>
-          <Trans message="Add new lyric" />
-        </DataTableAddItemButton>
-        <CreateLyricDialog />
-      </DialogTrigger>
-    </Fragment>
   );
 }
 

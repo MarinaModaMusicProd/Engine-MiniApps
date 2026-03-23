@@ -1,6 +1,6 @@
-import memoize from 'nano-memoize';
-import clsx from 'clsx';
 import {isAbsoluteUrl} from '@ui/utils/urls/is-absolute-url';
+import clsx from 'clsx';
+import memoize from 'nano-memoize';
 
 interface RemoteFaviconProps {
   url: string;
@@ -11,7 +11,7 @@ interface RemoteFaviconProps {
 export function RemoteFavicon({
   url,
   className,
-  size = 'w-16 h-16',
+  size = 'size-16',
   alt,
 }: RemoteFaviconProps) {
   if (!url) {

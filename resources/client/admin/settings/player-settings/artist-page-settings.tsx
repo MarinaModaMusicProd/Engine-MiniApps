@@ -4,8 +4,6 @@ import {AdminSettingsLayout} from '@common/admin/settings/layout/settings-layout
 import {SettingsPanel} from '@common/admin/settings/layout/settings-panel';
 import {useAdminSettings} from '@common/admin/settings/requests/use-admin-settings';
 import {IconButton} from '@ui/buttons/icon-button';
-import {Item} from '@ui/forms/listbox/item';
-import {FormSelect} from '@ui/forms/select/select';
 import {Checkbox} from '@ui/forms/toggle/checkbox';
 import {FormSwitch} from '@ui/forms/toggle/switch';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
@@ -33,10 +31,6 @@ export function ArtistPageSettings({tabs, title}: Props) {
   const form = useForm<AdminSettings>({
     defaultValues: {
       client: {
-        player: {
-          default_artist_view:
-            data.client.player?.default_artist_view ?? 'list',
-        },
         artistPage: {
           tabs: data.client.artistPage?.tabs ?? [],
           showDescription: data.client.artistPage?.showDescription ?? false,
@@ -47,7 +41,6 @@ export function ArtistPageSettings({tabs, title}: Props) {
   return (
     <AdminSettingsLayout form={form} title={title} tabs={tabs}>
       <TabsPanel />
-      <AlbumsLayoutPanel />
       <DescriptionPanel />
     </AdminSettingsLayout>
   );
@@ -68,32 +61,6 @@ function TabsPanel() {
       {tabs.map(tab => (
         <Fragment key={tab.id}>{getListItem(tab.id)}</Fragment>
       ))}
-    </SettingsPanel>
-  );
-}
-
-function AlbumsLayoutPanel() {
-  return (
-    <SettingsPanel
-      className="mb-24"
-      title={<Trans message="Default albums layout" />}
-      description={
-        <Trans message="How should albums on main artist page be displayed by default." />
-      }
-    >
-      <FormSelect
-        className="my-24"
-        name="client.player.default_artist_view"
-        selectionMode="single"
-        label={<Trans message="Layout" />}
-      >
-        <Item value="list">
-          <Trans message="List" />
-        </Item>
-        <Item value="grid">
-          <Trans message="Grid" />
-        </Item>
-      </FormSelect>
     </SettingsPanel>
   );
 }

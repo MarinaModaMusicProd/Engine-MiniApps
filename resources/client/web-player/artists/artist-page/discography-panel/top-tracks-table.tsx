@@ -1,13 +1,16 @@
+import {ArtistPageSubtitle} from '@app/web-player/artists/artist-page/artist-page-subtitle';
 import {Track} from '@app/web-player/tracks/track';
 import {TrackTable} from '@app/web-player/tracks/track-table/track-table';
+import {getScrollParent} from '@react-aria/utils';
 import {Button} from '@ui/buttons/button';
 import {Trans} from '@ui/i18n/trans';
-import {useMemo, useState} from 'react';
+import {useMemo, useRef, useState} from 'react';
 
 interface TopTracksTableProps {
   tracks?: Track[];
 }
 export function TopTracksTable({tracks: initialTracks}: TopTracksTableProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [showingAll, setShowingAll] = useState(false);
 
   const topTracks = useMemo(() => {
@@ -18,13 +21,12 @@ export function TopTracksTable({tracks: initialTracks}: TopTracksTableProps) {
   }, [initialTracks]);
 
   return (
-    <div className="flex-auto">
-      <h2 className="my-16 text-base text-muted">
-        <Trans message="Popular songs" />
-      </h2>
+    <div className="mt-34 flex-auto" ref={containerRef}>
+      <ArtistPageSubtitle>
+        <Trans message="Top tracks" />
+      </ArtistPageSubtitle>
       <TrackTable
         tracks={showingAll ? topTracks.all : topTracks.sliced}
-        hideAlbum
         hideHeaderRow
       />
       <Button
@@ -32,7 +34,20 @@ export function TopTracksTable({tracks: initialTracks}: TopTracksTableProps) {
         className="mt-20"
         variant="outline"
         onClick={() => {
-          setShowingAll(!showingAll);
+          if (showingAll) {
+            setShowingAll(false);
+            if (containerRef.current) {
+              const scrollParent = getScrollParent(containerRef.current!);
+              if (scrollParent) {
+                scrollParent.scrollTo({
+                  top: 0,
+                  behavior: 'instant',
+                });
+              }
+            }
+          } else {
+            setShowingAll(true);
+          }
         }}
       >
         {showingAll ? (

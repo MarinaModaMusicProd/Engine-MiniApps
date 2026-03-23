@@ -159,23 +159,23 @@ const contentAutoUpdateMethods: Record<
 > = {
   [Auto.topTracks]: {
     label: message('Top tracks'),
-    providers: ['spotify', 'local'],
+    providers: ['spotify', 'deezer', 'local'],
   },
   [Auto.newAlbums]: {
     label: message('New releases'),
-    providers: ['spotify', 'local'],
+    providers: ['spotify', 'deezer', 'local'],
   },
   [Auto.topAlbums]: {
     label: message('Popular albums'),
-    providers: ['spotify', 'local'],
+    providers: ['spotify', 'deezer', 'local'],
   },
   [Auto.topArtists]: {
     label: message('Popular artists'),
-    providers: ['spotify', 'local'],
+    providers: ['spotify', 'deezer', 'local'],
   },
   [Auto.playlistTracks]: {
     label: message('Playlist tracks'),
-    providers: ['spotify', 'local'],
+    providers: ['spotify', 'deezer', 'local'],
     value: {
       label: message('Playlist ID'),
       inputType: 'text',

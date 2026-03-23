@@ -55,6 +55,8 @@ class OutgoingMailCredentialsValidator implements SettingsValidator
                 $key = 'mail.default';
             } elseif ($key === 'mail.from.address') {
                 $key = 'mail.from.address';
+            } elseif ($key === 'mail.from.name') {
+                $key = 'mail.from.name';
             } elseif (!Str::startsWith($key, 'mail.')) {
                 $key = "services.$key";
             } else {

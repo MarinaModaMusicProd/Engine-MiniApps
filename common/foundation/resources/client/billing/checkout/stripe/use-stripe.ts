@@ -22,18 +22,20 @@ export function useStripe({type, productId, priceId}: UseStripeProps) {
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
   const {
     branding: {site_name},
-    billing: {
-      stripe_public_key,
-      stripe: {enable},
-    },
+    billing,
   } = useSettings();
 
   useEffect(() => {
-    if (!enable || !stripe_public_key || isInitiatedRef.current) return;
+    if (
+      !billing?.stripe?.enable ||
+      !billing?.stripe_public_key ||
+      isInitiatedRef.current
+    )
+      return;
 
     Promise.all([
       // load stripe js library
-      loadStripe(stripe_public_key, {
+      loadStripe(billing.stripe_public_key, {
         //apiVersion: '2022-08-01',
         locale: localeCode as any,
       }),
@@ -76,8 +78,8 @@ export function useStripe({type, productId, priceId}: UseStripeProps) {
     isInitiatedRef.current = true;
   }, [
     productId,
-    stripe_public_key,
-    enable,
+    billing?.stripe_public_key,
+    billing?.stripe?.enable,
     isDarkMode,
     localeCode,
     site_name,
@@ -89,7 +91,8 @@ export function useStripe({type, productId, priceId}: UseStripeProps) {
     stripe,
     elements,
     paymentElementRef,
-    stripeIsEnabled: stripe_public_key != null && enable,
+    stripeIsEnabled:
+      billing?.stripe_public_key != null && billing?.stripe?.enable,
     subscriptionId,
   };
 }

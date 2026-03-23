@@ -16,7 +16,9 @@ interface Response extends BackendResponse {
 }
 
 export interface ImportPlaylistPayload {
-  spotifyId: string;
+  metadataProvider: 'spotify' | 'deezer';
+  spotifyId?: string;
+  deezerId?: string;
 }
 
 export function useImportPlaylist() {
@@ -37,7 +39,7 @@ function importArtists(payload: ImportPlaylistPayload): Promise<Response> {
   return apiClient
     .post('import-media/single-item', {
       modelType: PLAYLIST_MODEL,
-      spotifyId: payload.spotifyId,
+      ...payload,
     })
     .then(r => r.data);
 }

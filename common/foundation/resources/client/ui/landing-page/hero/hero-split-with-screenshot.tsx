@@ -23,7 +23,9 @@ type Props = {
 };
 export function HeroSplitWithScreenshot({config}: Props) {
   const {heroSearchBarSlot} = useContext(LandingPageContext);
-  const SearchBarCmp = heroSearchBarSlot ?? null;
+  const SearchBarCmp = config.showSearchBarSlot
+    ? (heroSearchBarSlot ?? null)
+    : null;
   const darkThemeVars = useDarkThemeVariables();
   const lightThemeVars = useLightThemeVariables();
   const siteIsInDarkMode = useIsDarkMode();
@@ -43,7 +45,7 @@ export function HeroSplitWithScreenshot({config}: Props) {
       {config.bgColors ? <BgColors config={config} /> : null}
       <div className="mx-auto max-w-7xl px-24 pb-96 pt-40 sm:pb-128 lg:flex lg:px-32 lg:py-160">
         <div className="mx-auto max-w-2xl lg:mx-0 lg:shrink-0 lg:pt-32">
-          <Logo size="h-40" color={isDarkMode ? 'light' : 'dark'} />
+          <Logo size="h-40" color={isDarkMode ? 'light' : 'dark'} url="/" />
           {config.badge ? (
             <div className="mt-96 w-max rounded-full bg-primary/10 px-12 py-4 text-sm/6 font-semibold text-primary ring-1 ring-inset ring-primary/10 sm:mt-128 lg:mt-64">
               <Trans message={config.badge} />

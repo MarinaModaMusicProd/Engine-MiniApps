@@ -232,21 +232,29 @@ function DeleteButton({playlist}: FollowButtonsProps) {
       disabled={deletePlaylist.isPending}
       onClick={() => {
         closeMenu();
-        openDialog(ConfirmationDialog, {
-          isDanger: true,
-          title: <Trans message="Delete playlist" />,
-          body: (
-            <Trans message="Are you sure you want to delete this playlist?" />
-          ),
-          confirm: <Trans message="Delete" />,
-          onConfirm: () => {
-            deletePlaylist.mutate();
-          },
-        });
+        openDialog(DeletePlaylistDialog, {playlistId: playlist.id});
       }}
     >
       <Trans message="Delete" />
     </ContextMenuButton>
+  );
+}
+
+function DeletePlaylistDialog({playlistId}: {playlistId: number}) {
+  const deletePlaylist = useDeletePlaylist(playlistId);
+  const {close} = useDialogContext();
+  return (
+    <ConfirmationDialog
+      isDanger
+      title={<Trans message="Delete playlist" />}
+      body={<Trans message="Are you sure you want to delete this playlist?" />}
+      confirm={<Trans message="Delete" />}
+      onConfirm={() => {
+        deletePlaylist.mutate(undefined, {
+          onSuccess: () => close(),
+        });
+      }}
+    />
   );
 }
 

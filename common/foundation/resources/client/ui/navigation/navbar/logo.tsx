@@ -10,29 +10,32 @@ interface LogoProps {
   className?: string;
   logoType?: 'wide' | 'compact' | 'auto';
   size: string;
+  url?: string;
 }
 export function Logo({
   color = 'light',
   className: propsClassName,
   logoType = 'auto',
   size,
+  url,
 }: LogoProps) {
   const className = clsx(propsClassName, size);
 
   if (logoType === 'compact') {
-    return <CompactLogo color={color} className={className} />;
+    return <CompactLogo color={color} className={className} url={url} />;
   } else if (logoType === 'wide') {
-    return <WideLogo color={color} className={className} />;
+    return <WideLogo color={color} className={className} url={url} />;
   }
 
-  return <AutoLogo color={color} className={className} />;
+  return <AutoLogo color={color} className={className} url={url} />;
 }
 
 interface CompactLogoProps {
   className?: string;
   color: LogoProps['color'];
+  url?: string;
 }
-function CompactLogo({color, className}: CompactLogoProps) {
+function CompactLogo({color, className, url}: CompactLogoProps) {
   const {branding} = useSettings();
 
   // fallback to light logo if dark logo is not available
@@ -44,13 +47,13 @@ function CompactLogo({color, className}: CompactLogoProps) {
   if (!src) return null;
 
   return (
-    <WrapperLink className={className}>
+    <WrapperLink className={className} url={url}>
       <img src={src} className="block w-auto" alt="" />
     </WrapperLink>
   );
 }
 
-function AutoLogo({color, className}: CompactLogoProps) {
+function AutoLogo({color, className, url}: CompactLogoProps) {
   const {branding} = useSettings();
 
   let wideLogo: string;
@@ -68,7 +71,7 @@ function AutoLogo({color, className}: CompactLogoProps) {
   }
 
   return (
-    <WrapperLink className={className}>
+    <WrapperLink className={className} url={url}>
       <picture>
         <source srcSet={compactLogo || wideLogo} media="(max-width: 768px)" />
         <source srcSet={wideLogo} media="(min-width: 768px)" />
@@ -78,7 +81,7 @@ function AutoLogo({color, className}: CompactLogoProps) {
   );
 }
 
-function WideLogo({color, className}: CompactLogoProps) {
+function WideLogo({color, className, url}: CompactLogoProps) {
   const {branding} = useSettings();
 
   const src =
@@ -89,7 +92,7 @@ function WideLogo({color, className}: CompactLogoProps) {
   if (!src) return null;
 
   return (
-    <WrapperLink className={className}>
+    <WrapperLink className={className} url={url}>
       <img src={src} className="block h-full w-auto" alt="" />
     </WrapperLink>
   );
@@ -98,14 +101,15 @@ function WideLogo({color, className}: CompactLogoProps) {
 interface WrapperLinkProps {
   className?: string;
   children: ReactNode;
+  url?: string;
 }
-function WrapperLink({className, children}: WrapperLinkProps) {
+function WrapperLink({className, children, url}: WrapperLinkProps) {
   const {trans} = useTrans();
   const {getRedirectUri} = useAuth();
 
   return (
     <Link
-      to={getRedirectUri()}
+      to={url || getRedirectUri()}
       className={clsx('block flex-shrink-0', className)}
       aria-label={trans({message: 'Go to homepage'})}
     >

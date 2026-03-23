@@ -1,6 +1,9 @@
 import {appQueries} from '@app/app-queries';
 import {AlbumList} from '@app/web-player/albums/album-list/album-list';
-import {GetArtistResponse} from '@app/web-player/artists/requests/get-artist-response';
+import {
+  artistAlbumsResponseType,
+  GetArtistResponse,
+} from '@app/web-player/artists/requests/get-artist-response';
 import {useFlatInfiniteQueryItems} from '@common/ui/infinite-scroll/use-flat-infinite-query-items';
 import {useSuspenseInfiniteQuery} from '@tanstack/react-query';
 import {Trans} from '@ui/i18n/trans';
@@ -12,7 +15,9 @@ interface Props {
 }
 export function ArtistAlbumsTab({data}: Props) {
   const query = useSuspenseInfiniteQuery(
-    appQueries.artists.show(data.artist.id).albums('list', data.albums),
+    appQueries.artists
+      .show(data.artist.id)
+      .albums(artistAlbumsResponseType.WITH_TRACKS, undefined, data.albums),
   );
   const albums = useFlatInfiniteQueryItems(query);
 

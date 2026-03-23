@@ -1,13 +1,13 @@
-import {ReactNode} from 'react';
-import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {Dialog} from '@ui/overlays/dialog/dialog';
-import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
-import {Trans} from '@ui/i18n/trans';
-import {DialogBody} from '@ui/overlays/dialog/dialog-body';
-import {SvgImage} from '@ui/images/svg-image';
 import upgradeSvg from '@common/billing/upgrade/upgrade.svg';
-import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
 import {Button} from '@ui/buttons/button';
+import {Trans} from '@ui/i18n/trans';
+import {SvgImage} from '@ui/images/svg-image';
+import {Dialog} from '@ui/overlays/dialog/dialog';
+import {DialogBody} from '@ui/overlays/dialog/dialog-body';
+import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
+import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
+import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
+import {ReactNode} from 'react';
 import {Link} from 'react-router';
 
 interface UpgradeDialogProps {

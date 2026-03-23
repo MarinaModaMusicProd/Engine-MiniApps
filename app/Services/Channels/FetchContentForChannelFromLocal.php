@@ -6,12 +6,15 @@ use App\Models\Album;
 use App\Models\Artist;
 use App\Models\Genre;
 use App\Models\Track;
+use App\Services\Providers\UpsertsDataIntoDB;
 use App\Services\Tracks\Queries\PlaylistTrackQuery;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class FetchContentForChannelFromLocal
 {
+    use UpsertsDataIntoDB;
+
     public function execute(
         string $method,
         mixed $value,
@@ -23,12 +26,58 @@ class FetchContentForChannelFromLocal
             'topAlbums' => $this->albums($filters, orderBy: 'popularity'),
             'topArtists' => $this->topArtists($filters),
             'playlistTracks' => $this->playlistTracks($value),
-            'topGenres' => Genre::orderBy('popularity', 'desc')
-                ->limit(20)
-                ->get(),
+            'topGenres' => $this->topGenres(),
             'nonEmptyGenres' => $this->nonEmptyGenres(),
             default => null,
         };
+    }
+
+    protected function topGenres()
+    {
+        $genreNames = collect();
+
+        if (settings('metadata_provider') === 'deezer') {
+            $deezerGenres = collect(
+                json_decode(
+                    file_get_contents(resource_path('deezer-genres.json')),
+                    true,
+                ),
+            )->map(
+                fn($genre) => [
+                    'name' => $genre['name'],
+                    'display_name' => $genre['display_name'],
+                    'image' => $genre['image'] ?? null,
+                    'popularity' => $genre['popularity'] ?? null,
+                    'deezer_id' => $genre['id'] ?? null,
+                ],
+            );
+
+            $this->upsert($deezerGenres, 'genres');
+
+            $genreNames = $deezerGenres->pluck('name');
+        } else {
+            $spotifyGenres = collect(
+                json_decode(
+                    file_get_contents(resource_path('spotify-genres.json')),
+                    true,
+                ),
+            )->map(
+                fn($genre) => [
+                    'name' => $genre['name'],
+                    'display_name' => $genre['display_name'],
+                    'image' => $genre['image'] ?? null,
+                    'popularity' => $genre['popularity'] ?? null,
+                ],
+            );
+
+            $this->upsert($spotifyGenres, 'genres');
+
+            $genreNames = $spotifyGenres->pluck('name');
+        }
+
+        return Genre::whereIn('name', $genreNames->take(20))
+            ->orderBy('popularity', 'desc')
+            ->get();
     }
 
     protected function topTracks(?array $filters = [])
@@ -36,17 +85,11 @@ class FetchContentForChannelFromLocal
         if (isset($filters['genre'])) {
             $genre = Genre::find($filters['genre']);
             return $genre
-                ? $genre
-                    ->tracks()
-                    ->orderByPopularity()
-                    ->limit(20)
-                    ->get()
+                ? $genre->tracks()->orderByPopularity()->limit(20)->get()
                 : collect();
         }
 
-        return Track::orderByPopularity()
-            ->limit(20)
-            ->get();
+        return Track::orderByPopularity()->limit(20)->get();
     }
 
     protected function albums(
@@ -82,18 +125,11 @@ class FetchContentForChannelFromLocal
         if (isset($filters['genre'])) {
             $genre = Genre::find($filters['genre']);
             return $genre
-                ? $genre
-                    ->artists()
-                    ->orderByPopularity()
-                    ->limit(20)
-                    ->get()
+                ? $genre->artists()->orderByPopularity()->limit(20)->get()
                 : collect();
         }
 
-        return Artist::query()
-            ->orderByPopularity()
-            ->limit(20)
-            ->get();
+        return Artist::query()->orderByPopularity()->limit(20)->get();
     }
 
     protected function playlistTracks(int $id)

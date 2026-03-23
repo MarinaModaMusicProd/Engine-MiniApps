@@ -5,14 +5,12 @@ namespace Common\Search;
 use Algolia\AlgoliaSearch\Config\SearchConfig;
 use Algolia\AlgoliaSearch\SearchClient as Algolia;
 use App\Attributes\Models\CustomAttribute;
-use App\Models\User;
 use Common\Core\BaseModel;
 use Common\Search\Drivers\Mysql\MysqlFullTextIndexer;
 use Exception;
 use Illuminate\Support\Facades\Artisan;
 use Laravel\Scout\Console\ImportCommand;
 use Laravel\Scout\EngineManager;
-use Meilisearch\Client as MeilisearchClient;
 
 class ImportRecordsIntoScout
 {
@@ -139,15 +137,6 @@ class ImportRecordsIntoScout
                 $modelConfig['displayedAttributes'] ?? [],
                 $displayedFields,
             );
-
-            if (in_array(SupportsVectorSearch::class, class_uses($model))) {
-                $modelConfig['embedders'] = [
-                    $model::MODEL_TYPE => [
-                        'source' => 'userProvided',
-                        'dimensions' => $model->getVectorDimensions(),
-                    ],
-                ];
-            }
 
             if (!empty($modelConfig)) {
                 $engine->updateIndexSettings($indexName, $modelConfig);

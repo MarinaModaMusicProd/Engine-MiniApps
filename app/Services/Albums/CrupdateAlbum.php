@@ -89,7 +89,11 @@ class CrupdateAlbum
         $album->load('tracks', 'artists', 'genres', 'tags');
         $album->tracks->load('artists');
 
-        if (!$initialAlbum) {
+        if (
+            !$initialAlbum &&
+            $album->release_date &&
+            $album->release_date->lte(now())
+        ) {
             $album->artists
                 ->first()
                 ->followers()

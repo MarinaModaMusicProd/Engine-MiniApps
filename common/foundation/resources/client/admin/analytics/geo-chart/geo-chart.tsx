@@ -2,16 +2,16 @@ import {
   LocationDatasetItem,
   ReportMetric,
 } from '@common/admin/analytics/report-metric';
-import { ChartLayout, ChartLayoutProps } from '@common/charts/chart-layout';
-import { ChartLoadingIndicator } from '@common/charts/chart-loading-indicator';
-import { Button } from '@ui/buttons/button';
-import { FormattedCountryName } from '@ui/i18n/formatted-country-name';
-import { Trans } from '@ui/i18n/trans';
-import { ArrowBackIcon } from '@ui/icons/material/ArrowBack';
-import { InfoDialogTrigger } from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger';
+import {ChartLayout, ChartLayoutProps} from '@common/charts/chart-layout';
+import {ChartLoadingIndicator} from '@common/charts/chart-loading-indicator';
+import {Button} from '@ui/buttons/button';
+import {FormattedCountryName} from '@ui/i18n/formatted-country-name';
+import {Trans} from '@ui/i18n/trans';
+import {ArrowBackIcon} from '@ui/icons/material/ArrowBack';
+import {InfoDialogTrigger} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger';
 import clsx from 'clsx';
-import { useMemo, useRef } from 'react';
-import { useGoogleGeoChart } from './use-google-geo-chart';
+import {useMemo, useRef} from 'react';
+import {useGoogleGeoChart} from './use-google-geo-chart';
 
 interface GeoChartData extends Partial<ChartLayoutProps> {
   data?: ReportMetric<LocationDatasetItem>;
@@ -19,6 +19,7 @@ interface GeoChartData extends Partial<ChartLayoutProps> {
   country?: string;
   colSpan?: string;
   rowSpan?: string;
+  datasetLabel?: string;
 }
 export function GeoChart({
   data: metricData,
@@ -28,6 +29,7 @@ export function GeoChart({
   className,
   colSpan = 'col-span-7',
   rowSpan = 'row-span-11',
+  datasetLabel,
   ...layoutProps
 }: GeoChartData) {
   const placeholderRef = useRef<HTMLDivElement>(null);
@@ -38,7 +40,18 @@ export function GeoChart({
   const data = useMemo(() => {
     return initialData || [];
   }, [initialData]);
-  useGoogleGeoChart({placeholderRef, data, country, onCountrySelected});
+
+  if (!datasetLabel) {
+    datasetLabel = metricData?.datasets[0].label;
+  }
+
+  useGoogleGeoChart({
+    placeholderRef,
+    data,
+    country,
+    onCountrySelected,
+    datasetLabel,
+  });
 
   return (
     <ChartLayout
@@ -107,7 +120,6 @@ export function GeoChart({
     </ChartLayout>
   );
 }
-
 function InfoTrigger() {
   return (
     <InfoDialogTrigger

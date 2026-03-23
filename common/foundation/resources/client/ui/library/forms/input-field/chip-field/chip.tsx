@@ -90,7 +90,7 @@ export function Chip(props: ChipProps) {
     ) : (
       props.adornment &&
       cloneElement(props.adornment, {
-        size: sizeStyle.adornment.size,
+        size: props.adornment.props.size ?? sizeStyle.adornment.size,
         className: clsx(
           props.adornment.props.className,
           sizeStyle.adornment.margin,

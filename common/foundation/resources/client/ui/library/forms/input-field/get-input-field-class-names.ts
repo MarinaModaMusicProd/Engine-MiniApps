@@ -80,6 +80,7 @@ export function getInputFieldClassNames(
 
   return {
     label: clsx(
+      'input-field-label',
       labelDisplay,
       labelClassName,
       !wrapLabel && 'whitespace-nowrap overflow-hidden overflow-ellipsis',

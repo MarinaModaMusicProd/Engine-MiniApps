@@ -1,9 +1,9 @@
 <?php namespace App\Models;
 
 use App\Traits\OrdersByPopularity;
+use App\Services\Providers\MusicMetadataProvider;
 use Carbon\Carbon;
 use Common\Core\BaseModel;
-use Common\Files\Actions\SyncFileEntryModels;
 use Common\Files\Traits\HasAttachedFileEntries;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -20,9 +20,10 @@ class Artist extends BaseModel
 
     protected $casts = [
         'id' => 'integer',
-        'spotify_popularity' => 'integer',
+        'external_popularity' => 'integer',
         'fully_scraped' => 'boolean',
         'verified' => 'boolean',
+        'disabled' => 'boolean',
     ];
     protected $appends = ['model_type'];
     protected $guarded = [];
@@ -44,7 +45,7 @@ class Artist extends BaseModel
             'similar_artists',
             'artist_id',
             'similar_id',
-            // sort by original spotify order
+            // sort by original insertion order
         )->orderBy('similar_artists.id', 'asc');
     }
 
@@ -112,22 +113,30 @@ class Artist extends BaseModel
             'id' => $this->id,
             'name' => $this->name,
             'spotify_id' => $this->spotify_id,
+            'created_at' => $this->created_at->timestamp ?? '_null',
+            'updated_at' => $this->updated_at->timestamp ?? '_null',
+            'disabled' => $this->disabled,
         ];
     }
 
     public static function filterableFields(): array
     {
-        return ['id', 'spotify_id'];
+        return ['id', 'spotify_id', 'disabled'];
     }
 
     public function needsUpdating(): bool
     {
-        if (!$this->exists || !$this->spotify_id || isCrawler()) {
+        return true;
+        if (
+            !$this->exists ||
+            !(new MusicMetadataProvider(
+                settings('metadata_provider'),
+            ))->canUpdateArtist($this) ||
+            isCrawler()
+        ) {
             return false;
         }
-        if (settings('artist_provider') !== 'spotify') {
-            return false;
-        }
+
         if (!$this->fully_scraped) {
             return true;
         }

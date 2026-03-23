@@ -7,7 +7,6 @@ import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
 import {SiteConfigContext} from '@common/core/settings/site-config-context';
 import {ColumnConfig} from '@common/datatable/column-config';
 import {DataTableExportCsvButton} from '@common/datatable/csv-export/data-table-export-csv-button';
-import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
 import {DataTableHeader} from '@common/datatable/data-table-header';
 import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
 import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
@@ -24,10 +23,12 @@ import {showHttpErrorToast} from '@common/http/show-http-error-toast';
 import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {Table} from '@common/ui/tables/table';
 import {useMutation} from '@tanstack/react-query';
+import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
 import {Item} from '@ui/forms/listbox/item';
 import {FormattedDate} from '@ui/i18n/formatted-date';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {DeleteIcon} from '@ui/icons/material/Delete';
 import {EditIcon} from '@ui/icons/material/Edit';
 import {MoreVertIcon} from '@ui/icons/material/MoreVert';
@@ -38,6 +39,7 @@ import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {Tab} from '@ui/tabs/tab';
 import {TabList} from '@ui/tabs/tab-list';
 import {Tabs} from '@ui/tabs/tabs';
+import {PlusIcon} from 'lucide-react';
 import {Fragment, useContext, useState} from 'react';
 import {Link} from 'react-router';
 import teamSvg from './team.svg';
@@ -92,12 +94,6 @@ export function Component() {
   const actions = (
     <Fragment>
       <DataTableExportCsvButton endpoint="roles/csv/export" />
-      <DataTableAddItemButton
-        elementType={Link}
-        to={`new?type=${searchParams.type ?? 'users'}`}
-      >
-        <Trans message="Add new role" />
-      </DataTableAddItemButton>
     </Fragment>
   );
 
@@ -135,11 +131,18 @@ export function Component() {
         showSidebarToggleButton
         border={roleTypeTabs ? 'border-none' : undefined}
         rightContent={
-          <DocsLink
-            variant="button"
-            link={AdminDocsUrls.pages.roles}
-            size="xs"
-          />
+          <>
+            <DocsLink variant="button" link={AdminDocsUrls.pages.roles} />
+            <Button
+              variant="flat"
+              color="primary"
+              elementType={Link}
+              to={`new?type=${searchParams.type ?? 'users'}`}
+              startIcon={<LucideIcon icon={PlusIcon} size="xs" />}
+            >
+              <Trans message="Add new role" />
+            </Button>
+          </>
         }
       />
       {roleTypeTabs}

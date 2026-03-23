@@ -5,7 +5,9 @@ namespace Common\Files\Response;
 use Carbon\Carbon;
 use Common\Files\FileEntry;
 use Illuminate\Support\Collection;
+use League\Flysystem\UnableToReadFile;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 use ZipStream\ZipStream;
 
 class DownloadFilesResponse
@@ -130,10 +132,14 @@ class DownloadFilesResponse
             $this->filesInZip[$basename] = 0;
         }
 
-        $stream = $entry->getDisk()->readStream($entry->getStoragePath());
-        if ($stream) {
-            $zip->addFileFromStream($path, $stream);
-            fclose($stream);
+        try {
+            $stream = $entry->getDisk()->readStream($entry->getStoragePath());
+            if ($stream) {
+                $zip->addFileFromStream($path, $stream);
+                fclose($stream);
+            }
+        } catch (UnableToReadFile $e) {
+            report($e);
         }
     }
 

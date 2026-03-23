@@ -19,10 +19,7 @@ class TrackPlaysController extends BaseController
         ]);
         $params['perPage'] = 30;
 
-        $builder = (new HistoryTrackQuery([
-            'orderBy' => 'latest_plays.id',
-            'orderDir' => 'desc',
-        ]))->get($userId);
+        $builder = (new HistoryTrackQuery([]))->get($userId);
 
         $pagination = (new PaginateTracks())->asApiResponse(
             $params,

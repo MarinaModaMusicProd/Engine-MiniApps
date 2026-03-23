@@ -9,7 +9,7 @@ export function PageErrorMessage() {
   const [isRetrying, setIsRetrying] = useState(false);
   const handleRetry = async () => {
     setIsRetrying(true);
-    await queryClient.resetQueries();
+    await queryClient.removeQueries();
     setIsRetrying(false);
   };
   return (

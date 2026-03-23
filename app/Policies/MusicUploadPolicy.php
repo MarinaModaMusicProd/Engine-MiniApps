@@ -7,16 +7,30 @@ use Common\Core\Policies\FileEntryPolicy;
 
 class MusicUploadPolicy extends FileEntryPolicy
 {
-    public function store(User $user, int|null $parentId = null): bool
-    {
+    public function store(
+        User $user,
+        int|null $parentId = null,
+        string|null $uploadType = null,
+    ): bool {
+        if (!$uploadType) {
+            $uploadType = request('uploadType');
+        }
+
         if (
-            request('uploadType') === 'media' &&
+            in_array($uploadType, ['media', 'artwork']) &&
             ($this->hasPermission($user, 'music.create') ||
                 $this->hasPermission($user, 'music.update'))
         ) {
             return true;
-        } else {
-            return parent::store($user, $parentId);
         }
+
+        if (
+            $uploadType === 'backstageAttachments' &&
+            $this->hasPermission($user, 'backstageRequests.create')
+        ) {
+            return true;
+        }
+
+        return parent::store($user, $parentId, $uploadType);
     }
 }

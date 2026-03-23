@@ -80,11 +80,22 @@ class FileEntryPolicy extends BasePolicy
         return $this->userCan($user, 'files.download', $entries);
     }
 
-    public function store(User $user, int|null $parentId = null): bool
-    {
+    public function store(
+        User $user,
+        int|null $parentId = null,
+        string|null $uploadType = null,
+    ): bool {
+        if (!$uploadType) {
+            $uploadType = request('uploadType');
+        }
+
         //check if user can modify parent entry (if specified)
         if ($parentId) {
             return $this->userCan($user, 'files.update', [$parentId]);
+        }
+
+        if ($uploadType === 'avatars' && $user) {
+            return true;
         }
 
         return $user->hasPermission('files.create') ||
