@@ -2,18 +2,14 @@
 
 namespace Common\Core\Resources;
 
-use Common\Core\Resources\PaginatedResourceCollection;
+use Common\Core\Resources\PaginatedResponseCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class BaseJsonResource extends JsonResource
 {
-    /**
-     * @param  mixed  $resource
-     * @return AnonymousResourceCollection
-     */
-    public static function paginated($resource)
+    public static function paginationResponse($resource)
     {
-        return new PaginatedResourceCollection($resource, static::class);
+        return new PaginatedResponseCollection($resource, static::class);
     }
 }

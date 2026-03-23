@@ -167,11 +167,7 @@ export function Component() {
         title={<Trans message="Uploaded files and folders" />}
         showSidebarToggleButton
         rightContent={
-          <DocsLink
-            variant="button"
-            link={AdminDocsUrls.pages.files}
-            size="xs"
-          />
+          <DocsLink variant="button" link={AdminDocsUrls.pages.files} />
         }
       />
       <DatatablePageWithHeaderBody>

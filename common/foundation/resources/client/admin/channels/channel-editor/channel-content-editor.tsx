@@ -20,10 +20,9 @@ import {IconButton} from '@ui/buttons/icon-button';
 import {Item} from '@ui/forms/listbox/item';
 import {Select} from '@ui/forms/select/select';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {CloseIcon} from '@ui/icons/material/Close';
 import {DragHandleIcon} from '@ui/icons/material/DragHandle';
-import {RefreshIcon} from '@ui/icons/material/Refresh';
-import {WarningIcon} from '@ui/icons/material/Warning';
 import {IllustratedMessage} from '@ui/images/illustrated-message';
 import {SvgImage} from '@ui/images/svg-image';
 import {DragPreview} from '@ui/interactions/dnd/drag-preview';
@@ -36,6 +35,7 @@ import {NormalizedModel} from '@ui/types/normalized-model';
 import {moveItemInNewArray} from '@ui/utils/array/move-item-in-new-array';
 import {useIsTouchDevice} from '@ui/utils/hooks/is-touch-device';
 import clsx from 'clsx';
+import {CircleAlertIcon, RefreshCcwIcon} from 'lucide-react';
 import React, {
   cloneElement,
   ReactElement,
@@ -376,7 +376,7 @@ function ContentNotEditableWarning() {
 
   return (
     <div className="mb-20 mt-4 flex items-center gap-8">
-      <WarningIcon size="xs" />
+      <LucideIcon icon={CircleAlertIcon} size="xs" />
       <div className="text-xs text-muted">
         {contentType === 'listAll' ? (
           <Trans message="This channel is listing all available content of specified type, and can't be curated manually." />
@@ -403,7 +403,7 @@ function UpdateContentButton() {
       size="xs"
       variant="outline"
       color="primary"
-      startIcon={<RefreshIcon />}
+      startIcon={<LucideIcon icon={RefreshCcwIcon} size="xs" />}
       onClick={() => {
         updateContent.mutate(
           {

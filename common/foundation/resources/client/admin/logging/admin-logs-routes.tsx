@@ -1,5 +1,4 @@
 import {commonAdminQueries} from '@common/admin/common-admin-queries';
-import {authGuard} from '@common/auth/guards/auth-route';
 import {shouldRevalidateDatatableLoader} from '@common/datatable/filters/utils/should-revalidate-datatable-loader';
 import {queryClient} from '@common/http/query-client';
 import {searchParamsFromUrl} from '@ui/utils/urls/search-params-from-url';
@@ -8,7 +7,6 @@ import {Navigate, RouteObject} from 'react-router';
 export const adminLogsRoutes: Record<string, RouteObject> = {
   index: {
     path: 'logs',
-    loader: () => authGuard({permission: 'logs.view'}),
     lazy: () => import('@common/admin/logging/logs-page'),
     children: [
       {
@@ -37,9 +35,7 @@ export const adminLogsRoutes: Record<string, RouteObject> = {
       {
         path: 'outgoing-email',
         lazy: () =>
-          import(
-            '@common/admin/logging/outgoing-email/outgoing-email-log-datatable'
-          ),
+          import('@common/admin/logging/outgoing-email/outgoing-email-log-datatable'),
         shouldRevalidate: shouldRevalidateDatatableLoader,
         loader: ({request}) =>
           queryClient.ensureQueryData(

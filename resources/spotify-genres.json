@@ -1,0 +1,758 @@
+[
+  {
+    "display_name": "Pop",
+    "name": "pop",
+    "popularity": 126,
+    "image": "images/genres/pop.jpg"
+  },
+  {
+    "display_name": "Hip Hop",
+    "name": "hip-hop",
+    "popularity": 125,
+    "image": "images/genres/hip-hop.jpg"
+  },
+  {
+    "display_name": "Rock",
+    "name": "rock",
+    "popularity": 124,
+    "image": "images/genres/rock.jpg"
+  },
+  {
+    "display_name": "Latin",
+    "name": "latin",
+    "popularity": 123,
+    "image": "images/genres/latin.jpg"
+  },
+  {
+    "display_name": "R&B",
+    "name": "r-n-b",
+    "popularity": 122,
+    "image": "images/genres/rnb.jpg"
+  },
+  {
+    "display_name": "EDM",
+    "name": "edm",
+    "popularity": 121,
+    "image": "images/genres/edm.jpg"
+  },
+  {
+    "display_name": "Country",
+    "name": "country",
+    "popularity": 120,
+    "image": "images/genres/country.jpg"
+  },
+  {
+    "display_name": "Indie",
+    "name": "indie",
+    "popularity": 119,
+    "image": "images/genres/indie.jpg"
+  },
+  {
+    "display_name": "Dance",
+    "name": "dance",
+    "popularity": 118,
+    "image": "images/genres/dance.jpg"
+  },
+  {
+    "display_name": "K Pop",
+    "name": "k-pop",
+    "popularity": 117,
+    "image": "images/genres/j-pop.jpg"
+  },
+  {
+    "display_name": "Electronic",
+    "name": "electronic",
+    "popularity": 116,
+    "image": "images/genres/electronic.jpg"
+  },
+  {
+    "display_name": "Alternative",
+    "name": "alternative",
+    "popularity": 115,
+    "image": "images/genres/alternative.jpg"
+  },
+  {
+    "display_name": "Reggaeton",
+    "name": "reggaeton",
+    "popularity": 114,
+    "image": null
+  },
+  {
+    "display_name": "House",
+    "name": "house",
+    "popularity": 113,
+    "image": "images/genres/house.jpg"
+  },
+  {
+    "display_name": "Alt Rock",
+    "name": "alt-rock",
+    "popularity": 112,
+    "image": "images/genres/alternative-rock.jpg"
+  },
+  {
+    "display_name": "Metal",
+    "name": "metal",
+    "popularity": 111,
+    "image": "images/genres/metal.jpg"
+  },
+  {
+    "display_name": "Soul",
+    "name": "soul",
+    "popularity": 110,
+    "image": "images/genres/soul.jpg"
+  },
+  {
+    "display_name": "Chill",
+    "name": "chill",
+    "popularity": 109,
+    "image": null
+  },
+  {
+    "display_name": "Classical",
+    "name": "classical",
+    "popularity": 108,
+    "image": "images/genres/classical.jpg"
+  },
+  {
+    "display_name": "Jazz",
+    "name": "jazz",
+    "popularity": 107,
+    "image": "images/genres/jazz.jpg"
+  },
+  {
+    "display_name": "Acoustic",
+    "name": "acoustic",
+    "popularity": 106,
+    "image": "images/genres/acoustic.jpg"
+  },
+  {
+    "display_name": "Piano",
+    "name": "piano",
+    "popularity": 105,
+    "image": "images/genres/piano.jpg"
+  },
+  {
+    "display_name": "Indie Pop",
+    "name": "indie-pop",
+    "popularity": 104,
+    "image": "images/genres/indie-pop.jpg"
+  },
+  {
+    "display_name": "Sleep",
+    "name": "sleep",
+    "popularity": 103,
+    "image": "images/genres/sleep.jpg"
+  },
+  {
+    "display_name": "Study",
+    "name": "study",
+    "popularity": 102,
+    "image": "images/genres/focus.jpg"
+  },
+  {
+    "display_name": "Romance",
+    "name": "romance",
+    "popularity": 101,
+    "image": null
+  },
+  {
+    "display_name": "Sad",
+    "name": "sad",
+    "popularity": 100,
+    "image": null
+  },
+  {
+    "display_name": "Party",
+    "name": "party",
+    "popularity": 99,
+    "image": "images/genres/party.jpg"
+  },
+  {
+    "display_name": "Soundtracks",
+    "name": "soundtracks",
+    "popularity": 98,
+    "image": "images/genres/soundtrack.jpg"
+  },
+  {
+    "display_name": "Afrobeat",
+    "name": "afrobeat",
+    "popularity": 97,
+    "image": null
+  },
+  {
+    "display_name": "Punk",
+    "name": "punk",
+    "popularity": 96,
+    "image": "images/genres/punk.jpg"
+  },
+  {
+    "display_name": "Folk",
+    "name": "folk",
+    "popularity": 95,
+    "image": "images/genres/folk.jpg"
+  },
+  {
+    "display_name": "Blues",
+    "name": "blues",
+    "popularity": 94,
+    "image": "images/genres/blues.jpg"
+  },
+  {
+    "display_name": "Funk",
+    "name": "funk",
+    "popularity": 93,
+    "image": "images/genres/funk.jpg"
+  },
+  {
+    "display_name": "Techno",
+    "name": "techno",
+    "popularity": 92,
+    "image": "images/genres/techno.jpg"
+  },
+  {
+    "display_name": "Ambient",
+    "name": "ambient",
+    "popularity": 91,
+    "image": "images/genres/ambient.jpg"
+  },
+  {
+    "display_name": "Disco",
+    "name": "disco",
+    "popularity": 90,
+    "image": null
+  },
+  {
+    "display_name": "Heavy Metal",
+    "name": "heavy-metal",
+    "popularity": 89,
+    "image": "images/genres/heavy-metal.jpg"
+  },
+  {
+    "display_name": "Hard Rock",
+    "name": "hard-rock",
+    "popularity": 88,
+    "image": "images/genres/hard-rock.jpg"
+  },
+  {
+    "display_name": "Synth Pop",
+    "name": "synth-pop",
+    "popularity": 87,
+    "image": null
+  },
+  {
+    "display_name": "Reggae",
+    "name": "reggae",
+    "popularity": 86,
+    "image": "images/genres/reggae.jpg"
+  },
+  {
+    "display_name": "Dubstep",
+    "name": "dubstep",
+    "popularity": 85,
+    "image": "images/genres/dubstep.jpg"
+  },
+  {
+    "display_name": "Electro",
+    "name": "electro",
+    "popularity": 84,
+    "image": "images/genres/electro.jpg"
+  },
+  {
+    "display_name": "Trance",
+    "name": "trance",
+    "popularity": 83,
+    "image": "images/genres/trance.jpg"
+  },
+  {
+    "display_name": "Club",
+    "name": "club",
+    "popularity": 82,
+    "image": null
+  },
+  {
+    "display_name": "Singer Songwriter",
+    "name": "singer-songwriter",
+    "popularity": 81,
+    "image": "images/genres/singer-songwriter.jpg"
+  },
+  {
+    "display_name": "Work Out",
+    "name": "work-out",
+    "popularity": 80,
+    "image": null
+  },
+  {
+    "display_name": "Summer",
+    "name": "summer",
+    "popularity": 79,
+    "image": null
+  },
+  {
+    "display_name": "Holidays",
+    "name": "holidays",
+    "popularity": 78,
+    "image": null
+  },
+  {
+    "display_name": "Kids",
+    "name": "kids",
+    "popularity": 77,
+    "image": null
+  },
+  {
+    "display_name": "Children",
+    "name": "children",
+    "popularity": 76,
+    "image": null
+  },
+  {
+    "display_name": "Disney",
+    "name": "disney",
+    "popularity": 75,
+    "image": null
+  },
+  {
+    "display_name": "Movies",
+    "name": "movies",
+    "popularity": 74,
+    "image": "images/genres/cinematic.jpg"
+  },
+  {
+    "display_name": "Pop Film",
+    "name": "pop-film",
+    "popularity": 73,
+    "image": null
+  },
+  {
+    "display_name": "Anime",
+    "name": "anime",
+    "popularity": 72,
+    "image": null
+  },
+  {
+    "display_name": "J Pop",
+    "name": "j-pop",
+    "popularity": 71,
+    "image": null
+  },
+  {
+    "display_name": "Spanish",
+    "name": "spanish",
+    "popularity": 70,
+    "image": null
+  },
+  {
+    "display_name": "French",
+    "name": "french",
+    "popularity": 69,
+    "image": "images/genres/french.jpg"
+  },
+  {
+    "display_name": "German",
+    "name": "german",
+    "popularity": 68,
+    "image": "images/genres/german.jpg"
+  },
+  {
+    "display_name": "Latino",
+    "name": "latino",
+    "popularity": 67,
+    "image": "images/genres/latino.jpg"
+  },
+  {
+    "display_name": "Dancehall",
+    "name": "dancehall",
+    "popularity": 66,
+    "image": null
+  },
+  {
+    "display_name": "Grunge",
+    "name": "grunge",
+    "popularity": 65,
+    "image": "images/genres/grunge.jpg"
+  },
+  {
+    "display_name": "Emo",
+    "name": "emo",
+    "popularity": 64,
+    "image": "images/genres/emo.jpg"
+  },
+  {
+    "display_name": "Hardcore",
+    "name": "hardcore",
+    "popularity": 63,
+    "image": "images/genres/hardcore.jpg"
+  },
+  {
+    "display_name": "Metalcore",
+    "name": "metalcore",
+    "popularity": 62,
+    "image": "images/genres/metalcore.jpg"
+  },
+  {
+    "display_name": "Punk Rock",
+    "name": "punk-rock",
+    "popularity": 61,
+    "image": "images/genres/punk-rock.jpg"
+  },
+  {
+    "display_name": "Drum And Bass",
+    "name": "drum-and-bass",
+    "popularity": 60,
+    "image": null
+  },
+  {
+    "display_name": "Deep House",
+    "name": "deep-house",
+    "popularity": 59,
+    "image": null
+  },
+  {
+    "display_name": "Progressive House",
+    "name": "progressive-house",
+    "popularity": 58,
+    "image": null
+  },
+  {
+    "display_name": "Breakbeat",
+    "name": "breakbeat",
+    "popularity": 57,
+    "image": null
+  },
+  {
+    "display_name": "Garage",
+    "name": "garage",
+    "popularity": 56,
+    "image": null
+  },
+  {
+    "display_name": "Bossanova",
+    "name": "bossanova",
+    "popularity": 55,
+    "image": null
+  },
+  {
+    "display_name": "Salsa",
+    "name": "salsa",
+    "popularity": 54,
+    "image": null
+  },
+  {
+    "display_name": "Samba",
+    "name": "samba",
+    "popularity": 53,
+    "image": null
+  },
+  {
+    "display_name": "Brazil",
+    "name": "brazil",
+    "popularity": 52,
+    "image": null
+  },
+  {
+    "display_name": "Cantopop",
+    "name": "cantopop",
+    "popularity": 51,
+    "image": null
+  },
+  {
+    "display_name": "Mandopop",
+    "name": "mandopop",
+    "popularity": 50,
+    "image": null
+  },
+  {
+    "display_name": "Indian",
+    "name": "indian",
+    "popularity": 49,
+    "image": null
+  },
+  {
+    "display_name": "Turkish",
+    "name": "turkish",
+    "popularity": 48,
+    "image": null
+  },
+  {
+    "display_name": "Swedish",
+    "name": "swedish",
+    "popularity": 47,
+    "image": null
+  },
+  {
+    "display_name": "World Music",
+    "name": "world-music",
+    "popularity": 46,
+    "image": null
+  },
+  {
+    "display_name": "New Age",
+    "name": "new-age",
+    "popularity": 45,
+    "image": null
+  },
+  {
+    "display_name": "New Release",
+    "name": "new-release",
+    "popularity": 44,
+    "image": null
+  },
+  {
+    "display_name": "Comedy",
+    "name": "comedy",
+    "popularity": 43,
+    "image": "images/genres/comedy.jpg"
+  },
+  {
+    "display_name": "Gospel",
+    "name": "gospel",
+    "popularity": 42,
+    "image": null
+  },
+  {
+    "display_name": "Show Tunes",
+    "name": "show-tunes",
+    "popularity": 41,
+    "image": null
+  },
+  {
+    "display_name": "Guitar",
+    "name": "guitar",
+    "popularity": 40,
+    "image": "images/genres/guitar.jpg"
+  },
+  {
+    "display_name": "Groove",
+    "name": "groove",
+    "popularity": 39,
+    "image": null
+  },
+  {
+    "display_name": "Happy",
+    "name": "happy",
+    "popularity": 38,
+    "image": null
+  },
+  {
+    "display_name": "Road Trip",
+    "name": "road-trip",
+    "popularity": 37,
+    "image": null
+  },
+  {
+    "display_name": "Rainy Day",
+    "name": "rainy-day",
+    "popularity": 36,
+    "image": null
+  },
+  {
+    "display_name": "Death Metal",
+    "name": "death-metal",
+    "popularity": 35,
+    "image": "images/genres/death-metal.jpg"
+  },
+  {
+    "display_name": "Black Metal",
+    "name": "black-metal",
+    "popularity": 34,
+    "image": "images/genres/black-metal.jpg"
+  },
+  {
+    "display_name": "Industrial",
+    "name": "industrial",
+    "popularity": 33,
+    "image": "images/genres/industrial.jpg"
+  },
+  {
+    "display_name": "Goth",
+    "name": "goth",
+    "popularity": 32,
+    "image": null
+  },
+  {
+    "display_name": "Psych Rock",
+    "name": "psych-rock",
+    "popularity": 31,
+    "image": "images/genres/psychedelic.jpg"
+  },
+  {
+    "display_name": "Rock N Roll",
+    "name": "rock-n-roll",
+    "popularity": 30,
+    "image": "images/genres/classic-rock.jpg"
+  },
+  {
+    "display_name": "Rockabilly",
+    "name": "rockabilly",
+    "popularity": 29,
+    "image": null
+  },
+  {
+    "display_name": "Bluegrass",
+    "name": "bluegrass",
+    "popularity": 28,
+    "image": null
+  },
+  {
+    "display_name": "Honky Tonk",
+    "name": "honky-tonk",
+    "popularity": 27,
+    "image": null
+  },
+  {
+    "display_name": "Ska",
+    "name": "ska",
+    "popularity": 26,
+    "image": null
+  },
+  {
+    "display_name": "Dub",
+    "name": "dub",
+    "popularity": 25,
+    "image": null
+  },
+  {
+    "display_name": "Post Dubstep",
+    "name": "post-dubstep",
+    "popularity": 24,
+    "image": null
+  },
+  {
+    "display_name": "Chicago House",
+    "name": "chicago-house",
+    "popularity": 23,
+    "image": null
+  },
+  {
+    "display_name": "Detroit Techno",
+    "name": "detroit-techno",
+    "popularity": 22,
+    "image": null
+  },
+  {
+    "display_name": "Minimal Techno",
+    "name": "minimal-techno",
+    "popularity": 21,
+    "image": null
+  },
+  {
+    "display_name": "Hardstyle",
+    "name": "hardstyle",
+    "popularity": 20,
+    "image": null
+  },
+  {
+    "display_name": "IDM",
+    "name": "idm",
+    "popularity": 19,
+    "image": "images/genres/idm.jpg"
+  },
+  {
+    "display_name": "Trip Hop",
+    "name": "trip-hop",
+    "popularity": 18,
+    "image": "images/genres/trip-hop.jpg"
+  },
+  {
+    "display_name": "Power Pop",
+    "name": "power-pop",
+    "popularity": 17,
+    "image": null
+  },
+  {
+    "display_name": "Songwriter",
+    "name": "songwriter",
+    "popularity": 16,
+    "image": null
+  },
+  {
+    "display_name": "J Rock",
+    "name": "j-rock",
+    "popularity": 15,
+    "image": "images/genres/japanese.jpg"
+  },
+  {
+    "display_name": "J Dance",
+    "name": "j-dance",
+    "popularity": 14,
+    "image": null
+  },
+  {
+    "display_name": "J Idol",
+    "name": "j-idol",
+    "popularity": 13,
+    "image": null
+  },
+  {
+    "display_name": "MPB",
+    "name": "mpb",
+    "popularity": 12,
+    "image": null
+  },
+  {
+    "display_name": "Forro",
+    "name": "forro",
+    "popularity": 11,
+    "image": null
+  },
+  {
+    "display_name": "Pagode",
+    "name": "pagode",
+    "popularity": 10,
+    "image": null
+  },
+  {
+    "display_name": "Sertanejo",
+    "name": "sertanejo",
+    "popularity": 9,
+    "image": null
+  },
+  {
+    "display_name": "Philippines OPM",
+    "name": "philippines-opm",
+    "popularity": 8,
+    "image": null
+  },
+  {
+    "display_name": "Malay",
+    "name": "malay",
+    "popularity": 7,
+    "image": null
+  },
+  {
+    "display_name": "Iranian",
+    "name": "iranian",
+    "popularity": 6,
+    "image": null
+  },
+  {
+    "display_name": "Tango",
+    "name": "tango",
+    "popularity": 5,
+    "image": null
+  },
+  {
+    "display_name": "Opera",
+    "name": "opera",
+    "popularity": 4,
+    "image": null
+  },
+  {
+    "display_name": "Metal Misc",
+    "name": "metal-misc",
+    "popularity": 3,
+    "image": null
+  },
+  {
+    "display_name": "British",
+    "name": "british",
+    "popularity": 2,
+    "image": "images/genres/british.jpg"
+  },
+  {
+    "display_name": "Grindcore",
+    "name": "grindcore",
+    "popularity": 1,
+    "image": "images/genres/grindcore.jpg"
+  }
+]

@@ -7,7 +7,7 @@ import {useAuth} from '../auth/use-auth';
 
 export function useCustomMenu(menuOrPosition?: string | MenuConfig) {
   const settings = useSettings();
-  const {user, hasPermission} = useAuth();
+  const {user, hasPermission, hasRole} = useAuth();
 
   return useMemo(() => {
     if (!menuOrPosition) {
@@ -23,9 +23,7 @@ export function useCustomMenu(menuOrPosition?: string | MenuConfig) {
 
     if (menu) {
       for (const item of menu.items) {
-        const hasRoles = (item.roles || []).every(a =>
-          user?.roles?.find(b => b.id === a),
-        );
+        const hasRoles = (item.roles || []).every(a => hasRole(a));
         const hasPermissions = (item.permissions || []).every(a =>
           hasPermission(a),
         );

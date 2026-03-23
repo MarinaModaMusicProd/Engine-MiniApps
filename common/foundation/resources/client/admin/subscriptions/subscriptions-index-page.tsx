@@ -15,10 +15,12 @@ import {
 } from '@common/datatable/page/datatable-page-with-header-layout';
 import {useDatatableQuery} from '@common/datatable/requests/use-datatable-query';
 import {Table} from '@common/ui/tables/table';
+import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
 import {Chip} from '@ui/forms/input-field/chip-field/chip';
 import {FormattedDate} from '@ui/i18n/formatted-date';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {CloseIcon} from '@ui/icons/material/Close';
 import {EditIcon} from '@ui/icons/material/Edit';
 import {PauseIcon} from '@ui/icons/material/Pause';
@@ -26,13 +28,13 @@ import {PlayArrowIcon} from '@ui/icons/material/PlayArrow';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {Tooltip} from '@ui/tooltip/tooltip';
+import {PlusIcon} from 'lucide-react';
 import {Fragment} from 'react';
 import {useCancelSubscription} from '../../billing/billing-page/requests/use-cancel-subscription';
 import {useResumeSubscription} from '../../billing/billing-page/requests/use-resume-subscription';
 import {Subscription} from '../../billing/subscription';
 import {ColumnConfig} from '../../datatable/column-config';
 import {NameWithAvatar} from '../../datatable/column-templates/name-with-avatar';
-import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
 import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
 import {queryClient} from '../../http/query-client';
 import {CreateSubscriptionDialog} from './create-subscription-dialog';
@@ -134,11 +136,15 @@ export function Component() {
     }),
   );
 
-  const actions = (
+  const createSubscriptionButton = (
     <DialogTrigger type="modal">
-      <DataTableAddItemButton>
+      <Button
+        variant="flat"
+        color="primary"
+        startIcon={<LucideIcon icon={PlusIcon} />}
+      >
         <Trans message="Add new subscription" />
-      </DataTableAddItemButton>
+      </Button>
       <CreateSubscriptionDialog />
     </DialogTrigger>
   );
@@ -150,20 +156,22 @@ export function Component() {
         title={<Trans message="Subscriptions" />}
         showSidebarToggleButton
         rightContent={
-          AdminDocsUrls.pages.subscriptions ? (
-            <DocsLink
-              variant="button"
-              link={AdminDocsUrls.pages.subscriptions}
-              size="xs"
-            />
-          ) : null
+          <>
+            {AdminDocsUrls.pages.subscriptions ? (
+              <DocsLink
+                variant="button"
+                link={AdminDocsUrls.pages.subscriptions}
+                size="sm"
+              />
+            ) : null}
+            {createSubscriptionButton}
+          </>
         }
       />
       <DatatablePageWithHeaderBody>
         <DataTableHeader
           searchValue={searchParams.query}
           onSearchChange={setSearchQuery}
-          actions={actions}
           filters={SubscriptionIndexPageFilters}
         />
         <DatatableFilters filters={SubscriptionIndexPageFilters} />

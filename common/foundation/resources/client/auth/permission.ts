@@ -3,7 +3,6 @@ export interface Permission {
   name: string;
   display_name: string;
   description: string;
-  type?: string;
   group: string;
   restrictions: PermissionRestriction[];
 }

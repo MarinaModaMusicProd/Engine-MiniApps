@@ -46,12 +46,16 @@ class ImportLyrics
         if ($result) {
             $text = $result['syncedLyric'] ?? $result['plainLyric'];
             if ($text) {
-                return Lyric::create([
-                    'track_id' => $trackId,
-                    'text' => $text,
-                    'is_synced' => isset($result['syncedLyric']),
-                    'duration' => $result['duration'] ?? null,
-                ]);
+                // Create or update existing lyric for the track
+                $lyric = Lyric::updateOrCreate(
+                    ['track_id' => $trackId],
+                    [
+                        'text' => $text,
+                        'is_synced' => isset($result['syncedLyric']),
+                        'duration' => $result['duration'] ?? null,
+                    ],
+                );
+                return $lyric;
             }
         }
 

@@ -1,9 +1,10 @@
 import {Button, ButtonProps} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
 import {Trans} from '@ui/i18n/trans';
-import {FilterAltIcon} from '@ui/icons/material/FilterAlt';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
+import {ListFilterIcon} from 'lucide-react';
 import {ReactElement} from 'react';
 import {AddFilterDialog} from './add-filter-dialog';
 import {BackendFilter} from './backend-filter';
@@ -19,8 +20,8 @@ interface AddFilterButtonProps {
 }
 export function AddFilterButton({
   filters,
-  icon = <FilterAltIcon />,
-  color = 'primary',
+  icon = <LucideIcon icon={ListFilterIcon} size="xs" />,
+  color,
   variant = 'outline',
   size = 'sm',
   disabled,

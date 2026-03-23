@@ -1,10 +1,11 @@
-import clsx from 'clsx';
-import {BackendFilter} from '../backend-filter';
-import {useBackendFilterUrlParams} from '../backend-filter-url-params';
+import {ButtonSize} from '@ui/buttons/button-size';
 import {IconButton} from '@ui/buttons/icon-button';
 import {CloseIcon} from '@ui/icons/material/Close';
-import {FilterListControl} from './filter-list-control';
+import clsx from 'clsx';
 import {FilterItemFormValue} from '../add-filter-dialog';
+import {BackendFilter} from '../backend-filter';
+import {useBackendFilterUrlParams} from '../backend-filter-url-params';
+import {FilterListControl} from './filter-list-control';
 
 interface FilterListProps {
   filters: BackendFilter[];
@@ -12,12 +13,14 @@ interface FilterListProps {
   pinnedFilters?: string[];
   className?: string;
   wrap?: boolean;
+  buttonSize?: ButtonSize;
 }
 export function FilterList({
   filters,
   pinnedFilters,
   className,
   wrap,
+  buttonSize = 'xs',
 }: FilterListProps) {
   const {decodedFilters, remove, replaceAll} = useBackendFilterUrlParams(
     filters,
@@ -55,9 +58,8 @@ export function FilterList({
             {!field.isInactive && (
               <IconButton
                 variant="outline"
-                color="primary"
-                size="xs"
-                radius="rounded-l-md"
+                size={buttonSize}
+                radius="rounded-l-button"
                 onClick={() => {
                   remove(field.key);
                 }}
@@ -71,6 +73,7 @@ export function FilterList({
               value={field.valueKey != null ? field.valueKey : field.value}
               operator={field.operator}
               onValueChange={handleValueChange}
+              buttonSize={buttonSize}
             />
           </div>
         );

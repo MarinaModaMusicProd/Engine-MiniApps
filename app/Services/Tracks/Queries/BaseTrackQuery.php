@@ -30,18 +30,26 @@ abstract class BaseTrackQuery
 
     public function getOrder(): array
     {
-        $order = [
-            'col' => Arr::get($this->params, 'orderBy') ?: static::ORDER_COL,
-            'dir' => Arr::get($this->params, 'orderDir') ?: static::ORDER_DIR,
+        $orderBy = Arr::get($this->params, 'orderBy') ?: static::ORDER_COL;
+        $orderDir = Arr::get($this->params, 'orderDir') ?: static::ORDER_DIR;
+
+        $orderBy = match ($orderBy) {
+            'name' => 'tracks.name',
+            default => $orderBy,
+        };
+
+        return [
+            'col' => $orderBy,
+            'dir' => $orderDir,
         ];
+    }
 
-        if ($order['col'] === 'popularity') {
-            $order['col'] =
-                settings('player.sort_method', 'external') === 'external'
-                    ? 'spotify_popularity'
-                    : 'plays';
-        }
-
-        return $order;
+    public function getFrontendOrderKey(): string
+    {
+        $order = $this->getOrder();
+        return match ($order['col']) {
+            'tracks.name' => 'name',
+            default => $order['col'],
+        };
     }
 }

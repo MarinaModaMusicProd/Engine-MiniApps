@@ -12,8 +12,14 @@ class PermissionsController extends BaseController
     {
         $this->authorize('index', Setting::class);
 
+        $data = $this->validate(request(), [
+            'roleType' => 'required|string',
+        ]);
+
         return $this->success([
-            'permissions' => (new PermissionConfig())->getWithId(),
+            'permissions' => (new PermissionConfig())->getWithId(
+                $data['roleType'],
+            ),
         ]);
     }
 }

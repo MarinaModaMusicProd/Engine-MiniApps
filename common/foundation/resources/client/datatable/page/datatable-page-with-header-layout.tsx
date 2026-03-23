@@ -17,18 +17,32 @@ export function DatatablePageWithHeaderLayout({
 
 export function DatatablePageScrollContainer({
   children,
+  className,
 }: {
   children: ReactNode;
+  className?: string;
 }) {
-  return <div className="flex-auto overflow-y-auto">{children}</div>;
+  return (
+    <div className={clsx('flex-auto overflow-y-auto', className)}>
+      {children}
+    </div>
+  );
 }
 
 export type BodyProps = {
   children: ReactNode;
+  className?: string;
+  padding?: string;
 };
-export function DatatablePageWithHeaderBody({children}: BodyProps) {
+export function DatatablePageWithHeaderBody({
+  children,
+  className,
+  padding = 'p-12 md:p-24',
+}: BodyProps) {
   return (
-    <div className="flex min-h-0 flex-auto flex-col p-12 md:p-24">
+    <div
+      className={clsx('flex min-h-0 flex-auto flex-col', padding, className)}
+    >
       {children}
     </div>
   );
@@ -39,12 +53,14 @@ interface DatatablePageHeaderBarProps {
   children?: ReactNode;
   showSidebarToggleButton?: boolean;
   titleId?: string;
+  titleMargin?: string;
   leftContent?: ReactNode;
   rightContent?: ReactNode;
   border?: string;
   padding?: string;
   className?: string;
   toggleButton?: ReactNode;
+  height?: string;
 }
 export function DatatablePageHeaderBar({
   title,
@@ -54,9 +70,11 @@ export function DatatablePageHeaderBar({
   leftContent,
   rightContent,
   border = 'border-b',
+  height = 'h-[var(--panel-header-height,3.5rem)]',
   padding,
   className,
   toggleButton,
+  titleMargin,
 }: DatatablePageHeaderBarProps) {
   if (!toggleButton) {
     toggleButton = showSidebarToggleButton ? (
@@ -69,7 +87,8 @@ export function DatatablePageHeaderBar({
   return (
     <div
       className={clsx(
-        'flex h-56 flex-shrink-0 items-center gap-8',
+        'flex flex-shrink-0 items-center gap-8',
+        height,
         padding
           ? padding
           : showSidebarToggleButton
@@ -84,7 +103,10 @@ export function DatatablePageHeaderBar({
         <h1
           id={titleId}
           className={clsx(
-            'mr-24 flex-auto overflow-hidden overflow-ellipsis whitespace-nowrap text-xl font-semibold first:capitalize [&_.breadcrumb-root]:-ml-6',
+            'overflow-hidden overflow-ellipsis whitespace-nowrap text-xl font-semibold first:capitalize',
+            // need to expand for breadcrumbs to work properly
+            !leftContent && 'flex-auto',
+            titleMargin ? titleMargin : 'mr-24 [&_.breadcrumb-root]:-ml-6',
           )}
         >
           {titleContent}

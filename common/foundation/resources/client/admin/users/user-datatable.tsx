@@ -45,7 +45,7 @@ export function Component() {
     isFiltering,
   } = useDatatableSearchParams(validateDatatableSearch);
 
-  const filteredColumns = !billing.enable
+  const filteredColumns = !billing?.enable
     ? userDatatableColumns.filter(c => c.key !== 'subscribed')
     : userDatatableColumns;
 
@@ -66,12 +66,6 @@ export function Component() {
   const actions = (
     <Fragment>
       <DataTableExportCsvButton endpoint="users/csv/export" />
-      <DialogTrigger type="modal">
-        <DataTableAddItemButton>
-          <Trans message="Add new user" />
-        </DataTableAddItemButton>
-        <CreateUserDialog />
-      </DialogTrigger>
     </Fragment>
   );
 
@@ -84,6 +78,14 @@ export function Component() {
       <DatatablePageHeaderBar
         title={<Trans message="Users" />}
         showSidebarToggleButton
+        rightContent={
+          <DialogTrigger type="modal">
+            <DataTableAddItemButton>
+              <Trans message="Add new user" />
+            </DataTableAddItemButton>
+            <CreateUserDialog />
+          </DialogTrigger>
+        }
       />
       <DatatablePageWithHeaderBody>
         <DataTableHeader

@@ -17,8 +17,7 @@ class LocalizationsRepository
     public function __construct(
         protected Filesystem $fs,
         protected Localization $localization,
-    ) {
-    }
+    ) {}
 
     public function getByNameOrCode(
         string $name,
@@ -50,6 +49,13 @@ class LocalizationsRepository
             $localization->name = $data['name'];
         }
 
+        if (
+            isset($data['direction']) &&
+            $data['direction'] !== $localization->direction
+        ) {
+            $localization->direction = $data['direction'];
+        }
+
         if ($language && $language !== $localization->language) {
             $this->renameLocalizationLinesFile($localization, $language);
             $localization->language = $language;
@@ -73,6 +79,7 @@ class LocalizationsRepository
         $localization = $this->localization->create([
             'name' => $params['name'],
             'language' => $params['language'],
+            'direction' => $params['direction'] ?? 'ltr',
         ]);
 
         $lines = $this->getDefaultTranslationLines();

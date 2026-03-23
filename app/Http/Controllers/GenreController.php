@@ -1,6 +1,5 @@
 <?php namespace App\Http\Controllers;
 
-use App\Models\Channel;
 use App\Models\Genre;
 use App\Services\Genres\PaginateGenres;
 use Common\Core\BaseController;
@@ -20,6 +19,8 @@ class GenreController extends BaseController
 
         $pagination = (new PaginateGenres())->asApiResponse(
             $this->request->all(),
+            builder: Genre::query()->withCount('artists'),
+            loader: 'editGenreDatatable',
         );
 
         return $this->success(['pagination' => $pagination]);

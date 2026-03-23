@@ -182,9 +182,9 @@ function SelectedModelPreview({
       {...opacityAnimation}
     >
       <Avatar src={data.model.image} label={data.model.name} size="sm" />
-      <div>
+      <div className="min-w-0">
         <Tooltip label={data.model.description ?? data.model.name ?? ''}>
-          <div className="text-sm leading-4">{data.model.name}</div>
+          <div className="truncate text-sm leading-4">{data.model.name}</div>
         </Tooltip>
       </div>
       <Tooltip label={<Trans message="Change item" />}>

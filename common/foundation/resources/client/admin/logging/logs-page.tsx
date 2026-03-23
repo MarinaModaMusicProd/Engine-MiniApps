@@ -29,11 +29,9 @@ export function Component() {
         showSidebarToggleButton
         border="border-none"
         rightContent={
-          <DocsLink
-            variant="button"
-            link={AdminDocsUrls.pages.logs}
-            size="xs"
-          />
+          AdminDocsUrls.pages.logs ? (
+            <DocsLink variant="button" link={AdminDocsUrls.pages.logs} />
+          ) : null
         }
       />
       <Tabs selectedTab={activeTab} onTabChange={setActiveTab}>

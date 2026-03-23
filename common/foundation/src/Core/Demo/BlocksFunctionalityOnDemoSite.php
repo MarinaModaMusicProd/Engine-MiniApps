@@ -11,7 +11,7 @@ trait BlocksFunctionalityOnDemoSite
     {
         if (
             config('app.demo') &&
-            config('app.demo_email') !== request()->user()->email
+            config('app.demo_email') !== request()->user()?->email
         ) {
             abort(403, 'This action is disabled on demo site.');
         }

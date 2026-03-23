@@ -1,5 +1,5 @@
 import {CrupdateGenreFrom} from '@app/admin/genres-datatable-page/crupdate-genre-form';
-import {useImportGenreArtists} from '@app/admin/genres-datatable-page/requests/use-import-genre-artists';
+import {useImportGenreContent} from '@app/admin/genres-datatable-page/requests/use-import-genre-content';
 import {
   UpdateGenrePayload,
   useUpdateGenre,
@@ -19,7 +19,8 @@ interface Props {
   genre: Genre;
 }
 export function UpdateGenreDialog({genre}: Props) {
-  const {spotify_is_setup, spotify_use_deprecated_api} = useSettings();
+  const {spotify_is_setup, spotify_use_deprecated_api, metadata_provider} =
+    useSettings();
   const {close, formId} = useDialogContext();
   const form = useForm<UpdateGenrePayload>({
     defaultValues: {
@@ -30,7 +31,14 @@ export function UpdateGenreDialog({genre}: Props) {
     },
   });
   const updateGenre = useUpdateGenre(form);
-  const importArtists = useImportGenreArtists();
+  const importArtists = useImportGenreContent();
+
+  let canImportGenreData = false;
+  if (metadata_provider === 'spotify') {
+    canImportGenreData = !!spotify_is_setup && !!spotify_use_deprecated_api;
+  } else if (metadata_provider === 'deezer') {
+    canImportGenreData = true;
+  }
 
   return (
     <Dialog>
@@ -52,8 +60,7 @@ export function UpdateGenreDialog({genre}: Props) {
       </DialogBody>
       <DialogFooter
         startAction={
-          spotify_is_setup &&
-          spotify_use_deprecated_api && (
+          canImportGenreData && (
             <Button
               variant="outline"
               onClick={() =>
@@ -61,7 +68,7 @@ export function UpdateGenreDialog({genre}: Props) {
               }
               disabled={importArtists.isPending}
             >
-              <Trans message="Import artists" />
+              <Trans message="Import content" />
             </Button>
           )
         }

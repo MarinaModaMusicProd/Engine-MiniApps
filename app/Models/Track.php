@@ -28,7 +28,7 @@ class Track extends BaseModel
         'id' => 'integer',
         'album_id' => 'integer',
         'number' => 'integer',
-        'spotify_popularity' => 'integer',
+        'external_popularity' => 'integer',
         'duration' => 'integer',
         'position' => 'integer',
         'added_at' => 'datetime',

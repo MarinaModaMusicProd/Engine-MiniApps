@@ -6,7 +6,7 @@ import {IconSize, SvgIconProps} from '@ui/icons/svg-icon';
 import {Tooltip} from '@ui/tooltip/tooltip';
 import clsx from 'clsx';
 import React, {
-  ComponentType,
+  cloneElement,
   forwardRef,
   Fragment,
   ReactElement,
@@ -37,7 +37,7 @@ export interface CustomMenuProps {
   orientation?: Orientation;
   onlyShowIcons?: boolean;
   unstyled?: boolean;
-  defaultIcons?: Record<string, ComponentType<SvgIconProps>>;
+  defaultIcons?: Record<string, ReactElement<SvgIconProps>>;
 }
 export function CustomMenu({
   className,
@@ -94,7 +94,7 @@ export function CustomMenu({
 export interface MenuItemProps extends React.RefAttributes<HTMLAnchorElement> {
   item: MenuItemConfig;
   icon?: ReactElement<SvgIconProps> | null;
-  defaultIcons?: Record<string, ComponentType<SvgIconProps>>;
+  defaultIcons?: Record<string, ReactElement<SvgIconProps>>;
   iconClassName?: string;
   className?: (props: {isActive: boolean}) => string | undefined;
   matchDescendants?: MatchDescendants;
@@ -132,7 +132,12 @@ export const CustomMenuItem = forwardRef<HTMLAnchorElement, MenuItemProps>(
       icon = IconCmp && <IconCmp size={iconSize} className={iconClassName} />;
     } else if (defaultIcons) {
       const IconCmp = defaultIcons[item.action.split('?')[0]];
-      icon = IconCmp && <IconCmp size={iconSize} className={iconClassName} />;
+      icon =
+        IconCmp &&
+        cloneElement(IconCmp, {
+          size: IconCmp.props.size || iconSize,
+          className: iconClassName,
+        });
     }
 
     if (icon && onlyShowIcon && label) {

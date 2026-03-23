@@ -92,7 +92,7 @@ export function CrupdatePlanForm() {
       <Header>
         <Trans message="Permissions" />
       </Header>
-      <FormPermissionSelector name="permissions" />
+      <FormPermissionSelector name="permissions" roleType="users" />
     </Fragment>
   );
 }

@@ -23,11 +23,12 @@ export const adminRolesRoutes: Record<string, RouteObject> = {
     path: 'roles/new',
     lazy: () =>
       import('@common/admin/roles/crupdate-role-page/create-role-page'),
-    loader: () => {
+    loader: ({request}) => {
       const redirect = authGuard({permission: 'roles.update'});
+      const searchParams = searchParamsFromUrl(request.url);
       if (redirect) return redirect;
       return queryClient.ensureQueryData(
-        commonAdminQueries.permissions.index(),
+        commonAdminQueries.permissions.index(searchParams.type ?? 'users'),
       );
     },
   },
@@ -36,21 +37,20 @@ export const adminRolesRoutes: Record<string, RouteObject> = {
     loader: async ({params}) => {
       const redirect = authGuard({permission: 'roles.update'});
       if (redirect) return redirect;
-      return await Promise.allSettled([
-        queryClient.ensureQueryData(
-          commonAdminQueries.roles.get(params.roleId!),
-        ),
-        queryClient.ensureQueryData(commonAdminQueries.permissions.index()),
-      ]);
+
+      const response = await queryClient.ensureQueryData(
+        commonAdminQueries.roles.get(params.roleId!),
+      );
+      return await queryClient.ensureQueryData(
+        commonAdminQueries.permissions.index(response.role.type),
+      );
     },
     lazy: () => import('@common/admin/roles/crupdate-role-page/edit-role-page'),
     children: [
       {
         index: true,
         lazy: () =>
-          import(
-            '@common/admin/roles/crupdate-role-page/crupdate-role-settings-panel'
-          ),
+          import('@common/admin/roles/crupdate-role-page/crupdate-role-settings-panel'),
       },
       {
         path: 'users',
@@ -63,9 +63,7 @@ export const adminRolesRoutes: Record<string, RouteObject> = {
             }),
           ),
         lazy: () =>
-          import(
-            '@common/admin/roles/crupdate-role-page/edit-role-page-users-panel'
-          ),
+          import('@common/admin/roles/crupdate-role-page/edit-role-page-users-panel'),
       },
     ],
   },

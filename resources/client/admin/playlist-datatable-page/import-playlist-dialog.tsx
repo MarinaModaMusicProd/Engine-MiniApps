@@ -1,3 +1,4 @@
+import {ImportMetadataProviderFields} from '@app/admin/artist-datatable-page/import-artist-dialog';
 import {Dialog} from '@ui/overlays/dialog/dialog';
 import {DialogHeader} from '@ui/overlays/dialog/dialog-header';
 import {Trans} from '@ui/i18n/trans';
@@ -9,12 +10,22 @@ import {
 } from '@app/admin/playlist-datatable-page/requests/use-import-playlist';
 import {Form} from '@ui/forms/form';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
-import {FormTextField} from '@ui/forms/input-field/text-field/text-field';
 import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
 import {Button} from '@ui/buttons/button';
+import {useSettings} from '@ui/settings/use-settings';
 
 export function ImportPlaylistDialog() {
-  const form = useForm<ImportPlaylistPayload>();
+  const settings = useSettings();
+  const {spotify_is_setup} = useSettings();
+  const defaultMetadataProvider =
+    settings.metadata_provider === 'spotify' && !!spotify_is_setup
+      ? 'spotify'
+      : 'deezer';
+  const form = useForm<ImportPlaylistPayload>({
+    defaultValues: {
+      metadataProvider: defaultMetadataProvider,
+    },
+  });
   const {formId, close} = useDialogContext();
   const importPlaylist = useImportPlaylist();
   return (
@@ -34,17 +45,7 @@ export function ImportPlaylistDialog() {
             });
           }}
         >
-          <FormTextField
-            autoFocus
-            required
-            name="spotifyId"
-            minLength={22}
-            maxLength={22}
-            label={<Trans message="Spotify ID" />}
-            description={
-              <Trans message="Only public playlists can be imported." />
-            }
-          />
+          <ImportMetadataProviderFields />
         </Form>
       </DialogBody>
       <DialogFooter>

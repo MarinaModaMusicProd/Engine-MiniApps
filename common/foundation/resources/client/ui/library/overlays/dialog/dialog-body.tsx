@@ -7,18 +7,22 @@ interface DialogBodyProps extends ComponentProps<'div'> {
   className?: string;
   padding?: string | null;
   size?: DialogSize;
+  scrollClassName?: string;
 }
 export const DialogBody = forwardRef<HTMLDivElement, DialogBodyProps>(
   (props, ref) => {
-    const {children, className, padding, size, ...domProps} = props;
+    const {children, className, padding, size, scrollClassName, ...domProps} =
+      props;
     return (
       <div
         {...domProps}
         ref={ref}
         className={clsx(
           className,
+          scrollClassName ??
+            'overflow-y-auto overflow-x-hidden overscroll-contain',
           getPadding(props),
-          'flex-auto overflow-y-auto overflow-x-hidden overscroll-contain text-sm',
+          'flex-auto text-sm',
         )}
       >
         {children}

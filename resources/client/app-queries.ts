@@ -1,9 +1,11 @@
 import {FullAlbum} from '@app/web-player/albums/album';
 import {assignAlbumToTracks} from '@app/web-player/albums/assign-album-to-tracks';
 import {GetAlbumResponse} from '@app/web-player/albums/requests/get-album-response';
-import {FullArtist} from '@app/web-player/artists/artist';
-import {AlbumsViewMode} from '@app/web-player/artists/artist-page/discography-panel/albums-view-mode';
-import {GetArtistResponse} from '@app/web-player/artists/requests/get-artist-response';
+import {FullArtist, PartialArtist} from '@app/web-player/artists/artist';
+import {
+  artistAlbumsResponseType,
+  GetArtistResponse,
+} from '@app/web-player/artists/requests/get-artist-response';
 import {BackstageRequest} from '@app/web-player/backstage/backstage-request';
 import {Genre} from '@app/web-player/genres/genre';
 import {LibrarySearchParams} from '@app/web-player/library/library-search-params';
@@ -25,12 +27,17 @@ import {
 import {auth} from '@common/auth/use-auth';
 import {BackendResponse} from '@common/http/backend-response/backend-response';
 import {
+  getNextPageParam,
   PaginationResponse,
   SimplePaginationResponse,
 } from '@common/http/backend-response/pagination-response';
 import {queryFactoryHelpers} from '@common/http/queries-file-helpers';
 import {apiClient} from '@common/http/query-client';
-import {queryOptions} from '@tanstack/react-query';
+import {
+  InfiniteData,
+  infiniteQueryOptions,
+  queryOptions,
+} from '@tanstack/react-query';
 import {BootstrapData} from '@ui/bootstrap-data/bootstrap-data';
 import {getBootstrapData} from '@ui/bootstrap-data/bootstrap-data-store';
 
@@ -81,22 +88,61 @@ export const appQueries = {
         });
       },
       albums: (
-        viewMode: AlbumsViewMode,
+        responseType:
+          | typeof artistAlbumsResponseType.WITH_TRACKS
+          | typeof artistAlbumsResponseType.GRID,
+        recordType?: string,
         initialData?: PaginationResponse<FullAlbum> | null,
       ) => {
-        return infiniteQuery<FullAlbum>({
-          queryKey: ['artists', `${artistId}`, 'albums', viewMode],
-          endpoint: `artists/${artistId}/albums`,
-          initialData,
-          queryParams: {
-            viewMode,
-          },
-          transformResponse: response => {
+        const selectFn = (
+          data: InfiniteData<{
+            pagination: PaginationResponse<FullAlbum>;
+            artist?: PartialArtist;
+          }>,
+        ) => {
+          const pages = data.pages.map(response => {
             response.pagination.data = response.pagination.data.map(album =>
               assignAlbumToTracks(album),
             );
             return response;
-          },
+          });
+          return {...data, pages};
+        };
+
+        return infiniteQueryOptions<{
+          pagination: PaginationResponse<FullAlbum>;
+          artist?: PartialArtist;
+        }>({
+          queryKey: [
+            'artists',
+            `${artistId}`,
+            'albums',
+            responseType,
+            recordType,
+          ],
+          queryFn: ({pageParam, signal}) =>
+            get(
+              `artists/${artistId}/albums`,
+              {
+                responseType,
+                recordType: recordType ?? null,
+                page: pageParam as number,
+                paginate: 'simple',
+              },
+              signal,
+            ),
+          initialPageParam: 1,
+          getNextPageParam,
+          select: selectFn,
+          initialData: initialData
+            ? () => {
+                if (!initialData) return undefined;
+                return {
+                  pageParams: [undefined, 1],
+                  pages: [{pagination: initialData}],
+                };
+              }
+            : undefined,
         });
       },
       followers: (initialData?: PaginationResponse<PartialUserProfile>) => {

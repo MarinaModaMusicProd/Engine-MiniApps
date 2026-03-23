@@ -10,7 +10,6 @@ import {FormSelect} from '@ui/forms/select/select';
 import {FormSwitch} from '@ui/forms/toggle/switch';
 import {MessageDescriptor} from '@ui/i18n/message-descriptor';
 import {Trans} from '@ui/i18n/trans';
-import {useSettings} from '@ui/settings/use-settings';
 import {ReactElement} from 'react';
 import {useForm} from 'react-hook-form';
 
@@ -19,7 +18,6 @@ interface Props {
   title: ReactElement<MessageDescriptor>;
 }
 export function FunctionalitySettings({tabs, title}: Props) {
-  const {spotify_is_setup} = useSettings();
   const {data} = useAdminSettings();
   const form = useForm<AdminSettings>({
     defaultValues: {
@@ -43,7 +41,7 @@ export function FunctionalitySettings({tabs, title}: Props) {
   });
   return (
     <AdminSettingsLayout form={form} title={title} tabs={tabs}>
-      {spotify_is_setup && <ContentPopularitySection />}
+      <ContentPopularitySection />
       <VolumeSettingsPanel />
       <SeekbarSection />
       <SocialFeaturesSection />
@@ -60,7 +58,7 @@ export function ContentPopularitySection() {
       className="mb-24"
       title={<Trans message="Content Popularity" />}
       description={
-        <Trans message="When content is sorted by popularity (e.g. in track tables), choose whether to use Spotify popularity or local play counts." />
+        <Trans message="When content is sorted by popularity (e.g. in track tables), choose whether to use external popularity or local play counts." />
       }
     >
       <FormSelect
@@ -70,7 +68,7 @@ export function ContentPopularitySection() {
         label={<Trans message="Popularity source" />}
       >
         <Item value="external">
-          <Trans message="Spotify popularity" />
+          <Trans message="External popularity" />
         </Item>
         <Item value="local">
           <Trans message="Local plays" />

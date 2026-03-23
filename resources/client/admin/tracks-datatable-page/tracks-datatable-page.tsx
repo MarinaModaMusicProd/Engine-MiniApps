@@ -3,7 +3,6 @@ import {TracksDatatableColumns} from '@app/admin/tracks-datatable-page/tracks-da
 import {TracksDatatableFilters} from '@app/admin/tracks-datatable-page/tracks-datatable-filters';
 import {appQueries} from '@app/app-queries';
 import {GlobalLoadingProgress} from '@common/core/global-loading-progress';
-import {DataTableAddItemButton} from '@common/datatable/data-table-add-item-button';
 import {DataTableHeader} from '@common/datatable/data-table-header';
 import {DataTablePaginationFooter} from '@common/datatable/data-table-pagination-footer';
 import {useDatatableSearchParams} from '@common/datatable/filters/utils/use-datatable-search-params';
@@ -24,17 +23,15 @@ import {useNavigate} from '@common/ui/navigation/use-navigate';
 import {Table} from '@common/ui/tables/table';
 import {useMutation} from '@tanstack/react-query';
 import {Button} from '@ui/buttons/button';
-import {IconButton} from '@ui/buttons/icon-button';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
-import {PublishIcon} from '@ui/icons/material/Publish';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
-import {useSettings} from '@ui/settings/use-settings';
 import {toast} from '@ui/toast/toast';
-import {Tooltip} from '@ui/tooltip/tooltip';
-import {Fragment, useState} from 'react';
+import {DownloadIcon, PlusIcon} from 'lucide-react';
+import {useState} from 'react';
 import {Link} from 'react-router';
 import marketing from './music.svg';
 
@@ -76,6 +73,17 @@ export function Component() {
       <DatatablePageHeaderBar
         title={<Trans message="Tracks" />}
         showSidebarToggleButton
+        rightContent={
+          <Button
+            elementType={Link}
+            color="primary"
+            variant="flat"
+            to="new"
+            startIcon={<LucideIcon icon={PlusIcon} size="sm" />}
+          >
+            <Trans message="Create new track" />
+          </Button>
+        }
       />
       <DatatablePageWithHeaderBody>
         <DataTableHeader
@@ -117,36 +125,26 @@ export function Component() {
 }
 
 function Actions() {
-  const {spotify_is_setup} = useSettings();
   const navigate = useNavigate();
   return (
-    <Fragment>
-      {spotify_is_setup && (
-        <DialogTrigger
-          type="modal"
-          onClose={track => {
-            if (track) {
-              navigate(`/admin/tracks/${track.id}/edit`);
-            }
-          }}
-        >
-          <Tooltip label={<Trans message="Import by spotify ID" />}>
-            <IconButton
-              variant="outline"
-              color="primary"
-              className="flex-shrink-0"
-              size="sm"
-            >
-              <PublishIcon />
-            </IconButton>
-          </Tooltip>
-          <ImportTrackDialog />
-        </DialogTrigger>
-      )}
-      <DataTableAddItemButton elementType={Link} to="new">
-        <Trans message="Add new track" />
-      </DataTableAddItemButton>
-    </Fragment>
+    <DialogTrigger
+      type="modal"
+      onClose={track => {
+        if (track) {
+          navigate(`/admin/tracks/${track.id}/edit`);
+        }
+      }}
+    >
+      <Button
+        variant="outline"
+        className="flex-shrink-0"
+        size="sm"
+        startIcon={<LucideIcon icon={DownloadIcon} size="xs" />}
+      >
+        <Trans message="Import track" />
+      </Button>
+      <ImportTrackDialog />
+    </DialogTrigger>
   );
 }
 

@@ -14,13 +14,11 @@ export function usePaypal({productId, priceId}: UsePaypalProps) {
   const paypalButtonsRendered = useRef<boolean>(false);
   const [paypalIsLoaded, setPaypalIsLoaded] = useState(false);
   const paypalElementRef = useRef<HTMLDivElement>(null);
-  const {
-    base_url,
-    billing: {
-      stripe: {enable: stripeEnabled},
-      paypal: {enable: paypalEnabled, public_key},
-    },
-  } = useSettings();
+  const {base_url, billing} = useSettings();
+
+  const stripeEnabled = billing?.stripe?.enable;
+  const paypalEnabled = billing?.paypal?.enable;
+  const public_key = billing?.paypal?.public_key;
 
   useEffect(() => {
     if (!paypalEnabled || !public_key || paypalLoadStarted.current) return;

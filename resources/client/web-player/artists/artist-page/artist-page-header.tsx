@@ -33,6 +33,7 @@ export function ArtistPageHeader({artist}: ArtistPageHeaderProps) {
             showVerifiedBadge
             artist={artist}
             className="rounded-full object-cover"
+            wrapperClassName="mx-auto"
           />
         }
         title={artist.name}
@@ -57,10 +58,16 @@ export function ArtistPageHeader({artist}: ArtistPageHeaderProps) {
 
 interface GenreListProps {
   genres?: FullArtist['genres'];
+  className?: string;
 }
-function GenreList({genres}: GenreListProps) {
+export function GenreList({genres, className}: GenreListProps) {
   return (
-    <ul className="flex max-w-620 items-center justify-start gap-14 overflow-hidden overflow-ellipsis whitespace-nowrap text-sm text-muted max-md:hidden">
+    <ul
+      className={clsx(
+        'flex max-w-620 items-center justify-start gap-14 overflow-hidden overflow-ellipsis whitespace-nowrap text-sm text-muted max-md:hidden',
+        className,
+      )}
+    >
       {genres?.slice(0, 5).map(genre => (
         <li key={genre.id}>
           <Link

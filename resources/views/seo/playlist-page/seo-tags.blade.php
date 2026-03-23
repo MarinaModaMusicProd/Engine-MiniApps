@@ -25,9 +25,9 @@
 
 <script type="application/ld+json">
     {!! collect([
-        '@context' => 'http://schema.org',
-        '@type' => 'MusicPlaylist',
-        '@id' => urls()->playlist($playlist),
+        '@@context' => 'http://schema.org',
+        '@@type' => 'MusicPlaylist',
+        '@@id' => urls()->playlist($playlist),
         'url' => urls()->playlist($playlist),
         'name' => $playlist['name'],
         'numTracks' => $playlist['tracks_count'],

@@ -3,11 +3,12 @@ import {ButtonSize} from '@ui/buttons/button-size';
 import {ExternalLink, LinkStyle} from '@ui/buttons/external-link';
 import {IconButton} from '@ui/buttons/icon-button';
 import {Trans} from '@ui/i18n/trans';
-import {BookOpenIcon} from '@ui/icons/lucide/book-open';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {SettingsIcon} from '@ui/icons/material/Settings';
 import {SvgIconProps} from '@ui/icons/svg-icon';
 import {useSettings} from '@ui/settings/use-settings';
 import clsx from 'clsx';
+import {BookOpenIcon} from 'lucide-react';
 import {cloneElement, ReactElement, ReactNode} from 'react';
 import {Link} from 'react-router';
 
@@ -32,7 +33,7 @@ export function DocsLink({
   icon,
 }: LearnMoreLinkProps) {
   const {site} = useSettings();
-  if (site.hide_docs_button) {
+  if (site.hide_docs_buttons) {
     return null;
   }
 
@@ -45,7 +46,7 @@ export function DocsLink({
           href={link}
           target={target as any}
         >
-          <BookOpenIcon />
+          <LucideIcon icon={BookOpenIcon} size="xs" />
         </IconButton>
       );
     }
@@ -55,7 +56,7 @@ export function DocsLink({
         size={size}
         href={link}
         target={target as any}
-        startIcon={<BookOpenIcon />}
+        startIcon={<LucideIcon icon={BookOpenIcon} size="xs" />}
       >
         {children ?? <Trans message="Learn more" />}
       </Button>
@@ -63,11 +64,11 @@ export function DocsLink({
   }
 
   return (
-    <div className={clsx('flex items-center gap-8', className)}>
+    <div className={clsx('inline-flex items-center gap-8', className)}>
       {icon ? (
         cloneElement(icon, {size: 'sm', className: 'text-link'})
       ) : (
-        <BookOpenIcon size="sm" className="text-link" />
+        <LucideIcon icon={BookOpenIcon} size="xs" className="text-link" />
       )}
       <ExternalLink href={link} target={target}>
         {children ?? <Trans message="Learn more" />}

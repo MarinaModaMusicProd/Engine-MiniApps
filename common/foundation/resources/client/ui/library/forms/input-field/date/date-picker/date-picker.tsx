@@ -6,12 +6,13 @@ import {useCurrentDateTime} from '@ui/i18n/use-current-date-time';
 import {useDateFormatter} from '@ui/i18n/use-date-formatter';
 import {useTrans} from '@ui/i18n/use-trans';
 import {useUserTimezone} from '@ui/i18n/use-user-timezone';
-import {DateRangeIcon} from '@ui/icons/material/DateRange';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {Dialog} from '@ui/overlays/dialog/dialog';
 import {DialogBody} from '@ui/overlays/dialog/dialog-body';
 import {DialogFooter} from '@ui/overlays/dialog/dialog-footer';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
 import clsx from 'clsx';
+import {CalendarIcon} from 'lucide-react';
 import {ComponentPropsWithoutRef, Fragment, MouseEvent, useRef} from 'react';
 import {useController} from 'react-hook-form';
 import {Calendar} from '../calendar/calendar';
@@ -26,7 +27,8 @@ import {
 } from './use-date-picker-state';
 
 export interface DatePickerProps
-  extends Omit<DatePickerFieldProps, 'children'>,
+  extends
+    Omit<DatePickerFieldProps, 'children'>,
     DatePickerValueProps<ZonedDateTime> {}
 export function DatePicker({showCalendarFooter, ...props}: DatePickerProps) {
   const state = useDatePickerState(props);
@@ -103,7 +105,11 @@ export function DatePicker({showCalendarFooter, ...props}: DatePickerProps) {
         ref={inputRef}
         wrapperProps={openOnClick}
         endAdornment={
-          <DateRangeIcon className={clsx(props.disabled && 'text-disabled')} />
+          <LucideIcon
+            icon={CalendarIcon}
+            size={props.size || 'sm'}
+            className={clsx(props.disabled && 'text-disabled')}
+          />
         }
         {...props}
       >

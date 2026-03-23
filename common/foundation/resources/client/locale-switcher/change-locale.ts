@@ -19,12 +19,25 @@ export function useChangeLocale() {
         .post<ChangeLocaleResponse>(`users/me/locale`, props)
         .then(r => r.data),
     onSuccess: response => {
+      const mergedLocales = getBootstrapData().i18n.locales.map(locale => {
+        if (locale.language === response.locale.language) {
+          return {
+            ...locale,
+            lines: response.locale.lines ?? {},
+          };
+        }
+        return locale;
+      });
       mergeBootstrapData({
         i18n: {
-          locales: getBootstrapData().i18n.locales,
+          locales: mergedLocales,
           active: response.locale.language,
+          direction: response.locale.direction,
         },
       });
+
+      document.documentElement.dir = response.locale.direction;
+      document.documentElement.lang = response.locale.language;
     },
     onError: err => showHttpErrorToast(err),
   });

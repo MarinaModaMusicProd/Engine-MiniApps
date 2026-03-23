@@ -1,13 +1,13 @@
-import {Trans} from '@ui/i18n/trans';
+import {AdminDocsUrls} from '@app/admin/admin-config';
+import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
+import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
 import {Item} from '@ui/forms/listbox/item';
 import {FormSelect} from '@ui/forms/select/select';
-import React, {Fragment, ReactElement} from 'react';
-import {useFormContext} from 'react-hook-form';
-import {UpdateChannelPayload} from '@common/admin/channels/requests/use-update-channel';
+import {Trans} from '@ui/i18n/trans';
 import {InfoDialogTrigger} from '@ui/overlays/dialog/info-dialog-trigger/info-dialog-trigger';
 import clsx from 'clsx';
-import {ChannelsDocsLink} from '@common/admin/channels/channels-docs-link';
-import {ChannelContentConfig} from '@common/admin/channels/channel-editor/channel-content-config';
+import {Fragment, ReactElement} from 'react';
+import {useFormContext} from 'react-hook-form';
 
 interface Props {
   config: ChannelContentConfig;
@@ -58,10 +58,15 @@ function InfoTrigger() {
   return (
     <InfoDialogTrigger
       body={
-        <Fragment>
+        <p className="prose prose-sm prose-neutral text-pretty leading-snug dark:prose-invert">
           <Trans message="Allows specifying additional condition channel content should be filtered on. " />
-          <ChannelsDocsLink className="mt-20" hash="filter-content-by" />
-        </Fragment>
+          <a
+            href={`${AdminDocsUrls.pages.channels}#filter-content-by`}
+            target="_blank"
+          >
+            <Trans message="Learn more" />
+          </a>
+        </p>
       }
     />
   );

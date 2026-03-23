@@ -10,7 +10,7 @@ export type FullArtist = PartialArtist & {
   albums_count?: number;
   updated_at?: string;
   similar?: PartialArtist[];
-  genres?: {id: number; name: string; display_name: string}[];
+  genres?: {id: number; name: string; display_name: string | null}[];
   views: number;
   plays: number;
   profile?: ProfileDetails;

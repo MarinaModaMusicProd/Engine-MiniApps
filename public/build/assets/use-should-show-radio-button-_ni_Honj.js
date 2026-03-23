@@ -1,0 +1,1 @@
+import{as as a,W as e,u as s}from"./main-D6SjkSWq.js";function r(t,{absolute:o}={}){let i=`/radio/${t.model_type}/${t.id}/${a(t.name)}`;return o&&(i=`${e().settings.base_url}${i}`),i}function u(){const{player:t,metadata_provider:o,spotify_use_deprecated_api:i}=s();return!(t!=null&&t.hide_radio_button)&&o==="spotify"&&!!i||o==="deezer"}export{r as g,u};

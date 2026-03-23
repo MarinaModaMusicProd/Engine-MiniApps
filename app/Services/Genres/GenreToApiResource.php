@@ -6,7 +6,7 @@ use App\Models\Genre;
 
 class GenreToApiResource
 {
-    public function execute(Genre $genre): array
+    public function execute(Genre $genre, string|null $loader = null): array
     {
         $resource = [
             'id' => $genre->id,
@@ -18,6 +18,11 @@ class GenreToApiResource
 
         if ($genre->artists_count !== null) {
             $resource['artists_count'] = $genre->artists_count;
+        }
+
+        if ($loader === 'editGenreDatatable') {
+            $resource['created_at'] = $genre->created_at?->toJSON();
+            $resource['updated_at'] = $genre->updated_at?->toJSON();
         }
 
         return $resource;

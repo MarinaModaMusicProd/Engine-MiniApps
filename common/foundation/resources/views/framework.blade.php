@@ -6,6 +6,7 @@
 <!DOCTYPE html>
 <html
     lang="{{ $bootstrapData->get('i18n.active') }}"
+    dir="{{ $bootstrapData->get('i18n.direction') }}"
     style="{{ $bootstrapData->initialTheme->getCssVariables() }}"
     data-theme-id="{{ $bootstrapData->initialTheme['id'] }}"
     @class([

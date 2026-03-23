@@ -1,3 +1,4 @@
+import {ExternalIdsFields} from '@app/admin/artist-datatable-page/artist-form/external-ids-fields';
 import {CreateTrackPayload} from '@app/admin/tracks-datatable-page/requests/use-create-track';
 import {TrackFormUploadButton} from '@app/admin/tracks-datatable-page/track-form/track-form-upload-button';
 import {UploadType} from '@app/site-config';
@@ -12,7 +13,6 @@ import {FormattedDuration} from '@ui/i18n/formatted-duration';
 import {message} from '@ui/i18n/message';
 import {Trans} from '@ui/i18n/trans';
 import {useTrans} from '@ui/i18n/use-trans';
-import {useSettings} from '@ui/settings/use-settings';
 import {useIsMobileMediaQuery} from '@ui/utils/hooks/is-mobile-media-query';
 import {ReactNode} from 'react';
 import {useFormContext} from 'react-hook-form';
@@ -87,7 +87,7 @@ export function TrackForm({
         />
         <DurationField />
         {showExternalIdFields && <SourceField />}
-        {showExternalIdFields && <SpotifyIdField />}
+        {showExternalIdFields && <ExternalIdsFields inline />}
       </div>
     </div>
   );
@@ -104,22 +104,6 @@ function SourceField() {
       description={
         <Trans message="Supports audio, video, hls/dash stream and youtube video url. If left empty, best matching youtube video will be found automatically." />
       }
-    />
-  );
-}
-
-function SpotifyIdField() {
-  const {spotify_is_setup} = useSettings();
-  if (!spotify_is_setup) {
-    return null;
-  }
-  return (
-    <FormTextField
-      name="spotify_id"
-      label={<Trans message="Spotify ID" />}
-      className="mb-24"
-      minLength={22}
-      maxLength={22}
     />
   );
 }

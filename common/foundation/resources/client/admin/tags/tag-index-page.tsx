@@ -20,14 +20,15 @@ import {Button} from '@ui/buttons/button';
 import {IconButton} from '@ui/buttons/icon-button';
 import {FormattedDate} from '@ui/i18n/formatted-date';
 import {Trans} from '@ui/i18n/trans';
+import {LucideIcon} from '@ui/icons/lucide/lucide-icon-wrapper';
 import {EditIcon} from '@ui/icons/material/Edit';
 import {ConfirmationDialog} from '@ui/overlays/dialog/confirmation-dialog';
 import {useDialogContext} from '@ui/overlays/dialog/dialog-context';
 import {DialogTrigger} from '@ui/overlays/dialog/dialog-trigger';
+import {PlusIcon} from 'lucide-react';
 import {useContext, useMemo, useState} from 'react';
 import {SiteConfigContext} from '../../core/settings/site-config-context';
 import {ColumnConfig} from '../../datatable/column-config';
-import {DataTableAddItemButton} from '../../datatable/data-table-add-item-button';
 import {DataTableEmptyStateMessage} from '../../datatable/page/data-table-emty-state-message';
 import {Tag} from '../../tags/tag';
 import {CreateTagDialog} from './create-tag-dialog';
@@ -114,27 +115,29 @@ export function Component() {
     </DialogTrigger>
   );
 
-  const actions = (
-    <DialogTrigger type="modal">
-      <DataTableAddItemButton>
-        <Trans message="Add new tag" />
-      </DataTableAddItemButton>
-      <CreateTagDialog />
-    </DialogTrigger>
-  );
-
   return (
     <DatatablePageWithHeaderLayout>
       <GlobalLoadingProgress query={query} />
       <DatatablePageHeaderBar
         title={<Trans message="Tags" />}
         showSidebarToggleButton
+        rightContent={
+          <DialogTrigger type="modal">
+            <Button
+              variant="flat"
+              color="primary"
+              startIcon={<LucideIcon icon={PlusIcon} size="xs" />}
+            >
+              <Trans message="Add new tag" />
+            </Button>
+            <CreateTagDialog />
+          </DialogTrigger>
+        }
       />
       <DatatablePageWithHeaderBody>
         <DataTableHeader
           searchValue={searchParams.query}
           onSearchChange={setSearchQuery}
-          actions={actions}
           selectedItems={selectedRows}
           selectedActions={selectedActions}
           filters={filters}

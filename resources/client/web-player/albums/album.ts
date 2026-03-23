@@ -28,3 +28,5 @@ export type PartialAlbum = {
   owner_id: number | null;
   created_at: string | null;
 };
+
+export type RecordType = 'album' | 'single' | 'ep' | 'compilation';

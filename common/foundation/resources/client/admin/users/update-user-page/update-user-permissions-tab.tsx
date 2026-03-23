@@ -8,7 +8,10 @@ import {Trans} from '@ui/i18n/trans';
 import {useForm} from 'react-hook-form';
 import {useOutletContext} from 'react-router';
 
-export function Component() {
+type Props = {
+  roleType?: string;
+};
+export function Component({roleType = 'users'}: Props) {
   const user = useOutletContext() as UpdateUserPageUser;
   const form = useForm<UpdateUserPayload>({
     defaultValues: {
@@ -20,7 +23,7 @@ export function Component() {
     <UpdateUserForm form={form}>
       <UserRoleSection />
       <CrupdateResourceSection label={<Trans message="Permissions" />}>
-        <FormPermissionSelector name="permissions" />
+        <FormPermissionSelector name="permissions" roleType={roleType} />
       </CrupdateResourceSection>
     </UpdateUserForm>
   );

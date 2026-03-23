@@ -3,6 +3,7 @@
 namespace App\Services\Albums;
 
 use App\Models\Album;
+use App\Services\Providers\MusicMetadataProvider;
 use App\Traits\BuildsPaginatedApiResources;
 use Common\Database\Datasource\Datasource;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -51,9 +52,16 @@ class PaginateAlbums
             $builder = Album::query();
         }
 
+        $externalProvider = (new MusicMetadataProvider())->getProvider();
+
         $builder
             ->with(['artists'])
-            ->when(!$includeScheduled, fn($query) => $query->releasedOnly());
+            // partial albums might have release date as null,
+            //excluding scheduled album will not work in this case
+            ->when(
+                !$includeScheduled && !$externalProvider,
+                fn($query) => $query->releasedOnly(),
+            );
 
         if ($loader === 'editAlbumDatatable' || $loader === 'editArtistPage') {
             $builder->withCount('tracks');
@@ -78,6 +86,10 @@ class PaginateAlbums
             ]);
         }
 
+        if (!isset($params['order'])) {
+            $params['order'] = 'record_type|desc';
+        }
+
         $datasource = new Datasource($builder, $params);
         $order = $datasource->getOrder();
 
@@ -89,15 +101,13 @@ class PaginateAlbums
         // First order by number of tracks, so all albums
         // with less than 5 tracks (singles) are at
         // the bottom, then order by album release date.
-        if (Str::endsWith($order['col'], 'singlesLast')) {
+        if (Str::endsWith($order['col'], 'record_type')) {
             $datasource->order = false;
-            $prefix = DB::getTablePrefix();
+            // albums can have identical release dates, order by id to avoid duplicates in pagination
             $builder
-                ->withCount('tracks')
-                // albums can have identical release dates, order by id to avoid duplicates in pagination
-                ->orderByRaw(
-                    "tracks_count >= 5 desc, {$prefix}albums.release_date desc, {$prefix}albums.id desc",
-                );
+                ->orderByRecordType()
+                ->orderBy('release_date', 'desc')
+                ->orderBy('id', 'desc');
         }
 
         return $datasource->paginate();

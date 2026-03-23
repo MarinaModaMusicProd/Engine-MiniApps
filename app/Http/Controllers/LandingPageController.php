@@ -24,8 +24,8 @@ class LandingPageController extends BaseController
                 $channel = Channel::find($s['channelId']);
                 if ($channel) {
                     $channel->loadContent(['perPage' => 10]);
+                    return $channel->toApiResource();
                 }
-                return $channel;
             })
             ->filter()
             ->values();

@@ -10,7 +10,7 @@ return [
             'description' => 'Uploaded audio and video files',
             'defaults' => [
                 'prefix' => 'media',
-                'accept' => ['audio', 'video'],
+                'accept' => [],
                 'max_file_size' => '10485760', // 10MB
             ],
         ],

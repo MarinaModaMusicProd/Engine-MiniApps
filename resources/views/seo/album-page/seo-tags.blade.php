@@ -1,11 +1,14 @@
 <meta property="og:site_name" content="{{ settings('branding.site_name') }}" />
 <meta property="twitter:card" content="summary" />
 <meta property="og:type" content="music.album" />
-<meta property="music.release_date" content="{{$album['release_date']}}" />
-<title>{{ $album['name'] }} - {{$album['artists'][0]['name']}} - {{ settings('branding.site_name') }}</title>
+<meta property="music.release_date" content="{{ $album['release_date'] }}" />
+<title>
+    {{ $album['name'] }} - {{ $album['artists'][0]['name'] }} -
+    {{ settings('branding.site_name') }}
+</title>
 <meta
     property="og:title"
-    content="{{ $album['name'] }} - {{$album['artists'][0]['name']}} - {{ settings('branding.site_name') }}"
+    content="{{ $album['name'] }} - {{ $album['artists'][0]['name'] }} - {{ settings('branding.site_name') }}"
 />
 <meta property="og:url" content="{{ urls()->album($album) }}" />
 <link rel="canonical" href="{{ urls()->album($album) }}" />
@@ -16,18 +19,28 @@
     <meta property="og:height" content="300" />
 @endif
 
-<meta property="og:description" content="{{ $album['name'] }} album by {{$album['artists'][0]['name']}} on {{ settings('branding.site_name') }}" />
-<meta name="description" content="{{ $album['name'] }} album by {{$album['artists'][0]['name']}} on {{ settings('branding.site_name') }}" />
+<meta
+    property="og:description"
+    content="{{ $album['name'] }} album by {{ $album['artists'][0]['name'] }} on {{ settings('branding.site_name') }}"
+/>
+<meta
+    name="description"
+    content="{{ $album['name'] }} album by {{ $album['artists'][0]['name'] }} on {{ settings('branding.site_name') }}"
+/>
 
 <script type="application/ld+json">
-    {!! collect([
-        '@context' => 'http://schema.org',
-        '@type' => 'MusicAlbum',
-        '@id' => urls()->album($album),
-        'url' => urls()->album($album),
-        'datePublished' => $album['release_date'],
-        'name' => $album['name'],
-        'image' => $album['image'] ? urls()->image($album['image']) : null,
-        'description' => $album['name'] . ' album by ' . $album['artists'][0]['name'],
-    ])->filter()->toJson() !!}
+    {!!
+        collect([
+            '@@context' => 'http://schema.org',
+            '@@type' => 'MusicAlbum',
+            '@@id' => urls()->album($album),
+            'url' => urls()->album($album),
+            'datePublished' => $album['release_date'],
+            'name' => $album['name'],
+            'image' => $album['image'] ? urls()->image($album['image']) : null,
+            'description' => $album['name'] . ' album by ' . $album['artists'][0]['name'],
+        ])
+            ->filter()
+            ->toJson()
+    !!}
 </script>

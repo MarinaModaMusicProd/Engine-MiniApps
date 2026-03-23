@@ -52,6 +52,7 @@ class ExportTranslations extends Command
                     base_path('common'),
                     resource_path('views'),
                     resource_path('lang/en'),
+                    resource_path('defaults'),
                     base_path('vendor/laravel'),
                 ])
                 ->name(['*.php'])

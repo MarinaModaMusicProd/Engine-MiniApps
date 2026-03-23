@@ -1,15 +1,14 @@
-import {ColumnConfig} from '@common/datatable/column-config';
-import {Trans} from '@ui/i18n/trans';
-import {FormattedDate} from '@ui/i18n/formatted-date';
-import {Link} from 'react-router';
-import React from 'react';
-import {BackstageRequest} from '@app/web-player/backstage/backstage-request';
-import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
+import {BackstageRequestType} from '@app/admin/backstage-requests-datatable-page/backstage-request-type';
 import {SmallArtistImage} from '@app/web-player/artists/artist-image/small-artist-image';
 import {ArtistLink} from '@app/web-player/artists/artist-link';
-import clsx from 'clsx';
+import {BackstageRequest} from '@app/web-player/backstage/backstage-request';
+import {ColumnConfig} from '@common/datatable/column-config';
+import {NameWithAvatar} from '@common/datatable/column-templates/name-with-avatar';
 import {Button} from '@ui/buttons/button';
-import {BackstageRequestType} from '@app/admin/backstage-requests-datatable-page/backstage-request-type';
+import {FormattedDate} from '@ui/i18n/formatted-date';
+import {Trans} from '@ui/i18n/trans';
+import clsx from 'clsx';
+import {Link} from 'react-router';
 
 export const BackstageRequestsDatatableColumns: ColumnConfig<BackstageRequest>[] =
   [
@@ -90,7 +89,7 @@ export const BackstageRequestsDatatableColumns: ColumnConfig<BackstageRequest>[]
       hideHeader: true,
       align: 'end',
       visibleInMode: 'all',
-      width: 'w-60 flex-shrink-0',
+      width: 'w-64 flex-shrink-0',
       body: request => (
         <Button
           elementType={Link}

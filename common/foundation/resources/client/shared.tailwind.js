@@ -91,6 +91,7 @@ module.exports = {
       780: '48.75rem',
       850: '53.125rem',
       950: '59.375rem',
+      1024: '64rem',
       1280: '80rem',
       1408: '88rem',
       '5vw': '5vw',
@@ -202,7 +203,7 @@ module.exports = {
       dialog: 'calc(var(--be-viewport-height, 100vh) * 0.9 - 2px)',
     },
     width: {
-      screen: '100vw',
+      screen: '100dvw',
       dialog: 'calc(var(--be-viewport-width, 100vw) * 0.9 - 2px)',
     },
     minHeight: theme => ({
@@ -223,6 +224,9 @@ module.exports = {
       dialog: 'calc(var(--be-viewport-height, 100vh) * 0.9)',
       tray: 'calc(var(--be-viewport-height, 100vh) * 0.9)',
     }),
+    ringOffsetWidth: theme => ({
+      ...theme('spacing'),
+    }),
     zIndex: {
       toast: 160,
       tooltip: 150,
@@ -235,8 +239,11 @@ module.exports = {
     opacity: {
       1: '1%',
       2: '2%',
+      3: '3%',
       4: '4%',
+      5: '5%',
       6: '6%',
+      7: '7%',
       8: '8%',
       12: '12%',
       26: '26%',
@@ -310,11 +317,6 @@ module.exports = {
           // UTILS
           '.no-tap-highlight': {
             '-webkit-tap-highlight-color': 'transparent',
-          },
-        });
-        addComponents({
-          '.svg-icon': {
-            '@apply select-none inline-block flex-shrink-0 transition-icon': {},
           },
         });
       }),

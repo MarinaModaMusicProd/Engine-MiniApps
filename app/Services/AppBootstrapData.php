@@ -26,9 +26,6 @@ class AppBootstrapData extends BaseBootstrapData
         $this->data['settings']['spotify_use_deprecated_api'] = config(
             'services.spotify.use_deprecated_api',
         );
-        $this->data['settings']['lastfm_is_setup'] = !!config(
-            'services.lastfm.key',
-        );
 
         return $this;
     }

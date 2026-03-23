@@ -4,6 +4,7 @@ namespace App\Services\Channels;
 
 use App\Models\Album;
 use App\Models\Track;
+use App\Services\Providers\MusicMetadataProvider;
 use App\Services\Providers\Spotify\SpotifyNewAlbums;
 use App\Services\Providers\Spotify\SpotifyPlaylist;
 use App\Services\Providers\Spotify\SpotifyTopAlbums;
@@ -21,13 +22,16 @@ class FetchContentForChannelFromSpotify
         $method = lcfirst(preg_replace('/^spotify/', '', $method));
 
         return match ($method) {
-            'topTracks' => app(SpotifyTopTracks::class)->getContent(),
-            'topAlbums' => app(SpotifyTopAlbums::class)->execute(),
-            'topArtists' => app(SpotifyTopArtists::class)->execute(),
-            'newAlbums' => app(SpotifyNewAlbums::class)->getContent(),
-            'playlistTracks' => app(SpotifyPlaylist::class)->getContent($value)[
-                'tracks'
-            ] ?? null,
+            'topTracks' => (new SpotifyTopTracks())->getContent(),
+            'topAlbums' => (new SpotifyTopAlbums())->getContent(),
+            'topArtists' => (new SpotifyTopArtists())->getContent(),
+            'newAlbums' => (new SpotifyNewAlbums())->getContent(),
+            'playlistTracks' => collect(
+                (new MusicMetadataProvider('spotify'))->importPlaylist(
+                    $value,
+                    createLocalPlaylist: false,
+                )['tracks'] ?? [],
+            ),
             default => null,
         };
     }

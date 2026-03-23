@@ -1,7 +1,11 @@
 export function castObjectValuesToString<T extends Record<string, unknown>>(
   obj: T,
-): Record<keyof T, string> {
+): {
+  [K in keyof T]: T[K] extends string ? T[K] : string;
+} {
   return Object.fromEntries(
     Object.entries(obj).map(([key, value]) => [key, String(value)]),
-  ) as Record<keyof T, string>;
+  ) as {
+    [K in keyof T]: T[K] extends string ? T[K] : string;
+  };
 }
