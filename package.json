@@ -67,7 +67,7 @@
     "laravel-echo": "^2.0.2",
     "linkify-string": "^4.2.0",
     "lowlight": "^3.3.0",
-    "lucide-react": "^0.564.0",
+    "lucide-react": "^1.7.0",
     "markdown-it": "^14.1.1",
     "media-icons": "^0.10.0",
     "mime-match": "^1.0.2",
