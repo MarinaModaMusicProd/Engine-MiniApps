@@ -31,7 +31,7 @@
     "@tanstack/react-virtual": "^3.13.6",
     "@tiptap/extension-code-block-lowlight": "^3.2.0",
     "@tiptap/extension-color": "^3.10.7",
-    "@tiptap/extension-file-handler": "^3.19.0",
+    "@tiptap/extension-file-handler": "^3.21.0",
     "@tiptap/extension-image": "^3.2.0",
     "@tiptap/extension-placeholder": "^3.10.7",
     "@tiptap/extension-subscript": "^3.2.0",
